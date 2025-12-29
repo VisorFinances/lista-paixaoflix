@@ -1,25 +1,77 @@
-#EXTM3U
+#EXTM3U x-tvg-url="http://www.google.com"
 
-#EXTINF:-1 group-title="CANAIS" tvg-logo="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/main/logo-tvi.png", TVI Portugal
-https://video-auth6.iol.pt/edge_servers/tvi-720_passthrough/chunks.m3u8?wmsAuthSign=c2VydmVyX3RpbWU9MTIvMjkvMjAyNSAxMjozNjoyNSBBTSZoYXNoX3ZhbHVlPTh4c1MySWpTOVUrUnRDUkNZbVhYU2c9PSZ2YWxpZG1pbnV0ZXM9MTQ0MCZpZD1iOWY4MDQ2OS04MmVmLTQzYTgtYjM3OS02OGJjMTU0MDVlNmE=
-#EXTM3U
-#EXTINF:-1 tvg-id="Globo" tvg-logo="https://i.imgur.com/8L8C6i8.png" group-title="CANAIS ABERTOS",Globo RJ
-http://LINK_DO_SEU_CANAL_AQUI
-
-#EXTINF:-1 tvg-id="SBT" tvg-logo="https://i.imgur.com/yXN8Mv8.png" group-title="CANAIS ABERTOS",SBT
-http://LINK_DO_SEU_CANAL_AQUI
-
+# --- CANAIS ABERTOS ---
 #EXTINF:-1 tvg-logo="https://i.imgur.com/8L8C6i8.png" group-title="CANAIS ABERTOS",Globo RJ
-http://LINK_DO_SEU_CANAL_AQUI
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/52814
+#EXTINF:-1 tvg-logo="https://i.imgur.com/yXN8Mv8.png" group-title="CANAIS ABERTOS",SBT HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53250
+#EXTINF:-1 tvg-logo="https://i.imgur.com/mO2rN60.png" group-title="CANAIS ABERTOS",Record SP
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53248
+#EXTINF:-1 tvg-logo="https://i.imgur.com/uN8eD4n.png" group-title="CANAIS ABERTOS",Band HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3545
+#EXTINF:-1 tvg-logo="https://i.imgur.com/p6U8Tsh.png" group-title="CANAIS ABERTOS",Rede TV HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53249
+#EXTINF:-1 tvg-logo="https://i.imgur.com/9v4Z38t.png" group-title="CANAIS ABERTOS",TV Cultura HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/52844
 
-#EXTINF:-1 tvg-id="Record" tvg-logo="https://i.imgur.com/mO2rN60.png" group-title="CANAIS ABERTOS",Record TV
-http://LINK_DO_SEU_CANAL_AQUI
+# --- FILMES E SÉRIES ---
+#EXTINF:-1 tvg-logo="https://i.imgur.com/vHIdE6L.png" group-title="FILMES E SÉRIES",HBO Family
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3710
+#EXTINF:-1 tvg-logo="https://i.imgur.com/vHIdE6L.png" group-title="FILMES E SÉRIES",HBO Plus
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3711
+#EXTINF:-1 tvg-logo="https://i.imgur.com/vHIdE6L.png" group-title="FILMES E SÉRIES",HBO Mundi
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53237
+#EXTINF:-1 tvg-logo="https://i.imgur.com/XU6vM1S.png" group-title="FILMES E SÉRIES",Telecine Action
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3714
+#EXTINF:-1 tvg-logo="https://i.imgur.com/XU6vM1S.png" group-title="FILMES E SÉRIES",Telecine Pipoca
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/47547
+#EXTINF:-1 tvg-logo="" group-title="FILMES E SÉRIES",AMC HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53247
+#EXTINF:-1 tvg-logo="" group-title="FILMES E SÉRIES",Space HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/51203
+#EXTINF:-1 tvg-logo="" group-title="FILMES E SÉRIES",DarkFlix
+https://video01.soultv.com.br/darkflix/darkflix/playlist.m3u8
 
-#EXTINF:-1 tvg-id="Band" tvg-logo="https://i.imgur.com/uN8eD4n.png" group-title="CANAIS ABERTOS",Band
-http://LINK_DO_SEU_CANAL_AQUI
+# --- ESPORTES ---
+#EXTINF:-1 tvg-logo="https://i.imgur.com/83917mB.png" group-title="ESPORTES",SporTV HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3854
+#EXTINF:-1 tvg-logo="https://i.imgur.com/83917mB.png" group-title="ESPORTES",SporTV 2 HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3855
+#EXTINF:-1 tvg-logo="https://i.imgur.com/83917mB.png" group-title="ESPORTES",SporTV 3 HD
+http://vipketseyket.top:8080/VIP017741743173529373/aacb05f76c36/4904
+#EXTINF:-1 tvg-logo="" group-title="ESPORTES",Premiere 1 HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/51469
+#EXTINF:-1 tvg-logo="" group-title="ESPORTES",Combate HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3543
+#EXTINF:-1 tvg-logo="" group-title="ESPORTES",ESPN Brasil
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3841
 
-#EXTINF:-1 tvg-id="RedeTV" tvg-logo="https://i.imgur.com/p6U8Tsh.png" group-title="CANAIS ABERTOS",Rede TV!
-http://LINK_DO_SEU_CANAL_AQUI
+# --- NOTÍCIAS ---
+#EXTINF:-1 tvg-logo="" group-title="NOTÍCIAS",CNN Brasil HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53231
+#EXTINF:-1 tvg-logo="" group-title="NOTÍCIAS",Globo News HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/47517
+#EXTINF:-1 tvg-logo="" group-title="NOTÍCIAS",Times Brasil
+https://video01.soultv.com.br/timesbrasil/timesbrasil/playlist.m3u8
 
-#EXTINF:-1 tvg-id="Cultura" tvg-logo="https://i.imgur.com/9v4Z38t.png" group-title="CANAIS ABERTOS",TV Cultura
-http://LINK_DO_SEU_CANAL_AQUI
+# --- INFANTIL ---
+#EXTINF:-1 tvg-logo="" group-title="KIDS",Disney Junior
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3696
+#EXTINF:-1 tvg-logo="" group-title="KIDS",Cartoon Network
+http://vipketseyket.top:8080/VIP017741743173529373/aacb05f76c36/4837
+#EXTINF:-1 tvg-logo="" group-title="KIDS",Nickelodeon
+http://vipketseyket.top:8080/VIP017741743173529373/aacb05f76c36/4883
+
+# --- DOCUMENTÁRIOS ---
+#EXTINF:-1 tvg-logo="" group-title="CURIOSIDADE",Discovery Turbo
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3537
+#EXTINF:-1 tvg-logo="" group-title="CURIOSIDADE",National Geographic HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3528
+#EXTINF:-1 tvg-logo="" group-title="CURIOSIDADE",History Channel
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3530
+
+# --- INTERNACIONAL (TUNÍSIA/ALCASS) ---
+#EXTINF:-1 group-title="INTERNACIONAL",Al Kass 1 HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/1138
+#EXTINF:-1 group-title="INTERNACIONAL",Tunisia Nat 1
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/20
