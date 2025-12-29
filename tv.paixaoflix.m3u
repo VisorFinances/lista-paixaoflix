@@ -1,55 +1,67 @@
 #EXTM3U
 
-# --- CANAIS ABERTOS ---
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/globo.png" group-title="ABERTOS",Globo RJ
+#EXTINF:-1 tvg-id="Globo" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/globo.png" group-title="ABERTOS",Globo RJ
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/52814
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/sbt.png" group-title="ABERTOS",SBT HD
+
+#EXTINF:-1 tvg-id="SBT" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/sbt.png" group-title="ABERTOS",SBT HD
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53250
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/record.png" group-title="ABERTOS",Record SP
+
+#EXTINF:-1 tvg-id="Record" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/record.png" group-title="ABERTOS",Record SP
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53248
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/band.png" group-title="ABERTOS",Band HD
+
+#EXTINF:-1 tvg-id="Band" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/band.png" group-title="ABERTOS",Band HD
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3545
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/redetv.png" group-title="ABERTOS",Rede TV HD
+
+#EXTINF:-1 tvg-id="RedeTV" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/redetv.png" group-title="ABERTOS",Rede TV HD
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53249
 
-# --- ESPORTES BRASIL ---
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/sportv.png" group-title="ESPORTES",SporTV
+#EXTINF:-1 tvg-id="SporTV" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/sportv.png" group-title="ESPORTES",SporTV
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3854
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/sportv2.png" group-title="ESPORTES",SporTV 2
+
+#EXTINF:-1 tvg-id="SporTV2" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/sportv2.png" group-title="ESPORTES",SporTV 2
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3855
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/premiere.png" group-title="ESPORTES",Premiere 1 HD
+
+#EXTINF:-1 tvg-id="Premiere" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/premiere.png" group-title="ESPORTES",Premiere 1 HD
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/51469
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/espn.png" group-title="ESPORTES",ESPN Brasil
+
+#EXTINF:-1 tvg-id="ESPN" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/espn.png" group-title="ESPORTES",ESPN Brasil
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3841
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/tnt.png" group-title="ESPORTES",TNT SPORTS
+
+#EXTINF:-1 tvg-id="TNT" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/tnt.png" group-title="ESPORTES",TNT SPORTS
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3829
 
-# --- BEIN SPORTS & INTERNACIONAL ---
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/france/beinsports1.png" group-title="BEIN",beIN SPORTS 1
+#EXTINF:-1 tvg-id="Bein1" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/france/beinsports1.png" group-title="BEIN SPORTS",beIN SPORTS 1
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/1126
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/france/beinsports2.png" group-title="BEIN",beIN SPORTS 2
+
+#EXTINF:-1 tvg-id="Bein2" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/france/beinsports2.png" group-title="BEIN SPORTS",beIN SPORTS 2
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/1127
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/france/beinsports3.png" group-title="BEIN",beIN SPORTS 3
+
+#EXTINF:-1 tvg-id="Bein3" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/france/beinsports3.png" group-title="BEIN SPORTS",beIN SPORTS 3
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/1128
-#EXTINF:-1 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Al_Kass_Sports_Channels_logo.svg/1200px-Al_Kass_Sports_Channels_logo.svg.png" group-title="INTERNACIONAL",Al KASS 1 HD
+
+#EXTINF:-1 tvg-id="AlKass" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Al_Kass_Sports_Channels_logo.svg/1200px-Al_Kass_Sports_Channels_logo.svg.png" group-title="INTERNACIONAL",Al KASS 1 HD
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/1138
-#EXTINF:-1 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/OSN_Logo.svg/1200px-OSN_Logo.svg.png" group-title="INTERNACIONAL",OSN MOVIES FIRST
+
+#EXTINF:-1 tvg-id="OSN" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/OSN_Logo.svg/1200px-OSN_Logo.svg.png" group-title="INTERNACIONAL",OSN MOVIES FIRST
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/1094
 
-# --- FILMES E SÉRIES ---
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/hbo.png" group-title="FILMES",HBO Mundi HD
+#EXTINF:-1 tvg-id="HBOMundi" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/hbo.png" group-title="FILMES",HBO Mundi HD
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53237
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/telecineaction.png" group-title="FILMES",Telecine Action
+
+#EXTINF:-1 tvg-id="TCAction" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/telecineaction.png" group-title="FILMES",Telecine Action
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3714
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/cinemax.png" group-title="FILMES",Cinemax HD
+
+#EXTINF:-1 tvg-id="Cinemax" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/cinemax.png" group-title="FILMES",Cinemax HD
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3228
-#EXTINF:-1 tvg-logo="https://i.imgur.com/rIJwt2Q.png" group-title="FILMES",DarkFlix
+
+#EXTINF:-1 tvg-id="DarkFlix" tvg-logo="https://i.imgur.com/rIJwt2Q.png" group-title="FILMES",DarkFlix
 https://video01.soultv.com.br/darkflix/darkflix/playlist.m3u8
 
-# --- CANAIS VIP ---
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/amc.png" group-title="VIP",BR: AMC
+#EXTINF:-1 tvg-id="AMC" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/amc.png" group-title="VIP",BR: AMC
 http://vipketseyket.top:8080/VIP017741743173529373/aacb05f76c36/4830
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/axn.png" group-title="VIP",BR: AXN
+
+#EXTINF:-1 tvg-id="AXN" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/axn.png" group-title="VIP",BR: AXN
 http://vipketseyket.top:8080/VIP017741743173529373/aacb05f76c36/4832
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/disneychannel.png" group-title="VIP",BR: DISNEY
+
+#EXTINF:-1 tvg-id="Disney" tvg-logo="https://raw.githubusercontent.com/gonher92/TV-Logos/master/countries/brazil/disneychannel.png" group-title="VIP",BR: DISNEY
 http://vipketseyket.top:8080/VIP017741743173529373/aacb05f76c36/4851
