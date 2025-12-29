@@ -3,112 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tv.PaixãoFlix - Player Oficial</title>
+    <title>Tv.PaixãoFlix - Oficial</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body {
-            background-color: #0a0a0a;
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+        :root { --red: #e50914; --dark: #0a0a0a; --gray: #1a1a1a; }
+        body { background: var(--dark); color: white; font-family: sans-serif; margin: 0; display: flex; height: 100vh; }
+        
+        /* Menu Lateral */
+        #sidebar { width: 300px; background: var(--gray); display: flex; flex-direction: column; border-right: 1px solid #333; }
+        .header-logo { padding: 20px; text-align: center; border-bottom: 1px solid #333; }
+        .header-logo img { max-width: 100%; height: 60px; }
+        #channel-list { flex: 1; overflow-y: auto; padding: 10px; }
+        
+        .channel-item { 
+            padding: 12px; margin-bottom: 8px; background: #222; border-radius: 4px; 
+            cursor: pointer; display: flex; align-items: center; transition: 0.2s;
         }
+        .channel-item:hover { background: #333; border-left: 4px solid var(--red); }
+        .channel-item img { width: 30px; height: 30px; margin-right: 10px; border-radius: 3px; object-fit: contain; }
 
-        header {
-            background: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: absolute;
-            width: 100%;
-            z-index: 10;
-        }
-
-        .logo {
-            height: 60px; /* Ajuste conforme o seu logo */
-        }
-
-        .container {
-            display: flex;
-            flex: 1;
-            margin-top: 80px;
-        }
-
-        #playlist {
-            width: 300px;
-            background: rgba(20, 20, 20, 0.9);
-            overflow-y: auto;
-            border-right: 1px solid #333;
-            padding: 10px;
-        }
-
-        .canal-item {
-            padding: 15px;
-            margin-bottom: 5px;
-            background: #1a1a1a;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: 0.3s;
-            border-left: 4px solid transparent;
-        }
-
-        .canal-item:hover {
-            background: #333;
-            border-left: 4px solid #e50914; /* Vermelho PaixãoFlix */
-        }
-
-        #player-container {
-            flex: 1;
-            background: black;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        video {
-            width: 90%;
-            max-height: 80%;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-
-        h2 { font-size: 1.2rem; margin-bottom: 20px; color: #e50914; }
+        /* Área do Player */
+        #main { flex: 1; display: flex; flex-direction: column; background: black; justify-content: center; }
+        video { width: 100%; max-height: 90vh; outline: none; }
+        .info { padding: 15px; background: rgba(0,0,0,0.8); position: absolute; bottom: 0; width: 100%; }
     </style>
 </head>
 <body>
 
-    <header>
-        <img src="https://i.imgur.com/rIJwt2Q.png" alt="Tv.PaixãoFlix" class="logo">
-        <div><strong>Bem-vindo ao Futuro do Streaming</strong></div>
-    </header>
-
-    <div class="container">
-        <div id="playlist">
-            <h2>Canais & Séries</h2>
-            <div id="lista-canais">
-                <div class="canal-item" onclick="playVideo('SEU_LINK_AQUI')">Aguardando Lista...</div>
-            </div>
-        </div>
-
-        <div id="player-container">
-            <video id="videoPlayer" controls autoplay>
-                Seu navegador não suporta o player.
-            </video>
-        </div>
+<div id="sidebar">
+    <div class="header-logo">
+        <img src="https://i.imgur.com/rIJwt2Q.png" alt="Tv.PaixãoFlix">
     </div>
+    <div id="channel-list">Carregando canais...</div>
+</div>
 
-    <script>
-        // Função para carregar o vídeo
-        function playVideo(url) {
-            const video = document.getElementById('videoPlayer');
-            video.src = url;
-            video.play();
+<div id="main">
+    <video id="video" controls autoplay></video>
+</div>
+
+<script>
+    const M3U_URL = 'lista.m3u'; // Ele vai ler o arquivo que está na mesma pasta
+    const video = document.getElementById('video');
+    const channelList = document.getElementById('channel-list');
+
+    async function loadPlaylist() {
+        try {
+            const response = await fetch(M3U_URL);
+            const data = await response.text();
+            const channels = parseM3U(data);
+            renderChannels(channels);
+        } catch (err) {
+            channelList.innerHTML = "Erro ao carregar lista.";
         }
+    }
 
-        // Futuramente aqui faremos o código ler automaticamente sua lista.m3u do GitHub
-    </script>
+    function parseM3U(content) {
+        const lines = content.split('\n');
+        const channels = [];
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith('#EXTINF')) {
+                const info = lines[i];
+                const url = lines[i + 1]?.trim();
+                const name = info.split(',')[1];
+                const logoMatch = info.match(/tvg-logo="([^"]+)"/);
+                const logo = logoMatch ? logoMatch[1] : 'https://via.placeholder.com/30?text=TV';
+                if (url && url.startsWith('http')) {
+                    channels.push({ name, url, logo });
+                }
+            }
+        }
+        return channels;
+    }
+
+    function renderChannels(channels) {
+        channelList.innerHTML = '';
+        channels.forEach(ch => {
+            const div = document.createElement('div');
+            div.className = 'channel-item';
+            div.innerHTML = `<img src="${ch.logo}"> <span>${ch.name}</span>`;
+            div.onclick = () => playStream(ch.url);
+            channelList.appendChild(div);
+        });
+    }
+
+    function playStream(url) {
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(url);
+            hls.attachMedia(video);
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = url;
+        }
+    }
+
+    loadPlaylist();
+</script>
+
 </body>
 </html>
