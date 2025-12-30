@@ -5,40 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PaixãoFlix_Tv</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.10/dist/hls.min.js"></script>
     <style>
         :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
         #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; }
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
         .logo-area img { height: 80px; }
-        
         .search-area { padding: 15px; } 
         .search-box { width: calc(100% - 17px); padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; font-size: 13px; }
-        
         #channel-list { flex: 1; overflow-y: auto; scrollbar-width: none; }
-        #channel-list::-webkit-scrollbar { display: none; }
-
         .cat-title { background: #050505; padding: 12px 15px; font-size: 14px; font-weight: 700; color: #fff; text-transform: uppercase; }
-        
-        .item { display: flex; align-items: center; padding: 10px 15px; cursor: pointer; border-left: 3px solid transparent; outline: none; transition: 0.1s; }
-        .item:focus, .item.active { background: #1a1a1a; border-left: 3px solid var(--primary); transform: scale(1.02); }
+        .item { display: flex; align-items: center; padding: 10px 15px; cursor: pointer; border-left: 3px solid transparent; outline: none; }
+        .item:focus, .item.active { background: #1a1a1a; border-left: 3px solid var(--primary); }
         .item-name { font-size: 13px; color: #ccc; }
-        .item:focus .item-name { color: #fff; }
-
         #main-view { flex: 1; display: flex; background: #000; }
         #player-wrapper { flex: 1; width: 100%; height: 100%; }
-        iframe, video { width: 100%; height: 100%; border: none; }
+        iframe, video { width: 100%; height: 100%; border: none; background: #000; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
     <div class="logo-area"><img src="https://tv.paixaoflix.vip/logo.png" alt="Logo"></div>
-    <div class="search-area">
-        <input type="text" id="search" class="search-box" placeholder="Buscar..." onkeyup="filter()">
-    </div>
+    <div class="search-area"><input type="text" id="search" class="search-box" placeholder="Buscar..." onkeyup="filter()"></div>
     <div id="channel-list"></div>
 </div>
 
@@ -48,7 +38,6 @@
 
 <script>
     const URL_M3U = 'tv.paixaoflix.m3u';
-    let listaCanais = {};
     let hls = null;
 
     async function carregarApp() {
@@ -56,7 +45,7 @@
             const res = await fetch(URL_M3U);
             const text = await res.text();
             processar(text);
-        } catch (e) { console.error("Erro ao carregar M3U"); }
+        } catch (e) { console.error("Erro M3U"); }
     }
 
     function processar(text) {
@@ -73,13 +62,10 @@
                 }
             }
         }
-        listaCanais = cats;
         desenhar(cats);
-        
-        // Foca no primeiro item, mas não dá play automático para não vir mudo
-        setTimeout(() => {
-            const itens = document.querySelectorAll('.item');
-            if(itens.length > 0) itens[0].focus();
+        setTimeout(() => { 
+            const p = document.querySelector('.item'); 
+            if(p) p.focus(); 
         }, 500);
     }
 
@@ -87,76 +73,60 @@
         const container = document.getElementById('channel-list');
         container.innerHTML = '';
         for (let c in data) {
-            const t = document.createElement('div'); 
-            t.className = 'cat-title'; 
-            t.innerText = c;
+            const t = document.createElement('div'); t.className = 'cat-title'; t.innerText = c;
             container.appendChild(t);
-            
             data[c].forEach(canal => {
                 const div = document.createElement('div');
-                div.className = 'item'; 
-                div.tabIndex = 0; // Necessário para foco em Smart TVs
+                div.className = 'item'; div.tabIndex = 0;
                 div.innerHTML = `<div class="item-name">${canal.nome}</div>`;
-                div.onclick = () => tocar(canal.link, canal.nome, div);
+                div.onclick = () => tocar(canal.link, div);
                 container.appendChild(div);
             });
         }
     }
 
-    function tocar(url, nome, el) {
+    function tocar(url, el) {
         document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
-
         const wrapper = document.getElementById('player-wrapper');
+
         if (hls) { hls.destroy(); hls = null; }
 
-        // SEM MUTED: O vídeo tentará tocar com som
-        if (url.includes('archive.org') || url.includes('drive.google.com')) {
-            let finalUrl = url;
-            if (url.includes('drive.google.com')) {
-                let id = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
-                finalUrl = `https://drive.google.com/file/d/${id}/preview`;
-            }
-            wrapper.innerHTML = `<iframe src="${finalUrl}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+        if (url.includes('drive.google.com')) {
+            // Ajuste para evitar o pedido de login em alguns casos usando o modo embed
+            let id = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
+            wrapper.innerHTML = `<iframe src="https://docs.google.com/get_video_info?docid=${id}" style="display:none"></iframe>
+                                 <iframe src="https://drive.google.com/file/d/${id}/preview" allow="autoplay"></iframe>`;
+        } else if (url.includes('archive.org')) {
+            wrapper.innerHTML = `<iframe src="${url}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
         } else {
             wrapper.innerHTML = `<video id="video" controls autoplay playsinline></video>`;
             const v = document.getElementById('video');
-            if (Hls.isSupported() && url.includes('m3u8')) {
-                hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => v.play());
-            } else { 
-                v.src = url; 
-                v.play();
+            
+            // LÓGICA PARA FIREFOX E SMART TV
+            if (url.includes('.m3u8')) {
+                if (Hls.isSupported()) {
+                    hls = new Hls();
+                    hls.loadSource(url);
+                    hls.attachMedia(v);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => v.play());
+                } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
+                    v.src = url;
+                }
+            } else {
+                v.src = url;
             }
         }
     }
 
-    // NAVEGAÇÃO LIVRE PARA PC E SMART TV (LG/SAMSUNG)
+    // Setas para Smart TV LG e PC
     document.addEventListener('keydown', (e) => {
         const itens = Array.from(document.querySelectorAll('.item'));
         const index = itens.indexOf(document.activeElement);
-
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            if (index < itens.length - 1) itens[index + 1].focus();
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            if (index > 0) itens[index - 1].focus();
-        } else if (e.key === 'Enter') {
-            e.preventDefault();
-            document.activeElement.click();
-        }
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (index < itens.length - 1) itens[index + 1].focus(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); if (index > 0) itens[index - 1].focus(); }
+        else if (e.key === 'Enter') { e.preventDefault(); document.activeElement.click(); }
     });
-
-    function filter() {
-        const val = document.getElementById('search').value.toLowerCase();
-        let f = {};
-        for (let c in listaCanais) {
-            let m = listaCanais[c].filter(i => i.nome.toLowerCase().includes(val));
-            if (m.length > 0) f[c] = m;
-        }
-        desenhar(f);
-    }
 
     carregarApp();
 </script>
