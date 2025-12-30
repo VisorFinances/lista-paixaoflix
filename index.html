@@ -3,147 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PAIXÃOFLIX - Web TV</title>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#e50914">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <title>PAIXÃOFLIX</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --primary: #e50914; --bg: #141414; --card-bg: #2f2f2f; --text: #ffffff; }
-        body { font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; }
+        :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
+        body { font-family: 'Roboto', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
-        header { 
-            padding: 15px 5%; background: rgba(0,0,0,0.9); 
-            display: flex; align-items: center; justify-content: space-between;
-            position: fixed; width: 100%; z-index: 1000; box-sizing: border-box;
-        }
-        .logo { color: var(--primary); font-size: 24px; font-weight: bold; text-transform: uppercase; }
-        .btn-install { 
-            background: var(--primary); color: white; border: none; padding: 8px 15px; 
-            border-radius: 4px; cursor: pointer; display: none; font-weight: bold;
-        }
-
-        #player-container { 
-            width: 100%; background: #000; display: flex; align-items: center; justify-content: center; 
-            position: relative; aspect-ratio: 16 / 9; max-height: 70vh; padding-top: 60px;
-        }
-        video { width: 100%; height: 100%; max-height: 70vh; outline: none; }
-
-        .category-title { padding: 20px 5% 5px; font-size: 18px; font-weight: bold; color: #aaa; text-transform: uppercase; }
-        .grid { 
-            display: flex; overflow-x: auto; gap: 12px; padding: 5px 5% 25px; 
-            scrollbar-width: none;
-        }
-        .grid::-webkit-scrollbar { display: none; }
-
-        .card { 
-            min-width: 140px; max-width: 140px; background: var(--card-bg); border-radius: 6px; 
-            overflow: hidden; cursor: pointer; transition: 0.3s; flex-shrink: 0;
-        }
-        .card:hover { transform: scale(1.05); }
-        .card img { width: 100%; height: 200px; object-fit: cover; }
-        .card-info { padding: 8px; font-size: 12px; text-align: center; font-weight: bold; }
+        /* Sidebar */
+        #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; }
         
-        .status-msg { position: absolute; z-index: 10; color: var(--primary); }
+        .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
+        .logo-area img { max-width: 180px; height: auto; display: inline-block; }
+        
+        .search-area { padding: 15px 35px 15px 15px; } 
+        .search-box { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; font-size: 13px; }
+        
+        /* Barra de Rolagem Restaurada e Visível */
+        #channel-list { flex: 1; overflow-y: scroll; scrollbar-width: thin; scrollbar-color: #333 transparent; }
+        #channel-list::-webkit-scrollbar { width: 6px; }
+        #channel-list::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        .cat-title { 
+            background: #1a1a1a; padding: 6px 15px; margin-right: 40px; 
+            font-size: 11px; text-transform: uppercase; color: #888; 
+            font-weight: bold; border-radius: 0 4px 4px 0; margin-top: 15px;
+            position: sticky; top: 0; z-index: 10;
+        }
+        
+        /* Itens com Borda e Efeito de Seleção */
+        .item { 
+            display: flex; align-items: center; padding: 12px 15px; cursor: pointer; 
+            transition: 0.2s; border-bottom: 1px solid #0a0a0a; 
+            border-left: 3px solid transparent; 
+        }
+        .item:hover { background: #1a1a1a; border-left: 3px solid var(--primary); }
+        .item img { width: 55px; height: 75px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
+        .item-name { font-size: 14px; font-weight: 400; flex: 1; }
+
+        /* Área do Player */
+        #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
+        #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; }
+        video { width: 100%; height: 100%; object-fit: contain; }
+        
+        .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 50px 30px 30px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; }
+        #title-now { font-size: 28px; font-weight: bold; margin: 0; }
+        #desc-now { font-size: 15px; color: #ccc; margin-top: 10px; max-width: 80%; line-height: 1.5; }
+
+        @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 45%; } }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="logo">PaixãoFlix</div>
-    <button id="installBtn" class="btn-install">INSTALAR APP</button>
-</header>
-
-<div id="player-container">
-    <div class="status-msg" id="status">Aguardando seleção...</div>
-    <video id="video" controls playsinline></video>
+<div id="sidebar">
+    <div class="logo-area">
+        <img src="https://i.imgur.com/rIJwt2Q.png" alt="Logo" onerror="this.src='https://via.placeholder.com/150x50?text=PAIXAOFLIX'">
+    </div>
+    <div class="search-area">
+        <input type="text" id="search" class="search-box" placeholder="Buscar canal ou filme..." onkeyup="filter()">
+    </div>
+    <div id="channel-list"></div>
 </div>
 
-<div id="content"></div>
+<div id="main-view">
+    <div id="player-wrapper">
+        <video id="video" controls autoplay playsinline></video>
+    </div>
+    <div class="info-panel">
+        <h1 id="title-now">Bem-vindo</h1>
+        <p id="desc-now">Selecione um conteúdo na lista para assistir.</p>
+    </div>
+</div>
 
 <script>
-    // Registro do PWA
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js');
-    }
+    // Variáveis globais únicas (limpas)
+    const KEY_TMDB = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
+    const URL_M3U = '/tv.paixaoflix.m3u?v=' + Date.now();
+    const player = document.getElementById('video');
+    let listaCanais = {};
 
-    // Lógica do Botão de Instalação
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById('installBtn').style.display = 'block';
-    });
-
-    document.getElementById('installBtn').addEventListener('click', async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') document.getElementById('installBtn').style.display = 'none';
-            deferredPrompt = null;
-        }
-    });
-
-    // Carregamento da Lista
-    const m3uUrl = '/online.m3u';
-    const video = document.getElementById('video');
-
-    async function init() {
+    async function carregarApp() {
         try {
-            const res = await fetch(m3uUrl);
+            const res = await fetch(URL_M3U);
             const text = await res.text();
-            render(text);
-        } catch (e) { document.getElementById('status').innerText = "Erro na lista"; }
+            if(!text.includes('#EXTM3U')) throw "Erro";
+            processar(text);
+        } catch (e) {
+            document.getElementById('channel-list').innerHTML = "<p style='padding:20px'>Erro ao carregar lista.</p>";
+        }
     }
 
-    function render(data) {
-        const lines = data.split('\n');
-        let categories = {};
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].startsWith('#EXTINF')) {
-                const title = lines[i].split(',')[1] || "Canal";
-                const url = lines[i+1].trim();
-                const group = lines[i].match(/group-title="([^"]+)"/)?.[1] || "Geral";
-                if (!categories[group]) categories[group] = [];
-                categories[group].push({ title, url });
+    function processar(text) {
+        const linhas = text.split('\n');
+        let cats = {};
+        for (let i = 0; i < linhas.length; i++) {
+            if (linhas[i].includes('#EXTINF')) {
+                let nome = linhas[i].split(',')[1]?.trim();
+                let link = linhas[i+1]?.trim();
+                let grupo = linhas[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
+                let base = nome.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP/gi, '').trim();
+
+                if (link && link.startsWith('http')) {
+                    if (!cats[grupo]) cats[grupo] = [];
+                    if (!cats[grupo].find(x => x.base === base)) {
+                        cats[grupo].push({ nome, base, link, grupo });
+                    }
+                }
             }
         }
-        
-        const container = document.getElementById('content');
-        for (let cat in categories) {
-            const div = document.createElement('div');
-            div.innerHTML = `<div class="category-title">${cat}</div>`;
-            const grid = document.createElement('div');
-            grid.className = 'grid';
-            categories[cat].forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                let poster = item.title.includes("E.P.C") ? "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/75pW83Fv9M9L5q7G6Y6F3NqfXhB.jpg" : "https://via.placeholder.com/300x450/2f2f2f/ffffff?text=" + item.title;
-                card.innerHTML = `<img src="${poster}"><div class="card-info">${item.title}</div>`;
-                card.onclick = () => play(item.url);
-                grid.appendChild(card);
-            });
-            div.appendChild(grid);
-            container.appendChild(div);
-        }
+        listaCanais = cats;
+        desenhar(cats);
     }
 
-    function play(url) {
-        document.getElementById('status').style.display = 'none';
-        let finalUrl = url.startsWith('http:') ? `${window.location.origin}/proxy?url=${encodeURIComponent(url)}` : url;
+    function desenhar(data) {
+        const container = document.getElementById('channel-list');
+        container.innerHTML = '';
+        
+        Object.keys(data).sort().forEach(c => {
+            const titulo = document.createElement('div');
+            titulo.className = 'cat-title';
+            titulo.innerText = c;
+            container.appendChild(titulo);
+
+            data[c].forEach(canal => {
+                const id = btoa(unescape(encodeURIComponent(canal.base))).substring(0,12).replace(/[^a-z]/gi, 'x');
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    <img src="https://via.placeholder.com/100x150/111/222?text= " id="img-${id}">
+                    <div class="item-name">${canal.base}</div>
+                `;
+                div.onclick = () => tocar(canal.link, canal.base, id);
+                container.appendChild(div);
+                buscarImg(canal.base, id, c);
+            });
+        });
+    }
+
+    async function buscarImg(termo, id, categoria) {
+        let q = termo.split('|')[0].split('-')[0].trim();
+        try {
+            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${KEY_TMDB}&language=pt-BR&query=${encodeURIComponent(q)}`);
+            const j = await r.json();
+            if (j.results && j.results[0]) {
+                const res = j.results[0];
+                const el = document.getElementById(`img-${id}`);
+                if (el && res.poster_path) {
+                    el.src = `https://image.tmdb.org/t/p/w200${res.poster_path}`;
+                    el.dataset.info = res.overview;
+                }
+            }
+        } catch (e) {}
+    }
+
+    function tocar(url, nome, id) {
+        const img = document.getElementById(`img-${id}`);
+        document.getElementById('title-now').innerText = nome;
+        document.getElementById('desc-now').innerText = img?.dataset.info || "Descrição indisponível.";
+
+        let linkFinal = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
         
         if (Hls.isSupported()) {
             const hls = new Hls();
-            hls.loadSource(finalUrl);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+            hls.loadSource(linkFinal);
+            hls.attachMedia(player);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => player.play());
         } else {
-            video.src = finalUrl;
-            video.play();
+            player.src = linkFinal;
+            player.play();
         }
-        window.scrollTo(0,0);
     }
-    init();
+
+    function filter() {
+        const val = document.getElementById('search').value.toLowerCase();
+        let f = {};
+        for (let c in listaCanais) {
+            let m = listaCanais[c].filter(i => i.base.toLowerCase().includes(val));
+            if (m.length > 0) f[c] = m;
+        }
+        desenhar(f);
+    }
+
+    carregarApp();
 </script>
 </body>
 </html>
