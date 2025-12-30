@@ -4,52 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PaixãoFlix_Tv</title>
-    <link rel="icon" href="https://tv.paixaoflix.vip/favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Sidebar */
-        #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; }
+        #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; }
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
-        .logo-area img { height: 80px; width: auto; }
-        
-        /* Pesquisa reduzida em 17px */
-        .search-area { padding: 15px; text-align: center; } 
-        .search-box { width: calc(100% - 17px) !important; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; font-size: 13px; }
-        
-        /* Assistindo Agora abaixo da pesquisa */
+        .logo-area img { height: 80px; }
+        .search-area { padding: 15px; } 
+        .search-box { width: calc(100% - 17px); padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; font-size: 13px; }
         #now-playing-sidebar { padding: 10px 15px; background: #1a1a1a; display: none; border-bottom: 1px solid #222; }
-        .now-playing-label { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 2px; text-transform: uppercase; }
-        .now-playing-name { font-size: 12px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; }
-        
-        /* Títulos das sessões - 14px negrito 700 */
-        .cat-title { background: #050505; padding: 10px 15px; font-size: 14px; text-transform: uppercase; color: #fff; font-weight: 700; position: sticky; top: 0; z-index: 11; }
-        
-        /* Canais - Título 13px e Cards levemente maiores */
-        .item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #0a0a0a; border-left: 3px solid transparent; outline: none; transition: 0.2s; }
-        .item:focus, .item.active { background: #1a1a1a; border-left: 3px solid var(--primary); transform: scale(1.03); }
-        .item img { width: 60px; height: 85px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
-        .item-name { font-size: 13px; font-weight: 400; flex: 1; }
-
-        /* Player */
+        .now-playing-label { font-size: 14px; font-weight: 700; color: var(--primary); }
+        .now-playing-name { font-size: 12px; color: #fff; }
+        #channel-list { flex: 1; overflow-y: auto; }
+        .cat-title { background: #050505; padding: 10px 15px; font-size: 14px; font-weight: 700; color: #fff; text-transform: uppercase; position: sticky; top: 0; }
+        .item { display: flex; align-items: center; padding: 10px 15px; cursor: pointer; border-left: 3px solid transparent; outline: none; }
+        .item:focus, .item.active { background: #1a1a1a; border-left: 3px solid var(--primary); }
+        .item img { width: 50px; height: 70px; border-radius: 4px; margin-right: 12px; object-fit: cover; }
+        .item-name { font-size: 13px; }
         #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
-        #player-wrapper { flex: 1; display: flex; background: #000; }
+        #player-wrapper { flex: 1; display: flex; }
         iframe, video { width: 100%; height: 100%; border: none; }
-        
-        /* EPG */
-        .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; }
-        #title-now { font-size: 24px; font-weight: 700; margin: 0; }
-        #desc-now { font-size: 14px; color: #ccc; margin-top: 10px; max-width: 80%; line-height: 1.4; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <div class="logo-area"><img src="https://tv.paixaoflix.vip/logo.png" alt="PaixãoFlix_Tv"></div>
+    <div class="logo-area"><img src="logo.png" alt="Logo"></div>
     <div class="search-area"><input type="text" id="search" class="search-box" placeholder="Buscar..." onkeyup="filter()"></div>
     <div id="now-playing-sidebar">
         <div class="now-playing-label">Assistindo Agora</div>
@@ -60,15 +42,11 @@
 
 <div id="main-view">
     <div id="player-wrapper"></div>
-    <div class="info-panel">
-        <h1 id="title-now">PaixãoFlix_Tv</h1>
-        <p id="desc-now">Selecione um conteúdo para iniciar.</p>
-    </div>
 </div>
 
 <script>
     const KEY_TMDB = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
-    const URL_M3U = '/tv.paixaoflix.m3u?v=' + Date.now();
+    const URL_M3U = 'tv.paixaoflix.m3u';
     let listaCanais = {};
 
     async function carregarApp() {
@@ -76,7 +54,7 @@
             const res = await fetch(URL_M3U);
             const text = await res.text();
             processar(text);
-        } catch (e) { console.error("Erro ao carregar M3U"); }
+        } catch (e) { console.error("Erro M3U"); }
     }
 
     function processar(text) {
@@ -87,126 +65,68 @@
                 let nome = linhas[i].split(',')[1]?.trim();
                 let link = linhas[i+1]?.trim();
                 let grupo = linhas[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
-                let base = nome.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP/gi, '').split('-')[0].trim();
-
                 if (link && link.startsWith('http')) {
                     if (!cats[grupo]) cats[grupo] = [];
-                    // Agrupamento para não duplicar séries na lateral
-                    if (!cats[grupo].find(x => x.base === base)) {
-                        cats[grupo].push({ nome, base, link });
-                    }
+                    cats[grupo].push({ nome, link });
                 }
             }
         }
         listaCanais = cats;
         desenhar(cats);
-        
-        // Selecionar o primeiro canal automaticamente
-        setTimeout(() => {
-            const primeiro = document.querySelector('.item');
-            if (primeiro) { primeiro.focus(); primeiro.click(); }
-        }, 800);
+        setTimeout(() => { 
+            const p = document.querySelector('.item'); 
+            if(p) { p.focus(); p.click(); } 
+        }, 500);
     }
 
     function desenhar(data) {
         const container = document.getElementById('channel-list');
         container.innerHTML = '';
-        Object.keys(data).sort().forEach(c => {
-            const titulo = document.createElement('div');
-            titulo.className = 'cat-title';
-            titulo.innerText = c;
-            container.appendChild(titulo);
+        for (let c in data) {
+            const t = document.createElement('div'); t.className = 'cat-title'; t.innerText = c;
+            container.appendChild(t);
             data[c].forEach(canal => {
-                const id = btoa(unescape(encodeURIComponent(canal.nome))).substring(0,8).replace(/[^a-z]/gi, 'x');
                 const div = document.createElement('div');
                 div.className = 'item'; div.tabIndex = 0;
-                div.innerHTML = `<img src="" id="img-${id}" style="display:none"><div class="item-name">${canal.nome}</div>`;
-                div.onclick = () => tocar(canal.link, canal.nome, id, div);
+                div.innerHTML = `<div class="item-name">${canal.nome}</div>`;
+                div.onclick = () => tocar(canal.link, canal.nome, div);
                 container.appendChild(div);
-                buscarImg(canal.base, id);
             });
-        });
+        }
     }
 
-    function tocar(url, nome, id, el) {
-        // Sidebar Assistindo Agora
+    function tocar(url, nome, el) {
         document.getElementById('now-playing-sidebar').style.display = 'block';
         document.getElementById('current-channel-name').innerText = nome;
-        
-        // Seleção visual
         document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
-        
-        // EPG Central
-        document.getElementById('title-now').innerText = nome;
-        const img = document.getElementById(`img-${id}`);
-        document.getElementById('desc-now').innerText = img?.dataset.info || "Sinopse não disponível.";
 
         const wrapper = document.getElementById('player-wrapper');
         
-        // LÓGICA QUE FUNCIONOU NAS TARTARUGAS NINJA
-        // Archive.org e Google Drive abrem via iFrame para garantir a reprodução e evitar download
+        // Se for Archive ou Drive, usa IFRAME (Igual ao que funcionou antes)
         if (url.includes('archive.org') || url.includes('drive.google.com')) {
             let finalUrl = url;
             if (url.includes('drive.google.com')) {
-                let dId = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
-                finalUrl = `https://drive.google.com/file/d/${dId}/preview`;
+                let id = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
+                finalUrl = `https://drive.google.com/file/d/${id}/preview`;
             }
             wrapper.innerHTML = `<iframe src="${finalUrl}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
         } else {
-            // Para canais M3U8 normais
-            wrapper.innerHTML = `<video id="video" controls autoplay playsinline muted style="width:100%; height:100%;"></video>`;
+            // Para canais M3U8
+            wrapper.innerHTML = `<video id="video" controls autoplay playsinline muted></video>`;
             const v = document.getElementById('video');
-            if (window.Hls && Hls.isSupported() && url.includes('m3u8')) {
+            if (Hls.isSupported() && url.includes('m3u8')) {
                 const hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
-            } else {
-                v.src = url;
-            }
+            } else { v.src = url; }
         }
     }
 
-    // Navegação por setas
     document.addEventListener('keydown', (e) => {
-        const active = document.activeElement;
-        if (!active.classList.contains('item')) return;
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            let next = active.nextElementSibling;
-            while(next && !next.classList.contains('item')) next = next.nextElementSibling;
-            if (next) next.focus();
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            let prev = active.previousElementSibling;
-            while(prev && !prev.classList.contains('item')) prev = prev.previousElementSibling;
-            if (prev) prev.focus();
-        } else if (e.key === 'Enter') { active.click(); }
+        const a = document.activeElement;
+        if (e.key === 'ArrowDown') { e.preventDefault(); a.nextElementSibling?.focus(); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); a.previousElementSibling?.focus(); }
+        if (e.key === 'Enter') a.click();
     });
-
-    async function buscarImg(termo, id) {
-        try {
-            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${KEY_TMDB}&language=pt-BR&query=${encodeURIComponent(termo)}`);
-            const j = await r.json();
-            if (j.results && j.results[0]) {
-                const res = j.results[0];
-                const el = document.getElementById(`img-${id}`);
-                if (el) { 
-                    el.src = `https://image.tmdb.org/t/p/w200${res.poster_path}`; 
-                    el.style.display = 'block'; 
-                    el.dataset.info = res.overview; 
-                }
-            }
-        } catch (e) {}
-    }
-
-    function filter() {
-        const val = document.getElementById('search').value.toLowerCase();
-        let f = {};
-        for (let c in listaCanais) {
-            let m = listaCanais[c].filter(i => i.nome.toLowerCase().includes(val));
-            if (m.length > 0) f[c] = m;
-        }
-        desenhar(f);
-    }
 
     carregarApp();
 </script>
