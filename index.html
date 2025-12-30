@@ -6,10 +6,6 @@
     <title>PAIXÃOFLIX</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#e50914">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-
     <link rel="icon" type="image/png" href="https://i.imgur.com/rIJwt2Q.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -18,7 +14,6 @@
         :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
-        /* Sidebar */
         #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; z-index: 10; }
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; min-height: 80px; }
         .logo-area img { max-width: 100%; height: auto; max-height: 80px; }
@@ -30,35 +25,33 @@
         .now-label { font-size: 11px; color: var(--primary); font-weight: 700; text-transform: uppercase; }
         .now-title { font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
 
-        #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 transparent; }
-        
+        #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; }
         .cat-title { background: #1a1a1a; padding: 12px 15px; font-size: 13px; text-transform: uppercase; font-weight: 700; position: sticky; top: 0; z-index: 20; border-bottom: 1px solid #333; }
         
-        /* Itens e Foco da Smart TV */
-        .item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #0a0a0a; border-left: 4px solid transparent; outline: none; transition: 0.2s; }
-        .item:focus, .item.active-focus { background: #333 !important; border-left: 4px solid var(--primary) !important; outline: none; }
+        .item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #0a0a0a; border-left: 4px solid transparent; outline: none; }
+        .item:focus, .item.active-focus { background: #333 !important; border-left: 4px solid var(--primary) !important; }
         .item.playing { background: rgba(229, 9, 20, 0.2) !important; border-left: 4px solid var(--primary); }
 
         .item img { width: 55px; height: 75px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
         .item-name { font-size: 14px; flex: 1; pointer-events: none; }
 
-        /* Player e Efeito de Fundo */
         #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; overflow: hidden; }
         
+        /* CAMADA DE IMAGEM NO PLAYER */
         #bg-poster { 
-            position: absolute; top: -10%; left: -10%; width: 120%; height: 120%; 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background-size: cover; background-position: center;
-            filter: blur(50px) brightness(0.35); z-index: 1; 
-            transition: background-image 1s ease-in-out;
-            display: block;
+            filter: blur(50px) brightness(0.3); z-index: 1; 
+            transition: background-image 0.8s ease-in-out;
+            display: block; background-repeat: no-repeat;
         }
 
         #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; z-index: 5; position: relative; }
-        video { width: 100%; height: 100%; object-fit: contain; background: transparent; }
+        video { width: 100%; height: 100%; object-fit: contain; z-index: 6; }
         
         .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 60px 30px 40px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; z-index: 10; }
         #title-now { font-size: 32px; font-weight: 700; margin: 0; }
-        #desc-now { font-size: 16px; color: #ccc; margin-top: 10px; max-width: 75%; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        #desc-now { font-size: 16px; color: #ccc; margin-top: 10px; max-width: 75%; line-height: 1.6; }
 
         @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 40%; } }
     </style>
@@ -70,7 +63,7 @@
         <img src="logo.png" onerror="this.src='https://i.imgur.com/rIJwt2Q.png'" alt="PAIXÃOFLIX">
     </div>
     <div class="search-area">
-        <input type="text" id="search" class="search-box" placeholder="Buscar canal ou filme...">
+        <input type="text" id="search-input" class="search-box" placeholder="Buscar..." onkeyup="fazerBusca()">
     </div>
     <div id="now-playing-side">
         <div class="now-label">Assistindo agora</div>
@@ -86,7 +79,7 @@
     </div>
     <div class="info-panel">
         <h1 id="title-now">PAIXÃOFLIX</h1>
-        <p id="desc-now">Escolha um canal ou filme para iniciar o player.</p>
+        <p id="desc-now">Escolha um canal para iniciar.</p>
     </div>
 </div>
 
@@ -94,11 +87,10 @@
     const TMDB_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
     const M3U_URL = 'tv.paixaoflix.m3u?v=' + Date.now();
     const video = document.getElementById('video');
-    let listaCanais = {};
+    let listaCompleta = {};
 
-    // REGISTRO DO SERVICE WORKER (Para o botão de download)
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(err => console.log("Erro SW", err));
+        navigator.serviceWorker.register('sw.js').catch(() => {});
     }
 
     async function init() {
@@ -106,7 +98,7 @@
             const res = await fetch(M3U_URL);
             const text = await res.text();
             parsearM3U(text);
-        } catch (e) { console.error("Falha ao carregar M3U"); }
+        } catch (e) { console.error("Erro M3U"); }
     }
 
     function parsearM3U(data) {
@@ -127,17 +119,13 @@
                 }
             }
         }
-        listaCanais = grupos;
+        listaCompleta = grupos;
         desenhar(grupos);
         
-        // FOCO AUTOMÁTICO (LG WEBOS)
         setTimeout(() => {
             const primeiro = document.querySelector('.item');
-            if (primeiro) {
-                primeiro.focus();
-                primeiro.classList.add('active-focus');
-            }
-        }, 2000);
+            if (primeiro) primeiro.focus();
+        }, 1500);
     }
 
     function desenhar(dados) {
@@ -176,31 +164,31 @@
                 if (imgTag) {
                     imgTag.src = path;
                     const itemEl = imgTag.closest('.item');
-                    itemEl.dataset.poster = path;
-                    itemEl.dataset.info = j.results[0].overview;
+                    itemEl.setAttribute('data-poster', path); // ATRIBUTO PARA IMAGEM NO PLAYER
+                    itemEl.setAttribute('data-info', j.results[0].overview || "");
                 }
             }
         } catch (e) {}
     }
 
     function carregarPlayer(url, nome, id, elemento) {
-        // Atualiza Interface
         document.getElementById('now-playing-side').style.display = 'block';
         document.getElementById('side-playing-title').innerText = nome;
         document.getElementById('title-now').innerText = nome;
-        document.getElementById('desc-now').innerText = elemento.dataset.info || "Sinopse não disponível para este conteúdo.";
+        document.getElementById('desc-now').innerText = elemento.getAttribute('data-info') || "Sinopse indisponível.";
         
-        // Atualiza Imagem de Fundo (Poster Blur)
-        const poster = elemento.dataset.poster;
+        // CORREÇÃO DA IMAGEM NO PLAYER
+        const posterUrl = elemento.getAttribute('data-poster');
         const bg = document.getElementById('bg-poster');
-        if (poster) {
-            bg.style.backgroundImage = "url('" + poster + "')";
+        if (posterUrl) {
+            bg.style.backgroundImage = "url('" + posterUrl + "')";
+        } else {
+            bg.style.backgroundImage = "none";
         }
 
         document.querySelectorAll('.item').forEach(i => i.classList.remove('playing'));
         elemento.classList.add('playing');
 
-        // Lógica de Vídeo
         let streamUrl = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
         if (Hls.isSupported()) {
             const hls = new Hls(); 
@@ -213,7 +201,19 @@
         }
     }
 
-    // NAVEGAÇÃO POR CONTROLE (SETAS)
+    // FUNÇÃO DE BUSCA CORRIGIDA
+    window.fazerBusca = function() {
+        const termo = document.getElementById('search-input').value.toLowerCase();
+        let filtrados = {};
+        for (let grupo in listaCompleta) {
+            let canaisFiltrados = listaCompleta[grupo].filter(c => c.base.toLowerCase().includes(termo));
+            if (canaisFiltrados.length > 0) {
+                filtrados[grupo] = canaisFiltrados;
+            }
+        }
+        desenhar(filtrados);
+    };
+
     document.addEventListener('keydown', (e) => {
         const items = document.querySelectorAll('.item');
         let index = Array.from(items).indexOf(document.activeElement);
