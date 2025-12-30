@@ -2,178 +2,171 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix - Oficial</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAIXÃOFLIX - Web TV Oficial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root { --primary: #e50914; --bg: #141414; --card-bg: #2f2f2f; --text: #ffffff; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; }
         
-        body {
-            background: #000;
-            color: #fff;
-            font-family: Arial, sans-serif;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
+        /* Header Estilo Netflix */
+        header { 
+            padding: 15px 5%; 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); 
+            display: flex; align-items: center; position: fixed; width: 100%; z-index: 1000; 
+            box-sizing: border-box;
         }
+        .logo { color: var(--primary); font-size: 24px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
 
-        /* BARRA LATERAL ESQUERDA FIXA */
-        .sidebar {
-            width: 300px;
-            background: #000;
-            border-right: 1px solid #1a1a1a;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            flex-shrink: 0;
+        /* Area do Player */
+        #player-container { 
+            width: 100%; background: #000; display: flex; align-items: center; justify-content: center; 
+            position: relative; aspect-ratio: 16 / 9; max-height: 70vh; padding-top: 60px;
         }
+        video { width: 100%; height: 100%; max-height: 70vh; outline: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        /* 1 - TOPO: LOGOTIPO */
-        .logo-box {
-            height: 80px; /* Ajuste solicitado */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
+        /* Categorias e Grid */
+        #content { padding: 20px 0; }
+        .category-title { padding: 20px 5% 10px; font-size: 22px; font-weight: bold; color: #e5e5e5; }
+        .grid { 
+            display: flex; overflow-x: auto; gap: 15px; padding: 10px 5% 30px; 
+            scrollbar-width: none; -ms-overflow-style: none; 
         }
-        .logo-box img { height: 80px; width: auto; }
+        .grid::-webkit-scrollbar { display: none; }
 
-        /* 2 - CAIXA DE PESQUISA */
-        .search-box {
-            margin-bottom: 20px;
+        .card { 
+            min-width: 160px; max-width: 160px; background: var(--card-bg); border-radius: 4px; 
+            overflow: hidden; cursor: pointer; transition: transform 0.3s ease; flex-shrink: 0;
         }
-        .search-input {
-            width: calc(100% - 17px) !important; /* Ajuste solicitado */
-            padding: 10px;
-            background: #111;
-            border: 1px solid #333;
-            color: #fff;
-            border-radius: 4px;
-        }
+        .card:hover { transform: scale(1.1); z-index: 100; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        .card img { width: 100%; height: 230px; object-fit: cover; pointer-events: none; }
+        .card-info { padding: 8px; font-size: 13px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .status-msg { position: absolute; z-index: 10; color: var(--primary); font-weight: bold; text-align: center; }
 
-        /* 3 - ASSISTINDO AGORA (MINI PLAYER) */
-        .mini-player-title {
-            color: #e50914;
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        .mini-player-wrapper {
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: #080808;
-            border: 1px solid #222;
-            margin-bottom: 20px;
-        }
-        iframe { width: 100%; height: 100%; border: none; }
-
-        /* 4 - SESSÕES */
-        .menu-list { list-style: none; }
-        .menu-item {
-            padding: 10px 0;
-            color: #888;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .menu-item.active { color: #fff; font-weight: bold; }
-
-        /* CONTEÚDO À DIREITA */
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-            background: #0a0a0a;
-        }
-
-        .section-title {
-            font-size: 1.8rem !important; /* Ajuste solicitado */
-            margin-bottom: 25px;
-            font-weight: bold;
-        }
-
-        /* GRID DE CONTEÚDOS */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background: #111;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.3s;
-            border: 2px solid transparent;
-        }
-
-        /* CARDS LEVEMENTE AUMENTADOS */
-        .card:hover, .card.selected {
-            transform: scale(1.08); /* Ajuste solicitado */
-            border-color: #e50914;
-        }
-
-        .card img {
-            width: 100%;
-            aspect-ratio: 2/3;
-            object-fit: cover;
-            display: block;
-        }
-
-        .card-name {
-            padding: 10px;
-            font-size: 13px;
-            text-align: center;
+        @media (max-width: 768px) {
+            .card { min-width: 130px; max-width: 130px; }
+            .card img { height: 180px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="logo-box">
-            <img src="https://tv.paixaoflix.vip/logo.png" alt="Logo">
-        </div>
+<header>
+    <div class="logo">PaixãoFlix</div>
+</header>
 
-        <div class="search-box">
-            <input type="text" class="search-input" placeholder="Pesquisar...">
-        </div>
+<div id="player-container">
+    <div class="status-msg" id="status">Selecione um conteúdo para iniciar</div>
+    <video id="video" controls preload="auto" poster="https://via.placeholder.com/1280x720/000000/e50914?text=PAIXAOFLIX"></video>
+</div>
 
-        <div class="mini-player-title">ASSISTINDO AGORA</div>
-        <div class="mini-player-wrapper" id="player-target">
-            </div>
-
-        <ul class="menu-list">
-            <li class="menu-item active">LANÇAMENTOS</li>
-            <li class="menu-item">FILMES</li>
-            <li class="menu-item">SÉRIES</li>
-        </ul>
+<div id="content">
     </div>
 
-    <div class="main-content">
-        <h2 class="section-title">Recomendados</h2>
-        <div class="grid">
-            <div class="card" id="card-1" onclick="playMovie('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC', this)">
-                <img src="https://cdn.iset.io/assets/52438/produtos/40738/thumb_350-350-atn.jpg">
-                <div class="card-name">AS TARTARUGAS NINJA - O RETORNO</div>
-            </div>
-        </div>
-    </div>
+<script>
+    const m3uUrl = '/online.m3u'; // Caminho relativo para usar seu Worker/Proxy
+    const video = document.getElementById('video');
+    const status = document.getElementById('status');
 
-    <script>
-        function playMovie(id, el) {
-            // Usa o ID do Drive para carregar o player direto (preview)
-            document.getElementById('player-target').innerHTML = 
-                `<iframe src="https://drive.google.com/file/d/${id}/preview" allowfullscreen></iframe>`;
-            
-            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
+    async function loadApp() {
+        try {
+            const response = await fetch(m3uUrl);
+            const data = await response.text();
+            parseAndRender(data);
+        } catch (err) {
+            status.innerText = "Erro ao carregar lista de canais.";
+            console.error(err);
         }
+    }
 
-        window.onload = function() {
-            const first = document.getElementById('card-1');
-            if(first) {
-                first.classList.add('selected');
-                // Se quiser que o filme comece sozinho, descomente a linha abaixo
-                // playMovie('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC', first);
+    function parseAndRender(content) {
+        const lines = content.split('\n');
+        let categories = {};
+
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith('#EXTINF')) {
+                const info = lines[i];
+                const url = lines[i + 1]?.trim();
+                const title = info.split(',')[1]?.trim() || "Sem Nome";
+                const groupMatch = info.match(/group-title="([^"]+)"/);
+                const category = groupMatch ? groupMatch[1].toUpperCase() : "DIVERSOS";
+
+                if (!categories[category]) categories[category] = [];
+                if (url && url.startsWith('http')) {
+                    categories[category].push({ title, url });
+                }
             }
         }
-    </script>
+        renderLayout(categories);
+    }
+
+    function renderLayout(categories) {
+        const container = document.getElementById('content');
+        container.innerHTML = '';
+
+        for (let cat in categories) {
+            const section = document.createElement('div');
+            section.innerHTML = `<div class="category-title">${cat}</div>`;
+            const grid = document.createElement('div');
+            grid.className = 'grid';
+
+            categories[cat].forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                // Lógica de Posteres Automáticos
+                let poster = "https://via.placeholder.com/300x450/2f2f2f/ffffff?text=" + encodeURIComponent(item.title);
+                if (item.title.includes("E.P.C")) {
+                    poster = "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/75pW83Fv9M9L5q7G6Y6F3NqfXhB.jpg";
+                }
+
+                card.innerHTML = `
+                    <img src="${poster}" loading="lazy">
+                    <div class="card-info">${item.title}</div>
+                `;
+                card.onclick = () => playStream(item.url, item.title);
+                grid.appendChild(card);
+            });
+            section.appendChild(grid);
+            container.appendChild(section);
+        }
+    }
+
+    function playStream(url, title) {
+        status.style.display = 'none';
+        
+        // TUNEL PROXY: Se o vídeo for HTTP e o site HTTPS, usa o Worker como ponte
+        let finalUrl = url;
+        if (url.startsWith('http:')) {
+            finalUrl = `${window.location.origin}/proxy?url=${encodeURIComponent(url)}`;
+        }
+
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(finalUrl);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                video.play();
+            });
+            hls.on(Hls.Events.ERROR, function (event, data) {
+                if (data.fatal) console.error("Erro fatal HLS");
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Suporte Nativo (Safari/iOS)
+            video.src = finalUrl;
+            video.play();
+        } else {
+            // Fallback para MP4 direto (Archive.org)
+            video.src = finalUrl;
+            video.play();
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    loadApp();
+</script>
+
 </body>
 </html>
