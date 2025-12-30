@@ -13,51 +13,55 @@
         body { font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; }
         
         header { 
-            padding: 15px 5%; background: linear-gradient(to bottom, rgba(0,0,0,1) 0%, transparent 100%); 
+            padding: 10px 5%; background: #000; 
             display: flex; align-items: center; justify-content: space-between;
             position: fixed; width: 100%; z-index: 1000; box-sizing: border-box;
+            flex-wrap: wrap; gap: 10px;
         }
-        .logo { color: var(--primary); font-size: 24px; font-weight: bold; letter-spacing: 2px; }
-        .btn-install { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; display: none; font-weight: bold; }
+        .logo { color: var(--primary); font-size: 22px; font-weight: bold; letter-spacing: 1px; }
+        
+        /* Barra de Pesquisa */
+        .search-box { background: #333; border: none; padding: 8px 15px; border-radius: 20px; color: white; width: 200px; outline: none; }
 
         #player-container { 
             width: 100%; background: #000; display: flex; align-items: center; justify-content: center; 
-            position: relative; aspect-ratio: 16 / 9; max-height: 60vh; padding-top: 60px;
+            position: relative; aspect-ratio: 16 / 9; max-height: 55vh; padding-top: 70px;
         }
-        video { width: 100%; height: 100%; outline: none; background: #000; }
+        video { width: 100%; height: 100%; outline: none; }
 
-        .meta-container { padding: 20px 5%; background: linear-gradient(to bottom, #000, var(--bg)); border-bottom: 1px solid #333; }
-        #movie-title { font-size: 28px; font-weight: bold; margin: 0; color: #fff; }
-        #movie-desc { font-size: 16px; color: #ccc; margin-top: 10px; max-width: 800px; line-height: 1.4; }
+        .meta-container { padding: 15px 5%; background: #1a1a1a; border-bottom: 1px solid #333; display:none; }
+        #movie-title { font-size: 24px; font-weight: bold; margin: 0; }
+        #movie-desc { font-size: 14px; color: #ccc; margin-top: 8px; line-height: 1.4; }
 
-        .category-title { padding: 25px 5% 5px; font-size: 18px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
-        .grid { display: flex; overflow-x: auto; gap: 15px; padding: 10px 5% 30px; scrollbar-width: none; }
+        .category-title { padding: 20px 5% 5px; font-size: 16px; font-weight: bold; color: #888; text-transform: uppercase; }
+        .grid { display: flex; overflow-x: auto; gap: 12px; padding: 10px 5% 20px; scrollbar-width: none; }
         .grid::-webkit-scrollbar { display: none; }
 
         .card { 
-            min-width: 150px; max-width: 150px; background: var(--card-bg); border-radius: 8px; 
-            overflow: hidden; cursor: pointer; transition: 0.4s; flex-shrink: 0; position: relative;
+            min-width: 130px; max-width: 130px; background: var(--card-bg); border-radius: 6px; 
+            overflow: hidden; cursor: pointer; transition: 0.3s; flex-shrink: 0;
         }
-        .card:hover { transform: scale(1.1); z-index: 10; box-shadow: 0 0 20px rgba(0,0,0,0.9); }
-        .card img { width: 100%; height: 225px; object-fit: cover; }
-        .card-info { padding: 10px; font-size: 12px; text-align: center; font-weight: bold; height: 35px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .card:hover { transform: scale(1.08); z-index: 10; }
+        .card img { width: 100%; height: 190px; object-fit: cover; }
+        .card-info { padding: 8px; font-size: 11px; text-align: center; font-weight: bold; height: 30px; overflow: hidden; }
         
-        .status-msg { position: absolute; z-index: 10; color: var(--primary); font-weight: bold; }
+        #status { position: absolute; z-index: 10; color: var(--primary); font-size: 14px; text-align: center; width: 80%; }
     </style>
 </head>
 <body>
 
 <header>
     <div class="logo">PAIXÃOFLIX</div>
-    <button id="installBtn" class="btn-install">INSTALAR APP</button>
+    <input type="text" id="searchInput" class="search-box" placeholder="Pesquisar canal ou série..." onkeyup="filterContent()">
+    <button id="installBtn" style="display:none; background:var(--primary); color:white; border:none; padding:5px 10px; border-radius:4px; font-size:12px;">INSTALAR</button>
 </header>
 
 <div id="player-container">
-    <div class="status-msg" id="status">Escolha o que assistir</div>
-    <video id="video" controls playsinline crossorigin="anonymous"></video>
+    <div id="status">Aguardando lista de canais...</div>
+    <video id="video" controls playsinline></video>
 </div>
 
-<div class="meta-container" id="meta" style="display:none;">
+<div class="meta-container" id="meta">
     <p id="movie-title"></p>
     <p id="movie-desc"></p>
 </div>
@@ -65,54 +69,28 @@
 <div id="content"></div>
 
 <script>
-    // CONFIGURAÇÃO TMDB - TOKEN INSERIDO
     const TMDB_API_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad'; 
-    const m3uUrl = '/online.m3u';
+    const m3uUrl = 'https://tv.paixaoflix.vip/online.m3u'; // URL Completa para evitar erros
     const video = document.getElementById('video');
-
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }
-
-    // Limpeza de cache do botão de instalação
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById('installBtn').style.display = 'block';
-    });
-
-    document.getElementById('installBtn').addEventListener('click', async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            deferredPrompt = null;
-            document.getElementById('installBtn').style.display = 'none';
-        }
-    });
-
-    async function getTMDBData(query) {
-        // Normaliza nomes (EPC -> Eu a Patroa e as Criancas) para melhor busca
-        let cleanQuery = query.replace(/E\.P\.C/gi, 'Eu a Patroa e as Crianças')
-                             .replace(/S\d+E\d+|720p|1080p|HD|By-.*/gi, '')
-                             .trim();
-        try {
-            const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&language=pt-BR&query=${encodeURIComponent(cleanQuery)}`);
-            const json = await res.json();
-            return json.results[0] || null;
-        } catch (e) { return null; }
-    }
+    let allData = {}; // Guarda tudo para a pesquisa
 
     async function init() {
         try {
             const res = await fetch(m3uUrl);
+            if (!res.ok) throw new Error("Erro ao baixar M3U");
             const text = await res.text();
+            document.getElementById('status').innerText = "Processando 200 canais...";
             parseM3U(text);
-        } catch (e) { document.getElementById('status').innerText = "Erro ao carregar lista. Verifique seu Worker."; }
+        } catch (e) {
+            document.getElementById('status').innerText = "ERRO: Não foi possível carregar a lista. Verifique o Worker ou o link do GitHub.";
+        }
     }
 
     function parseM3U(data) {
         const lines = data.split('\n');
         let categories = {};
         for (let i = 0; i < lines.length; i++) {
-            if (lines[i].startsWith('#EXTINF')) {
+            if (lines[i].includes('#EXTINF')) {
                 const title = lines[i].split(',')[1]?.trim() || "Sem Nome";
                 const url = lines[i+1]?.trim();
                 const group = lines[i].match(/group-title="([^"]+)"/)?.[1] || "Geral";
@@ -122,49 +100,69 @@
                 }
             }
         }
+        allData = categories;
         render(categories);
+        document.getElementById('status').style.display = 'none';
     }
 
     async function render(categories) {
         const container = document.getElementById('content');
+        container.innerHTML = '';
         for (let cat in categories) {
+            if (categories[cat].length === 0) continue;
             const div = document.createElement('div');
+            div.className = 'cat-section';
             div.innerHTML = `<div class="category-title">${cat}</div>`;
             const grid = document.createElement('div');
             grid.className = 'grid';
 
-            for (let item of categories[cat]) {
-                const cardId = btoa(unescape(encodeURIComponent(item.title))).substring(0,12).replace(/=/g, '');
+            categories[cat].forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
+                const cardId = btoa(unescape(encodeURIComponent(item.title))).substring(0,10).replace(/[^a-zA-Z]/g, '');
                 card.innerHTML = `<img src="https://via.placeholder.com/300x450/222/fff?text=..." id="img-${cardId}"><div class="card-info">${item.title}</div>`;
-                
                 card.onclick = () => play(item.url, item.title, card.dataset.desc);
                 grid.appendChild(card);
 
-                getTMDBData(item.title).then(data => {
-                    const imgTag = document.getElementById(`img-${cardId}`);
-                    if (data && data.poster_path) {
-                        imgTag.src = `https://image.tmdb.org/t/p/w300${data.poster_path}`;
-                        card.dataset.desc = data.overview || "Sinopse não disponível para este título.";
-                    } else {
-                        imgTag.src = `https://via.placeholder.com/300x450/222/e50914?text=${encodeURIComponent(item.title)}`;
-                        card.dataset.desc = "Conteúdo ao vivo ou mídia local.";
-                    }
-                });
-            }
+                // Busca TMDB
+                fetchTMDB(item.title, cardId, card);
+            });
             div.appendChild(grid);
             container.appendChild(div);
         }
     }
 
+    async function fetchTMDB(title, id, card) {
+        let q = title.replace(/E\.P\.C/gi, 'Eu a Patroa e as Crianças').replace(/S\d+E\d+|720p|1080p|HD|By-.*/gi, '').trim();
+        try {
+            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&language=pt-BR&query=${encodeURIComponent(q)}`);
+            const j = await r.json();
+            const data = j.results ? j.results[0] : null;
+            const imgTag = document.getElementById(`img-${id}`);
+            if (data && data.poster_path) {
+                imgTag.src = `https://image.tmdb.org/t/p/w300${data.poster_path}`;
+                card.dataset.desc = data.overview;
+            } else {
+                imgTag.src = `https://via.placeholder.com/300x450/222/e50914?text=${encodeURIComponent(title)}`;
+            }
+        } catch (e) {}
+    }
+
+    function filterContent() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        let filtered = {};
+        for (let cat in allData) {
+            filtered[cat] = allData[cat].filter(item => item.title.toLowerCase().includes(query));
+        }
+        render(filtered);
+    }
+
     function play(url, title, desc) {
-        document.getElementById('status').style.display = 'none';
         document.getElementById('meta').style.display = 'block';
         document.getElementById('movie-title').innerText = title;
-        document.getElementById('movie-desc').innerText = desc || "Carregando informações...";
+        document.getElementById('movie-desc').innerText = desc || "Carregando detalhes...";
         
-        let finalUrl = url.startsWith('http:') ? `${window.location.origin}/proxy?url=${encodeURIComponent(url)}` : url;
+        let finalUrl = url.startsWith('http:') ? `https://tv.paixaoflix.vip/proxy?url=${encodeURIComponent(url)}` : url;
         
         if (Hls.isSupported() && !url.includes('.mp4')) {
             const hls = new Hls();
