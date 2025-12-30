@@ -7,20 +7,21 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
-        body { font-family: 'Roboto', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        body { font-family: 'Roboto', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
         /* Sidebar */
-        #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; }
+        #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; }
         
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
         .logo-area img { max-width: 180px; height: auto; display: inline-block; }
         
-        /* Pesquisa e Títulos menores */
         .search-area { padding: 15px 35px 15px 15px; } 
         .search-box { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; font-size: 13px; }
         
-        #channel-list { flex: 1; overflow-y: auto; scrollbar-width: none; }
-        #channel-list::-webkit-scrollbar { display: none; }
+        /* Barra de Rolagem Restaurada e Visível */
+        #channel-list { flex: 1; overflow-y: scroll; scrollbar-width: thin; scrollbar-color: #333 transparent; }
+        #channel-list::-webkit-scrollbar { width: 6px; }
+        #channel-list::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
 
         .cat-title { 
             background: #1a1a1a; padding: 6px 15px; margin-right: 40px; 
@@ -29,22 +30,26 @@
             position: sticky; top: 0; z-index: 10;
         }
         
-        /* Cards Maiores e Melhores */
-        .item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid #0a0a0a; }
-        .item:hover { background: #1a1a1a; }
-        .item img { width: 55px; height: 75px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-        .item-name { font-size: 14px; font-weight: 400; line-height: 1.2; flex: 1; }
+        /* Itens com Borda e Efeito de Seleção */
+        .item { 
+            display: flex; align-items: center; padding: 12px 15px; cursor: pointer; 
+            transition: 0.2s; border-bottom: 1px solid #0a0a0a; 
+            border-left: 3px solid transparent; 
+        }
+        .item:hover { background: #1a1a1a; border-left: 3px solid var(--primary); }
+        .item img { width: 55px; height: 75px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
+        .item-name { font-size: 14px; font-weight: 400; flex: 1; }
 
-        /* Player Único */
-        #main-view { flex: 1; display: flex; flex-direction: column; position: relative; background: #000; }
+        /* Área do Player */
+        #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
         #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; }
-        video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+        video { width: 100%; height: 100%; object-fit: contain; }
         
         .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 50px 30px 30px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; }
-        #title-now { font-size: 28px; font-weight: bold; margin: 0; color: #fff; }
+        #title-now { font-size: 28px; font-weight: bold; margin: 0; }
         #desc-now { font-size: 15px; color: #ccc; margin-top: 10px; max-width: 80%; line-height: 1.5; }
 
-        @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 40%; } }
+        @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 45%; } }
     </style>
 </head>
 <body>
@@ -70,128 +75,115 @@
 </div>
 
 <script>
-    const TMDB_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
-    const m3uUrl = '/tv.paixaoflix.m3u?v=' + Date.now();
-    const video = document.getElementById('video');
-    let rawData = {};
+    // Variáveis globais únicas (limpas)
+    const KEY_TMDB = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
+    const URL_M3U = '/tv.paixaoflix.m3u?v=' + Date.now();
+    const player = document.getElementById('video');
+    let listaCanais = {};
 
-    async function init() {
+    async function carregarApp() {
         try {
-            const res = await fetch(m3uUrl);
+            const res = await fetch(URL_M3U);
             const text = await res.text();
-            if(!text.includes('#EXTM3U')) throw "Lista inválida";
-            parse(text);
+            if(!text.includes('#EXTM3U')) throw "Erro";
+            processar(text);
         } catch (e) {
             document.getElementById('channel-list').innerHTML = "<p style='padding:20px'>Erro ao carregar lista.</p>";
         }
     }
 
-    function parse(text) {
-        const lines = text.split('\n');
-        let categories = {};
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes('#EXTINF')) {
-                let title = lines[i].split(',')[1]?.trim();
-                let url = lines[i+1]?.trim();
-                let group = lines[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
-                
-                // Limpeza para títulos de canais de TV (evita posters de filmes errados)
-                let baseTitle = title.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP|H265/gi, '').trim();
+    function processar(text) {
+        const linhas = text.split('\n');
+        let cats = {};
+        for (let i = 0; i < linhas.length; i++) {
+            if (linhas[i].includes('#EXTINF')) {
+                let nome = linhas[i].split(',')[1]?.trim();
+                let link = linhas[i+1]?.trim();
+                let grupo = linhas[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
+                let base = nome.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP/gi, '').trim();
 
-                if (url && url.startsWith('http')) {
-                    if (!categories[group]) categories[group] = [];
-                    // Agrupamento para não repetir séries 50 vezes na barra
-                    if (!categories[group].find(x => x.baseTitle === baseTitle)) {
-                        categories[group].push({ title, baseTitle, url, group });
+                if (link && link.startsWith('http')) {
+                    if (!cats[grupo]) cats[grupo] = [];
+                    if (!cats[grupo].find(x => x.base === base)) {
+                        cats[grupo].push({ nome, base, link, grupo });
                     }
                 }
             }
         }
-        rawData = categories;
-        render(categories);
+        listaCanais = cats;
+        desenhar(cats);
     }
 
-    function render(data) {
-        const list = document.getElementById('channel-list');
-        list.innerHTML = '';
+    function desenhar(data) {
+        const container = document.getElementById('channel-list');
+        container.innerHTML = '';
         
-        // Ordena categorias alfabeticamente
-        Object.keys(data).sort().forEach(cat => {
-            const catDiv = document.createElement('div');
-            catDiv.className = 'cat-title';
-            catDiv.innerText = cat;
-            list.appendChild(catDiv);
+        Object.keys(data).sort().forEach(c => {
+            const titulo = document.createElement('div');
+            titulo.className = 'cat-title';
+            titulo.innerText = c;
+            container.appendChild(titulo);
 
-            data[cat].forEach(item => {
-                const safeId = btoa(unescape(encodeURIComponent(item.baseTitle))).substring(0,12).replace(/[^a-z]/gi, 'x');
+            data[c].forEach(canal => {
+                const id = btoa(unescape(encodeURIComponent(canal.base))).substring(0,12).replace(/[^a-z]/gi, 'x');
                 const div = document.createElement('div');
                 div.className = 'item';
                 div.innerHTML = `
-                    <img src="https://via.placeholder.com/100x150/111/222?text=TV" id="img-${safeId}">
-                    <div class="item-name">${item.baseTitle}</div>
+                    <img src="https://via.placeholder.com/100x150/111/222?text= " id="img-${id}">
+                    <div class="item-name">${canal.base}</div>
                 `;
-                div.onclick = () => play(item.url, item.baseTitle, safeId);
-                list.appendChild(div);
-                
-                // Só busca no TMDB se não for categoria de canal aberto (melhora precisão)
-                const isTv = cat.toLowerCase().includes('aberto') || cat.toLowerCase().includes('canal');
-                loadMeta(item.baseTitle, safeId, isTv);
+                div.onclick = () => tocar(canal.link, canal.base, id);
+                container.appendChild(div);
+                buscarImg(canal.base, id, c);
             });
         });
     }
 
-    async function loadMeta(title, id, isTv) {
-        // Se for canal de TV, limpamos o nome para buscar logos reais ou ignorar filmes
-        let query = title.split('|')[0].split('-')[0].trim();
+    async function buscarImg(termo, id, categoria) {
+        let q = termo.split('|')[0].split('-')[0].trim();
         try {
-            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`);
+            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${KEY_TMDB}&language=pt-BR&query=${encodeURIComponent(q)}`);
             const j = await r.json();
-            
             if (j.results && j.results[0]) {
                 const res = j.results[0];
-                const imgEl = document.getElementById(`img-${id}`);
-                if (imgEl && res.poster_path) {
-                    // Se for TV e o resultado for "Movie", ignoramos para não vir capa errada
-                    if(isTv && res.media_type === 'movie' && !res.name?.includes(query)) return;
-                    
-                    imgEl.src = `https://image.tmdb.org/t/p/w200${res.poster_path}`;
-                    imgEl.dataset.overview = res.overview;
+                const el = document.getElementById(`img-${id}`);
+                if (el && res.poster_path) {
+                    el.src = `https://image.tmdb.org/t/p/w200${res.poster_path}`;
+                    el.dataset.info = res.overview;
                 }
             }
         } catch (e) {}
     }
 
-    function play(url, title, id) {
+    function tocar(url, nome, id) {
         const img = document.getElementById(`img-${id}`);
-        document.getElementById('title-now').innerText = title;
-        document.getElementById('desc-now').innerText = img?.dataset.overview || "Sinopse não disponível para este conteúdo.";
+        document.getElementById('title-now').innerText = nome;
+        document.getElementById('desc-now').innerText = img?.dataset.info || "Descrição indisponível.";
 
-        let finalUrl = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
+        let linkFinal = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
         
         if (Hls.isSupported()) {
             const hls = new Hls();
-            hls.loadSource(finalUrl);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.play().catch(err => console.log("Auto-play bloqueado"));
-            });
+            hls.loadSource(linkFinal);
+            hls.attachMedia(player);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => player.play());
         } else {
-            video.src = finalUrl;
-            video.play();
+            player.src = linkFinal;
+            player.play();
         }
     }
 
     function filter() {
-        const q = document.getElementById('search').value.toLowerCase();
-        let filtered = {};
-        for (let cat in rawData) {
-            let m = rawData[cat].filter(i => i.baseTitle.toLowerCase().includes(q));
-            if (m.length > 0) filtered[cat] = m;
+        const val = document.getElementById('search').value.toLowerCase();
+        let f = {};
+        for (let c in listaCanais) {
+            let m = listaCanais[c].filter(i => i.base.toLowerCase().includes(val));
+            if (m.length > 0) f[c] = m;
         }
-        render(filtered);
+        desenhar(f);
     }
 
-    init();
+    carregarApp();
 </script>
 </body>
 </html>
