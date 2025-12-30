@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PAIXÃOFLIX</title>
     
-    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22PaixaoFlix%22,%22short_name%22:%22PaixaoFlix%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%23000000%22,%22theme_color%22:%22%23e50914%22,%22icons%22:[{%22src%22:%22https://i.imgur.com/rIJwt2Q.png%22,%22sizes%22:%22512x512%22,%22type%22:%22image/png%22}]}">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#e50914">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    
+
     <link rel="icon" type="image/png" href="https://i.imgur.com/rIJwt2Q.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -17,47 +18,47 @@
         :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
+        /* Sidebar */
         #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; z-index: 10; }
-        
-        /* Logotipo: Usando arquivo local do Github */
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; min-height: 80px; }
         .logo-area img { max-width: 100%; height: auto; max-height: 80px; }
         
         .search-area { padding: 15px; } 
-        .search-box { width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; box-sizing: border-box; }
+        .search-box { width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; box-sizing: border-box; font-family: inherit; }
         
         #now-playing-side { padding: 15px; background: #070707; border-bottom: 2px solid var(--primary); display: none; }
         .now-label { font-size: 11px; color: var(--primary); font-weight: 700; text-transform: uppercase; }
         .now-title { font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
 
-        #channel-list { flex: 1; overflow-y: auto; }
+        #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 transparent; }
+        
         .cat-title { background: #1a1a1a; padding: 12px 15px; font-size: 13px; text-transform: uppercase; font-weight: 700; position: sticky; top: 0; z-index: 20; border-bottom: 1px solid #333; }
         
-        .item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #0a0a0a; border-left: 4px solid transparent; outline: none; }
-        
-        /* FOCO VISÍVEL PARA SMART TV */
-        .item:focus { background: #333 !important; border-left: 4px solid var(--primary) !important; }
-        .item.playing { background: rgba(229, 9, 20, 0.15); border-left: 4px solid var(--primary); }
+        /* Itens e Foco da Smart TV */
+        .item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #0a0a0a; border-left: 4px solid transparent; outline: none; transition: 0.2s; }
+        .item:focus, .item.active-focus { background: #333 !important; border-left: 4px solid var(--primary) !important; outline: none; }
+        .item.playing { background: rgba(229, 9, 20, 0.2) !important; border-left: 4px solid var(--primary); }
 
         .item img { width: 55px; height: 75px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
         .item-name { font-size: 14px; flex: 1; pointer-events: none; }
 
-        /* PLAYER E FUNDO DINÂMICO */
+        /* Player e Efeito de Fundo */
         #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; overflow: hidden; }
         
         #bg-poster { 
             position: absolute; top: -10%; left: -10%; width: 120%; height: 120%; 
             background-size: cover; background-position: center;
-            filter: blur(60px) brightness(0.3); z-index: 1; 
+            filter: blur(50px) brightness(0.35); z-index: 1; 
             transition: background-image 1s ease-in-out;
+            display: block;
         }
 
         #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; z-index: 5; position: relative; }
         video { width: 100%; height: 100%; object-fit: contain; background: transparent; }
         
         .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 60px 30px 40px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; z-index: 10; }
-        #title-now { font-size: 32px; font-weight: 700; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        #desc-now { font-size: 16px; color: #ccc; margin-top: 10px; max-width: 70%; line-height: 1.6; }
+        #title-now { font-size: 32px; font-weight: 700; margin: 0; }
+        #desc-now { font-size: 16px; color: #ccc; margin-top: 10px; max-width: 75%; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
         @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 40%; } }
     </style>
@@ -66,10 +67,10 @@
 
 <div id="sidebar">
     <div class="logo-area">
-        <img src="./logo.png" onerror="this.src='https://i.imgur.com/rIJwt2Q.png'" alt="PAIXÃOFLIX">
+        <img src="logo.png" onerror="this.src='https://i.imgur.com/rIJwt2Q.png'" alt="PAIXÃOFLIX">
     </div>
     <div class="search-area">
-        <input type="text" id="search" class="search-box" placeholder="Buscar...">
+        <input type="text" id="search" class="search-box" placeholder="Buscar canal ou filme...">
     </div>
     <div id="now-playing-side">
         <div class="now-label">Assistindo agora</div>
@@ -85,139 +86,153 @@
     </div>
     <div class="info-panel">
         <h1 id="title-now">PAIXÃOFLIX</h1>
-        <p id="desc-now">Use o controle remoto para navegar.</p>
+        <p id="desc-now">Escolha um canal ou filme para iniciar o player.</p>
     </div>
 </div>
 
 <script>
     const TMDB_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
-    const M3U_URL = '/tv.paixaoflix.m3u?v=' + Date.now();
-    const vid = document.getElementById('video');
-    let db = {};
+    const M3U_URL = 'tv.paixaoflix.m3u?v=' + Date.now();
+    const video = document.getElementById('video');
+    let listaCanais = {};
 
-    // 1. Registrar Service Worker para habilitar o Download (Instalação)
+    // REGISTRO DO SERVICE WORKER (Para o botão de download)
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('data:text/javascript,self.addEventListener("fetch", (e) => e.respondWith(fetch(e.request)));');
+        navigator.serviceWorker.register('sw.js').catch(err => console.log("Erro SW", err));
     }
 
-    async function load() {
+    async function init() {
         try {
-            const r = await fetch(M3U_URL);
-            const t = await r.text();
-            parse(t);
-        } catch (e) { console.error("Erro na lista"); }
+            const res = await fetch(M3U_URL);
+            const text = await res.text();
+            parsearM3U(text);
+        } catch (e) { console.error("Falha ao carregar M3U"); }
     }
 
-    function parse(text) {
-        const lines = text.split('\n');
-        let groups = {};
+    function parsearM3U(data) {
+        const lines = data.split('\n');
+        let grupos = {};
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].includes('#EXTINF')) {
-                let n = lines[i].split(',')[1]?.trim();
-                let u = lines[i+1]?.trim();
-                let g = lines[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
-                let b = n.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP/gi, '').trim();
-                if (u && u.startsWith('http')) {
-                    if (!groups[g]) groups[g] = [];
-                    if (!groups[g].find(x => x.base === b)) groups[g].push({ name: n, base: b, url: u });
+                let nome = lines[i].split(',')[1]?.trim();
+                let url = lines[i+1]?.trim();
+                let grupo = lines[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
+                let base = nome.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP/gi, '').trim();
+                
+                if (url && url.startsWith('http')) {
+                    if (!grupos[grupo]) grupos[grupo] = [];
+                    if (!grupos[grupo].find(x => x.base === base)) {
+                        grupos[grupo].push({ nome, base, url });
+                    }
                 }
             }
         }
-        db = groups;
-        render(groups);
+        listaCanais = grupos;
+        desenhar(grupos);
         
-        // FORÇAR FOCO INICIAL PARA NAVEGAÇÃO SEM MOUSE
+        // FOCO AUTOMÁTICO (LG WEBOS)
         setTimeout(() => {
-            const first = document.querySelector('.item');
-            if(first) first.focus();
+            const primeiro = document.querySelector('.item');
+            if (primeiro) {
+                primeiro.focus();
+                primeiro.classList.add('active-focus');
+            }
         }, 2000);
     }
 
-    function render(data) {
-        const box = document.getElementById('channel-list');
-        box.innerHTML = '';
-        Object.keys(data).sort().forEach(cat => {
+    function desenhar(dados) {
+        const container = document.getElementById('channel-list');
+        container.innerHTML = '';
+        Object.keys(dados).sort().forEach(grupo => {
             const h = document.createElement('div');
-            h.className = 'cat-title'; h.innerText = cat;
-            box.appendChild(h);
-            data[cat].forEach(item => {
-                const id = btoa(unescape(encodeURIComponent(item.base))).substring(0,8).replace(/[^a-z]/gi, 'x');
-                const d = document.createElement('div');
-                d.className = 'item'; d.tabIndex = 0;
-                d.innerHTML = `
+            h.className = 'cat-title'; h.innerText = grupo;
+            container.appendChild(h);
+            
+            dados[grupo].forEach(canal => {
+                const id = btoa(unescape(encodeURIComponent(canal.base))).substring(0,8).replace(/[^a-z]/gi, 'x');
+                const div = document.createElement('div');
+                div.className = 'item'; div.tabIndex = 0;
+                div.innerHTML = `
                     <div style="width:55px;height:75px;background:#222;margin-right:15px;border-radius:4px;flex-shrink:0;">
                         <img src="" id="img-${id}" style="width:100%;height:100%;display:none;object-fit:cover;border-radius:4px;" onload="this.style.display='block'">
                     </div>
-                    <div class="item-name">${item.base}</div>
+                    <div class="item-name">${canal.base}</div>
                 `;
-                d.onclick = () => play(item.url, item.base, id, d);
-                box.appendChild(d);
-                tmdb(item.base, id);
+                div.onclick = () => carregarPlayer(canal.url, canal.base, id, div);
+                container.appendChild(div);
+                buscarPoster(canal.base, id);
             });
         });
     }
 
-    async function tmdb(q, id) {
-        let query = q.split('|')[0].split('-')[0].trim();
+    async function buscarPoster(termo, id) {
+        let q = termo.split('|')[0].split('-')[0].trim();
         try {
-            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`);
+            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(q)}`);
             const j = await r.json();
             if (j.results?.[0]?.poster_path) {
                 const path = `https://image.tmdb.org/t/p/w500${j.results[0].poster_path}`;
-                const img = document.getElementById(`img-${id}`);
-                if(img) {
-                    img.src = path;
-                    const it = img.closest('.item');
-                    it.dataset.info = j.results[0].overview;
-                    it.dataset.poster = path;
+                const imgTag = document.getElementById(`img-${id}`);
+                if (imgTag) {
+                    imgTag.src = path;
+                    const itemEl = imgTag.closest('.item');
+                    itemEl.dataset.poster = path;
+                    itemEl.dataset.info = j.results[0].overview;
                 }
             }
         } catch (e) {}
     }
 
-    function play(url, nome, id, el) {
+    function carregarPlayer(url, nome, id, elemento) {
+        // Atualiza Interface
         document.getElementById('now-playing-side').style.display = 'block';
         document.getElementById('side-playing-title').innerText = nome;
         document.getElementById('title-now').innerText = nome;
-        document.getElementById('desc-now').innerText = el.dataset.info || "Sem informações adicionais.";
+        document.getElementById('desc-now').innerText = elemento.dataset.info || "Sinopse não disponível para este conteúdo.";
         
-        // ATUALIZA O FUNDO (BLUR) NO PLAYER
-        if(el.dataset.poster) {
-            document.getElementById('bg-poster').style.backgroundImage = `url('${el.dataset.poster}')`;
+        // Atualiza Imagem de Fundo (Poster Blur)
+        const poster = elemento.dataset.poster;
+        const bg = document.getElementById('bg-poster');
+        if (poster) {
+            bg.style.backgroundImage = "url('" + poster + "')";
         }
 
         document.querySelectorAll('.item').forEach(i => i.classList.remove('playing'));
-        el.classList.add('playing');
+        elemento.classList.add('playing');
 
-        let link = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
+        // Lógica de Vídeo
+        let streamUrl = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
         if (Hls.isSupported()) {
-            const hls = new Hls(); hls.loadSource(link); hls.attachMedia(vid);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => vid.play());
-        } else { vid.src = link; vid.play(); }
+            const hls = new Hls(); 
+            hls.loadSource(streamUrl); 
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+        } else {
+            video.src = streamUrl;
+            video.play();
+        }
     }
 
-    // NAVEGAÇÃO POR SETAS (CONTROLE REMOTO)
+    // NAVEGAÇÃO POR CONTROLE (SETAS)
     document.addEventListener('keydown', (e) => {
         const items = document.querySelectorAll('.item');
-        let cur = document.activeElement;
-        let i = Array.from(items).indexOf(cur);
-
-        if (e.key === 'ArrowDown' || e.keyCode === 40) {
+        let index = Array.from(items).indexOf(document.activeElement);
+        if (e.key === 'ArrowDown') {
             e.preventDefault();
-            i = (i + 1) % items.length;
-            items[i].focus();
-            items[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else if (e.key === 'ArrowUp' || e.keyCode === 38) {
+            index = (index + 1) % items.length;
+            items[index].focus();
+            items[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            i = (i - 1 + items.length) % items.length;
-            items[i].focus();
-            items[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else if (e.key === 'Enter' || e.keyCode === 13) {
-            if (cur.classList.contains('item')) cur.click();
+            index = (index - 1 + items.length) % items.length;
+            items[index].focus();
+            items[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (e.key === 'Enter') {
+            if (document.activeElement.classList.contains('item')) document.activeElement.click();
         }
     });
 
-    load();
+    init();
 </script>
 </body>
 </html>
