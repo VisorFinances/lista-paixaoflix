@@ -3,140 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PAIXÃOFLIX - Premium TV</title>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#e50914">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <title>PAIXÃOFLIX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --primary: #e50914; --bg: #141414; --card-bg: #2f2f2f; --text: #ffffff; }
-        body { font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; }
-        header { padding: 10px 5%; background: #000; display: flex; align-items: center; justify-content: space-between; position: fixed; width: 100%; z-index: 1000; box-sizing: border-box; }
-        .logo { color: var(--primary); font-size: 22px; font-weight: bold; }
-        .search-box { background: #333; border: none; padding: 8px 15px; border-radius: 20px; color: white; outline: none; }
-        #player-container { width: 100%; background: #000; display: flex; align-items: center; justify-content: center; position: relative; aspect-ratio: 16 / 9; max-height: 55vh; padding-top: 60px; }
-        video { width: 100%; height: 100%; outline: none; }
-        .meta-container { padding: 15px 5%; background: #1a1a1a; border-bottom: 1px solid #333; display:none; }
-        .category-title { padding: 20px 5% 5px; font-size: 16px; font-weight: bold; color: #888; text-transform: uppercase; }
-        .grid { display: flex; overflow-x: auto; gap: 12px; padding: 10px 5% 20px; scrollbar-width: none; }
-        .grid::-webkit-scrollbar { display: none; }
-        .card { min-width: 130px; max-width: 130px; background: var(--card-bg); border-radius: 6px; overflow: hidden; cursor: pointer; transition: 0.3s; flex-shrink: 0; }
-        .card:hover { transform: scale(1.08); z-index: 10; }
-        .card img { width: 100%; height: 190px; object-fit: cover; }
-        .card-info { padding: 8px; font-size: 11px; text-align: center; font-weight: bold; height: 30px; overflow: hidden; }
-        #status { position: absolute; z-index: 10; color: var(--primary); font-size: 14px; }
+        :root { --primary: #e50914; --bg: #141414; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; }
+        header { padding: 15px 5%; background: #000; display: flex; align-items: center; justify-content: space-between; position: fixed; width: 100%; z-index: 1000; box-sizing: border-box; }
+        .search-box { background: #333; border: none; padding: 8px 15px; border-radius: 20px; color: white; outline: none; width: 150px; }
+        #player-container { width: 100%; background: #000; aspect-ratio: 16/9; padding-top: 60px; display: flex; align-items: center; justify-content: center; position: relative; }
+        video { width: 100%; height: 100%; }
+        .grid { display: flex; overflow-x: auto; gap: 10px; padding: 10px 5% 20px; }
+        .card { min-width: 120px; background: #222; border-radius: 5px; cursor: pointer; flex-shrink: 0; transition: 0.3s; }
+        .card:hover { transform: scale(1.05); }
+        .card img { width: 100%; height: 170px; object-fit: cover; border-radius: 5px 5px 0 0; }
+        .card-info { padding: 5px; font-size: 10px; text-align: center; font-weight: bold; }
+        .cat-title { padding: 15px 5% 0; font-size: 14px; color: #888; text-transform: uppercase; }
+        #status { position: absolute; color: var(--primary); font-size: 14px; z-index: 10; }
     </style>
 </head>
 <body>
-
 <header>
-    <div class="logo">PAIXÃOFLIX</div>
-    <input type="text" id="searchInput" class="search-box" placeholder="Pesquisar..." onkeyup="filterContent()">
+    <div style="color:var(--primary); font-weight:bold;">PAIXÃOFLIX</div>
+    <input type="text" id="searchInput" class="search-box" placeholder="Buscar..." onkeyup="filter()">
 </header>
-
 <div id="player-container">
-    <div id="status">Carregando canais...</div>
+    <div id="status">Sincronizando canais...</div>
     <video id="video" controls playsinline></video>
 </div>
-
-<div class="meta-container" id="meta">
-    <p id="movie-title" style="font-size:24px; font-weight:bold; margin:0;"></p>
-    <p id="movie-desc" style="font-size:14px; color:#ccc; margin-top:8px;"></p>
-</div>
-
 <div id="content"></div>
 
 <script>
-    const TMDB_API_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
-    const m3uUrl = '/online.m3u'; // Agora chama o Worker local
-    const video = document.getElementById('video');
+    const TMDB_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
+    const m3uUrl = '/online.m3u';
     let allData = {};
 
-    async function init() {
+    async function load() {
         try {
             const res = await fetch(m3uUrl);
             const text = await res.text();
-            if(!text.includes("#EXTM3U")) throw new Error("Lista inválida");
-            parseM3U(text);
+            if(!text.includes('#EXTM3U')) throw new Error();
+            parse(text);
         } catch (e) {
-            document.getElementById('status').innerText = "Erro ao carregar lista via Worker.";
+            // Tenta caminho alternativo se o Worker der erro
+            document.getElementById('status').innerText = "Tentando conexão secundária...";
+            const resAlt = await fetch('https://tv.paixaoflix.vip/online.m3u');
+            const textAlt = await resAlt.text();
+            parse(textAlt);
         }
     }
 
-    function parseM3U(data) {
+    function parse(data) {
         const lines = data.split('\n');
-        let categories = {};
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes('#EXTINF')) {
-                const title = lines[i].split(',')[1]?.trim();
-                const url = lines[i+1]?.trim();
-                const group = lines[i].match(/group-title="([^"]+)"/)?.[1] || "Geral";
-                if (url && url.startsWith('http')) {
-                    if (!categories[group]) categories[group] = [];
-                    categories[group].push({ title, url });
+        let cats = {};
+        for(let i=0; i<lines.length; i++) {
+            if(lines[i].includes('#EXTINF')) {
+                let title = lines[i].split(',')[1]?.trim();
+                let url = lines[i+1]?.trim();
+                let group = lines[i].match(/group-title="([^"]+)"/)?.[1] || "Geral";
+                if(url && url.startsWith('http')) {
+                    if(!cats[group]) cats[group] = [];
+                    cats[group].push({title, url});
                 }
             }
         }
-        allData = categories;
-        render(categories);
+        allData = cats;
+        render(cats);
         document.getElementById('status').style.display = 'none';
     }
 
-    function render(categories) {
-        const container = document.getElementById('content');
-        container.innerHTML = '';
-        for (let cat in categories) {
-            const div = document.createElement('div');
-            div.innerHTML = `<div class="category-title">${cat}</div>`;
-            const grid = document.createElement('div');
-            grid.className = 'grid';
-            categories[cat].forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card';
+    function render(cats) {
+        const out = document.getElementById('content');
+        out.innerHTML = '';
+        for(let c in cats) {
+            const row = document.createElement('div');
+            row.innerHTML = `<div class="cat-title">${c}</div>`;
+            const grid = document.createElement('div'); grid.className = 'grid';
+            cats[c].forEach(item => {
+                const card = document.createElement('div'); card.className = 'card';
                 const id = btoa(unescape(encodeURIComponent(item.title))).substring(0,8).replace(/[^a-z]/gi, 'x');
                 card.innerHTML = `<img src="https://via.placeholder.com/150x225/222/555?text=..." id="img-${id}"><div class="card-info">${item.title}</div>`;
-                card.onclick = () => play(item.url, item.title, card.dataset.desc);
+                card.onclick = () => play(item.url);
                 grid.appendChild(card);
-                fetchTMDB(item.title, id, card);
+                fetchImg(item.title, id);
             });
-            div.appendChild(grid);
-            container.appendChild(div);
+            row.appendChild(grid); out.appendChild(row);
         }
     }
 
-    async function fetchTMDB(title, id, card) {
+    async function fetchImg(title, id) {
         let q = title.replace(/E\.P\.C/gi, 'Eu a Patroa e as Crianças').replace(/S\d+E\d+|720p|1080p|HD|By-.*/gi, '').trim();
         try {
-            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&language=pt-BR&query=${encodeURIComponent(q)}`);
+            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(q)}`);
             const j = await r.json();
-            if (j.results && j.results[0]) {
-                document.getElementById(`img-${id}`).src = `https://image.tmdb.org/t/p/w300${j.results[0].poster_path}`;
-                card.dataset.desc = j.results[0].overview;
-            }
-        } catch (e) {}
+            if(j.results[0]?.poster_path) document.getElementById(`img-${id}`).src = `https://image.tmdb.org/t/p/w300${j.results[0].poster_path}`;
+            else document.getElementById(`img-${id}`).src = `https://via.placeholder.com/150x225/e50914/fff?text=${encodeURIComponent(title)}`;
+        } catch(e) {}
     }
 
-    function filterContent() {
-        const q = document.getElementById('searchInput').value.toLowerCase();
-        let filtered = {};
-        for (let cat in allData) {
-            filtered[cat] = allData[cat].filter(i => i.title.toLowerCase().includes(q));
+    function play(url) {
+        let final = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
+        const v = document.getElementById('video');
+        if(Hls.isSupported() && !url.includes('.mp4')) {
+            const hls = new Hls(); hls.loadSource(final); hls.attachMedia(v);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => v.play());
+        } else { v.src = final; v.play(); }
+        window.scrollTo(0,0);
+    }
+
+    function filter() {
+        let q = document.getElementById('searchInput').value.toLowerCase();
+        let f = {};
+        for(let c in allData) {
+            f[c] = allData[c].filter(i => i.title.toLowerCase().includes(q));
         }
-        render(filtered);
+        render(f);
     }
-
-    function play(url, title, desc) {
-        document.getElementById('meta').style.display = 'block';
-        document.getElementById('movie-title').innerText = title;
-        document.getElementById('movie-desc').innerText = desc || "Carregando...";
-        let finalUrl = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
-        if (Hls.isSupported() && !url.includes('.mp4')) {
-            const hls = new Hls(); hls.loadSource(finalUrl); hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-        } else { video.src = finalUrl; video.play(); }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    init();
+    load();
 </script>
 </body>
 </html>
