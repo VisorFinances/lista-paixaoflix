@@ -14,6 +14,7 @@
         :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
+        /* SIDEBAR */
         #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; z-index: 10; }
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
         .logo-area img { max-width: 100%; height: auto; max-height: 80px; }
@@ -21,33 +22,37 @@
         .search-area { padding: 15px; } 
         .search-box { width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; box-sizing: border-box; font-family: inherit; }
         
+        /* ASSISTINDO AGORA (VOLTOU PARA O LUGAR PERFEITO) */
+        #now-playing-side { padding: 15px; background: #070707; border-bottom: 2px solid var(--primary); display: none; }
+        .now-label { font-size: 11px; color: var(--primary); font-weight: 700; text-transform: uppercase; }
+        .now-title { font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
+
         #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; }
-        .cat-title { background: #1a1a1a; padding: 12px 15px; font-size: 13px; text-transform: uppercase; font-weight: 700; position: sticky; top: 0; z-index: 20; border-bottom: 1px solid #333; color: var(--primary); }
+        .cat-title { background: #1a1a1a; padding: 12px 15px; font-size: 13px; text-transform: uppercase; font-weight: 700; position: sticky; top: 0; z-index: 20; border-bottom: 1px solid #333; }
         
         .item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #0a0a0a; border-left: 4px solid transparent; outline: none; }
-        .item:focus, .item.active-focus { background: #333 !important; border-left: 4px solid var(--primary) !important; }
+        .item:focus { background: #333 !important; border-left: 4px solid var(--primary) !important; }
         .item.playing { background: rgba(229, 9, 20, 0.2) !important; border-left: 4px solid var(--primary); }
 
         .item img { width: 55px; height: 75px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
         .item-name { font-size: 14px; flex: 1; pointer-events: none; }
 
-        /* PLAYER */
+        /* PLAYER E FUNDO */
         #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; overflow: hidden; }
         #bg-poster { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            position: absolute; top: -5%; left: -5%; width: 110%; height: 110%; 
             background-size: cover; background-position: center;
-            filter: blur(60px) brightness(0.2); z-index: 1; 
-            transition: background-image 1s ease-in-out;
+            filter: blur(50px) brightness(0.3); z-index: 1; 
+            transition: background-image 0.8s ease;
+            display: block;
         }
 
         #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; z-index: 5; position: relative; }
         video { width: 100%; height: 100%; object-fit: contain; }
         
-        /* PAINEL DE INFORMAÇÕES (SINOPSE + EPG) */
-        .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px 30px; background: linear-gradient(transparent, rgba(0,0,0,0.98)); pointer-events: none; z-index: 10; }
-        #title-now { font-size: 30px; font-weight: 700; margin: 0; color: #fff; }
-        #epg-now { font-size: 14px; color: var(--primary); font-weight: 600; margin-top: 5px; text-transform: uppercase; }
-        #desc-now { font-size: 15px; color: #bbb; margin-top: 10px; max-width: 80%; line-height: 1.5; height: 4.5em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+        .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 60px 30px 40px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; z-index: 10; }
+        #title-now { font-size: 32px; font-weight: 700; margin: 0; }
+        #desc-now { font-size: 16px; color: #ccc; margin-top: 10px; max-width: 70%; line-height: 1.6; height: 4.8em; overflow: hidden; }
 
         @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 40%; } }
     </style>
@@ -59,7 +64,11 @@
         <img src="logo.png" onerror="this.src='https://i.imgur.com/rIJwt2Q.png'" alt="PAIXÃOFLIX">
     </div>
     <div class="search-area">
-        <input type="text" id="search-input" class="search-box" placeholder="Buscar canal ou filme..." onkeyup="fazerBusca()">
+        <input type="text" id="search-input" class="search-box" placeholder="Buscar..." onkeyup="fazerBusca()">
+    </div>
+    <div id="now-playing-side">
+        <div class="now-label">Assistindo agora</div>
+        <div id="side-playing-title" class="now-title">---</div>
     </div>
     <div id="channel-list"></div>
 </div>
@@ -70,9 +79,8 @@
         <video id="video" controls autoplay playsinline></video>
     </div>
     <div class="info-panel">
-        <div id="epg-now">Programação indisponível</div>
         <h1 id="title-now">PAIXÃOFLIX</h1>
-        <p id="desc-now">Selecione um conteúdo para ver a sinopse e iniciar a transmissão.</p>
+        <p id="desc-now">Navegue na lista e selecione um conteúdo.</p>
     </div>
 </div>
 
@@ -81,13 +89,14 @@
     const M3U_URL = 'tv.paixaoflix.m3u?v=' + Date.now();
     const video = document.getElementById('video');
     let listaCompleta = {};
+    let infoCache = {}; // Cache para imagens e sinopses
 
     async function init() {
         try {
             const res = await fetch(M3U_URL);
             const text = await res.text();
             parsearM3U(text);
-        } catch (e) { console.error("Erro ao carregar M3U"); }
+        } catch (e) { console.error("Erro M3U"); }
     }
 
     function parsearM3U(data) {
@@ -95,14 +104,10 @@
         let grupos = {};
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].includes('#EXTINF')) {
-                let info = lines[i];
-                let nome = info.split(',')[1]?.trim();
+                let nome = lines[i].split(',')[1]?.trim();
                 let url = lines[i+1]?.trim();
-                let grupo = info.match(/group-title="([^"]+)"/)?.[1] || "GERAL";
-                
-                // Tenta pegar o nome limpo para o TMDB
-                let base = nome.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP|\|/gi, '').trim();
-                
+                let grupo = lines[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
+                let base = nome.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP/gi, '').trim();
                 if (url && url.startsWith('http')) {
                     if (!grupos[grupo]) grupos[grupo] = [];
                     grupos[grupo].push({ nome, base, url });
@@ -111,11 +116,7 @@
         }
         listaCompleta = grupos;
         desenhar(grupos);
-        
-        setTimeout(() => {
-            const primeiro = document.querySelector('.item');
-            if (primeiro) primeiro.focus();
-        }, 1500);
+        setTimeout(() => { document.querySelector('.item')?.focus(); }, 1500);
     }
 
     function desenhar(dados) {
@@ -125,7 +126,6 @@
             const h = document.createElement('div');
             h.className = 'cat-title'; h.innerText = grupo;
             container.appendChild(h);
-            
             dados[grupo].forEach(canal => {
                 const id = btoa(unescape(encodeURIComponent(canal.nome))).substring(0,8).replace(/[^a-z]/gi, 'x');
                 const div = document.createElement('div');
@@ -136,7 +136,7 @@
                     </div>
                     <div class="item-name">${canal.nome}</div>
                 `;
-                div.onclick = () => carregarPlayer(canal.url, canal.nome, id, div);
+                div.onclick = () => tocar(canal.url, canal.nome, id);
                 container.appendChild(div);
                 buscarDados(canal.base, id);
             });
@@ -147,71 +147,64 @@
         try {
             const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(termo)}`);
             const j = await r.json();
-            if (j.results && j.results.length > 0) {
+            if (j.results?.[0]) {
                 const res = j.results[0];
-                const path = res.poster_path ? `https://image.tmdb.org/t/p/w500${res.poster_path}` : '';
-                const imgTag = document.getElementById(`img-${id}`);
-                if (imgTag && path) {
-                    imgTag.src = path;
-                    const itemEl = imgTag.closest('.item');
-                    itemEl.setAttribute('data-poster', path);
-                    itemEl.setAttribute('data-info', res.overview || "Sinopse não disponível.");
-                }
+                const poster = res.poster_path ? `https://image.tmdb.org/t/p/w500${res.poster_path}` : '';
+                infoCache[id] = { poster: poster, sinopse: res.overview };
+                if (poster) document.getElementById(`img-${id}`).src = poster;
             }
         } catch (e) {}
     }
 
-    function carregarPlayer(url, nome, id, elemento) {
-        document.getElementById('title-now').innerText = nome;
-        document.getElementById('desc-now').innerText = elemento.getAttribute('data-info') || "Sinopse não disponível para este conteúdo.";
+    function tocar(url, nome, id) {
+        // Atualiza Sidebar
+        document.getElementById('now-playing-side').style.display = 'block';
+        document.getElementById('side-playing-title').innerText = nome;
         
-        // Simulação de Programação (A menos que sua lista tenha EPG JSON, aqui exibimos o status)
-        document.getElementById('epg-now').innerText = "EXIBINDO AGORA: " + nome;
-
-        const posterUrl = elemento.getAttribute('data-poster');
+        // Atualiza Painel do Player
+        document.getElementById('title-now').innerText = nome;
+        const dados = infoCache[id] || {};
+        document.getElementById('desc-now').innerText = dados.sinopse || "Sinopse não disponível.";
+        
+        // Atualiza Fundo Blur
         const bg = document.getElementById('bg-poster');
-        if (posterUrl) {
-            bg.style.backgroundImage = "url('" + posterUrl + "')";
+        if (dados.poster) {
+            bg.style.backgroundImage = `url('${dados.poster}')`;
+        } else {
+            bg.style.backgroundImage = "none";
         }
 
+        // Estilo de seleção
         document.querySelectorAll('.item').forEach(i => i.classList.remove('playing'));
-        elemento.classList.add('playing');
+        const clicado = document.activeElement;
+        if(clicado) clicado.classList.add('playing');
 
-        let streamUrl = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
+        // Play no Vídeo
+        let stream = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
         if (Hls.isSupported()) {
-            const hls = new Hls(); hls.loadSource(streamUrl); hls.attachMedia(video);
+            const hls = new Hls(); hls.loadSource(stream); hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
         } else {
-            video.src = streamUrl; video.play();
+            video.src = stream; video.play();
         }
     }
 
     window.fazerBusca = function() {
-        const termo = document.getElementById('search-input').value.toLowerCase();
-        let filtrados = {};
-        for (let grupo in listaCompleta) {
-            let canais = listaCompleta[grupo].filter(c => c.nome.toLowerCase().includes(termo));
-            if (canais.length > 0) filtrados[grupo] = canais;
+        const t = document.getElementById('search-input').value.toLowerCase();
+        let f = {};
+        for (let g in listaCompleta) {
+            let c = listaCompleta[g].filter(i => i.nome.toLowerCase().includes(t));
+            if (c.length > 0) f[g] = c;
         }
-        desenhar(filtrados);
+        desenhar(f);
     };
 
     document.addEventListener('keydown', (e) => {
         const items = document.querySelectorAll('.item');
-        let index = Array.from(items).indexOf(document.activeElement);
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            index = (index + 1) % items.length;
-            items[index].focus();
-            items[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            index = (index - 1 + items.length) % items.length;
-            items[index].focus();
-            items[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else if (e.key === 'Enter') {
-            if (document.activeElement.classList.contains('item')) document.activeElement.click();
-        }
+        let i = Array.from(items).indexOf(document.activeElement);
+        if (e.key === 'ArrowDown') { e.preventDefault(); i = (i + 1) % items.length; items[i].focus(); items[i].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); i = (i - 1 + items.length) % items.length; items[i].focus(); items[i].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        if (e.key === 'Enter') { if (document.activeElement.classList.contains('item')) document.activeElement.click(); }
     });
 
     init();
