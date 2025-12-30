@@ -5,65 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PAIXÃOFLIX</title>
     
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#e50914">
-    <link rel="icon" type="image/x-icon" href="https://i.imgur.com/rIJwt2Q.png">
-    <link rel="apple-touch-icon" href="https://i.imgur.com/rIJwt2Q.png">
-
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; --hover: #222; }
-        body { font-family: 'Roboto', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+        :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
+        
+        body { font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
         /* Sidebar */
         #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; }
         
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
-        .logo-area img { max-width: 180px; height: auto; }
+        .logo-area img { max-width: 200px; height: auto; }
         
         .search-area { padding: 15px; } 
-        .search-box { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; box-sizing: border-box; }
+        .search-box { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         
-        /* Seção Assistindo Agora (Fixa) */
-        #now-playing-side { 
-            padding: 12px 15px; background: #000; border-bottom: 2px solid var(--primary); 
-            display: none; /* Só aparece quando der play */
-        }
-        .now-label { font-size: 10px; color: var(--primary); font-weight: bold; text-transform: uppercase; margin-bottom: 4px; }
-        .now-title { font-size: 13px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* Assistindo Agora - Ajustado conforme solicitado */
+        #now-playing-side { padding: 15px; background: #070707; border-bottom: 2px solid var(--primary); display: none; }
+        .now-label { font-family: 'Poppins', sans-serif; font-size: 12px; color: var(--primary); font-weight: 600; text-transform: uppercase; margin-bottom: 2px; }
+        .now-title { font-family: 'Poppins', sans-serif; font-size: 14px; color: #fff; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 transparent; }
-        #channel-list::-webkit-scrollbar { width: 6px; }
-        #channel-list::-webkit-scrollbar-thumb { background: #333; }
-
-        /* Títulos das Sessões Maiores */
+        
+        /* Títulos das Sessões - 13px negrito 700 */
         .cat-title { 
-            background: #1a1a1a; padding: 12px 15px; font-size: 14px; 
-            text-transform: uppercase; color: #eee; font-weight: 900; 
+            background: #1a1a1a; padding: 10px 15px; font-size: 13px; 
+            text-transform: uppercase; color: #fff; font-weight: 700; 
             position: sticky; top: 0; z-index: 10; border-bottom: 1px solid #333;
         }
         
-        .item { 
-            display: flex; align-items: center; padding: 12px 15px; cursor: pointer; 
-            border-bottom: 1px solid #0a0a0a; border-left: 4px solid transparent; outline: none;
-        }
-        .item:hover, .item:focus, .item.active-focus { 
-            background: var(--hover); 
-            border-left: 4px solid var(--primary);
-        }
+        .item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #0a0a0a; border-left: 4px solid transparent; outline: none; }
+        .item:hover, .item:focus { background: #222; border-left: 4px solid var(--primary); }
         .item.playing { background: rgba(229, 9, 20, 0.1); border-left: 4px solid var(--primary); }
 
         .item img { width: 55px; height: 75px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
-        .item-name { font-size: 14px; flex: 1; pointer-events: none; }
+        .item-name { font-size: 14px; flex: 1; }
 
         /* Player */
         #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
-        #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; }
+        #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; background: #000; }
         video { width: 100%; height: 100%; object-fit: contain; }
         
-        .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 50px 30px 30px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; }
-        #title-now { font-size: 28px; font-weight: bold; margin: 0; }
+        /* Capa no Player */
+        #player-poster { position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; filter: blur(20px); z-index: 0; display: none; }
+
+        .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 50px 30px 30px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; z-index: 2; }
+        #title-now { font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 700; margin: 0; }
         #desc-now { font-size: 15px; color: #ccc; margin-top: 10px; max-width: 80%; line-height: 1.5; }
 
         @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 45%; } }
@@ -73,14 +62,14 @@
 
 <div id="sidebar">
     <div class="logo-area">
-        <img src="https://i.imgur.com/rIJwt2Q.png" alt="Logo">
+        <img id="main-logo" src="Ícone geral jellyfin 1380 x 720.png" onerror="this.src='https://i.imgur.com/rIJwt2Q.png'" alt="PAIXÃOFLIX">
     </div>
     <div class="search-area">
-        <input type="text" id="search" class="search-box" placeholder="Procurar canal ou série...">
+        <input type="text" id="search" class="search-box" placeholder="Buscar...">
     </div>
     
     <div id="now-playing-side">
-        <div class="now-label">● Assistindo agora</div>
+        <div class="now-label">Assistindo agora</div>
         <div id="side-playing-title" class="now-title">---</div>
     </div>
 
@@ -88,143 +77,153 @@
 </div>
 
 <div id="main-view">
+    <img id="player-poster" src="">
     <div id="player-wrapper">
         <video id="video" controls autoplay playsinline></video>
     </div>
     <div class="info-panel">
         <h1 id="title-now">PAIXÃOFLIX</h1>
-        <p id="desc-now">Navegue na lista ao lado e escolha sua programação.</p>
+        <p id="desc-now">Escolha um canal para iniciar.</p>
     </div>
 </div>
 
 <script>
     const KEY_TMDB = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
     const URL_M3U = '/tv.paixaoflix.m3u?v=' + Date.now();
-    const player = document.getElementById('video');
-    let listaCanais = {};
-    let focusedIndex = -1;
+    const videoNode = document.getElementById('video');
+    let masterList = {};
 
-    async function init() {
+    async function start() {
         try {
-            const res = await fetch(URL_M3U);
-            const text = await res.text();
-            processar(text);
-        } catch (e) { console.error("Erro na carga"); }
+            const r = await fetch(URL_M3U);
+            const t = await r.text();
+            parseList(t);
+        } catch (e) { console.error("Erro lista"); }
     }
 
-    function processar(text) {
-        const linhas = text.split('\n');
+    function parseList(text) {
+        const lines = text.split('\n');
         let cats = {};
-        for (let i = 0; i < linhas.length; i++) {
-            if (linhas[i].includes('#EXTINF')) {
-                let nome = linhas[i].split(',')[1]?.trim();
-                let link = linhas[i+1]?.trim();
-                let grupo = linhas[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
-                let base = nome.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP/gi, '').trim();
-
-                if (link && link.startsWith('http')) {
-                    if (!cats[grupo]) cats[grupo] = [];
-                    if (!cats[grupo].find(x => x.base === base)) {
-                        cats[grupo].push({ nome, base, link });
-                    }
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].includes('#EXTINF')) {
+                let name = lines[i].split(',')[1]?.trim();
+                let url = lines[i+1]?.trim();
+                let group = lines[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
+                let base = name.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP/gi, '').trim();
+                if (url && url.startsWith('http')) {
+                    if (!cats[group]) cats[group] = [];
+                    if (!cats[group].find(x => x.base === base)) cats[group].push({ name, base, url });
                 }
             }
         }
-        listaCanais = cats;
-        desenhar(cats);
+        masterList = cats;
+        draw(cats);
     }
 
-    function desenhar(data) {
+    function draw(data) {
         const container = document.getElementById('channel-list');
         container.innerHTML = '';
-        
         Object.keys(data).sort().forEach(c => {
             const h = document.createElement('div');
             h.className = 'cat-title'; h.innerText = c;
             container.appendChild(h);
-
             data[c].forEach(item => {
                 const id = btoa(unescape(encodeURIComponent(item.base))).substring(0,10).replace(/[^a-z]/gi, 'x');
                 const div = document.createElement('div');
-                div.className = 'item';
-                div.tabIndex = 0;
+                div.className = 'item'; div.tabIndex = 0;
                 div.innerHTML = `
-                    <div style="width:55px;height:75px;background:#222;margin-right:15px;border-radius:4px;flex-shrink:0;">
-                        <img src="" id="img-${id}" style="width:100%;height:100%;display:none;object-fit:cover;border-radius:4px;" onload="this.style.display='block'">
+                    <div style="width:55px;height:75px;background:#222;margin-right:15px;border-radius:4px;flex-shrink:0;overflow:hidden;">
+                        <img src="" id="img-${id}" style="width:100%;height:100%;display:none;object-fit:cover;" onload="this.style.display='block'">
                     </div>
                     <div class="item-name">${item.base}</div>
                 `;
-                div.onclick = () => tocar(item.link, item.base, id, div);
+                div.onclick = () => playStream(item.url, item.base, id, div);
                 container.appendChild(div);
-                buscarImg(item.base, id);
+                fetchImg(item.base, id);
             });
         });
     }
 
-    async function buscarImg(termo, id) {
-        let q = termo.split('|')[0].split('-')[0].trim();
+    async function fetchImg(term, id) {
+        let q = term.split('|')[0].split('-')[0].trim();
         try {
             const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${KEY_TMDB}&language=pt-BR&query=${encodeURIComponent(q)}`);
             const j = await r.json();
             if (j.results?.[0]?.poster_path) {
-                const el = document.getElementById(`img-${id}`);
-                if (el) {
-                    el.src = `https://image.tmdb.org/t/p/w200${j.results[0].poster_path}`;
-                    el.closest('.item').dataset.info = j.results[0].overview;
-                }
+                const path = `https://image.tmdb.org/t/p/w500${j.results[0].poster_path}`;
+                document.getElementById(`img-${id}`).src = path;
+                const itemEl = document.getElementById(`img-${id}`).closest('.item');
+                itemEl.dataset.info = j.results[0].overview;
+                itemEl.dataset.poster = path;
             }
         } catch (e) {}
     }
 
-    function tocar(url, nome, id, el) {
-        // Atualiza UI lateral fixa
+    function playStream(url, nome, id, el) {
+        // Interface
         document.getElementById('now-playing-side').style.display = 'block';
         document.getElementById('side-playing-title').innerText = nome;
+        document.getElementById('title-now').innerText = nome;
+        document.getElementById('desc-now').innerText = el.dataset.info || "Sem sinopse disponível.";
+        
+        // Imagem de fundo no Player
+        if(el.dataset.poster) {
+            document.getElementById('player-poster').src = el.dataset.poster;
+            document.getElementById('player-poster').style.display = 'block';
+        }
 
-        // Limpa seleções anteriores
         document.querySelectorAll('.item').forEach(i => i.classList.remove('playing'));
         el.classList.add('playing');
-        
-        // Atualiza painel principal
-        document.getElementById('title-now').innerText = nome;
-        document.getElementById('desc-now').innerText = el.dataset.info || "Programação ao vivo ou sinopse indisponível.";
 
-        let link = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
+        let finalUrl = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
+        
+        // Play Automático Direto
         if (Hls.isSupported()) {
-            const hls = new Hls(); hls.loadSource(link); hls.attachMedia(player);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => player.play());
-        } else { player.src = link; player.play(); }
+            const hls = new Hls();
+            hls.loadSource(finalUrl);
+            hls.attachMedia(videoNode);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                videoNode.play().catch(() => {
+                    videoNode.muted = true; // Algumas TVs só dão play automático se estiver mudo
+                    videoNode.play();
+                });
+            });
+        } else {
+            videoNode.src = finalUrl;
+            videoNode.play();
+        }
     }
 
-    // Controle de Teclado
+    // Teclado
     document.addEventListener('keydown', (e) => {
         const items = document.querySelectorAll('.item');
-        if (items.length === 0) return;
+        let focused = document.activeElement;
+        let index = Array.from(items).indexOf(focused);
+
         if (e.key === 'ArrowDown') {
-            focusedIndex = (focusedIndex + 1) % items.length;
-            items[focusedIndex].focus();
-            items[focusedIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            index = (index + 1) % items.length;
+            items[index].focus();
+            items[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else if (e.key === 'ArrowUp') {
-            focusedIndex = (focusedIndex - 1 + items.length) % items.length;
-            items[focusedIndex].focus();
-            items[focusedIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            index = (index - 1 + items.length) % items.length;
+            items[index].focus();
+            items[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else if (e.key === 'Enter') {
-            if (document.activeElement.classList.contains('item')) document.activeElement.click();
+            if (focused.classList.contains('item')) focused.click();
         }
     });
 
     document.getElementById('search').onkeyup = function() {
-        const val = this.value.toLowerCase();
+        const v = this.value.toLowerCase();
         let f = {};
-        for (let c in listaCanais) {
-            let m = listaCanais[c].filter(i => i.base.toLowerCase().includes(val));
+        for (let c in masterList) {
+            let m = masterList[c].filter(i => i.base.toLowerCase().includes(v));
             if (m.length > 0) f[c] = m;
         }
-        desenhar(f);
-        focusedIndex = -1;
+        draw(f);
     };
 
-    init();
+    start();
 </script>
 </body>
 </html>
