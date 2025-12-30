@@ -12,26 +12,34 @@
         :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
-        /* Sidebar */
-        #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; z-index: 10; }
+        #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; }
         
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
         .logo-area img { height: 80px; width: auto; }
         
-        /* Caixa de pesquisa - REDUZIDA EM 17PX */
+        /* Pesquisa reduzida em 17px */
         .search-area { padding: 15px; } 
         .search-box { width: calc(100% - 17px) !important; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; font-size: 13px; }
         
+        /* Assistindo Agora - Abaixo da pesquisa, oculto por padrão */
+        #now-playing-sidebar { 
+            padding: 10px 15px; 
+            background: #1a1a1a; 
+            display: none; /* Só aparece quando selecionado */
+            border-bottom: 1px solid #222;
+        }
+        .now-playing-label { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+        .now-playing-name { font-size: 12px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
         #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; }
 
-        /* Títulos das sessões - 14px Negrito 700 Branco */
+        /* Sessões 14px Negrito 700 Branco */
         .cat-title { 
             background: #1a1a1a; padding: 8px 15px; 
             font-size: 14px !important; text-transform: uppercase; color: #fff; 
             font-weight: 700; position: sticky; top: 0; z-index: 11;
         }
         
-        /* Itens/Cards levemente maiores */
         .item { 
             display: flex; align-items: center; padding: 12px 15px; cursor: pointer; 
             transition: 0.2s; border-bottom: 1px solid #0a0a0a; border-left: 3px solid transparent; 
@@ -39,19 +47,16 @@
         .item:hover, .item.active { background: #1a1a1a; border-left: 3px solid var(--primary); transform: scale(1.05); }
         .item img { width: 60px; height: 85px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
         
-        /* Título dos canais - 13px */
-        .item-name { font-size: 13px; font-weight: 400; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* Título canais 13px */
+        .item-name { font-size: 13px; font-weight: 400; flex: 1; }
 
-        /* Área do Player */
         #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
         #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; }
         video, iframe { width: 100%; height: 100%; object-fit: contain; border: none; }
         
-        /* EPG / Info Panel Profissional */
         .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 50px 30px 30px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; }
-        #title-now { font-size: 24px; font-weight: 700; margin: 0; color: #fff; }
+        #title-now { font-size: 24px; font-weight: 700; margin: 0; }
         #desc-now { font-size: 14px; color: #ccc; margin-top: 10px; max-width: 80%; line-height: 1.4; }
-
     </style>
 </head>
 <body>
@@ -60,9 +65,16 @@
     <div class="logo-area">
         <img src="https://tv.paixaoflix.vip/logo.png" alt="PaixãoFlix_Tv">
     </div>
+    
     <div class="search-area">
-        <input type="text" id="search" class="search-box" placeholder="Buscar canal ou filme..." onkeyup="filter()">
+        <input type="text" id="search" class="search-box" placeholder="Buscar..." onkeyup="filter()">
     </div>
+
+    <div id="now-playing-sidebar">
+        <div class="now-playing-label">Assistindo Agora</div>
+        <div id="current-channel-name" class="now-playing-name"></div>
+    </div>
+
     <div id="channel-list"></div>
 </div>
 
@@ -71,9 +83,8 @@
         <video id="video" controls autoplay playsinline></video>
     </div>
     <div class="info-panel">
-        <div style="color: var(--primary); font-size: 11px; font-weight: 700; margin-bottom: 5px;">ASSISTINDO AGORA</div>
         <h1 id="title-now">PaixãoFlix_Tv</h1>
-        <p id="desc-now">Carregando programação...</p>
+        <p id="desc-now">Selecione um conteúdo.</p>
     </div>
 </div>
 
@@ -113,11 +124,11 @@
         listaCanais = cats;
         desenhar(cats);
         
-        // SELECIONAR O PRIMEIRO CANAL OBRIGATORIAMENTE
+        // SELEÇÃO OBRIGATÓRIA DO PRIMEIRO CANAL AO ABRIR
         setTimeout(() => {
-            const primeiroItem = document.querySelector('.item');
-            if (primeiroItem) primeiroItem.click();
-        }, 800);
+            const primeiro = document.querySelector('.item');
+            if (primeiro) primeiro.click();
+        }, 500);
     }
 
     function desenhar(data) {
@@ -136,13 +147,12 @@
                 div.innerHTML = `<img src="" id="img-${id}" style="display:none"><div class="item-name">${canal.nome}</div>`;
                 div.onclick = () => tocar(canal.link, canal.nome, id, div);
                 container.appendChild(div);
-                buscarImgEPG(canal.base, id);
+                buscarImg(canal.base, id);
             });
         });
     }
 
-    // EPG e Imagem Profissional via TMDB
-    async function buscarImgEPG(termo, id) {
+    async function buscarImg(termo, id) {
         try {
             const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${KEY_TMDB}&language=pt-BR&query=${encodeURIComponent(termo)}`);
             const j = await r.json();
@@ -152,63 +162,29 @@
                 if (el) {
                     el.src = `https://image.tmdb.org/t/p/w200${res.poster_path}`;
                     el.style.display = 'block';
-                    el.dataset.overview = res.overview || "Programação indisponível no momento.";
+                    el.dataset.info = res.overview;
                 }
             }
         } catch (e) {}
     }
 
     function tocar(url, nome, id, el) {
+        // Mostrar Assistindo Agora na sidebar
+        const nowPlayingSide = document.getElementById('now-playing-sidebar');
+        const nowPlayingName = document.getElementById('current-channel-name');
+        nowPlayingSide.style.display = 'block';
+        nowPlayingName.innerText = nome;
+
         document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
         document.getElementById('title-now').innerText = nome;
-        
         const img = document.getElementById(`img-${id}`);
-        document.getElementById('desc-now').innerText = img?.dataset.overview || "Sinopse não disponível para este canal.";
+        document.getElementById('desc-now').innerText = img?.dataset.info || "";
 
-        if (hls) { hls.destroy(); hls = null; }
+        if (hls) hls.destroy();
 
-        // CORREÇÃO: DRIVE NÃO BAIXA, ELE REPRODUZ
+        // SOLUÇÃO DEFINITIVA PARA DRIVE (NÃO BAIXAR)
         if (url.includes('drive.google.com')) {
-            let driveId = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1];
-            wrapper.innerHTML = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
-        } else {
-            wrapper.innerHTML = `<video id="video" controls autoplay playsinline></video>`;
-            const v = document.getElementById('video');
-            
-            // Tratamento para links HTTP que o navegador tenta bloquear
-            let finalUrl = url;
-            
-            if (finalUrl.includes('.m3u8')) {
-                if (Hls.isSupported()) {
-                    hls = new Hls({ xhrSetup: xhr => { xhr.withCredentials = false; } });
-                    hls.loadSource(finalUrl);
-                    hls.attachMedia(v);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => v.play());
-                } else {
-                    v.src = finalUrl;
-                }
-            } else {
-                v.src = finalUrl;
-            }
-            
-            v.onerror = function() {
-                console.error("Erro ao carregar transmissão. Verifique se o link SSL é compatível.");
-            };
-        }
-    }
-
-    function filter() {
-        const val = document.getElementById('search').value.toLowerCase();
-        let f = {};
-        for (let c in listaCanais) {
-            let m = listaCanais[c].filter(i => i.nome.toLowerCase().includes(val));
-            if (m.length > 0) f[c] = m;
-        }
-        desenhar(f);
-    }
-
-    carregarApp();
-</script>
-</body>
-</html>
+            let driveId = "";
+            if(url.includes('/d/')) driveId = url.split('/d/')[1].split('/')[0];
+            else if(url.includes('id=')) driveId = url.split('id=')[1].split('&')[0];
