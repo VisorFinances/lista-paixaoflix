@@ -14,7 +14,6 @@
         :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
-        /* SIDEBAR */
         #sidebar { width: 300px; min-width: 300px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; z-index: 10; }
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
         .logo-area img { max-width: 100%; height: auto; max-height: 70px; }
@@ -22,7 +21,6 @@
         .search-area { padding: 15px; } 
         .search-box { width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; box-sizing: border-box; }
         
-        /* ASSISTINDO AGORA */
         #now-playing-side { padding: 15px; background: #070707; border-bottom: 2px solid var(--primary); display: none; }
         .now-label { font-size: 11px; color: var(--primary); font-weight: 700; text-transform: uppercase; }
         .now-title { font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
@@ -33,24 +31,17 @@
         .item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #0a0a0a; border-left: 4px solid transparent; outline: none; }
         .item:focus { background: #333 !important; border-left: 4px solid var(--primary) !important; }
         .item.playing { background: rgba(229, 9, 20, 0.3) !important; border-left: 4px solid var(--primary); }
-
         .item img { width: 50px; height: 70px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
-        .item-name { font-size: 14px; flex: 1; }
+        .item-name { font-size: 14px; flex: 1; pointer-events: none; }
 
-        /* MAIN VIEW / PLAYER */
         #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
-        #bg-poster { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background-size: cover; background-position: center;
-            filter: blur(50px) brightness(0.2); z-index: 1; 
-        }
-
+        #bg-poster { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; filter: blur(50px) brightness(0.2); z-index: 1; }
         #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; z-index: 5; }
         video { width: 100%; height: 100%; background: #000; }
         
         .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px 30px; background: linear-gradient(transparent, #000); z-index: 10; pointer-events: none; }
         #title-now { font-size: 30px; margin: 0; }
-        #desc-now { font-size: 15px; color: #ccc; margin-top: 10px; max-width: 80%; }
+        #desc-now { font-size: 15px; color: #ccc; margin-top: 10px; max-width: 80%; line-height: 1.4; height: 4.2em; overflow: hidden; }
 
         @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 40%; } }
     </style>
@@ -69,10 +60,10 @@
 
 <div id="main-view">
     <div id="bg-poster"></div>
-    <div id="player-wrapper"><video id="video" controls autoplay></video></div>
+    <div id="player-wrapper"><video id="video" controls autoplay playsinline></video></div>
     <div class="info-panel">
         <h1 id="title-now">PAIXÃOFLIX</h1>
-        <p id="desc-now">Selecione um canal para começar.</p>
+        <p id="desc-now">Selecione um conteúdo para iniciar.</p>
     </div>
 </div>
 
@@ -80,10 +71,10 @@
     const TMDB_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
     const M3U_URL = 'tv.paixaoflix.m3u?v=' + Date.now();
     const video = document.getElementById('video');
-    let listaCanais = [];
     let hls = null;
+    let cacheInfo = {};
 
-    async function carregarM3U() {
+    async function carregarLista() {
         try {
             const r = await fetch(M3U_URL);
             const t = await r.text();
@@ -92,113 +83,99 @@
 
             for (let i = 0; i < linhas.length; i++) {
                 if (linhas[i].includes('#EXTINF')) {
-                    let nome = linhas[i].split(',')[1]?.trim();
+                    let nomeCompleto = linhas[i].split(',')[1]?.trim();
                     let url = linhas[i+1]?.trim();
                     let grupo = linhas[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
-                    let base = nome.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP/gi, '').trim();
+                    
+                    // LÓGICA DE UNIFICAÇÃO DE SÉRIES: Remove S01E01, Episódio X, etc.
+                    let nomeBase = nomeCompleto.replace(/S\d+E\d+|Episódio \d+|Temporada \d+|FHD|HD|SD|4K|VIP|\|/gi, '').trim();
                     
                     if (url && url.startsWith('http')) {
                         if (!grupos[grupo]) grupos[grupo] = [];
-                        grupos[grupo].push({ nome, url, base });
+                        // Só adiciona se o nomeBase ainda não existir no grupo (Unifica)
+                        if (!grupos[grupo].find(x => x.base === nomeBase)) {
+                            grupos[grupo].push({ nome: nomeCompleto, base: nomeBase, url: url });
+                        }
                     }
                 }
             }
-            renderizar(grupos);
-            setTimeout(() => { document.querySelector('.item')?.focus(); }, 1000);
-        } catch (e) { alert("Erro ao carregar lista."); }
+            render(grupos);
+        } catch (e) { console.error("Erro ao carregar M3U"); }
     }
 
-    function renderizar(dados) {
-        const lista = document.getElementById('channel-list');
-        lista.innerHTML = '';
+    function render(dados) {
+        const container = document.getElementById('channel-list');
+        container.innerHTML = '';
         Object.keys(dados).sort().forEach(g => {
             const h = document.createElement('div');
             h.className = 'cat-title'; h.innerText = g;
-            lista.appendChild(h);
-            dados[g].forEach(c => {
+            container.appendChild(h);
+            dados[g].forEach(item => {
+                const id = btoa(unescape(encodeURIComponent(item.base))).substring(0,8).replace(/[^a-z]/gi, 'x');
                 const d = document.createElement('div');
                 d.className = 'item'; d.tabIndex = 0;
-                d.innerHTML = `<img src="https://via.placeholder.com/50x70?text=..." class="poster-img"><div class="item-name">${c.nome}</div>`;
+                d.innerHTML = `<img src="https://via.placeholder.com/50x70?text=..." id="img-${id}"><div class="item-name">${item.base}</div>`;
                 
-                // Evento de clique simplificado para LG
-                d.addEventListener('click', () => darPlay(c.url, c.nome, c.base));
+                d.onclick = () => playStream(item.url, item.base, id);
+                d.onkeydown = (e) => { if(e.key === 'Enter') playStream(item.url, item.base, id); };
                 
-                // Suporte para teclado/controle remoto
-                d.addEventListener('keydown', (e) => { if(e.key === 'Enter') darPlay(c.url, c.nome, c.base); });
-                
-                lista.appendChild(d);
-                buscarPoster(c.base, d);
+                container.appendChild(d);
+                buscarMeta(item.base, id);
             });
         });
     }
 
-    async function buscarPoster(termo, elemento) {
+    async function buscarMeta(termo, id) {
         try {
             const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(termo)}`);
             const j = await r.json();
             if (j.results?.[0]) {
-                const p = `https://image.tmdb.org/t/p/w500${j.results[0].poster_path}`;
-                elemento.querySelector('img').src = p;
-                elemento.dataset.poster = p;
-                elemento.dataset.sinopse = j.results[0].overview;
+                const data = j.results[0];
+                const poster = data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : '';
+                cacheInfo[id] = { poster: poster, sinopse: data.overview };
+                if (poster) document.getElementById(`img-${id}`).src = poster;
             }
         } catch(e){}
     }
 
-    function darPlay(url, nome, base) {
-        // Interface
+    function playStream(url, nome, id) {
         document.getElementById('now-playing-side').style.display = 'block';
         document.getElementById('side-playing-title').innerText = nome;
         document.getElementById('title-now').innerText = nome;
         
-        const itemAtivo = document.activeElement;
-        document.getElementById('desc-now').innerText = itemAtivo.dataset.sinopse || "Sinopse não disponível.";
-        
-        if (itemAtivo.dataset.poster) {
-            document.getElementById('bg-poster').style.backgroundImage = `url('${itemAtivo.dataset.poster}')`;
-        }
+        const info = cacheInfo[id] || {};
+        document.getElementById('desc-now').innerText = info.sinopse || "Sinopse não disponível.";
+        if (info.poster) document.getElementById('bg-poster').style.backgroundImage = `url('${info.poster}')`;
 
         document.querySelectorAll('.item').forEach(i => i.classList.remove('playing'));
-        itemAtivo.classList.add('playing');
+        event.currentTarget.classList.add('playing');
 
-        // VIDEO PLAY (HLS)
-        if (hls) { hls.destroy(); }
+        // RESOLUÇÃO DO PROBLEMA DE TRANSMISSÃO:
+        // Se o site é HTTPS e o link é HTTP, o navegador bloqueia.
+        // Tentamos carregar diretamente, se falhar, avisamos.
+        if (hls) hls.destroy();
         
-        // Se a URL for HTTP e o site HTTPS, usamos o proxy (essencial para LG)
-        let linkFinal = url;
-        if (location.protocol === 'https:' && url.startsWith('http:')) {
-            linkFinal = `/proxy?url=${encodeURIComponent(url)}`;
-        }
-
         if (Hls.isSupported()) {
             hls = new Hls();
-            hls.loadSource(linkFinal);
+            hls.loadSource(url);
             hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(e => console.log("Erro ao dar play automático")));
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = linkFinal;
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                video.play().catch(() => alert("Erro: O navegador bloqueou este canal por ser HTTP. Tente abrir o site sem o HTTPS ou use um navegador que permita conteúdo misto."));
+            });
+        } else {
+            video.src = url;
             video.play();
         }
     }
 
-    // BUSCA
     window.fazerBusca = function() {
         const t = document.getElementById('search-input').value.toLowerCase();
         document.querySelectorAll('.item').forEach(it => {
-            const txt = it.innerText.toLowerCase();
-            it.style.display = txt.includes(t) ? 'flex' : 'none';
+            it.style.display = it.innerText.toLowerCase().includes(t) ? 'flex' : 'none';
         });
     };
 
-    // NAVEGAÇÃO SETAS
-    document.addEventListener('keydown', (e) => {
-        const itens = Array.from(document.querySelectorAll('.item:not([style*="display: none"])'));
-        let idx = itens.indexOf(document.activeElement);
-        if (e.key === 'ArrowDown') { e.preventDefault(); idx = (idx + 1) % itens.length; itens[idx].focus(); }
-        if (e.key === 'ArrowUp') { e.preventDefault(); idx = (idx - 1 + itens.length) % itens.length; itens[idx].focus(); }
-    });
-
-    carregarM3U();
+    carregarLista();
 </script>
 </body>
 </html>
