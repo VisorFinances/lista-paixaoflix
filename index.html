@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>PaixãoFlix_Tv</title>
-    <link rel="icon" href="https://tv.paixaoflix.vip/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
@@ -15,23 +16,19 @@
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
         .logo-area img { height: 80px; width: auto; }
         
-        /* Pesquisa reduzida em 17px */
         .search-area { padding: 15px; } 
         .search-box { width: calc(100% - 17px) !important; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; font-size: 13px; }
         
-        /* Assistindo Agora - 14px e Nome 12px */
         #now-playing-sidebar { padding: 10px 15px; background: #1a1a1a; display: none; border-bottom: 1px solid #222; }
         .now-playing-label { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 2px; }
         .now-playing-name { font-size: 12px; color: #fff; }
 
         #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; }
-        /* Títulos Sessões 14px Negrito 700 */
         .cat-title { background: #050505; padding: 10px 15px; font-size: 14px; text-transform: uppercase; color: #fff; font-weight: 700; position: sticky; top: 0; z-index: 11; }
         
         .item { display: flex; align-items: center; padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #0a0a0a; border-left: 3px solid transparent; outline: none; }
         .item:focus, .item.active { background: #1a1a1a; border-left: 3px solid var(--primary); transform: scale(1.05); }
         .item img { width: 50px; height: 70px; border-radius: 4px; margin-right: 12px; object-fit: cover; }
-        /* Nome Canal 13px */
         .item-name { font-size: 13px; flex: 1; }
 
         #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
@@ -46,7 +43,7 @@
 <body>
 
 <div id="sidebar">
-    <div class="logo-area"><img src="https://tv.paixaoflix.vip/logo.png" alt="PaixãoFlix_Tv"></div>
+    <div class="logo-area"><img src="logo.png" alt="Logo"></div>
     <div class="search-area"><input type="text" id="search" class="search-box" placeholder="Buscar..." onkeyup="filter()"></div>
     <div id="now-playing-sidebar">
         <div class="now-playing-label">Assistindo Agora</div>
@@ -59,13 +56,13 @@
     <div id="player-wrapper"></div>
     <div class="info-panel">
         <h1 id="title-now">PaixãoFlix_Tv</h1>
-        <p id="desc-now">Selecione para assistir.</p>
+        <p id="desc-now">Clique em um canal ou use o controle.</p>
     </div>
 </div>
 
 <script>
     const KEY_TMDB = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
-    const URL_M3U = '/tv.paixaoflix.m3u?v=' + Date.now();
+    const URL_M3U = 'tv.paixaoflix.m3u';
     let listaCanais = {};
     let hls = null;
 
@@ -74,7 +71,7 @@
             const res = await fetch(URL_M3U);
             const text = await res.text();
             processar(text);
-        } catch (e) { console.error("Erro na lista"); }
+        } catch (e) { console.error("Falha ao carregar M3U"); }
     }
 
     function processar(text) {
@@ -89,7 +86,6 @@
 
                 if (link && link.startsWith('http')) {
                     if (!cats[grupo]) cats[grupo] = [];
-                    // Agrupamento para séries não repetirem
                     if (!cats[grupo].find(x => x.base === base)) {
                         cats[grupo].push({ nome, base, link });
                     }
@@ -99,14 +95,12 @@
         listaCanais = cats;
         desenhar(cats);
         
-        // SELECIONAR PRIMEIRO CANAL OBRIGATORIAMENTE
+        // AUTO-SELEÇÃO: Precisamos de interação do usuário para o som, 
+        // mas vamos forçar o primeiro canal a carregar mutado.
         setTimeout(() => {
-            const primeiroItem = document.querySelector('.item');
-            if (primeiroItem) {
-                primeiroItem.focus();
-                primeiroItem.click();
-            }
-        }, 800);
+            const primeiro = document.querySelector('.item');
+            if (primeiro) { primeiro.focus(); primeiro.click(); }
+        }, 1000);
     }
 
     function desenhar(data) {
@@ -120,8 +114,7 @@
             data[c].forEach(canal => {
                 const id = btoa(unescape(encodeURIComponent(canal.nome))).substring(0,8).replace(/[^a-z]/gi, 'x');
                 const div = document.createElement('div');
-                div.className = 'item';
-                div.tabIndex = 0;
+                div.className = 'item'; div.tabIndex = 0;
                 div.innerHTML = `<img src="" id="img-${id}" style="display:none"><div class="item-name">${canal.nome}</div>`;
                 div.onclick = () => tocar(canal.link, canal.nome, id, div);
                 container.appendChild(div);
@@ -130,23 +123,59 @@
         });
     }
 
-    // Configuração das Setas
+    function tocar(url, nome, id, el) {
+        document.getElementById('now-playing-sidebar').style.display = 'block';
+        document.getElementById('current-channel-name').innerText = nome;
+        document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('title-now').innerText = nome;
+
+        const wrapper = document.getElementById('player-wrapper');
+        if (hls) hls.destroy();
+
+        if (url.includes('drive.google.com')) {
+            let dId = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
+            wrapper.innerHTML = `<iframe src="https://drive.google.com/file/d/${dId}/preview" allow="autoplay"></iframe>`;
+        } else {
+            wrapper.innerHTML = `<video id="video" controls autoplay playsinline muted></video>`;
+            const v = document.getElementById('video');
+            
+            // Tratamento de erro para links HTTP bloqueados (Mixed Content)
+            v.onerror = () => {
+                if(v.src.startsWith('https://vip.sibfungold.org')) {
+                    alert("Este canal utiliza HTTP inseguro e foi bloqueado pelo seu navegador HTTPS.");
+                }
+            };
+
+            if (url.includes('.m3u8')) {
+                if (Hls.isSupported()) {
+                    hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => v.play());
+                } else { v.src = url; }
+            } else {
+                v.src = url; // ARCHIVE.ORG MP4 FUNCIONA AQUI
+                v.play().catch(() => {
+                    console.log("Autoplay mudo ativado");
+                    v.muted = true;
+                    v.play();
+                });
+            }
+        }
+    }
+
+    // Setas
     document.addEventListener('keydown', (e) => {
         const active = document.activeElement;
         if (!active.classList.contains('item')) return;
         if (e.key === 'ArrowDown') {
-            e.preventDefault();
             let next = active.nextElementSibling;
             while(next && !next.classList.contains('item')) next = next.nextElementSibling;
             if (next) next.focus();
         } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
             let prev = active.previousElementSibling;
             while(prev && !prev.classList.contains('item')) prev = prev.previousElementSibling;
             if (prev) prev.focus();
-        } else if (e.key === 'Enter') {
-            active.click();
-        }
+        } else if (e.key === 'Enter') { active.click(); }
     });
 
     async function buscarImg(termo, id) {
@@ -155,52 +184,16 @@
             const j = await r.json();
             if (j.results && j.results[0]) {
                 const res = j.results[0];
-                const el = document.getElementById(`img-${id}`);
-                if (el) { el.src = `https://image.tmdb.org/t/p/w200${res.poster_path}`; el.style.display = 'block'; el.dataset.info = res.overview; }
+                const imgEl = document.getElementById(`img-${id}`);
+                if (imgEl) {
+                    imgEl.src = `https://image.tmdb.org/t/p/w200${res.poster_path}`;
+                    imgEl.style.display = 'block';
+                    document.getElementById('desc-now').innerText = res.overview;
+                }
             }
         } catch (e) {}
     }
 
-    function tocar(url, nome, id, el) {
-        document.getElementById('now-playing-sidebar').style.display = 'block';
-        document.getElementById('current-channel-name').innerText = nome;
-        document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById('title-now').innerText = nome;
-        const img = document.getElementById(`img-${id}`);
-        document.getElementById('desc-now').innerText = img?.dataset.info || "Programação indisponível.";
-
-        const wrapper = document.getElementById('player-wrapper');
-        if (hls) hls.destroy();
-
-        if (url.includes('drive.google.com')) {
-            let dId = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
-            wrapper.innerHTML = `<iframe src="https://drive.google.com/file/d/${dId}/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
-        } else {
-            // Player para Archive.org (MP4) e Canais (M3U8)
-            wrapper.innerHTML = `<video id="video" controls autoplay playsinline></video>`;
-            const v = document.getElementById('video');
-            if (url.includes('.m3u8')) {
-                if (Hls.isSupported()) {
-                    hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
-                } else { v.src = url; }
-            } else { 
-                // AQUI FUNCIONA O LINK DO ARCHIVE.ORG E QUALQUER MP4 DIRETO
-                v.src = url; 
-                v.play().catch(e => console.log("Auto-play blocked"));
-            }
-        }
-    }
-
-    function filter() {
-        const val = document.getElementById('search').value.toLowerCase();
-        let f = {};
-        for (let c in listaCanais) {
-            let m = listaCanais[c].filter(i => i.nome.toLowerCase().includes(val));
-            if (m.length > 0) f[c] = m;
-        }
-        desenhar(f);
-    }
     carregarApp();
 </script>
 </body>
