@@ -3,170 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PAIXÃOFLIX - Web TV Oficial</title>
+    <title>PAIXÃOFLIX - Web TV</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#e50914">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root { --primary: #e50914; --bg: #141414; --card-bg: #2f2f2f; --text: #ffffff; }
         body { font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; }
         
-        /* Header Estilo Netflix */
         header { 
-            padding: 15px 5%; 
-            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); 
-            display: flex; align-items: center; position: fixed; width: 100%; z-index: 1000; 
-            box-sizing: border-box;
+            padding: 15px 5%; background: rgba(0,0,0,0.9); 
+            display: flex; align-items: center; justify-content: space-between;
+            position: fixed; width: 100%; z-index: 1000; box-sizing: border-box;
         }
-        .logo { color: var(--primary); font-size: 24px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
+        .logo { color: var(--primary); font-size: 24px; font-weight: bold; text-transform: uppercase; }
+        .btn-install { 
+            background: var(--primary); color: white; border: none; padding: 8px 15px; 
+            border-radius: 4px; cursor: pointer; display: none; font-weight: bold;
+        }
 
-        /* Area do Player */
         #player-container { 
             width: 100%; background: #000; display: flex; align-items: center; justify-content: center; 
             position: relative; aspect-ratio: 16 / 9; max-height: 70vh; padding-top: 60px;
         }
-        video { width: 100%; height: 100%; max-height: 70vh; outline: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        video { width: 100%; height: 100%; max-height: 70vh; outline: none; }
 
-        /* Categorias e Grid */
-        #content { padding: 20px 0; }
-        .category-title { padding: 20px 5% 10px; font-size: 22px; font-weight: bold; color: #e5e5e5; }
+        .category-title { padding: 20px 5% 5px; font-size: 18px; font-weight: bold; color: #aaa; text-transform: uppercase; }
         .grid { 
-            display: flex; overflow-x: auto; gap: 15px; padding: 10px 5% 30px; 
-            scrollbar-width: none; -ms-overflow-style: none; 
+            display: flex; overflow-x: auto; gap: 12px; padding: 5px 5% 25px; 
+            scrollbar-width: none;
         }
         .grid::-webkit-scrollbar { display: none; }
 
         .card { 
-            min-width: 160px; max-width: 160px; background: var(--card-bg); border-radius: 4px; 
-            overflow: hidden; cursor: pointer; transition: transform 0.3s ease; flex-shrink: 0;
+            min-width: 140px; max-width: 140px; background: var(--card-bg); border-radius: 6px; 
+            overflow: hidden; cursor: pointer; transition: 0.3s; flex-shrink: 0;
         }
-        .card:hover { transform: scale(1.1); z-index: 100; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
-        .card img { width: 100%; height: 230px; object-fit: cover; pointer-events: none; }
-        .card-info { padding: 8px; font-size: 13px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card:hover { transform: scale(1.05); }
+        .card img { width: 100%; height: 200px; object-fit: cover; }
+        .card-info { padding: 8px; font-size: 12px; text-align: center; font-weight: bold; }
         
-        .status-msg { position: absolute; z-index: 10; color: var(--primary); font-weight: bold; text-align: center; }
-
-        @media (max-width: 768px) {
-            .card { min-width: 130px; max-width: 130px; }
-            .card img { height: 180px; }
-        }
+        .status-msg { position: absolute; z-index: 10; color: var(--primary); }
     </style>
 </head>
 <body>
 
 <header>
     <div class="logo">PaixãoFlix</div>
+    <button id="installBtn" class="btn-install">INSTALAR APP</button>
 </header>
 
 <div id="player-container">
-    <div class="status-msg" id="status">Selecione um conteúdo para iniciar</div>
-    <video id="video" controls preload="auto" poster="https://via.placeholder.com/1280x720/000000/e50914?text=PAIXAOFLIX"></video>
+    <div class="status-msg" id="status">Aguardando seleção...</div>
+    <video id="video" controls playsinline></video>
 </div>
 
-<div id="content">
-    </div>
+<div id="content"></div>
 
 <script>
-    const m3uUrl = '/online.m3u'; // Caminho relativo para usar seu Worker/Proxy
-    const video = document.getElementById('video');
-    const status = document.getElementById('status');
-
-    async function loadApp() {
-        try {
-            const response = await fetch(m3uUrl);
-            const data = await response.text();
-            parseAndRender(data);
-        } catch (err) {
-            status.innerText = "Erro ao carregar lista de canais.";
-            console.error(err);
-        }
+    // Registro do PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
     }
 
-    function parseAndRender(content) {
-        const lines = content.split('\n');
-        let categories = {};
+    // Lógica do Botão de Instalação
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('installBtn').style.display = 'block';
+    });
 
+    document.getElementById('installBtn').addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') document.getElementById('installBtn').style.display = 'none';
+            deferredPrompt = null;
+        }
+    });
+
+    // Carregamento da Lista
+    const m3uUrl = '/online.m3u';
+    const video = document.getElementById('video');
+
+    async function init() {
+        try {
+            const res = await fetch(m3uUrl);
+            const text = await res.text();
+            render(text);
+        } catch (e) { document.getElementById('status').innerText = "Erro na lista"; }
+    }
+
+    function render(data) {
+        const lines = data.split('\n');
+        let categories = {};
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].startsWith('#EXTINF')) {
-                const info = lines[i];
-                const url = lines[i + 1]?.trim();
-                const title = info.split(',')[1]?.trim() || "Sem Nome";
-                const groupMatch = info.match(/group-title="([^"]+)"/);
-                const category = groupMatch ? groupMatch[1].toUpperCase() : "DIVERSOS";
-
-                if (!categories[category]) categories[category] = [];
-                if (url && url.startsWith('http')) {
-                    categories[category].push({ title, url });
-                }
+                const title = lines[i].split(',')[1] || "Canal";
+                const url = lines[i+1].trim();
+                const group = lines[i].match(/group-title="([^"]+)"/)?.[1] || "Geral";
+                if (!categories[group]) categories[group] = [];
+                categories[group].push({ title, url });
             }
         }
-        renderLayout(categories);
-    }
-
-    function renderLayout(categories) {
+        
         const container = document.getElementById('content');
-        container.innerHTML = '';
-
         for (let cat in categories) {
-            const section = document.createElement('div');
-            section.innerHTML = `<div class="category-title">${cat}</div>`;
+            const div = document.createElement('div');
+            div.innerHTML = `<div class="category-title">${cat}</div>`;
             const grid = document.createElement('div');
             grid.className = 'grid';
-
             categories[cat].forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                
-                // Lógica de Posteres Automáticos
-                let poster = "https://via.placeholder.com/300x450/2f2f2f/ffffff?text=" + encodeURIComponent(item.title);
-                if (item.title.includes("E.P.C")) {
-                    poster = "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/75pW83Fv9M9L5q7G6Y6F3NqfXhB.jpg";
-                }
-
-                card.innerHTML = `
-                    <img src="${poster}" loading="lazy">
-                    <div class="card-info">${item.title}</div>
-                `;
-                card.onclick = () => playStream(item.url, item.title);
+                let poster = item.title.includes("E.P.C") ? "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/75pW83Fv9M9L5q7G6Y6F3NqfXhB.jpg" : "https://via.placeholder.com/300x450/2f2f2f/ffffff?text=" + item.title;
+                card.innerHTML = `<img src="${poster}"><div class="card-info">${item.title}</div>`;
+                card.onclick = () => play(item.url);
                 grid.appendChild(card);
             });
-            section.appendChild(grid);
-            container.appendChild(section);
+            div.appendChild(grid);
+            container.appendChild(div);
         }
     }
 
-    function playStream(url, title) {
-        status.style.display = 'none';
+    function play(url) {
+        document.getElementById('status').style.display = 'none';
+        let finalUrl = url.startsWith('http:') ? `${window.location.origin}/proxy?url=${encodeURIComponent(url)}` : url;
         
-        // TUNEL PROXY: Se o vídeo for HTTP e o site HTTPS, usa o Worker como ponte
-        let finalUrl = url;
-        if (url.startsWith('http:')) {
-            finalUrl = `${window.location.origin}/proxy?url=${encodeURIComponent(url)}`;
-        }
-
         if (Hls.isSupported()) {
             const hls = new Hls();
             hls.loadSource(finalUrl);
             hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.play();
-            });
-            hls.on(Hls.Events.ERROR, function (event, data) {
-                if (data.fatal) console.error("Erro fatal HLS");
-            });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            // Suporte Nativo (Safari/iOS)
-            video.src = finalUrl;
-            video.play();
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
         } else {
-            // Fallback para MP4 direto (Archive.org)
             video.src = finalUrl;
             video.play();
         }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo(0,0);
     }
-
-    loadApp();
+    init();
 </script>
-
 </body>
 </html>
