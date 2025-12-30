@@ -1,18 +1,10 @@
-const CACHE_NAME = 'paixaoflix-v1';
-const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json'
-];
+const CACHE_NAME = 'paixaoflix-v2';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
+  self.skipWaiting();
 });
 
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
-  );
+  // Apenas repassa a requisição, permitindo que o botão de "Instalar" apareça
+  event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
 });
