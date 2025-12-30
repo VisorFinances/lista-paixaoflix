@@ -58,7 +58,7 @@ http://stitcher-ipv4.pluto.tv/stitch/v1/playlist/type/m3u8/channel/5f5109b860268
 #EXTINF:-1 tvg-id="plutotv.terror" tvg-name="Pluto TV Terror" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/7/7a/Pluto_TV_logo.svg" group-title="PLUTO TV",Pluto TV Terror
 http://stitcher-ipv4.pluto.tv/stitch/v1/playlist/type/m3u8/channel/5f510972648793000787e937.m3u8
 
-#EXTM3U
+########## SÉRIES ##########
 #EXTINF:-1,Eu, a Patroa e as Crianças - S01E01 - Piloto
 https://archive.org/download/paixaoflix/E.P.C%20S01E01%20-%20Piloto%20720p%20-%20By-LuanHarper.mp4
 #EXTINF:-1,Eu, a Patroa e as Crianças - S01E02 - A Verdade Machuca
@@ -97,6 +97,10 @@ https://archive.org/download/paixaoflix/E.P.C%20S02E06%20-%20Ele%20Ouviu%2C%20El
 https://archive.org/download/paixaoflix/E.P.C%20S02E07%20-%20O%20Jardim%20de%20Michael%20720p%20-%20By-LuanHarper.mp4
 #EXTINF:-1,Eu, a Patroa e as Crianças - S02E08 - Vamos Ter Que Comer Torta
 https://archive.org/download/paixaoflix/E.P.C%20S02E08%20-%20Vamos%20Ter%20Que%20Comer%20Torta%20720p%20-%20By-LuanHarper.mp4
+#EXTINF:-1 tvg-id="epc.channel" tvg-name="Eu, a Patroa e as Crianças" tvg-logo="https://i.imgur.com/2W0Yy3Q.png](https://i.imgur.com/2W0Yy3Q.png" group-title="SÉRIES | FAST",Eu, a Patroa e as Crianças
+https://archive.org/download/paixaoflix/epc_fast_playlist.m3u8 
 
-#EXTINF:-1 tvg-id="epc.channel" tvg-name="Eu, a Patroa e as Crianças" tvg-logo="[https://i.imgur.com/2W0Yy3Q.png](https://i.imgur.com/2W0Yy3Q.png)" group-title="SÉRIES | FAST",Eu, a Patroa e as Crianças
-[https://archive.org/download/paixaoflix/epc_fast_playlist.m3u8](https://archive.org/download/paixaoflix/epc_fast_playlist.m3u8)
+########## FILMES ##########
+#EXTM3U
+#EXTINF:-1 tvg-name="AS TARTARUGAS NINJA - O RETORNO" tvg-logo="https://cdn.iset.io/assets/52438/produtos/40738/thumb_350-350-atn.jpg" group-title="Filmes", AS TARTARUGAS NINJA - O RETORNO
+https://docs.google.com/uc?export=download&id=1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC
