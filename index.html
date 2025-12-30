@@ -3,139 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PaixãoFlix Premium</title>
+    <title>PaixãoFlix - Oficial</title>
     <style>
-        /* 1. ESTRUTURA BASE */
+        /* CSS RESET E ESTRUTURA APROVADA */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            background-color: #050505;
-            color: #fff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #080808;
+            color: #ffffff;
+            font-family: 'Segoe UI', Arial, sans-serif;
             display: flex;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* 2. BARRA LATERAL ESQUERDA (TUDO FICA AQUI) */
+        /* BARRA LATERAL ESQUERDA - ESTRUTURA PERFEITA */
         .sidebar {
-            width: 320px;
-            background-color: #000;
-            border-right: 1px solid #222;
+            width: 300px;
+            background-color: #000000;
             display: flex;
             flex-direction: column;
             padding: 20px;
-            overflow-y: auto;
+            border-right: 1px solid #1a1a1a;
             flex-shrink: 0;
+            overflow-y: auto;
         }
 
-        /* ITEM 1: LOGOTIPO (80px de altura) */
-        .logo-container {
-            text-align: center;
-            margin-bottom: 25px;
+        /* 1. TOPO - LOGOTIPO (AJUSTADO PARA 80PX) */
+        .logo-box {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
         }
-        .logo {
-            height: 80px; 
+        .logo-box img {
+            height: 80px;
             width: auto;
             object-fit: contain;
         }
 
-        /* ITEM 2: PESQUISA (-17px de redução) */
-        .search-container {
+        /* 2. CAIXA DE PESQUISA (REDUZIDA EM 17PX) */
+        .search-wrapper {
             margin-bottom: 25px;
         }
-        .search-input {
-            /* Redução de 17px na largura total da caixa */
+        .search-bar {
             width: calc(100% - 17px) !important;
-            padding: 12px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 6px;
+            padding: 12px 15px;
+            background: #121212;
+            border: 1px solid #282828;
+            border-radius: 5px;
             color: #fff;
             outline: none;
         }
-        .search-input:focus { border-color: #e50914; }
+        .search-bar:focus { border-color: #e50914; }
 
-        /* ITEM 3: ASSISTINDO AGORA (DENTRO DA SIDEBAR) */
-        .watching-now-box {
+        /* 3. ASSISTINDO AGORA (MINI PLAYER NA SIDEBAR) */
+        .now-playing-sidebar {
             margin-bottom: 30px;
         }
-        .mini-player {
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: #111;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #e50914;
-        }
-        iframe { width: 100%; height: 100%; border: none; }
-
-        /* ITEM 4: SESSÕES/MENU NA SIDEBAR */
-        .sidebar-sessions {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .session-link {
-            font-size: 1.1rem;
-            color: #aaa;
-            cursor: pointer;
-            transition: 0.3s;
-            padding: 5px 0;
-        }
-        .session-link:hover, .session-link.active {
+        .now-playing-title {
+            font-size: 0.75rem;
             color: #e50914;
             font-weight: bold;
-        }
-
-        /* 3. ÁREA DE CONTEÚDO (DIREITA) */
-        .main-display {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-            background: linear-gradient(to bottom, #111, #050505);
-        }
-
-        .section-header {
-            font-size: 1.8rem !important; /* Ajuste solicitado */
-            margin-bottom: 20px;
-            font-weight: bold;
+            margin-bottom: 10px;
             text-transform: uppercase;
         }
+        .mini-player-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #222;
+        }
+        .mini-player-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
 
-        /* 4. GRID DE CONTEÚDOS */
-        .content-grid {
+        /* 4. SESSÕES (LISTA DE CATEGORIAS) */
+        .nav-sessions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .session-item {
+            color: #b3b3b3;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            padding: 5px 0;
+        }
+        .session-item:hover, .session-item.active {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* CONTEÚDO À DIREITA */
+        .content-area {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            background: linear-gradient(180deg, #121212 0%, #080808 100%);
+        }
+
+        .category-title {
+            font-size: 1.8rem !important;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+
+        /* GRID E CARDS (AUMENTADOS EM 8% / SCALE 1.08) */
+        .movie-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
+            gap: 30px;
         }
-
-        .card {
-            background: #111;
-            border-radius: 8px;
+        .movie-card {
+            background: #181818;
+            border-radius: 6px;
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.3s, border 0.3s;
-            border: 3px solid transparent;
-            position: relative;
+            transition: transform 0.3s ease, border 0.3s ease;
+            border: 2px solid transparent;
         }
-
-        /* AJUSTE: CARDS LEVEMENTE AUMENTADOS NA SELEÇÃO */
-        .card:hover, .card.selected {
-            transform: scale(1.08); 
+        .movie-card:hover, .movie-card.selected {
+            transform: scale(1.08); /* Card levemente aumentado */
             border-color: #e50914;
-            z-index: 10;
         }
-
-        .card img {
+        .movie-card img {
             width: 100%;
             aspect-ratio: 2/3;
             object-fit: cover;
         }
-
-        .card-title {
-            padding: 8px;
-            font-size: 13px;
+        .movie-info {
+            padding: 10px;
+            font-size: 14px;
             text-align: center;
             font-weight: 600;
         }
@@ -144,72 +149,68 @@
 <body>
 
     <aside class="sidebar">
-        <div class="logo-container">
-            <img src="https://tv.paixaoflix.vip/logo.png" alt="PaixãoFlix" class="logo" onerror="this.src='https://via.placeholder.com/200x80?text=LOGO+AQUI'">
+        <div class="logo-box">
+            <img src="https://tv.paixaoflix.vip/logo.png" alt="PaixãoFlix">
         </div>
 
-        <div class="search-container">
-            <input type="text" class="search-input" placeholder="Buscar filmes...">
+        <div class="search-wrapper">
+            <input type="text" class="search-bar" placeholder="Pesquisar...">
         </div>
 
-        <div class="watching-now-box">
-            <p style="font-size: 0.8rem; color: #e50914; margin-bottom: 5px; font-weight: bold;">ASSISTINDO AGORA</p>
-            <div class="mini-player" id="player-sidebar">
-                <div style="display:flex; height:100%; align-items:center; justify-content:center; font-size: 10px; color: #444; text-align: center; padding: 10px;">
-                    Selecione um filme no grid
+        <div class="now-playing-sidebar">
+            <h3 class="now-playing-title">Assistindo Agora</h3>
+            <div class="mini-player-container" id="sidebar-video-target">
+                <div style="height:100%; display:flex; align-items:center; justify-content:center; color:#444; font-size:12px;">
+                    Aguardando seleção...
                 </div>
             </div>
         </div>
 
-        <div class="sidebar-sessions">
-            <div class="session-link active">LANÇAMENTOS</div>
-            <div class="session-link">FILMES</div>
-            <div class="session-link">SÉRIES</div>
-            <div class="session-link">FAVORITOS</div>
-        </div>
+        <nav class="nav-sessions">
+            <div class="session-item active">Lançamentos</div>
+            <div class="session-item">Filmes</div>
+            <div class="session-item">Séries</div>
+            <div class="session-item">Documentários</div>
+        </nav>
     </aside>
 
-    <main class="main-display">
-        <h2 class="section-header">Sugestões para você</h2>
+    <main class="content-area">
+        <h2 class="category-title">Sugestões em Destaque</h2>
         
-        <div class="content-grid">
-            <div class="card" id="first-item" onclick="loadMovie('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC', this)">
+        <div class="movie-grid">
+            <div class="movie-card" id="main-item" onclick="updatePlayer('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC', this)">
                 <img src="https://cdn.iset.io/assets/52438/produtos/40738/thumb_350-350-atn.jpg" alt="Tartarugas Ninja">
-                <div class="card-title">AS TARTARUGAS NINJA - O RETORNO</div>
+                <div class="movie-info">AS TARTARUGAS NINJA - O RETORNO</div>
             </div>
-
-            </div>
+        </div>
     </main>
 
     <script>
-        function loadMovie(driveId, element) {
-            const playerContainer = document.getElementById('player-sidebar');
+        function updatePlayer(id, element) {
+            const container = document.getElementById('sidebar-video-target');
+            // Link corrigido para assistir no player do Drive (modo preview)
+            const videoLink = `https://drive.google.com/file/d/${id}/preview`;
             
-            // Link de visualização direta com suporte a Tela Cheia habilitado
-            const embedUrl = `https://drive.google.com/file/d/${driveId}/preview`;
-            
-            playerContainer.innerHTML = `
+            container.innerHTML = `
                 <iframe 
-                    src="${embedUrl}" 
+                    src="${videoLink}" 
                     allow="autoplay; fullscreen" 
                     allowfullscreen="true">
                 </iframe>`;
 
-            // Gerenciar classe de seleção visual
-            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            // Estilo de seleção
+            document.querySelectorAll('.movie-card').forEach(c => c.classList.remove('selected'));
             element.classList.add('selected');
         }
 
-        // Seleção automática ao carregar
-        window.onload = () => {
-            const firstCard = document.getElementById('first-item');
+        // Selecionar o primeiro canal automaticamente ao abrir
+        window.onload = function() {
+            const firstCard = document.getElementById('main-item');
             if (firstCard) {
                 firstCard.classList.add('selected');
                 firstCard.focus();
-                // Opcional: loadMovie('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC', firstCard);
             }
         };
     </script>
-
 </body>
 </html>
