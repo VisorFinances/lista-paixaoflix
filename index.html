@@ -3,199 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PaixãoFlix - Premium</title>
+    <title>PaixãoFlix Premium</title>
     <style>
-        /* RESET E BASE */
+        /* 1. ESTRUTURA BASE */
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body {
-            background-color: #0f0f0f;
+            background-color: #050505;
             color: #fff;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* BARRA LATERAL (ESTRUTURA ORIGINAL) */
+        /* 2. BARRA LATERAL ESQUERDA (TUDO FICA AQUI) */
         .sidebar {
-            width: 240px;
+            width: 320px;
             background-color: #000;
+            border-right: 1px solid #222;
             display: flex;
             flex-direction: column;
             padding: 20px;
-            border-right: 1px solid #222;
+            overflow-y: auto;
             flex-shrink: 0;
         }
 
-        /* LOGOTIPO (AJUSTE: AUMENTADO) */
+        /* ITEM 1: LOGOTIPO (80px de altura) */
         .logo-container {
-            margin-bottom: 40px;
             text-align: center;
+            margin-bottom: 25px;
         }
         .logo {
-            height: 80px; /* Seu ajuste solicitado */
+            height: 80px; 
             width: auto;
-            max-width: 100%;
             object-fit: contain;
         }
 
-        /* CONTEÚDO PRINCIPAL */
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 30px;
-            background: linear-gradient(180deg, #141414 0%, #0f0f0f 100%);
-        }
-
-        /* BARRA DE PESQUISA (AJUSTE: -17px) */
+        /* ITEM 2: PESQUISA (-17px de redução) */
         .search-container {
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: flex-start;
+            margin-bottom: 25px;
         }
         .search-input {
-            width: calc(100% - 17px) !important; /* Seu ajuste solicitado */
-            padding: 14px 20px;
-            background: #2b2b2b;
-            border: 1px solid #444;
+            /* Redução de 17px na largura total da caixa */
+            width: calc(100% - 17px) !important;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
             color: #fff;
-            border-radius: 8px;
-            font-size: 16px;
             outline: none;
-            transition: border 0.3s;
         }
         .search-input:focus { border-color: #e50914; }
 
-        /* SESSÃO ASSISTINDO AGORA (PLAYER) */
-        .now-watching {
-            margin-bottom: 40px;
+        /* ITEM 3: ASSISTINDO AGORA (DENTRO DA SIDEBAR) */
+        .watching-now-box {
+            margin-bottom: 30px;
         }
-        .player-container {
+        .mini-player {
             width: 100%;
-            max-width: 1000px;
-            aspect-ratio: 16 / 9;
-            background: #000;
-            border-radius: 12px;
+            aspect-ratio: 16/9;
+            background: #111;
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #e50914;
         }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* ITEM 4: SESSÕES/MENU NA SIDEBAR */
+        .sidebar-sessions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .session-link {
+            font-size: 1.1rem;
+            color: #aaa;
+            cursor: pointer;
+            transition: 0.3s;
+            padding: 5px 0;
+        }
+        .session-link:hover, .session-link.active {
+            color: #e50914;
+            font-weight: bold;
         }
 
-        /* TÍTULOS (AJUSTE: DEFINIDOS E MAIORES) */
-        .session-title {
-            font-size: 1.8rem !important; /* Seu ajuste solicitado */
-            margin: 25px 0 15px 0;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: 0.5px;
+        /* 3. ÁREA DE CONTEÚDO (DIREITA) */
+        .main-display {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background: linear-gradient(to bottom, #111, #050505);
         }
 
-        /* GRID E CARDS (AJUSTE: LEVEMENTE AUMENTADOS) */
-        .cards-grid {
+        .section-header {
+            font-size: 1.8rem !important; /* Ajuste solicitado */
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* 4. GRID DE CONTEÚDOS */
+        .content-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
         }
+
         .card {
-            background: #1a1a1a;
+            background: #111;
             border-radius: 8px;
             overflow: hidden;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s, border 0.3s;
             border: 3px solid transparent;
             position: relative;
         }
+
+        /* AJUSTE: CARDS LEVEMENTE AUMENTADOS NA SELEÇÃO */
         .card:hover, .card.selected {
-            transform: scale(1.08); /* Seu ajuste solicitado */
+            transform: scale(1.08); 
             border-color: #e50914;
             z-index: 10;
         }
+
         .card img {
             width: 100%;
-            aspect-ratio: 2 / 3;
+            aspect-ratio: 2/3;
             object-fit: cover;
-            display: block;
-        }
-        .card-info {
-            padding: 10px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: 600;
-            background: #1a1a1a;
         }
 
+        .card-title {
+            padding: 8px;
+            font-size: 13px;
+            text-align: center;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
 
     <aside class="sidebar">
         <div class="logo-container">
-            <img src="URL_DO_SEU_LOGO_AQUI" alt="PaixãoFlix" class="logo">
+            <img src="https://tv.paixaoflix.vip/logo.png" alt="PaixãoFlix" class="logo" onerror="this.src='https://via.placeholder.com/200x80?text=LOGO+AQUI'">
         </div>
-        <nav style="display: flex; flex-direction: column; gap: 15px; font-weight: 500;">
-            <div style="color: #e50914; cursor: pointer;">Home</div>
-            <div style="opacity: 0.7; cursor: pointer;">Filmes</div>
-            <div style="opacity: 0.7; cursor: pointer;">Séries</div>
-        </nav>
-    </aside>
 
-    <main class="main-content">
-        
         <div class="search-container">
-            <input type="text" class="search-input" placeholder="Pesquisar títulos...">
+            <input type="text" class="search-input" placeholder="Buscar filmes...">
         </div>
 
-        <section class="now-watching">
-            <h2 class="session-title">ASSISTINDO AGORA</h2>
-            <div class="player-container" id="main-player">
-                <div style="display: flex; height: 100%; align-items: center; justify-content: center; color: #555;">
-                    Selecione um filme para começar
+        <div class="watching-now-box">
+            <p style="font-size: 0.8rem; color: #e50914; margin-bottom: 5px; font-weight: bold;">ASSISTINDO AGORA</p>
+            <div class="mini-player" id="player-sidebar">
+                <div style="display:flex; height:100%; align-items:center; justify-content:center; font-size: 10px; color: #444; text-align: center; padding: 10px;">
+                    Selecione um filme no grid
                 </div>
             </div>
-        </section>
+        </div>
 
-        <h2 class="session-title">FILMES E SÉRIES</h2>
-        <div class="cards-grid">
-            <div class="card" id="card-0" onclick="playVideo('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC', this)">
+        <div class="sidebar-sessions">
+            <div class="session-link active">LANÇAMENTOS</div>
+            <div class="session-link">FILMES</div>
+            <div class="session-link">SÉRIES</div>
+            <div class="session-link">FAVORITOS</div>
+        </div>
+    </aside>
+
+    <main class="main-display">
+        <h2 class="section-header">Sugestões para você</h2>
+        
+        <div class="content-grid">
+            <div class="card" id="first-item" onclick="loadMovie('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC', this)">
                 <img src="https://cdn.iset.io/assets/52438/produtos/40738/thumb_350-350-atn.jpg" alt="Tartarugas Ninja">
-                <div class="card-info">AS TARTARUGAS NINJA - O RETORNO</div>
-            </div>
-            
+                <div class="card-title">AS TARTARUGAS NINJA - O RETORNO</div>
             </div>
 
+            </div>
     </main>
 
     <script>
-        function playVideo(driveId, element) {
-            const player = document.getElementById('main-player');
-            // Link de visualização direta com suporte a Tela Cheia
-            const videoUrl = `https://drive.google.com/file/d/${driveId}/preview`;
+        function loadMovie(driveId, element) {
+            const playerContainer = document.getElementById('player-sidebar');
             
-            player.innerHTML = `
+            // Link de visualização direta com suporte a Tela Cheia habilitado
+            const embedUrl = `https://drive.google.com/file/d/${driveId}/preview`;
+            
+            playerContainer.innerHTML = `
                 <iframe 
-                    src="${videoUrl}" 
+                    src="${embedUrl}" 
                     allow="autoplay; fullscreen" 
                     allowfullscreen="true">
                 </iframe>`;
 
-            // Marcação visual de seleção
+            // Gerenciar classe de seleção visual
             document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
             element.classList.add('selected');
         }
 
-        // SELEÇÃO AUTOMÁTICA AO CARREGAR
-        window.onload = function() {
-            const firstCard = document.getElementById('card-0');
+        // Seleção automática ao carregar
+        window.onload = () => {
+            const firstCard = document.getElementById('first-item');
             if (firstCard) {
                 firstCard.classList.add('selected');
                 firstCard.focus();
-                // Opcional: playVideo('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC', firstCard);
+                // Opcional: loadMovie('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC', firstCard);
             }
         };
     </script>
+
 </body>
 </html>
