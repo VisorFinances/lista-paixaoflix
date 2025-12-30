@@ -3,180 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Streaming</title>
+    <title>Stream Premium</title>
     <style>
-        /* CONFIGURAÇÕES GERAIS */
+        * { box-sizing: border-box; }
+        
         body {
             margin: 0;
             padding: 0;
-            background-color: #101010;
-            color: white;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            display: flex; /* Mantém a barra lateral e conteúdo lado a lado */
+            background-color: #0a0a0a;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            display: flex;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* 1. BARRA LATERAL (Recuperada) */
+        /* BARRA LATERAL */
         .sidebar {
-            width: 250px;
+            width: 260px;
             background-color: #000;
-            padding: 20px;
+            padding: 30px 20px;
+            border-right: 1px solid #222;
             display: flex;
             flex-direction: column;
-            border-right: 1px solid #333;
+            flex-shrink: 0;
         }
 
-        /* 2. LOGOTIPO (Aumentado) */
         .logo {
-            height: 80px; 
+            height: 80px; /* Seu ajuste solicitado */
             width: auto;
-            margin-bottom: 30px;
             object-fit: contain;
+            margin-bottom: 40px;
         }
 
         /* CONTEÚDO PRINCIPAL */
-        .main-content {
+        .main-container {
             flex: 1;
+            overflow-y: auto;
+            padding: 30px;
             display: flex;
             flex-direction: column;
-            overflow-y: auto;
-            padding: 20px;
         }
 
-        /* 3. BARRA DE PESQUISA (Reduzida em 17px) */
-        .search-container {
-            width: 100%;
-            margin-bottom: 20px;
+        /* BARRA DE PESQUISA (-17px) */
+        .search-wrapper {
+            margin-bottom: 30px;
         }
-        .search-bar {
+        .search-input {
             width: calc(100% - 17px) !important;
-            padding: 12px;
-            background: #222;
-            border: 1px solid #444;
+            padding: 15px;
+            background: #1a1a1a;
+            border: 1px solid #333;
             color: white;
-            border-radius: 4px;
+            border-radius: 8px;
+            font-size: 16px;
         }
 
-        /* 4. PLAYER (Assistindo Agora - Ajustado para não subir) */
-        #assistindo-agora {
+        /* PLAYER - Limpo, sem bordas e com Tela Cheia */
+        .player-section {
             width: 100%;
-            max-width: 900px;
-            margin: 0 auto 20px;
+            max-width: 1100px;
+            margin: 0 auto 40px;
         }
-        .player-wrapper {
+        
+        .video-box {
             position: relative;
-            padding-bottom: 56.25%; /* Aspect Ratio 16:9 */
+            padding-bottom: 56.25%; /* 16:9 */
             height: 0;
             background: #000;
-            border: 2px solid #E50914;
+            border-radius: 12px;
+            overflow: hidden;
+            /* Removida a borda vermelha daqui */
         }
-        .player-wrapper iframe {
+
+        .video-box iframe {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            border: none; /* Garante que não haja bordas */
         }
 
-        /* 5. TÍTULOS (Definidos e Maiores) */
+        /* TÍTULOS */
         .session-title {
-            font-size: 1.8rem !important;
-            font-weight: bold;
-            margin: 20px 0;
-            color: #E50914;
-            text-transform: uppercase;
+            font-size: 1.8rem !important; /* Seu ajuste solicitado */
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #eee;
         }
 
-        /* 6. GRID DE CARDS (Aumentados e Corrigidos) */
-        .grid-filmes {
+        /* GRID E CARDS */
+        .content-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
         }
 
         .card {
-            background: #1c1c1c;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.3s ease;
+            background: #111;
+            border-radius: 10px;
             overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
             border: 2px solid transparent;
         }
 
+        /* Seleção e Hover */
         .card:hover, .card.selected {
-            transform: scale(1.05); /* Aumento leve conforme solicitado */
-            border-color: #E50914;
+            transform: scale(1.08); /* Cards levemente aumentados */
+            border-color: #e50914; /* Borda apenas no card selecionado */
+            outline: none;
         }
 
         .card img {
             width: 100%;
-            height: 250px; /* Tamanho controlado para não quebrar */
+            height: 280px;
             object-fit: cover;
         }
 
-        .card-title {
-            padding: 10px;
-            font-size: 14px;
+        .card-info {
+            padding: 12px;
             text-align: center;
+            font-weight: bold;
+            font-size: 14px;
         }
-
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <img src="https://via.placeholder.com/200x80?text=LOGO" alt="Logo" class="logo">
+    <aside class="sidebar">
+        <img src="https://via.placeholder.com/200x80?text=LOGO" class="logo" alt="Logo">
         <nav>
-            <p>Início</p>
-            <p>Filmes</p>
-            <p>Séries</p>
+            <div style="margin-bottom: 15px; color: #e50914; font-weight: bold;">FILMES</div>
+            <div style="margin-bottom: 15px; opacity: 0.6;">SÉRIES</div>
+            <div style="margin-bottom: 15px; opacity: 0.6;">MINHA LISTA</div>
         </nav>
-    </div>
+    </aside>
 
-    <div class="main-content">
+    <main class="main-container">
         
-        <div class="search-container">
-            <input type="text" class="search-bar" placeholder="Pesquisar...">
+        <div class="search-wrapper">
+            <input type="text" class="search-input" placeholder="O que você quer assistir hoje?">
         </div>
 
-        <div id="assistindo-agora">
+        <section class="player-section">
             <h2 class="session-title">Assistindo Agora</h2>
-            <div class="player-wrapper" id="video-player">
-                <div style="text-align: center; padding-top: 20%;">Selecione um filme para assistir</div>
+            <div class="video-box" id="main-player">
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #444;">
+                    Selecione um título abaixo para reproduzir
+                </div>
             </div>
-        </div>
+        </section>
 
-        <h2 class="session-title">Filmes</h2>
-        <div class="grid-filmes">
-            <div class="card" onclick="playVideo('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC')" id="first-card">
-                <img src="https://cdn.iset.io/assets/52438/produtos/40738/thumb_350-350-atn.jpg" alt="Capa">
-                <div class="card-title">AS TARTARUGAS NINJA - O RETORNO</div>
-            </div>
+        <h2 class="session-title">Populares</h2>
+        <div class="content-grid">
+            
+            <div class="card" id="first-item" onclick="loadDriveVideo('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC', this)">
+                <img src="https://cdn.iset.io/assets/52438/produtos/40738/thumb_350-350-atn.jpg" alt="Tartarugas Ninja">
+                <div class="card-info">AS TARTARUGAS NINJA - O RETORNO</div>
             </div>
 
-    </div>
+            </div>
+    </main>
 
     <script>
-        // Função para carregar o vídeo do Drive como PLAYER e não Download
-        function playVideo(id) {
-            const playerDiv = document.getElementById('video-player');
-            // O segredo está no /preview para abrir o player direto
-            playerDiv.innerHTML = `<iframe src="https://drive.google.com/file/d/${id}/preview" allow="autoplay"></iframe>`;
+        function loadDriveVideo(fileId, element) {
+            const playerContainer = document.getElementById('main-player');
             
-            // Remove seleção de outros cards e marca o atual
+            // Link otimizado para Player com tela cheia liberada
+            const embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+            
+            playerContainer.innerHTML = `
+                <iframe 
+                    src="${embedUrl}" 
+                    allow="autoplay; fullscreen" 
+                    allowfullscreen="true" 
+                    webkitallowfullscreen="true" 
+                    mozallowfullscreen="true">
+                </iframe>`;
+
+            // Gerenciar classe de seleção visual
             document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
+            element.classList.add('selected');
         }
 
-        // 7. SELEÇÃO AUTOMÁTICA DO PRIMEIRO CANAL
-        window.onload = function() {
-            const primeiroCard = document.getElementById('first-card');
-            if (primeiroCard) {
-                primeiroCard.classList.add('selected');
-                primeiroCard.focus();
-                // Opcional: descomente a linha abaixo para já começar o filme ao abrir a página
-                // playVideo('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC');
+        // Auto-seleção ao carregar
+        window.onload = () => {
+            const firstCard = document.getElementById('first-item');
+            if (firstCard) {
+                firstCard.classList.add('selected');
+                // Se quiser que o vídeo já carregue sozinho, descomente a linha abaixo:
+                // loadDriveVideo('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC', firstCard);
             }
         };
     </script>
