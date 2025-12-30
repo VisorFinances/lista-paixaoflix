@@ -13,40 +13,45 @@
         #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; }
         
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
-        .logo-area img { max-width: 180px; height: auto; display: inline-block; }
+        .logo-area img { height: 80px; width: auto; display: inline-block; } /* Ajuste Logo 80px */
         
-        .search-area { padding: 15px 35px 15px 15px; } 
+        /* Ajuste Barra de Pesquisa (-17px conforme solicitado) */
+        .search-area { padding: 15px; width: calc(100% - 17px); } 
         .search-box { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; font-size: 13px; }
         
-        /* Barra de Rolagem Restaurada e Visível */
         #channel-list { flex: 1; overflow-y: scroll; scrollbar-width: thin; scrollbar-color: #333 transparent; }
         #channel-list::-webkit-scrollbar { width: 6px; }
         #channel-list::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
 
         .cat-title { 
-            background: #1a1a1a; padding: 6px 15px; margin-right: 40px; 
-            font-size: 11px; text-transform: uppercase; color: #888; 
-            font-weight: bold; border-radius: 0 4px 4px 0; margin-top: 15px;
-            position: sticky; top: 0; z-index: 10;
+            background: #1a1a1a; padding: 10px 15px; 
+            font-size: 1.1rem; text-transform: uppercase; color: var(--primary); 
+            font-weight: bold; position: sticky; top: 0; z-index: 10;
         }
         
-        /* Itens com Borda e Efeito de Seleção */
         .item { 
             display: flex; align-items: center; padding: 12px 15px; cursor: pointer; 
-            transition: 0.2s; border-bottom: 1px solid #0a0a0a; 
+            transition: 0.3s; border-bottom: 1px solid #0a0a0a; 
             border-left: 3px solid transparent; 
         }
-        .item:hover { background: #1a1a1a; border-left: 3px solid var(--primary); }
+        
+        /* Efeito de Seleção / Aumento leve */
+        .item:hover, .item.active { 
+            background: #1a1a1a; 
+            border-left: 3px solid var(--primary);
+            transform: scale(1.02);
+        }
+        
         .item img { width: 55px; height: 75px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
         .item-name { font-size: 14px; font-weight: 400; flex: 1; }
 
         /* Área do Player */
         #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
-        #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; }
-        video { width: 100%; height: 100%; object-fit: contain; }
+        #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; background: #000; }
+        video, iframe { width: 100%; height: 100%; border: none; }
         
-        .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 50px 30px 30px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; }
-        #title-now { font-size: 28px; font-weight: bold; margin: 0; }
+        .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 50px 30px 30px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; z-index: 5; }
+        #title-now { font-size: 1.8rem; font-weight: bold; margin: 0; color: var(--text); } /* Ajuste Título 1.8rem */
         #desc-now { font-size: 15px; color: #ccc; margin-top: 10px; max-width: 80%; line-height: 1.5; }
 
         @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 45%; } }
@@ -56,7 +61,7 @@
 
 <div id="sidebar">
     <div class="logo-area">
-        <img src="https://i.imgur.com/rIJwt2Q.png" alt="Logo" onerror="this.src='https://via.placeholder.com/150x50?text=PAIXAOFLIX'">
+        <img src="https://tv.paixaoflix.vip/logo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/150x80?text=PAIXAOFLIX'">
     </div>
     <div class="search-area">
         <input type="text" id="search" class="search-box" placeholder="Buscar canal ou filme..." onkeyup="filter()">
@@ -75,17 +80,17 @@
 </div>
 
 <script>
-    // Variáveis globais únicas (limpas)
     const KEY_TMDB = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
     const URL_M3U = '/tv.paixaoflix.m3u?v=' + Date.now();
     const player = document.getElementById('video');
+    const wrapper = document.getElementById('player-wrapper');
     let listaCanais = {};
+    let hls = null;
 
     async function carregarApp() {
         try {
             const res = await fetch(URL_M3U);
             const text = await res.text();
-            if(!text.includes('#EXTM3U')) throw "Erro";
             processar(text);
         } catch (e) {
             document.getElementById('channel-list').innerHTML = "<p style='padding:20px'>Erro ao carregar lista.</p>";
@@ -104,9 +109,7 @@
 
                 if (link && link.startsWith('http')) {
                     if (!cats[grupo]) cats[grupo] = [];
-                    if (!cats[grupo].find(x => x.base === base)) {
-                        cats[grupo].push({ nome, base, link, grupo });
-                    }
+                    cats[grupo].push({ nome, base, link, grupo });
                 }
             }
         }
@@ -125,51 +128,69 @@
             container.appendChild(titulo);
 
             data[c].forEach(canal => {
-                const id = btoa(unescape(encodeURIComponent(canal.base))).substring(0,12).replace(/[^a-z]/gi, 'x');
+                const id = btoa(unescape(encodeURIComponent(canal.nome))).substring(0,12).replace(/[^a-z]/gi, 'x');
                 const div = document.createElement('div');
                 div.className = 'item';
                 div.innerHTML = `
                     <img src="https://via.placeholder.com/100x150/111/222?text= " id="img-${id}">
-                    <div class="item-name">${canal.base}</div>
+                    <div class="item-name">${canal.nome}</div>
                 `;
-                div.onclick = () => tocar(canal.link, canal.base, id);
+                div.onclick = () => tocar(canal.link, canal.nome, id, div);
                 container.appendChild(div);
-                buscarImg(canal.base, id, c);
+                buscarImg(canal.base, id);
             });
         });
     }
 
-    async function buscarImg(termo, id, categoria) {
-        let q = termo.split('|')[0].split('-')[0].trim();
+    async function buscarImg(termo, id) {
         try {
-            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${KEY_TMDB}&language=pt-BR&query=${encodeURIComponent(q)}`);
+            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${KEY_TMDB}&language=pt-BR&query=${encodeURIComponent(termo)}`);
             const j = await r.json();
             if (j.results && j.results[0]) {
                 const res = j.results[0];
                 const el = document.getElementById(`img-${id}`);
                 if (el && res.poster_path) {
                     el.src = `https://image.tmdb.org/t/p/w200${res.poster_path}`;
-                    el.dataset.info = res.overview;
+                    el.dataset.info = res.overview || "Sem descrição disponível.";
                 }
             }
         } catch (e) {}
     }
 
-    function tocar(url, nome, id) {
+    function tocar(url, nome, id, elemento) {
         const img = document.getElementById(`img-${id}`);
         document.getElementById('title-now').innerText = nome;
-        document.getElementById('desc-now').innerText = img?.dataset.info || "Descrição indisponível.";
-
-        let linkFinal = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
+        document.getElementById('desc-now').innerText = img?.dataset.info || "Carregando informações...";
         
-        if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(linkFinal);
-            hls.attachMedia(player);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => player.play());
+        // Estilo de seleção
+        document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
+        elemento.classList.add('active');
+
+        // Limpa HLS anterior se existir
+        if (hls) { hls.destroy(); hls = null; }
+
+        // LÓGICA DE DRIVE VS STREAM DIRETO
+        if (url.includes('drive.google.com')) {
+            // Se for link do Drive, usamos IFRAME para garantir que funcione
+            let driveID = url.split('/d/')[1]?.split('/')[0];
+            wrapper.innerHTML = `<iframe src="https://drive.google.com/file/d/${driveID}/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
         } else {
-            player.src = linkFinal;
-            player.play();
+            // Se for link direto (M3U8/MP4)
+            wrapper.innerHTML = `<video id="video" controls autoplay playsinline></video>`;
+            const novoVideo = document.getElementById('video');
+            
+            if (url.includes('.m3u8')) {
+                if (Hls.isSupported()) {
+                    hls = new Hls();
+                    hls.loadSource(url);
+                    hls.attachMedia(novoVideo);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => novoVideo.play());
+                } else {
+                    novoVideo.src = url;
+                }
+            } else {
+                novoVideo.src = url;
+            }
         }
     }
 
@@ -177,7 +198,7 @@
         const val = document.getElementById('search').value.toLowerCase();
         let f = {};
         for (let c in listaCanais) {
-            let m = listaCanais[c].filter(i => i.base.toLowerCase().includes(val));
+            let m = listaCanais[c].filter(i => i.nome.toLowerCase().includes(val));
             if (m.length > 0) f[c] = m;
         }
         desenhar(f);
