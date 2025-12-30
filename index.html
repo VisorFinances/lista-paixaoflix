@@ -18,40 +18,40 @@
         .logo-area img { height: 80px; width: auto; }
         
         /* Pesquisa reduzida em 17px */
-        .search-area { padding: 15px; } 
+        .search-area { padding: 15px; text-align: center; } 
         .search-box { width: calc(100% - 17px) !important; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; font-size: 13px; }
         
-        /* Assistindo Agora - Abaixo da pesquisa, oculto por padrão */
+        /* Assistindo Agora - Abaixo da pesquisa */
         #now-playing-sidebar { 
             padding: 10px 15px; 
             background: #1a1a1a; 
-            display: none; /* Só aparece quando selecionado */
+            display: none; 
             border-bottom: 1px solid #222;
         }
-        .now-playing-label { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+        .now-playing-label { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 2px; text-transform: uppercase; }
         .now-playing-name { font-size: 12px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; }
 
         /* Sessões 14px Negrito 700 Branco */
         .cat-title { 
-            background: #1a1a1a; padding: 8px 15px; 
+            background: #050505; padding: 10px 15px; 
             font-size: 14px !important; text-transform: uppercase; color: #fff; 
-            font-weight: 700; position: sticky; top: 0; z-index: 11;
+            font-weight: 700; position: sticky; top: 0; z-index: 11; border-bottom: 1px solid #222;
         }
         
         .item { 
-            display: flex; align-items: center; padding: 12px 15px; cursor: pointer; 
+            display: flex; align-items: center; padding: 10px 15px; cursor: pointer; 
             transition: 0.2s; border-bottom: 1px solid #0a0a0a; border-left: 3px solid transparent; 
         }
         .item:hover, .item.active { background: #1a1a1a; border-left: 3px solid var(--primary); transform: scale(1.05); }
-        .item img { width: 60px; height: 85px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
+        .item img { width: 50px; height: 70px; border-radius: 4px; margin-right: 12px; object-fit: cover; background: #222; }
         
         /* Título canais 13px */
         .item-name { font-size: 13px; font-weight: 400; flex: 1; }
 
         #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
-        #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; }
+        #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; background: #000; }
         video, iframe { width: 100%; height: 100%; object-fit: contain; border: none; }
         
         .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 50px 30px 30px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; }
@@ -80,18 +80,17 @@
 
 <div id="main-view">
     <div id="player-wrapper">
-        <video id="video" controls autoplay playsinline></video>
+        <div id="placeholder" style="color: #333;">Carregando lista...</div>
     </div>
     <div class="info-panel">
         <h1 id="title-now">PaixãoFlix_Tv</h1>
-        <p id="desc-now">Selecione um conteúdo.</p>
+        <p id="desc-now">Aguardando seleção...</p>
     </div>
 </div>
 
 <script>
     const KEY_TMDB = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
     const URL_M3U = '/tv.paixaoflix.m3u?v=' + Date.now();
-    const wrapper = document.getElementById('player-wrapper');
     let listaCanais = {};
     let hls = null;
 
@@ -99,9 +98,10 @@
         try {
             const res = await fetch(URL_M3U);
             const text = await res.text();
+            if (!text.includes('#EXTM3U')) throw "Lista Inválida";
             processar(text);
         } catch (e) {
-            document.getElementById('channel-list').innerHTML = "<p style='padding:20px'>Erro ao carregar lista.</p>";
+            document.getElementById('channel-list').innerHTML = "<p style='padding:20px'>Erro ao carregar lista m3u.</p>";
         }
     }
 
@@ -110,25 +110,28 @@
         let cats = {};
         for (let i = 0; i < linhas.length; i++) {
             if (linhas[i].includes('#EXTINF')) {
-                let nome = linhas[i].split(',')[1]?.trim();
+                let info = linhas[i];
+                let nome = info.split(',')[1]?.trim();
                 let link = linhas[i+1]?.trim();
-                let grupo = linhas[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
+                let grupo = info.match(/group-title="([^"]+)"/)?.[1] || "GERAL";
                 let base = nome.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP/gi, '').trim();
 
                 if (link && link.startsWith('http')) {
                     if (!cats[grupo]) cats[grupo] = [];
-                    cats[grupo].push({ nome, base, link, grupo });
+                    cats[grupo].push({ nome, base, link });
                 }
             }
         }
         listaCanais = cats;
         desenhar(cats);
         
-        // SELEÇÃO OBRIGATÓRIA DO PRIMEIRO CANAL AO ABRIR
+        // SELEÇÃO OBRIGATÓRIA DO PRIMEIRO CANAL
         setTimeout(() => {
-            const primeiro = document.querySelector('.item');
-            if (primeiro) primeiro.click();
-        }, 500);
+            const primeiroItem = document.querySelector('.item');
+            if (primeiroItem) {
+                primeiroItem.click();
+            }
+        }, 1000);
     }
 
     function desenhar(data) {
@@ -141,7 +144,7 @@
             container.appendChild(titulo);
 
             data[c].forEach(canal => {
-                const id = btoa(unescape(encodeURIComponent(canal.nome))).substring(0,8).replace(/[^a-z]/gi, 'x');
+                const id = btoa(unescape(encodeURIComponent(canal.nome))).substring(0,10).replace(/[^a-z]/gi, 'x');
                 const div = document.createElement('div');
                 div.className = 'item';
                 div.innerHTML = `<img src="" id="img-${id}" style="display:none"><div class="item-name">${canal.nome}</div>`;
@@ -169,22 +172,54 @@
     }
 
     function tocar(url, nome, id, el) {
-        // Mostrar Assistindo Agora na sidebar
+        // Atualiza Sidebar Assistindo Agora
         const nowPlayingSide = document.getElementById('now-playing-sidebar');
         const nowPlayingName = document.getElementById('current-channel-name');
         nowPlayingSide.style.display = 'block';
         nowPlayingName.innerText = nome;
 
+        // Visual Selection
         document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
+
+        // Info Panel
         document.getElementById('title-now').innerText = nome;
         const img = document.getElementById(`img-${id}`);
-        document.getElementById('desc-now').innerText = img?.dataset.info || "";
+        document.getElementById('desc-now').innerText = img?.dataset.info || "Sem descrição disponível.";
 
-        if (hls) hls.destroy();
+        const wrapper = document.getElementById('player-wrapper');
+        if (hls) { hls.destroy(); hls = null; }
 
-        // SOLUÇÃO DEFINITIVA PARA DRIVE (NÃO BAIXAR)
+        // TRATAMENTO GOOGLE DRIVE (PREVIEW)
         if (url.includes('drive.google.com')) {
             let driveId = "";
             if(url.includes('/d/')) driveId = url.split('/d/')[1].split('/')[0];
             else if(url.includes('id=')) driveId = url.split('id=')[1].split('&')[0];
+            
+            wrapper.innerHTML = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+        } else {
+            wrapper.innerHTML = `<video id="video" controls autoplay playsinline></video>`;
+            const v = document.getElementById('video');
+            if (url.includes('.m3u8') && Hls.isSupported()) {
+                hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(v);
+            } else {
+                v.src = url;
+            }
+        }
+    }
+
+    function filter() {
+        const val = document.getElementById('search').value.toLowerCase();
+        let f = {};
+        for (let c in listaCanais) {
+            let m = listaCanais[c].filter(i => i.nome.toLowerCase().includes(val));
+            if (m.length > 0) f[c] = m;
+        }
+        desenhar(f);
+    }
+    carregarApp();
+</script>
+</body>
+</html>
