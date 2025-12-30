@@ -15,44 +15,42 @@
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
         /* SIDEBAR */
-        #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; z-index: 10; }
+        #sidebar { width: 300px; min-width: 300px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; z-index: 10; }
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
-        .logo-area img { max-width: 100%; height: auto; max-height: 80px; }
+        .logo-area img { max-width: 100%; height: auto; max-height: 70px; }
         
         .search-area { padding: 15px; } 
-        .search-box { width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; box-sizing: border-box; font-family: inherit; }
+        .search-box { width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; box-sizing: border-box; }
         
-        /* ASSISTINDO AGORA (VOLTOU PARA O LUGAR PERFEITO) */
+        /* ASSISTINDO AGORA */
         #now-playing-side { padding: 15px; background: #070707; border-bottom: 2px solid var(--primary); display: none; }
         .now-label { font-size: 11px; color: var(--primary); font-weight: 700; text-transform: uppercase; }
         .now-title { font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
 
-        #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; }
-        .cat-title { background: #1a1a1a; padding: 12px 15px; font-size: 13px; text-transform: uppercase; font-weight: 700; position: sticky; top: 0; z-index: 20; border-bottom: 1px solid #333; }
+        #channel-list { flex: 1; overflow-y: auto; }
+        .cat-title { background: #1a1a1a; padding: 12px 15px; font-size: 13px; text-transform: uppercase; font-weight: 700; position: sticky; top: 0; z-index: 20; color: #888; border-bottom: 1px solid #333; }
         
         .item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #0a0a0a; border-left: 4px solid transparent; outline: none; }
         .item:focus { background: #333 !important; border-left: 4px solid var(--primary) !important; }
-        .item.playing { background: rgba(229, 9, 20, 0.2) !important; border-left: 4px solid var(--primary); }
+        .item.playing { background: rgba(229, 9, 20, 0.3) !important; border-left: 4px solid var(--primary); }
 
-        .item img { width: 55px; height: 75px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
-        .item-name { font-size: 14px; flex: 1; pointer-events: none; }
+        .item img { width: 50px; height: 70px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
+        .item-name { font-size: 14px; flex: 1; }
 
-        /* PLAYER E FUNDO */
-        #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; overflow: hidden; }
+        /* MAIN VIEW / PLAYER */
+        #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
         #bg-poster { 
-            position: absolute; top: -5%; left: -5%; width: 110%; height: 110%; 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background-size: cover; background-position: center;
-            filter: blur(50px) brightness(0.3); z-index: 1; 
-            transition: background-image 0.8s ease;
-            display: block;
+            filter: blur(50px) brightness(0.2); z-index: 1; 
         }
 
-        #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; z-index: 5; position: relative; }
-        video { width: 100%; height: 100%; object-fit: contain; }
+        #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; z-index: 5; }
+        video { width: 100%; height: 100%; background: #000; }
         
-        .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 60px 30px 40px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; z-index: 10; }
-        #title-now { font-size: 32px; font-weight: 700; margin: 0; }
-        #desc-now { font-size: 16px; color: #ccc; margin-top: 10px; max-width: 70%; line-height: 1.6; height: 4.8em; overflow: hidden; }
+        .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px 30px; background: linear-gradient(transparent, #000); z-index: 10; pointer-events: none; }
+        #title-now { font-size: 30px; margin: 0; }
+        #desc-now { font-size: 15px; color: #ccc; margin-top: 10px; max-width: 80%; }
 
         @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 40%; } }
     </style>
@@ -60,12 +58,8 @@
 <body>
 
 <div id="sidebar">
-    <div class="logo-area">
-        <img src="logo.png" onerror="this.src='https://i.imgur.com/rIJwt2Q.png'" alt="PAIXÃOFLIX">
-    </div>
-    <div class="search-area">
-        <input type="text" id="search-input" class="search-box" placeholder="Buscar..." onkeyup="fazerBusca()">
-    </div>
+    <div class="logo-area"><img src="logo.png" onerror="this.src='https://i.imgur.com/rIJwt2Q.png'"></div>
+    <div class="search-area"><input type="text" id="search-input" class="search-box" placeholder="Buscar..." onkeyup="fazerBusca()"></div>
     <div id="now-playing-side">
         <div class="now-label">Assistindo agora</div>
         <div id="side-playing-title" class="now-title">---</div>
@@ -75,12 +69,10 @@
 
 <div id="main-view">
     <div id="bg-poster"></div>
-    <div id="player-wrapper">
-        <video id="video" controls autoplay playsinline></video>
-    </div>
+    <div id="player-wrapper"><video id="video" controls autoplay></video></div>
     <div class="info-panel">
         <h1 id="title-now">PAIXÃOFLIX</h1>
-        <p id="desc-now">Navegue na lista e selecione um conteúdo.</p>
+        <p id="desc-now">Selecione um canal para começar.</p>
     </div>
 </div>
 
@@ -88,126 +80,125 @@
     const TMDB_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
     const M3U_URL = 'tv.paixaoflix.m3u?v=' + Date.now();
     const video = document.getElementById('video');
-    let listaCompleta = {};
-    let infoCache = {}; // Cache para imagens e sinopses
+    let listaCanais = [];
+    let hls = null;
 
-    async function init() {
+    async function carregarM3U() {
         try {
-            const res = await fetch(M3U_URL);
-            const text = await res.text();
-            parsearM3U(text);
-        } catch (e) { console.error("Erro M3U"); }
-    }
+            const r = await fetch(M3U_URL);
+            const t = await r.text();
+            const linhas = t.split('\n');
+            let grupos = {};
 
-    function parsearM3U(data) {
-        const lines = data.split('\n');
-        let grupos = {};
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes('#EXTINF')) {
-                let nome = lines[i].split(',')[1]?.trim();
-                let url = lines[i+1]?.trim();
-                let grupo = lines[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
-                let base = nome.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP/gi, '').trim();
-                if (url && url.startsWith('http')) {
-                    if (!grupos[grupo]) grupos[grupo] = [];
-                    grupos[grupo].push({ nome, base, url });
+            for (let i = 0; i < linhas.length; i++) {
+                if (linhas[i].includes('#EXTINF')) {
+                    let nome = linhas[i].split(',')[1]?.trim();
+                    let url = linhas[i+1]?.trim();
+                    let grupo = linhas[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
+                    let base = nome.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP/gi, '').trim();
+                    
+                    if (url && url.startsWith('http')) {
+                        if (!grupos[grupo]) grupos[grupo] = [];
+                        grupos[grupo].push({ nome, url, base });
+                    }
                 }
             }
-        }
-        listaCompleta = grupos;
-        desenhar(grupos);
-        setTimeout(() => { document.querySelector('.item')?.focus(); }, 1500);
+            renderizar(grupos);
+            setTimeout(() => { document.querySelector('.item')?.focus(); }, 1000);
+        } catch (e) { alert("Erro ao carregar lista."); }
     }
 
-    function desenhar(dados) {
-        const container = document.getElementById('channel-list');
-        container.innerHTML = '';
-        Object.keys(dados).sort().forEach(grupo => {
+    function renderizar(dados) {
+        const lista = document.getElementById('channel-list');
+        lista.innerHTML = '';
+        Object.keys(dados).sort().forEach(g => {
             const h = document.createElement('div');
-            h.className = 'cat-title'; h.innerText = grupo;
-            container.appendChild(h);
-            dados[grupo].forEach(canal => {
-                const id = btoa(unescape(encodeURIComponent(canal.nome))).substring(0,8).replace(/[^a-z]/gi, 'x');
-                const div = document.createElement('div');
-                div.className = 'item'; div.tabIndex = 0;
-                div.innerHTML = `
-                    <div style="width:55px;height:75px;background:#222;margin-right:15px;border-radius:4px;flex-shrink:0;">
-                        <img src="" id="img-${id}" style="width:100%;height:100%;display:none;object-fit:cover;border-radius:4px;" onload="this.style.display='block'">
-                    </div>
-                    <div class="item-name">${canal.nome}</div>
-                `;
-                div.onclick = () => tocar(canal.url, canal.nome, id);
-                container.appendChild(div);
-                buscarDados(canal.base, id);
+            h.className = 'cat-title'; h.innerText = g;
+            lista.appendChild(h);
+            dados[g].forEach(c => {
+                const d = document.createElement('div');
+                d.className = 'item'; d.tabIndex = 0;
+                d.innerHTML = `<img src="https://via.placeholder.com/50x70?text=..." class="poster-img"><div class="item-name">${c.nome}</div>`;
+                
+                // Evento de clique simplificado para LG
+                d.addEventListener('click', () => darPlay(c.url, c.nome, c.base));
+                
+                // Suporte para teclado/controle remoto
+                d.addEventListener('keydown', (e) => { if(e.key === 'Enter') darPlay(c.url, c.nome, c.base); });
+                
+                lista.appendChild(d);
+                buscarPoster(c.base, d);
             });
         });
     }
 
-    async function buscarDados(termo, id) {
+    async function buscarPoster(termo, elemento) {
         try {
             const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(termo)}`);
             const j = await r.json();
             if (j.results?.[0]) {
-                const res = j.results[0];
-                const poster = res.poster_path ? `https://image.tmdb.org/t/p/w500${res.poster_path}` : '';
-                infoCache[id] = { poster: poster, sinopse: res.overview };
-                if (poster) document.getElementById(`img-${id}`).src = poster;
+                const p = `https://image.tmdb.org/t/p/w500${j.results[0].poster_path}`;
+                elemento.querySelector('img').src = p;
+                elemento.dataset.poster = p;
+                elemento.dataset.sinopse = j.results[0].overview;
             }
-        } catch (e) {}
+        } catch(e){}
     }
 
-    function tocar(url, nome, id) {
-        // Atualiza Sidebar
+    function darPlay(url, nome, base) {
+        // Interface
         document.getElementById('now-playing-side').style.display = 'block';
         document.getElementById('side-playing-title').innerText = nome;
-        
-        // Atualiza Painel do Player
         document.getElementById('title-now').innerText = nome;
-        const dados = infoCache[id] || {};
-        document.getElementById('desc-now').innerText = dados.sinopse || "Sinopse não disponível.";
         
-        // Atualiza Fundo Blur
-        const bg = document.getElementById('bg-poster');
-        if (dados.poster) {
-            bg.style.backgroundImage = `url('${dados.poster}')`;
-        } else {
-            bg.style.backgroundImage = "none";
+        const itemAtivo = document.activeElement;
+        document.getElementById('desc-now').innerText = itemAtivo.dataset.sinopse || "Sinopse não disponível.";
+        
+        if (itemAtivo.dataset.poster) {
+            document.getElementById('bg-poster').style.backgroundImage = `url('${itemAtivo.dataset.poster}')`;
         }
 
-        // Estilo de seleção
         document.querySelectorAll('.item').forEach(i => i.classList.remove('playing'));
-        const clicado = document.activeElement;
-        if(clicado) clicado.classList.add('playing');
+        itemAtivo.classList.add('playing');
 
-        // Play no Vídeo
-        let stream = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
+        // VIDEO PLAY (HLS)
+        if (hls) { hls.destroy(); }
+        
+        // Se a URL for HTTP e o site HTTPS, usamos o proxy (essencial para LG)
+        let linkFinal = url;
+        if (location.protocol === 'https:' && url.startsWith('http:')) {
+            linkFinal = `/proxy?url=${encodeURIComponent(url)}`;
+        }
+
         if (Hls.isSupported()) {
-            const hls = new Hls(); hls.loadSource(stream); hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-        } else {
-            video.src = stream; video.play();
+            hls = new Hls();
+            hls.loadSource(linkFinal);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(e => console.log("Erro ao dar play automático")));
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = linkFinal;
+            video.play();
         }
     }
 
+    // BUSCA
     window.fazerBusca = function() {
         const t = document.getElementById('search-input').value.toLowerCase();
-        let f = {};
-        for (let g in listaCompleta) {
-            let c = listaCompleta[g].filter(i => i.nome.toLowerCase().includes(t));
-            if (c.length > 0) f[g] = c;
-        }
-        desenhar(f);
+        document.querySelectorAll('.item').forEach(it => {
+            const txt = it.innerText.toLowerCase();
+            it.style.display = txt.includes(t) ? 'flex' : 'none';
+        });
     };
 
+    // NAVEGAÇÃO SETAS
     document.addEventListener('keydown', (e) => {
-        const items = document.querySelectorAll('.item');
-        let i = Array.from(items).indexOf(document.activeElement);
-        if (e.key === 'ArrowDown') { e.preventDefault(); i = (i + 1) % items.length; items[i].focus(); items[i].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-        if (e.key === 'ArrowUp') { e.preventDefault(); i = (i - 1 + items.length) % items.length; items[i].focus(); items[i].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-        if (e.key === 'Enter') { if (document.activeElement.classList.contains('item')) document.activeElement.click(); }
+        const itens = Array.from(document.querySelectorAll('.item:not([style*="display: none"])'));
+        let idx = itens.indexOf(document.activeElement);
+        if (e.key === 'ArrowDown') { e.preventDefault(); idx = (idx + 1) % itens.length; itens[idx].focus(); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); idx = (idx - 1 + itens.length) % itens.length; itens[idx].focus(); }
     });
 
-    init();
+    carregarM3U();
 </script>
 </body>
 </html>
