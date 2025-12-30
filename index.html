@@ -2,215 +2,178 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PaixãoFlix - Oficial</title>
     <style>
-        /* CSS RESET E ESTRUTURA APROVADA */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            background-color: #080808;
-            color: #ffffff;
-            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
             display: flex;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* BARRA LATERAL ESQUERDA - ESTRUTURA PERFEITA */
+        /* BARRA LATERAL ESQUERDA FIXA */
         .sidebar {
             width: 300px;
-            background-color: #000000;
+            background: #000;
+            border-right: 1px solid #1a1a1a;
             display: flex;
             flex-direction: column;
             padding: 20px;
-            border-right: 1px solid #1a1a1a;
             flex-shrink: 0;
-            overflow-y: auto;
         }
 
-        /* 1. TOPO - LOGOTIPO (AJUSTADO PARA 80PX) */
+        /* 1 - TOPO: LOGOTIPO */
         .logo-box {
-            height: 80px;
+            height: 80px; /* Ajuste solicitado */
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
-        .logo-box img {
-            height: 80px;
-            width: auto;
-            object-fit: contain;
-        }
+        .logo-box img { height: 80px; width: auto; }
 
-        /* 2. CAIXA DE PESQUISA (REDUZIDA EM 17PX) */
-        .search-wrapper {
-            margin-bottom: 25px;
+        /* 2 - CAIXA DE PESQUISA */
+        .search-box {
+            margin-bottom: 20px;
         }
-        .search-bar {
-            width: calc(100% - 17px) !important;
-            padding: 12px 15px;
-            background: #121212;
-            border: 1px solid #282828;
-            border-radius: 5px;
+        .search-input {
+            width: calc(100% - 17px) !important; /* Ajuste solicitado */
+            padding: 10px;
+            background: #111;
+            border: 1px solid #333;
             color: #fff;
-            outline: none;
+            border-radius: 4px;
         }
-        .search-bar:focus { border-color: #e50914; }
 
-        /* 3. ASSISTINDO AGORA (MINI PLAYER NA SIDEBAR) */
-        .now-playing-sidebar {
-            margin-bottom: 30px;
-        }
-        .now-playing-title {
-            font-size: 0.75rem;
+        /* 3 - ASSISTINDO AGORA (MINI PLAYER) */
+        .mini-player-title {
             color: #e50914;
+            font-size: 12px;
             font-weight: bold;
-            margin-bottom: 10px;
-            text-transform: uppercase;
+            margin-bottom: 8px;
         }
-        .mini-player-container {
+        .mini-player-wrapper {
             width: 100%;
             aspect-ratio: 16/9;
-            background: #000;
-            border-radius: 4px;
-            overflow: hidden;
+            background: #080808;
             border: 1px solid #222;
+            margin-bottom: 20px;
         }
-        .mini-player-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* 4 - SESSÕES */
+        .menu-list { list-style: none; }
+        .menu-item {
+            padding: 10px 0;
+            color: #888;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .menu-item.active { color: #fff; font-weight: bold; }
+
+        /* CONTEÚDO À DIREITA */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background: #0a0a0a;
         }
 
-        /* 4. SESSÕES (LISTA DE CATEGORIAS) */
-        .nav-sessions {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .session-item {
-            color: #b3b3b3;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.2s;
-            padding: 5px 0;
-        }
-        .session-item:hover, .session-item.active {
-            color: #fff;
+        .section-title {
+            font-size: 1.8rem !important; /* Ajuste solicitado */
+            margin-bottom: 25px;
             font-weight: bold;
         }
 
-        /* CONTEÚDO À DIREITA */
-        .content-area {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-            background: linear-gradient(180deg, #121212 0%, #080808 100%);
-        }
-
-        .category-title {
-            font-size: 1.8rem !important;
-            margin-bottom: 25px;
-            font-weight: 700;
-        }
-
-        /* GRID E CARDS (AUMENTADOS EM 8% / SCALE 1.08) */
-        .movie-grid {
+        /* GRID DE CONTEÚDOS */
+        .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 30px;
+            gap: 20px;
         }
-        .movie-card {
-            background: #181818;
-            border-radius: 6px;
-            overflow: hidden;
+
+        .card {
+            background: #111;
+            border-radius: 5px;
             cursor: pointer;
-            transition: transform 0.3s ease, border 0.3s ease;
+            transition: 0.3s;
             border: 2px solid transparent;
         }
-        .movie-card:hover, .movie-card.selected {
-            transform: scale(1.08); /* Card levemente aumentado */
+
+        /* CARDS LEVEMENTE AUMENTADOS */
+        .card:hover, .card.selected {
+            transform: scale(1.08); /* Ajuste solicitado */
             border-color: #e50914;
         }
-        .movie-card img {
+
+        .card img {
             width: 100%;
             aspect-ratio: 2/3;
             object-fit: cover;
+            display: block;
         }
-        .movie-info {
+
+        .card-name {
             padding: 10px;
-            font-size: 14px;
+            font-size: 13px;
             text-align: center;
-            font-weight: 600;
         }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar">
+    <div class="sidebar">
         <div class="logo-box">
-            <img src="https://tv.paixaoflix.vip/logo.png" alt="PaixãoFlix">
+            <img src="https://tv.paixaoflix.vip/logo.png" alt="Logo">
         </div>
 
-        <div class="search-wrapper">
-            <input type="text" class="search-bar" placeholder="Pesquisar...">
+        <div class="search-box">
+            <input type="text" class="search-input" placeholder="Pesquisar...">
         </div>
 
-        <div class="now-playing-sidebar">
-            <h3 class="now-playing-title">Assistindo Agora</h3>
-            <div class="mini-player-container" id="sidebar-video-target">
-                <div style="height:100%; display:flex; align-items:center; justify-content:center; color:#444; font-size:12px;">
-                    Aguardando seleção...
-                </div>
+        <div class="mini-player-title">ASSISTINDO AGORA</div>
+        <div class="mini-player-wrapper" id="player-target">
+            </div>
+
+        <ul class="menu-list">
+            <li class="menu-item active">LANÇAMENTOS</li>
+            <li class="menu-item">FILMES</li>
+            <li class="menu-item">SÉRIES</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h2 class="section-title">Recomendados</h2>
+        <div class="grid">
+            <div class="card" id="card-1" onclick="playMovie('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC', this)">
+                <img src="https://cdn.iset.io/assets/52438/produtos/40738/thumb_350-350-atn.jpg">
+                <div class="card-name">AS TARTARUGAS NINJA - O RETORNO</div>
             </div>
         </div>
-
-        <nav class="nav-sessions">
-            <div class="session-item active">Lançamentos</div>
-            <div class="session-item">Filmes</div>
-            <div class="session-item">Séries</div>
-            <div class="session-item">Documentários</div>
-        </nav>
-    </aside>
-
-    <main class="content-area">
-        <h2 class="category-title">Sugestões em Destaque</h2>
-        
-        <div class="movie-grid">
-            <div class="movie-card" id="main-item" onclick="updatePlayer('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC', this)">
-                <img src="https://cdn.iset.io/assets/52438/produtos/40738/thumb_350-350-atn.jpg" alt="Tartarugas Ninja">
-                <div class="movie-info">AS TARTARUGAS NINJA - O RETORNO</div>
-            </div>
-        </div>
-    </main>
+    </div>
 
     <script>
-        function updatePlayer(id, element) {
-            const container = document.getElementById('sidebar-video-target');
-            // Link corrigido para assistir no player do Drive (modo preview)
-            const videoLink = `https://drive.google.com/file/d/${id}/preview`;
+        function playMovie(id, el) {
+            // Usa o ID do Drive para carregar o player direto (preview)
+            document.getElementById('player-target').innerHTML = 
+                `<iframe src="https://drive.google.com/file/d/${id}/preview" allowfullscreen></iframe>`;
             
-            container.innerHTML = `
-                <iframe 
-                    src="${videoLink}" 
-                    allow="autoplay; fullscreen" 
-                    allowfullscreen="true">
-                </iframe>`;
-
-            // Estilo de seleção
-            document.querySelectorAll('.movie-card').forEach(c => c.classList.remove('selected'));
-            element.classList.add('selected');
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
         }
 
-        // Selecionar o primeiro canal automaticamente ao abrir
         window.onload = function() {
-            const firstCard = document.getElementById('main-item');
-            if (firstCard) {
-                firstCard.classList.add('selected');
-                firstCard.focus();
+            const first = document.getElementById('card-1');
+            if(first) {
+                first.classList.add('selected');
+                // Se quiser que o filme comece sozinho, descomente a linha abaixo
+                // playMovie('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC', first);
             }
-        };
+        }
     </script>
 </body>
 </html>
