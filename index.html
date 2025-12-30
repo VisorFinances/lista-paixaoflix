@@ -4,42 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PAIXÃOFLIX</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#e50914">
+    <link rel="icon" type="image/x-icon" href="https://i.imgur.com/rIJwt2Q.png">
+    <link rel="apple-touch-icon" href="https://i.imgur.com/rIJwt2Q.png">
+
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; --hover: #222; }
         body { font-family: 'Roboto', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
+        /* Sidebar */
         #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; }
+        
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
         .logo-area img { max-width: 180px; height: auto; }
         
         .search-area { padding: 15px; } 
-        .search-box { width: 90%; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; }
+        .search-box { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; box-sizing: border-box; }
         
+        /* Seção Assistindo Agora (Fixa) */
+        #now-playing-side { 
+            padding: 12px 15px; background: #000; border-bottom: 2px solid var(--primary); 
+            display: none; /* Só aparece quando der play */
+        }
+        .now-label { font-size: 10px; color: var(--primary); font-weight: bold; text-transform: uppercase; margin-bottom: 4px; }
+        .now-title { font-size: 13px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
         #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 transparent; }
         #channel-list::-webkit-scrollbar { width: 6px; }
         #channel-list::-webkit-scrollbar-thumb { background: #333; }
 
-        .cat-title { background: #1a1a1a; padding: 8px 15px; font-size: 11px; text-transform: uppercase; color: #888; font-weight: bold; position: sticky; top: 0; z-index: 10; margin-top: 10px; }
+        /* Títulos das Sessões Maiores */
+        .cat-title { 
+            background: #1a1a1a; padding: 12px 15px; font-size: 14px; 
+            text-transform: uppercase; color: #eee; font-weight: 900; 
+            position: sticky; top: 0; z-index: 10; border-bottom: 1px solid #333;
+        }
         
-        /* Efeito de Foco/Seleção para Controle Remoto */
         .item { 
             display: flex; align-items: center; padding: 12px 15px; cursor: pointer; 
             border-bottom: 1px solid #0a0a0a; border-left: 4px solid transparent; outline: none;
         }
-        /* Quando navega com setas ou mouse */
         .item:hover, .item:focus, .item.active-focus { 
             background: var(--hover); 
             border-left: 4px solid var(--primary);
-            box-shadow: inset 5px 0 10px rgba(229, 9, 20, 0.2);
         }
-        /* Quando o canal está tocando */
-        .item.playing { background: rgba(229, 9, 20, 0.15); border-left: 4px solid var(--primary); }
+        .item.playing { background: rgba(229, 9, 20, 0.1); border-left: 4px solid var(--primary); }
 
         .item img { width: 55px; height: 75px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
         .item-name { font-size: 14px; flex: 1; pointer-events: none; }
 
+        /* Player */
         #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
         #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: contain; }
@@ -58,8 +76,14 @@
         <img src="https://i.imgur.com/rIJwt2Q.png" alt="Logo">
     </div>
     <div class="search-area">
-        <input type="text" id="search" class="search-box" placeholder="Buscar..." onkeyup="filter()">
+        <input type="text" id="search" class="search-box" placeholder="Procurar canal ou série...">
     </div>
+    
+    <div id="now-playing-side">
+        <div class="now-label">● Assistindo agora</div>
+        <div id="side-playing-title" class="now-title">---</div>
+    </div>
+
     <div id="channel-list"></div>
 </div>
 
@@ -68,8 +92,8 @@
         <video id="video" controls autoplay playsinline></video>
     </div>
     <div class="info-panel">
-        <h1 id="title-now">Canais Online</h1>
-        <p id="desc-now">Use as setas para navegar e OK para assistir.</p>
+        <h1 id="title-now">PAIXÃOFLIX</h1>
+        <p id="desc-now">Navegue na lista ao lado e escolha sua programação.</p>
     </div>
 </div>
 
@@ -80,12 +104,12 @@
     let listaCanais = {};
     let focusedIndex = -1;
 
-    async function carregarApp() {
+    async function init() {
         try {
             const res = await fetch(URL_M3U);
             const text = await res.text();
             processar(text);
-        } catch (e) { console.error("Erro"); }
+        } catch (e) { console.error("Erro na carga"); }
     }
 
     function processar(text) {
@@ -123,10 +147,10 @@
                 const id = btoa(unescape(encodeURIComponent(item.base))).substring(0,10).replace(/[^a-z]/gi, 'x');
                 const div = document.createElement('div');
                 div.className = 'item';
-                div.tabIndex = 0; // Torna o item focável por teclado
+                div.tabIndex = 0;
                 div.innerHTML = `
                     <div style="width:55px;height:75px;background:#222;margin-right:15px;border-radius:4px;flex-shrink:0;">
-                        <img src="" id="img-${id}" style="width:100%;height:100%;display:none;" onload="this.style.display='block'">
+                        <img src="" id="img-${id}" style="width:100%;height:100%;display:none;object-fit:cover;border-radius:4px;" onload="this.style.display='block'">
                     </div>
                     <div class="item-name">${item.base}</div>
                 `;
@@ -153,10 +177,17 @@
     }
 
     function tocar(url, nome, id, el) {
+        // Atualiza UI lateral fixa
+        document.getElementById('now-playing-side').style.display = 'block';
+        document.getElementById('side-playing-title').innerText = nome;
+
+        // Limpa seleções anteriores
         document.querySelectorAll('.item').forEach(i => i.classList.remove('playing'));
         el.classList.add('playing');
+        
+        // Atualiza painel principal
         document.getElementById('title-now').innerText = nome;
-        document.getElementById('desc-now').innerText = el.dataset.info || "Sinopse indisponível.";
+        document.getElementById('desc-now').innerText = el.dataset.info || "Programação ao vivo ou sinopse indisponível.";
 
         let link = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
         if (Hls.isSupported()) {
@@ -165,11 +196,10 @@
         } else { player.src = link; player.play(); }
     }
 
-    // NAVEGAÇÃO POR TECLADO / CONTROLE REMOTO
+    // Controle de Teclado
     document.addEventListener('keydown', (e) => {
         const items = document.querySelectorAll('.item');
         if (items.length === 0) return;
-
         if (e.key === 'ArrowDown') {
             focusedIndex = (focusedIndex + 1) % items.length;
             items[focusedIndex].focus();
@@ -179,14 +209,12 @@
             items[focusedIndex].focus();
             items[focusedIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else if (e.key === 'Enter') {
-            if (document.activeElement.classList.contains('item')) {
-                document.activeElement.click();
-            }
+            if (document.activeElement.classList.contains('item')) document.activeElement.click();
         }
     });
 
-    function filter() {
-        const val = document.getElementById('search').value.toLowerCase();
+    document.getElementById('search').onkeyup = function() {
+        const val = this.value.toLowerCase();
         let f = {};
         for (let c in listaCanais) {
             let m = listaCanais[c].filter(i => i.base.toLowerCase().includes(val));
@@ -194,9 +222,9 @@
         }
         desenhar(f);
         focusedIndex = -1;
-    }
+    };
 
-    carregarApp();
+    init();
 </script>
 </body>
 </html>
