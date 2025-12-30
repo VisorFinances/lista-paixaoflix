@@ -5,66 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PAIXÃOFLIX</title>
     
+    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22PaixaoFlix%22,%22short_name%22:%22PaixaoFlix%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%23000000%22,%22theme_color%22:%22%23e50914%22,%22icons%22:[{%22src%22:%22https://i.imgur.com/rIJwt2Q.png%22,%22sizes%22:%22512x512%22,%22type%22:%22image/png%22}]}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
     <link rel="icon" type="image/png" href="https://i.imgur.com/rIJwt2Q.png">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     
     <style>
         :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
-        body { font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
-        /* Sidebar */
         #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; z-index: 10; }
         
-        .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; min-height: 80px; display: flex; align-items: center; justify-content: center; }
-        .logo-area img { max-width: 200px; height: auto; display: block; }
+        /* Logotipo: Usando arquivo local do Github */
+        .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; min-height: 80px; }
+        .logo-area img { max-width: 100%; height: auto; max-height: 80px; }
         
         .search-area { padding: 15px; } 
-        .search-box { width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        .search-box { width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; box-sizing: border-box; }
         
         #now-playing-side { padding: 15px; background: #070707; border-bottom: 2px solid var(--primary); display: none; }
-        .now-label { font-family: 'Poppins', sans-serif; font-size: 12px; color: var(--primary); font-weight: 600; text-transform: uppercase; margin-bottom: 2px; }
-        .now-title { font-family: 'Poppins', sans-serif; font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .now-label { font-size: 11px; color: var(--primary); font-weight: 700; text-transform: uppercase; }
+        .now-title { font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
 
-        #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 transparent; }
+        #channel-list { flex: 1; overflow-y: auto; }
+        .cat-title { background: #1a1a1a; padding: 12px 15px; font-size: 13px; text-transform: uppercase; font-weight: 700; position: sticky; top: 0; z-index: 20; border-bottom: 1px solid #333; }
         
-        .cat-title { background: #1a1a1a; padding: 10px 15px; font-size: 13px; text-transform: uppercase; color: #fff; font-weight: 700; position: sticky; top: 0; z-index: 20; border-bottom: 1px solid #333; }
-        
-        /* Itens e Foco */
         .item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #0a0a0a; border-left: 4px solid transparent; outline: none; }
-        .item:focus, .item.active-focus { background: #333 !important; border-left: 4px solid var(--primary) !important; outline: none; }
-        .item.playing { background: rgba(229, 9, 20, 0.2); border-left: 4px solid var(--primary); }
+        
+        /* FOCO VISÍVEL PARA SMART TV */
+        .item:focus { background: #333 !important; border-left: 4px solid var(--primary) !important; }
+        .item.playing { background: rgba(229, 9, 20, 0.15); border-left: 4px solid var(--primary); }
 
         .item img { width: 55px; height: 75px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
         .item-name { font-size: 14px; flex: 1; pointer-events: none; }
 
-        /* Player Principal */
+        /* PLAYER E FUNDO DINÂMICO */
         #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; overflow: hidden; }
         
-        /* IMAGEM DE FUNDO NO PLAYER (BLUR) */
         #bg-poster { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            position: absolute; top: -10%; left: -10%; width: 120%; height: 120%; 
             background-size: cover; background-position: center;
-            filter: blur(50px) brightness(0.4); z-index: 1; 
-            transition: background-image 0.8s ease-in-out;
-            display: block;
+            filter: blur(60px) brightness(0.3); z-index: 1; 
+            transition: background-image 1s ease-in-out;
         }
 
         #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; z-index: 5; position: relative; }
         video { width: 100%; height: 100%; object-fit: contain; background: transparent; }
         
-        .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 60px 30px 30px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; z-index: 10; }
-        #title-now { font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 700; margin: 0; }
-        #desc-now { font-size: 15px; color: #ccc; margin-top: 10px; max-width: 80%; line-height: 1.5; }
+        .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 60px 30px 40px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; z-index: 10; }
+        #title-now { font-size: 32px; font-weight: 700; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        #desc-now { font-size: 16px; color: #ccc; margin-top: 10px; max-width: 70%; line-height: 1.6; }
 
-        @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 45%; } }
+        @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 40%; } }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
     <div class="logo-area">
-        <img src="https://i.imgur.com/rIJwt2Q.png" alt="PAIXÃOFLIX">
+        <img src="./logo.png" onerror="this.src='https://i.imgur.com/rIJwt2Q.png'" alt="PAIXÃOFLIX">
     </div>
     <div class="search-area">
         <input type="text" id="search" class="search-box" placeholder="Buscar...">
@@ -83,59 +85,61 @@
     </div>
     <div class="info-panel">
         <h1 id="title-now">PAIXÃOFLIX</h1>
-        <p id="desc-now">Escolha um conteúdo na lista para começar.</p>
+        <p id="desc-now">Use o controle remoto para navegar.</p>
     </div>
 </div>
 
 <script>
-    const TMDB_API_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
-    const M3U_PATH = '/tv.paixaoflix.m3u?v=' + Date.now();
+    const TMDB_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
+    const M3U_URL = '/tv.paixaoflix.m3u?v=' + Date.now();
     const vid = document.getElementById('video');
-    let dbCanais = {};
+    let db = {};
 
-    async function iniciar() {
-        try {
-            const r = await fetch(M3U_PATH);
-            const t = await r.text();
-            if(t.includes("#EXTM3U")) processar(t);
-        } catch (e) { console.error("Falha ao carregar lista."); }
+    // 1. Registrar Service Worker para habilitar o Download (Instalação)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('data:text/javascript,self.addEventListener("fetch", (e) => e.respondWith(fetch(e.request)));');
     }
 
-    function processar(text) {
-        const linhas = text.split('\n');
-        let grupos = {};
-        for (let i = 0; i < linhas.length; i++) {
-            if (linhas[i].includes('#EXTINF')) {
-                let n = linhas[i].split(',')[1]?.trim();
-                let u = linhas[i+1]?.trim();
-                let g = linhas[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
+    async function load() {
+        try {
+            const r = await fetch(M3U_URL);
+            const t = await r.text();
+            parse(t);
+        } catch (e) { console.error("Erro na lista"); }
+    }
+
+    function parse(text) {
+        const lines = text.split('\n');
+        let groups = {};
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].includes('#EXTINF')) {
+                let n = lines[i].split(',')[1]?.trim();
+                let u = lines[i+1]?.trim();
+                let g = lines[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
                 let b = n.replace(/S\d+E\d+|Temporada \d+|FHD|HD|SD|4K|VIP/gi, '').trim();
                 if (u && u.startsWith('http')) {
-                    if (!grupos[g]) grupos[g] = [];
-                    if (!grupos[g].find(x => x.base === b)) grupos[g].push({ nome: n, base: b, url: u });
+                    if (!groups[g]) groups[g] = [];
+                    if (!groups[g].find(x => x.base === b)) groups[g].push({ name: n, base: b, url: u });
                 }
             }
         }
-        dbCanais = grupos;
-        render(grupos);
+        db = groups;
+        render(groups);
         
-        // FORÇAR FOCO NO PRIMEIRO ITEM (Crucial para LG)
+        // FORÇAR FOCO INICIAL PARA NAVEGAÇÃO SEM MOUSE
         setTimeout(() => {
             const first = document.querySelector('.item');
-            if(first) {
-                first.focus();
-                first.classList.add('active-focus');
-            }
-        }, 1500);
+            if(first) first.focus();
+        }, 2000);
     }
 
     function render(data) {
         const box = document.getElementById('channel-list');
         box.innerHTML = '';
         Object.keys(data).sort().forEach(cat => {
-            const head = document.createElement('div');
-            head.className = 'cat-title'; head.innerText = cat;
-            box.appendChild(head);
+            const h = document.createElement('div');
+            h.className = 'cat-title'; h.innerText = cat;
+            box.appendChild(h);
             data[cat].forEach(item => {
                 const id = btoa(unescape(encodeURIComponent(item.base))).substring(0,8).replace(/[^a-z]/gi, 'x');
                 const d = document.createElement('div');
@@ -148,15 +152,15 @@
                 `;
                 d.onclick = () => play(item.url, item.base, id, d);
                 box.appendChild(d);
-                getTmdb(item.base, id);
+                tmdb(item.base, id);
             });
         });
     }
 
-    async function getTmdb(q, id) {
+    async function tmdb(q, id) {
         let query = q.split('|')[0].split('-')[0].trim();
         try {
-            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`);
+            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`);
             const j = await r.json();
             if (j.results?.[0]?.poster_path) {
                 const path = `https://image.tmdb.org/t/p/w500${j.results[0].poster_path}`;
@@ -175,11 +179,11 @@
         document.getElementById('now-playing-side').style.display = 'block';
         document.getElementById('side-playing-title').innerText = nome;
         document.getElementById('title-now').innerText = nome;
-        document.getElementById('desc-now').innerText = el.dataset.info || "Sinopse indisponível.";
+        document.getElementById('desc-now').innerText = el.dataset.info || "Sem informações adicionais.";
         
-        // APLICAR IMAGEM NO FUNDO DO PLAYER
+        // ATUALIZA O FUNDO (BLUR) NO PLAYER
         if(el.dataset.poster) {
-            document.getElementById('bg-poster').style.backgroundImage = "url('" + el.dataset.poster + "')";
+            document.getElementById('bg-poster').style.backgroundImage = `url('${el.dataset.poster}')`;
         }
 
         document.querySelectorAll('.item').forEach(i => i.classList.remove('playing'));
@@ -192,38 +196,28 @@
         } else { vid.src = link; vid.play(); }
     }
 
-    // NAVEGAÇÃO CONTROLE REMOTO
+    // NAVEGAÇÃO POR SETAS (CONTROLE REMOTO)
     document.addEventListener('keydown', (e) => {
         const items = document.querySelectorAll('.item');
         let cur = document.activeElement;
         let i = Array.from(items).indexOf(cur);
 
-        if (e.key === 'ArrowDown') {
+        if (e.key === 'ArrowDown' || e.keyCode === 40) {
             e.preventDefault();
             i = (i + 1) % items.length;
             items[i].focus();
             items[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else if (e.key === 'ArrowUp') {
+        } else if (e.key === 'ArrowUp' || e.keyCode === 38) {
             e.preventDefault();
             i = (i - 1 + items.length) % items.length;
             items[i].focus();
             items[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else if (e.key === 'Enter') {
+        } else if (e.key === 'Enter' || e.keyCode === 13) {
             if (cur.classList.contains('item')) cur.click();
         }
     });
 
-    document.getElementById('search').onkeyup = function() {
-        const v = this.value.toLowerCase();
-        let f = {};
-        for (let c in dbCanais) {
-            let m = dbCanais[c].filter(i => i.base.toLowerCase().includes(v));
-            if (m.length > 0) f[c] = m;
-        }
-        render(f);
-    };
-
-    iniciar();
+    load();
 </script>
 </body>
 </html>
