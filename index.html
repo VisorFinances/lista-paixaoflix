@@ -3,26 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PAIXÃOFLIX - Web TV</title>
+    <title>PAIXÃOFLIX - Web TV Oficial</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --primary: #e50914; --bg: #141414; --card-bg: #2f2f2f; }
-        body { font-family: 'Roboto', sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; overflow-x: hidden; }
-        header { padding: 20px 5%; background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%); display: flex; align-items: center; justify-content: space-between; position: fixed; width: 90%; z-index: 100; }
-        .logo { color: var(--primary); font-size: 28px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
+        :root { --primary: #e50914; --bg: #141414; --card-bg: #2f2f2f; --text: #ffffff; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; }
         
-        #player-container { width: 100%; height: 56.25vw; max-height: 80vh; background: black; display: flex; align-items: center; justify-content: center; position: relative; padding-top: 60px; }
-        video { width: 100%; height: 100%; outline: none; }
+        /* Header Estilo Netflix */
+        header { 
+            padding: 15px 5%; 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); 
+            display: flex; align-items: center; position: fixed; width: 100%; z-index: 1000; 
+            box-sizing: border-box;
+        }
+        .logo { color: var(--primary); font-size: 24px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
 
-        .category-title { padding: 20px 5% 10px; font-size: 20px; font-weight: bold; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 0 5% 40px; }
-        .card { background: var(--card-bg); border-radius: 4px; overflow: hidden; cursor: pointer; transition: transform 0.3s; position: relative; }
-        .card:hover { transform: scale(1.05); z-index: 10; }
-        .card img { width: 100%; height: 230px; object-fit: cover; }
-        .card-info { padding: 10px; font-size: 14px; text-align: center; }
+        /* Area do Player */
+        #player-container { 
+            width: 100%; background: #000; display: flex; align-items: center; justify-content: center; 
+            position: relative; aspect-ratio: 16 / 9; max-height: 70vh; padding-top: 60px;
+        }
+        video { width: 100%; height: 100%; max-height: 70vh; outline: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+        /* Categorias e Grid */
+        #content { padding: 20px 0; }
+        .category-title { padding: 20px 5% 10px; font-size: 22px; font-weight: bold; color: #e5e5e5; }
+        .grid { 
+            display: flex; overflow-x: auto; gap: 15px; padding: 10px 5% 30px; 
+            scrollbar-width: none; -ms-overflow-style: none; 
+        }
+        .grid::-webkit-scrollbar { display: none; }
+
+        .card { 
+            min-width: 160px; max-width: 160px; background: var(--card-bg); border-radius: 4px; 
+            overflow: hidden; cursor: pointer; transition: transform 0.3s ease; flex-shrink: 0;
+        }
+        .card:hover { transform: scale(1.1); z-index: 100; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        .card img { width: 100%; height: 230px; object-fit: cover; pointer-events: none; }
+        .card-info { padding: 8px; font-size: 13px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        .loading { position: absolute; font-size: 18px; color: var(--primary); }
+        .status-msg { position: absolute; z-index: 10; color: var(--primary); font-weight: bold; text-align: center; }
+
+        @media (max-width: 768px) {
+            .card { min-width: 130px; max-width: 130px; }
+            .card img { height: 180px; }
+        }
     </style>
 </head>
 <body>
@@ -32,50 +58,51 @@
 </header>
 
 <div id="player-container">
-    <div class="loading" id="status">Selecione um canal ou série</div>
-    <video id="video" controls></video>
+    <div class="status-msg" id="status">Selecione um conteúdo para iniciar</div>
+    <video id="video" controls preload="auto" poster="https://via.placeholder.com/1280x720/000000/e50914?text=PAIXAOFLIX"></video>
 </div>
 
 <div id="content">
     </div>
 
 <script>
-    // URL da sua lista M3U (vinda do Cloudflare Worker ou Direta)
-    const m3uUrl = 'https://tv.paixaoflix.vip/online.m3u';
+    const m3uUrl = '/online.m3u'; // Caminho relativo para usar seu Worker/Proxy
     const video = document.getElementById('video');
     const status = document.getElementById('status');
 
-    async function loadM3U() {
+    async function loadApp() {
         try {
             const response = await fetch(m3uUrl);
             const data = await response.text();
-            parseM3U(data);
+            parseAndRender(data);
         } catch (err) {
-            status.innerText = "Erro ao carregar lista. Verifique o CORS.";
+            status.innerText = "Erro ao carregar lista de canais.";
+            console.error(err);
         }
     }
 
-    function parseM3U(content) {
+    function parseAndRender(content) {
         const lines = content.split('\n');
-        let currentCategory = "";
         let categories = {};
 
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].startsWith('#EXTINF')) {
                 const info = lines[i];
                 const url = lines[i + 1]?.trim();
-                const title = info.split(',')[1];
+                const title = info.split(',')[1]?.trim() || "Sem Nome";
                 const groupMatch = info.match(/group-title="([^"]+)"/);
-                const category = groupMatch ? groupMatch[1] : "OUTROS";
+                const category = groupMatch ? groupMatch[1].toUpperCase() : "DIVERSOS";
 
                 if (!categories[category]) categories[category] = [];
-                categories[category].push({ title, url });
+                if (url && url.startsWith('http')) {
+                    categories[category].push({ title, url });
+                }
             }
         }
-        renderGrid(categories);
+        renderLayout(categories);
     }
 
-    function renderGrid(categories) {
+    function renderLayout(categories) {
         const container = document.getElementById('content');
         container.innerHTML = '';
 
@@ -88,16 +115,18 @@
             categories[cat].forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                // Lógica de Capa: Se for série "EPC", usa capa fixa, senão usa logo genérica
-                const poster = item.title.includes("E.P.C") ? 
-                    "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/75pW83Fv9M9L5q7G6Y6F3NqfXhB.jpg" : 
-                    "https://via.placeholder.com/300x450/2f2f2f/ffffff?text=" + item.title;
+                
+                // Lógica de Posteres Automáticos
+                let poster = "https://via.placeholder.com/300x450/2f2f2f/ffffff?text=" + encodeURIComponent(item.title);
+                if (item.title.includes("E.P.C")) {
+                    poster = "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/75pW83Fv9M9L5q7G6Y6F3NqfXhB.jpg";
+                }
 
                 card.innerHTML = `
-                    <img src="${poster}" alt="Poster">
+                    <img src="${poster}" loading="lazy">
                     <div class="card-info">${item.title}</div>
                 `;
-                card.onclick = () => playVideo(item.url, item.title);
+                card.onclick = () => playStream(item.url, item.title);
                 grid.appendChild(card);
             });
             section.appendChild(grid);
@@ -105,23 +134,38 @@
         }
     }
 
-    function playVideo(url, title) {
+    function playStream(url, title) {
         status.style.display = 'none';
-        if (Hls.isSupported() && url.includes('m3u8')) {
+        
+        // TUNEL PROXY: Se o vídeo for HTTP e o site HTTPS, usa o Worker como ponte
+        let finalUrl = url;
+        if (url.startsWith('http:')) {
+            finalUrl = `${window.location.origin}/proxy?url=${encodeURIComponent(url)}`;
+        }
+
+        if (Hls.isSupported()) {
             const hls = new Hls();
-            hls.loadSource(url);
+            hls.loadSource(finalUrl);
             hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-        } else {
-            video.src = url;
-            video.play().catch(() => {
-                alert("Erro: Este navegador bloqueou o conteúdo HTTP. Tente usar o player via App ou configurar o Proxy HTTPS no Worker.");
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                video.play();
             });
+            hls.on(Hls.Events.ERROR, function (event, data) {
+                if (data.fatal) console.error("Erro fatal HLS");
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Suporte Nativo (Safari/iOS)
+            video.src = finalUrl;
+            video.play();
+        } else {
+            // Fallback para MP4 direto (Archive.org)
+            video.src = finalUrl;
+            video.play();
         }
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    loadM3U();
+    loadApp();
 </script>
 
 </body>
