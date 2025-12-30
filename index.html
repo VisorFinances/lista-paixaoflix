@@ -3,181 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PAIXÃOFLIX</title>
-    
-    <link rel="icon" type="image/png" href="https://i.imgur.com/rIJwt2Q.png">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>TESTE DE CONEXÃO - PAIXÃOFLIX</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    
     <style>
-        :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
-        
-        #sidebar { width: 300px; min-width: 300px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; z-index: 10; }
-        .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
-        .logo-area img { max-width: 100%; height: auto; max-height: 70px; }
-        
-        .search-area { padding: 15px; } 
-        .search-box { width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; box-sizing: border-box; }
-        
-        #now-playing-side { padding: 15px; background: #070707; border-bottom: 2px solid var(--primary); display: none; }
-        .now-label { font-size: 11px; color: var(--primary); font-weight: 700; text-transform: uppercase; }
-        .now-title { font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
-
-        #channel-list { flex: 1; overflow-y: auto; }
-        .cat-title { background: #1a1a1a; padding: 12px 15px; font-size: 13px; text-transform: uppercase; font-weight: 700; position: sticky; top: 0; z-index: 20; color: #888; border-bottom: 1px solid #333; }
-        
-        .item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #0a0a0a; border-left: 4px solid transparent; outline: none; }
-        .item:focus, .item.playing { background: #333 !important; border-left: 4px solid var(--primary) !important; }
-
-        .item img { width: 50px; height: 70px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
-        .item-name { font-size: 14px; flex: 1; pointer-events: none; }
-
-        #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
-        #bg-poster { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; filter: blur(60px) brightness(0.2); z-index: 1; transition: 0.5s; }
-        
-        #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; z-index: 5; }
-        video { width: 100%; height: 100%; background: #000; z-index: 6; }
-        
-        .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px 30px; background: linear-gradient(transparent, #000); z-index: 10; pointer-events: none; }
-        #title-now { font-size: 30px; margin: 0; color: #fff; }
-        #desc-now { font-size: 15px; color: #ccc; margin-top: 10px; max-width: 80%; line-height: 1.4; }
-
-        @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 40%; } }
+        body { background: #000; color: #fff; font-family: sans-serif; display: flex; }
+        #sidebar { width: 300px; background: #111; height: 100vh; overflow-y: auto; border-right: 1px solid #333; }
+        #player-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        video { width: 90%; background: #222; border: 2px solid #e50914; }
+        .item { padding: 15px; border-bottom: 1px solid #222; cursor: pointer; }
+        .item:hover { background: #333; }
+        .teste-btn { background: #e50914; color: white; font-weight: bold; border: none; padding: 10px; margin: 10px; cursor: pointer; border-radius: 5px; }
+        .status { color: #aaa; font-size: 12px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <div class="logo-area"><img src="logo.png" onerror="this.src='https://i.imgur.com/rIJwt2Q.png'"></div>
-    <div class="search-area"><input type="text" id="search-input" class="search-box" placeholder="Buscar..." onkeyup="fazerBusca()"></div>
-    <div id="now-playing-side">
-        <div class="now-label">Assistindo agora</div>
-        <div id="side-playing-title" class="now-title">---</div>
+    <div style="padding: 20px; text-align: center;">
+        <h2 style="color:#e50914">PAIXÃOFLIX</h2>
+        <p class="status">Modo de Teste de SSL</p>
     </div>
-    <div id="channel-list"></div>
+    
+    <div class="item" style="background: #1a1a1a; border: 1px solid gold;" onclick="playTeste()">
+        <strong>⭐ CANAL DE TESTE (HTTPS)</strong><br>
+        <small>Se este funcionar, o erro é o HTTP da sua lista.</small>
+    </div>
+
+    <div id="channel-list">
+        <p style="padding: 20px;">Carregando sua lista original...</p>
+    </div>
 </div>
 
-<div id="main-view">
-    <div id="bg-poster"></div>
-    <div id="player-wrapper">
-        <video id="video" controls autoplay playsinline></video>
-    </div>
-    <div class="info-panel">
-        <h1 id="title-now">PAIXÃOFLIX</h1>
-        <p id="desc-now">Escolha um conteúdo na lista ao lado.</p>
+<div id="player-area">
+    <h1 id="playing-title">Aguardando Seleção</h1>
+    <video id="video" controls autoplay></video>
+    <div style="margin-top: 20px; max-width: 80%; text-align: center;">
+        <p id="debug-info">Clique no botão dourado à esquerda para testar um link seguro.</p>
     </div>
 </div>
 
 <script>
-    const TMDB_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
-    const M3U_URL = 'tv.paixaoflix.m3u';
     const video = document.getElementById('video');
+    const M3U_URL = 'tv.paixaoflix.m3u';
     let hls = null;
-    let cacheCanais = {};
 
-    async function carregar() {
+    // 1. FUNÇÃO DE TESTE COM URL HTTPS GARANTIDA
+    function playTeste() {
+        const httpsUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"; 
+        document.getElementById('playing-title').innerText = "TESTE HTTPS: Big Buck Bunny";
+        document.getElementById('debug-info').innerText = "Se você está vendo este vídeo, significa que seu site (Cloudflare/HTTPS) está funcionando perfeitamente. O problema são os links da sua lista que são HTTP e estão sendo bloqueados pelo navegador.";
+        startVideo(httpsUrl);
+    }
+
+    // 2. CARREGAR SUA LISTA ORIGINAL LOGO ABAIXO
+    async function carregarM3U() {
         try {
             const r = await fetch(M3U_URL);
             const t = await r.text();
-            parse(t);
-        } catch (e) { alert("Não foi possível carregar a lista de canais."); }
-    }
+            const linhas = t.split('\n');
+            const container = document.getElementById('channel-list');
+            container.innerHTML = '<div style="padding:10px; color:gold">Sua Lista Original:</div>';
 
-    function parse(data) {
-        const lines = data.split('\n');
-        let grupos = {};
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes('#EXTINF')) {
-                let nome = lines[i].split(',')[1]?.trim();
-                let url = lines[i+1]?.trim();
-                let grupo = lines[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
-                let base = nome.replace(/S\d+E\d+|Episódio \d+|Temporada \d+|FHD|HD|SD|4K|VIP|\|/gi, '').trim();
-                
-                if (url && url.startsWith('http')) {
-                    if (!grupos[grupo]) grupos[grupo] = [];
-                    // Unifica Séries: só adiciona o primeiro link de cada base (ex: S01E01)
-                    if (!grupos[grupo].find(x => x.base === base)) {
-                        grupos[grupo].push({ nome, base, url });
+            for (let i = 0; i < linhas.length; i++) {
+                if (linhas[i].includes('#EXTINF')) {
+                    let nome = linhas[i].split(',')[1]?.trim();
+                    let url = linhas[i+1]?.trim();
+                    if (url && url.startsWith('http')) {
+                        const d = document.createElement('div');
+                        d.className = 'item';
+                        d.innerText = nome;
+                        d.onclick = () => {
+                            document.getElementById('playing-title').innerText = nome;
+                            document.getElementById('debug-info').innerText = "Tentando carregar link original: " + url;
+                            startVideo(url);
+                        };
+                        container.appendChild(d);
                     }
                 }
             }
+        } catch (e) {
+            document.getElementById('channel-list').innerHTML = "<p style='padding:20px'>Erro ao carregar tv.paixaoflix.m3u</p>";
         }
-        render(grupos);
     }
 
-    function render(dados) {
-        const container = document.getElementById('channel-list');
-        container.innerHTML = '';
-        Object.keys(dados).sort().forEach(g => {
-            const title = document.createElement('div');
-            title.className = 'cat-title'; title.innerText = g;
-            container.appendChild(title);
-
-            dados[g].forEach(item => {
-                const id = btoa(unescape(encodeURIComponent(item.base))).substring(0,8).replace(/[^a-z]/gi, 'x');
-                const d = document.createElement('div');
-                d.className = 'item'; d.tabIndex = 0;
-                d.innerHTML = `<img src="https://via.placeholder.com/50x70?text=..." id="img-${id}"><div class="item-name">${item.base}</div>`;
-                
-                d.onclick = () => play(item.url, item.base, id);
-                container.appendChild(d);
-                getMeta(item.base, id);
-            });
-        });
-    }
-
-    async function getMeta(q, id) {
-        try {
-            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(q)}`);
-            const j = await r.json();
-            if (j.results?.[0]) {
-                const res = j.results[0];
-                const poster = `https://image.tmdb.org/t/p/w500${res.poster_path}`;
-                cacheCanais[id] = { poster, sinopse: res.overview };
-                document.getElementById(`img-${id}`).src = poster;
-            }
-        } catch(e){}
-    }
-
-    function play(url, nome, id) {
-        document.getElementById('now-playing-side').style.display = 'block';
-        document.getElementById('side-playing-title').innerText = nome;
-        document.getElementById('title-now').innerText = nome;
-        
-        const info = cacheCanais[id] || {};
-        document.getElementById('desc-now').innerText = info.sinopse || "Sinopse não disponível.";
-        if (info.poster) document.getElementById('bg-poster').style.backgroundImage = `url('${info.poster}')`;
-
-        document.querySelectorAll('.item').forEach(i => i.classList.remove('playing'));
-        event.currentTarget.classList.add('playing');
-
+    function startVideo(url) {
         if (hls) hls.destroy();
-
-        // Tenta rodar o HLS diretamente
+        
         if (Hls.isSupported()) {
-            hls = new Hls({ xhrSetup: function(xhr) { xhr.withCredentials = false; } });
+            hls = new Hls();
             hls.loadSource(url);
             hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.play().catch(e => {
-                    alert("Atenção: Seu navegador bloqueou o vídeo. Verifique se o endereço do site começa com HTTP e não HTTPS.");
-                });
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+            hls.on(Hls.Events.ERROR, (event, data) => {
+                if (data.fatal) {
+                    document.getElementById('debug-info').innerText = "ERRO FATAL: O navegador bloqueou este link. (Provavelmente bloqueio de conteúdo misto HTTP/HTTPS)";
+                }
             });
-        } else {
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             video.src = url;
             video.play();
         }
     }
 
-    window.fazerBusca = function() {
-        const t = document.getElementById('search-input').value.toLowerCase();
-        document.querySelectorAll('.item').forEach(it => {
-            it.style.display = it.innerText.toLowerCase().includes(t) ? 'flex' : 'none';
-        });
-    };
-
-    carregar();
+    carregarM3U();
 </script>
 </body>
 </html>
