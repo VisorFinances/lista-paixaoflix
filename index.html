@@ -10,33 +10,37 @@
         :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
         body { font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sidebar Estreita */
+        /* Sidebar Estreita com recuo de 10px na direita */
         #sidebar { width: 260px; min-width: 260px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; }
-        .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
-        .logo-area img { max-width: 80%; height: auto; }
+        .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; margin-right: 10px; }
+        .logo-area img { max-width: 90%; height: auto; }
         
-        .search-area { padding: 15px; }
-        .search-box { width: 100%; padding: 10px; border-radius: 4px; border: none; background: #222; color: #fff; outline: none; font-size: 13px; }
+        .search-area { padding: 15px 10px 15px 15px; } /* Recuo de 10px na direita */
+        .search-box { width: 100%; padding: 10px; border-radius: 4px; border: none; background: #222; color: #fff; outline: none; font-size: 13px; border: 1px solid #333; }
         
-        #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; }
-        .cat-group { border-bottom: 1px solid #1a1a1a; }
-        .cat-title { background: #1a1a1a; padding: 8px 15px; font-size: 11px; text-transform: uppercase; color: #666; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; }
+        #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; margin-right: 10px; } /* Recuo de 10px na direita */
+        .cat-group { margin-bottom: 5px; }
+        .cat-title { background: #1a1a1a; padding: 8px 15px; font-size: 11px; text-transform: uppercase; color: #888; font-weight: bold; position: sticky; top: 0; z-index: 10; }
         
-        .item { display: flex; align-items: center; padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #0a0a0a; transition: 0.2s; }
-        .item:hover { background: #1a1a1a; }
-        .item img { width: 40px; height: 55px; border-radius: 3px; margin-right: 12px; object-fit: cover; background: #000; }
+        .item { display: flex; align-items: center; padding: 8px 15px; cursor: pointer; transition: 0.2s; border-radius: 0 20px 20px 0; margin-bottom: 2px; }
+        .item:hover { background: rgba(229, 9, 20, 0.1); color: var(--primary); }
+        .item img { width: 40px; height: 55px; border-radius: 3px; margin-right: 12px; object-fit: cover; background: #222; border: 1px solid #333; }
         .item-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* Player */
-        #main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        #main { flex: 1; display: flex; flex-direction: column; position: relative; background: #000; }
         #player-wrapper { flex: 1; background: #000; display: flex; align-items: center; justify-content: center; }
-        video { width: 100%; height: 100%; }
+        video { width: 100%; height: 100%; object-fit: contain; }
         
         .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px 30px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; }
-        #title-now { font-size: 26px; font-weight: bold; margin: 0; }
-        #desc-now { font-size: 14px; color: #bbb; margin-top: 10px; max-width: 700px; line-height: 1.4; }
+        #title-now { font-size: 26px; font-weight: bold; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        #desc-now { font-size: 14px; color: #ccc; margin-top: 10px; max-width: 750px; line-height: 1.5; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
 
-        @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 40%; } }
+        /* Scrollbar */
+        #channel-list::-webkit-scrollbar { width: 4px; }
+        #channel-list::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        @media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; height: 45%; } #channel-list { margin-right: 0; } }
     </style>
 </head>
 <body>
@@ -46,9 +50,11 @@
         <img src="https://i.imgur.com/rIJwt2Q.png" alt="PAIXÃOFLIX">
     </div>
     <div class="search-area">
-        <input type="text" id="search" class="search-box" placeholder="Pesquisar..." onkeyup="filter()">
+        <input type="text" id="search" class="search-box" placeholder="Pesquisar canal ou filme..." onkeyup="filter()">
     </div>
-    <div id="channel-list"></div>
+    <div id="channel-list">
+        <div style="padding: 20px; color: #555; font-size: 12px; text-align: center;">Carregando sua programação...</div>
+    </div>
 </div>
 
 <div id="main">
@@ -56,8 +62,8 @@
         <video id="video" controls autoplay playsinline></video>
     </div>
     <div class="info-panel">
-        <h1 id="title-now">Selecione um canal ou série</h1>
-        <p id="desc-now">Escolha um conteúdo na lista ao lado para começar a assistir.</p>
+        <h1 id="title-now">PAIXÃOFLIX TV</h1>
+        <p id="desc-now">Selecione um conteúdo na lista ao lado para reproduzir.</p>
     </div>
 </div>
 
@@ -72,7 +78,7 @@
             const res = await fetch(m3uUrl);
             const text = await res.text();
             parse(text);
-        } catch (e) { console.error("Erro ao carregar lista"); }
+        } catch (e) { document.getElementById('channel-list').innerText = "Erro ao carregar lista."; }
     }
 
     function parse(text) {
@@ -82,24 +88,25 @@
             if (lines[i].includes('#EXTINF')) {
                 let title = lines[i].split(',')[1]?.trim();
                 let url = lines[i+1]?.trim();
-                let group = lines[i].match(/group-title="([^"]+)"/)?.[1] || "OUTROS";
+                let group = lines[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
                 
-                // Agrupamento básico de séries (remove S01E01 etc para agrupar)
-                let baseTitle = title.replace(/S\d+E\d+|Temporada \d+|Capítulo \d+/gi, '').trim();
+                // Limpa o título para o agrupamento e para a busca de imagem
+                let baseTitle = title.replace(/S\d+E\d+|Temporada \d+|Capítulo \d+|FHD|HD|SD|4K|VIP|H265|RAW|REQ/gi, '').replace(/\./g, ' ').trim();
 
                 if (url && url.startsWith('http')) {
                     if (!categories[group]) categories[group] = [];
-                    // Evita duplicatas de séries na lista lateral
+                    // Agrupa séries pelo nome base
                     if (!categories[group].find(x => x.baseTitle === baseTitle)) {
                         categories[group].push({ title, baseTitle, url });
                     }
                 }
             }
         }
-        // Ordenar categorias alfabeticamente
-        const ordered = Object.keys(categories).sort().reduce((obj, key) => {
-            obj[key] = categories[key]; return obj;
-        }, {});
+        
+        // Ordena as categorias
+        const sortedKeys = Object.keys(categories).sort();
+        const ordered = {};
+        sortedKeys.forEach(key => ordered[key] = categories[key]);
         
         rawData = ordered;
         render(ordered);
@@ -111,51 +118,50 @@
         for (let cat in data) {
             const groupDiv = document.createElement('div');
             groupDiv.className = 'cat-group';
-            groupDiv.innerHTML = `<div class="cat-title">${cat} <span>+</span></div>`;
+            groupDiv.innerHTML = `<div class="cat-title">${cat}</div>`;
             
             data[cat].forEach(item => {
-                const id = btoa(unescape(encodeURIComponent(item.baseTitle))).substring(0,10).replace(/[^a-z]/gi, 'x');
+                const safeId = btoa(unescape(encodeURIComponent(item.baseTitle))).substring(0,12).replace(/[^a-z]/gi, 'x');
                 const div = document.createElement('div');
                 div.className = 'item';
                 div.innerHTML = `
-                    <img src="https://via.placeholder.com/100x150/111/333?text=..." id="img-${id}">
+                    <img src="https://via.placeholder.com/80x120/111/222?text=%20" id="img-${safeId}">
                     <div class="item-name">${item.baseTitle}</div>
                 `;
-                div.onclick = () => play(item.url, item.baseTitle);
+                div.onclick = () => play(item.url, item.baseTitle, safeId);
                 groupDiv.appendChild(div);
-                loadMeta(item.baseTitle, id);
+                
+                // Dispara busca de imagem e sinopse
+                loadMeta(item.baseTitle, safeId);
             });
             list.appendChild(groupDiv);
         }
     }
 
     async function loadMeta(title, id) {
-        let q = title.replace(/E\.P\.C/gi, 'Eu a Patroa e as Crianças').replace(/HD|4K|FHD|1080p|720p/gi, '').trim();
+        // Limpeza agressiva para o TMDB não se perder
+        let query = title.split('|')[0].split('-')[0].trim();
         try {
-            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(q)}`);
+            const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`);
             const j = await r.json();
             if (j.results && j.results[0]) {
                 const res = j.results[0];
-                document.getElementById(`img-${id}`).src = `https://image.tmdb.org/t/p/w200${res.poster_path}`;
-                // Guardar sinopse no elemento para usar no play
-                document.getElementById(`img-${id}`).dataset.desc = res.overview || "Sinopse não disponível.";
+                const img = document.getElementById(`img-${id}`);
+                if (img && res.poster_path) {
+                    img.src = `https://image.tmdb.org/t/p/w200${res.poster_path}`;
+                    img.dataset.overview = res.overview;
+                }
             }
         } catch (e) {}
     }
 
-    function play(url, title) {
+    function play(url, title, id) {
+        const img = document.getElementById(`img-${id}`);
         document.getElementById('title-now').innerText = title;
-        // Recupera a sinopse que guardamos na imagem
-        const allImgs = document.querySelectorAll('.item img');
-        let desc = "Conteúdo ao vivo ou sem descrição disponível.";
-        allImgs.forEach(img => {
-            if(img.id.includes(btoa(unescape(encodeURIComponent(title))).substring(0,5))) {
-                desc = img.dataset.desc || desc;
-            }
-        });
-        document.getElementById('desc-now').innerText = desc;
+        document.getElementById('desc-now').innerText = img?.dataset.overview || "Programação ao vivo ou sinopse não disponível para este título.";
 
         let finalUrl = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
+        
         if (Hls.isSupported()) {
             const hls = new Hls();
             hls.loadSource(finalUrl);
