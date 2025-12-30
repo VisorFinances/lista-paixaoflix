@@ -3,176 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Player de Filmes</title>
+    <title>Meu Streaming</title>
     <style>
-        :root {
-            --primary-color: #e50914;
-            --bg-color: #141414;
-            --card-scale: 1.08; /* Cards levemente aumentados */
-        }
-
+        /* CONFIGURAÇÕES GERAIS */
         body {
-            background-color: var(--bg-color);
-            color: white;
-            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            background-color: #101010;
+            color: white;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex; /* Mantém a barra lateral e conteúdo lado a lado */
+            height: 100vh;
+            overflow: hidden;
         }
 
-        /* LOGOTIPO: Aumentado conforme solicitado */
-        .logo-container {
-            margin-bottom: 20px;
+        /* 1. BARRA LATERAL (Recuperada) */
+        .sidebar {
+            width: 250px;
+            background-color: #000;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #333;
         }
+
+        /* 2. LOGOTIPO (Aumentado) */
         .logo {
-            height: 80px; /* Tamanho maior */
+            height: 80px; 
             width: auto;
+            margin-bottom: 30px;
             object-fit: contain;
         }
 
-        /* BARRA DE PESQUISA: Reduzida em 17px */
+        /* CONTEÚDO PRINCIPAL */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        /* 3. BARRA DE PESQUISA (Reduzida em 17px) */
         .search-container {
             width: 100%;
-            display: flex;
-            justify-content: flex-start;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         .search-bar {
-            /* O cálculo retira os 17px solicitados da largura total */
             width: calc(100% - 17px) !important;
             padding: 12px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: none;
-            outline: none;
+            background: #222;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 4px;
         }
 
-        /* TÍTULOS DAS SESSÕES: Maiores e definidos */
+        /* 4. PLAYER (Assistindo Agora - Ajustado para não subir) */
+        #assistindo-agora {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto 20px;
+        }
+        .player-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* Aspect Ratio 16:9 */
+            height: 0;
+            background: #000;
+            border: 2px solid #E50914;
+        }
+        .player-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 5. TÍTULOS (Definidos e Maiores) */
         .session-title {
-            font-size: 24px;
+            font-size: 1.8rem !important;
             font-weight: bold;
-            margin: 40px 0 20px 0;
-            color: #ffffff;
-            border-left: 5px solid var(--primary-color);
-            padding-left: 15px;
+            margin: 20px 0;
+            color: #E50914;
+            text-transform: uppercase;
         }
 
-        /* CARDS: Aumentados e com efeito de seleção */
-        .grid-container {
+        /* 6. GRID DE CARDS (Aumentados e Corrigidos) */
+        .grid-filmes {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
         }
 
         .card {
-            background: #2f2f2f;
+            background: #1c1c1c;
             border-radius: 8px;
-            overflow: hidden;
-            transition: transform 0.3s, border 0.3s;
             cursor: pointer;
+            transition: transform 0.3s ease;
+            overflow: hidden;
             border: 2px solid transparent;
         }
 
         .card:hover, .card.selected {
-            transform: scale(var(--card-scale));
-            border-color: var(--primary-color);
-            outline: none;
+            transform: scale(1.05); /* Aumento leve conforme solicitado */
+            border-color: #E50914;
         }
 
         .card img {
             width: 100%;
-            aspect-ratio: 2/3;
+            height: 250px; /* Tamanho controlado para não quebrar */
             object-fit: cover;
         }
 
-        .card-info {
+        .card-title {
             padding: 10px;
-            text-align: center;
             font-size: 14px;
+            text-align: center;
         }
 
-        /* PLAYER: "Assistindo agora" */
-        #player-container {
-            width: 100%;
-            max-width: 1000px;
-            margin: 0 auto 30px;
-            background: #000;
-            border: 2px solid #333;
-            aspect-ratio: 16/9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        iframe, video {
-            width: 100%;
-            height: 100%;
-        }
     </style>
 </head>
 <body>
 
-    <div class="logo-container">
-        <img src="https://via.placeholder.com/250x80?text=SEU+LOGO" alt="Logo" class="logo">
+    <div class="sidebar">
+        <img src="https://via.placeholder.com/200x80?text=LOGO" alt="Logo" class="logo">
+        <nav>
+            <p>Início</p>
+            <p>Filmes</p>
+            <p>Séries</p>
+        </nav>
     </div>
 
-    <div class="search-container">
-        <input type="text" class="search-bar" placeholder="Pesquisar filmes ou séries...">
-    </div>
-
-    <div id="assistindo-agora-sessao">
-        <h2 class="session-title">ASSISTINDO AGORA</h2>
-        <div id="player-container">
-            <div id="video-placeholder" style="color: #666;">Selecione um filme para carregar o player</div>
-        </div>
-    </div>
-
-    <h2 class="session-title">FILMES</h2>
-    <div class="grid-container" id="filmes-grid">
-        <div class="card" tabindex="0" data-video="https://drive.google.com/uc?id=1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC&export=view">
-            <img src="https://cdn.iset.io/assets/52438/produtos/40738/thumb_350-350-atn.jpg" alt="Tartarugas Ninja">
-            <div class="card-info">AS TARTARUGAS NINJA - O RETORNO</div>
-        </div>
+    <div class="main-content">
         
+        <div class="search-container">
+            <input type="text" class="search-bar" placeholder="Pesquisar...">
         </div>
+
+        <div id="assistindo-agora">
+            <h2 class="session-title">Assistindo Agora</h2>
+            <div class="player-wrapper" id="video-player">
+                <div style="text-align: center; padding-top: 20%;">Selecione um filme para assistir</div>
+            </div>
+        </div>
+
+        <h2 class="session-title">Filmes</h2>
+        <div class="grid-filmes">
+            <div class="card" onclick="playVideo('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC')" id="first-card">
+                <img src="https://cdn.iset.io/assets/52438/produtos/40738/thumb_350-350-atn.jpg" alt="Capa">
+                <div class="card-title">AS TARTARUGAS NINJA - O RETORNO</div>
+            </div>
+            </div>
+
+    </div>
 
     <script>
-        function carregarVideo(url) {
-            const container = document.getElementById('player-container');
-            // Usando iframe para o Drive com modo de visualização direta
-            container.innerHTML = `<iframe src="${url.replace('view', 'preview')}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+        // Função para carregar o vídeo do Drive como PLAYER e não Download
+        function playVideo(id) {
+            const playerDiv = document.getElementById('video-player');
+            // O segredo está no /preview para abrir o player direto
+            playerDiv.innerHTML = `<iframe src="https://drive.google.com/file/d/${id}/preview" allow="autoplay"></iframe>`;
+            
+            // Remove seleção de outros cards e marca o atual
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
         }
 
-        // Script para clique e seleção automática
-        document.addEventListener('DOMContentLoaded', () => {
-            const cards = document.querySelectorAll('.card');
-
-            // 1. Seleciona automaticamente o primeiro canal ao abrir
-            if (cards.length > 0) {
-                const primeiro = cards[0];
-                primeiro.classList.add('selected');
-                primeiro.focus();
-                // Opcional: Descomente a linha abaixo se quiser que o vídeo carregue sozinho ao abrir a página
-                // carregarVideo(primeiro.getAttribute('data-video'));
+        // 7. SELEÇÃO AUTOMÁTICA DO PRIMEIRO CANAL
+        window.onload = function() {
+            const primeiroCard = document.getElementById('first-card');
+            if (primeiroCard) {
+                primeiroCard.classList.add('selected');
+                primeiroCard.focus();
+                // Opcional: descomente a linha abaixo para já começar o filme ao abrir a página
+                // playVideo('1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC');
             }
-
-            // 2. Lógica de clique para abrir o vídeo
-            cards.forEach(card => {
-                card.addEventListener('click', function() {
-                    // Remove seleção de outros
-                    cards.forEach(c => c.classList.remove('selected'));
-                    // Adiciona ao atual
-                    this.classList.add('selected');
-                    
-                    const videoUrl = this.getAttribute('data-video');
-                    carregarVideo(videoUrl);
-                });
-
-                // Suporte para tecla Enter
-                card.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') this.click();
-                });
-            });
-        });
+        };
     </script>
 
 </body>
