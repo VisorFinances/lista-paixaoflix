@@ -6,7 +6,6 @@
     <title>PAIXÃOFLIX</title>
     
     <link rel="icon" type="image/png" href="https://i.imgur.com/rIJwt2Q.png">
-    <link rel="apple-touch-icon" href="https://i.imgur.com/rIJwt2Q.png">
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -15,26 +14,20 @@
         :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
         body { font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
-        /* Sidebar */
         #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; }
         
-        /* Logotipo com fallback reforçado */
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; min-height: 80px; display: flex; align-items: center; justify-content: center; }
-        .logo-area img { max-width: 220px; max-height: 70px; object-fit: contain; }
+        .logo-area img { max-width: 200px; height: auto; }
         
         .search-area { padding: 15px; } 
         .search-box { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         
-        /* Assistindo Agora */
         #now-playing-side { padding: 15px; background: #070707; border-bottom: 2px solid var(--primary); display: none; }
         .now-label { font-family: 'Poppins', sans-serif; font-size: 12px; color: var(--primary); font-weight: 600; text-transform: uppercase; margin-bottom: 2px; }
-        .now-title { font-family: 'Poppins', sans-serif; font-size: 14px; color: #fff; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .now-title { font-family: 'Poppins', sans-serif; font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 transparent; }
-        #channel-list::-webkit-scrollbar { width: 5px; }
-        #channel-list::-webkit-scrollbar-thumb { background: #333; }
         
-        /* Sessões: 13px negrito 700 */
         .cat-title { 
             background: #1a1a1a; padding: 10px 15px; font-size: 13px; 
             text-transform: uppercase; color: #fff; font-weight: 700; 
@@ -42,24 +35,20 @@
         }
         
         .item { display: flex; align-items: center; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #0a0a0a; border-left: 4px solid transparent; outline: none; }
-        
-        /* Foco e Marcador */
         .item:focus, .item.active-focus { background: #222; border-left: 4px solid var(--primary); outline: none; }
         .item.playing { background: rgba(229, 9, 20, 0.2); border-left: 4px solid var(--primary); }
 
         .item img { width: 55px; height: 75px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
-        .item-name { font-size: 14px; flex: 1; }
+        .item-name { font-size: 14px; flex: 1; pointer-events: none; }
 
-        /* Player */
         #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; overflow: hidden; }
-        #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; z-index: 1; position: relative; }
-        video { width: 100%; height: 100%; object-fit: contain; background: transparent; }
+        #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; z-index: 1; }
+        video { width: 100%; height: 100%; object-fit: contain; }
         
-        /* Capa Blur de Fundo no Player */
         #bg-poster { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background-size: cover; background-position: center;
-            filter: blur(40px) brightness(0.3); z-index: 0; transition: background 0.7s ease;
+            filter: blur(40px) brightness(0.3); z-index: 0; 
         }
 
         .info-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 60px 30px 30px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); pointer-events: none; z-index: 2; }
@@ -73,20 +62,15 @@
 
 <div id="sidebar">
     <div class="logo-area">
-        <img id="main-logo" 
-             src="Ícone geral jellyfin 1380 x 720.png" 
-             onerror="this.onerror=null; this.src='https://i.imgur.com/rIJwt2Q.png';" 
-             alt="PAIXÃOFLIX">
+        <img src="https://i.imgur.com/rIJwt2Q.png" alt="PAIXÃOFLIX">
     </div>
     <div class="search-area">
-        <input type="text" id="search" class="search-box" placeholder="Buscar canal ou filme...">
+        <input type="text" id="search" class="search-box" placeholder="Buscar...">
     </div>
-    
     <div id="now-playing-side">
         <div class="now-label">Assistindo agora</div>
         <div id="side-playing-title" class="now-title">---</div>
     </div>
-
     <div id="channel-list"></div>
 </div>
 
@@ -97,7 +81,7 @@
     </div>
     <div class="info-panel">
         <h1 id="title-now">PAIXÃOFLIX</h1>
-        <p id="desc-now">Selecione um conteúdo para começar a assistir.</p>
+        <p id="desc-now">Escolha um conteúdo na lista lateral.</p>
     </div>
 </div>
 
@@ -107,15 +91,18 @@
     const videoNode = document.getElementById('video');
     let masterList = {};
 
-    async function start() {
+    async function carregarLista() {
         try {
             const r = await fetch(URL_M3U);
             const t = await r.text();
-            parseList(t);
-        } catch (e) { console.error("Erro lista"); }
+            if(!t.includes("#EXTM3U")) throw "Inválida";
+            processarLista(t);
+        } catch (e) {
+            document.getElementById('channel-list').innerHTML = "<p style='padding:20px'>Erro ao carregar lista.</p>";
+        }
     }
 
-    function parseList(text) {
+    function processarLista(text) {
         const lines = text.split('\n');
         let cats = {};
         for (let i = 0; i < lines.length; i++) {
@@ -133,16 +120,16 @@
             }
         }
         masterList = cats;
-        draw(cats);
+        renderizar(cats);
         
-        // MARCADOR AUTOMÁTICO NO PRIMEIRO CANAL AO CARREGAR
+        // Foco automático no primeiro canal após carregar
         setTimeout(() => {
-            const firstItem = document.querySelector('.item');
-            if(firstItem) firstItem.focus();
-        }, 1200);
+            const first = document.querySelector('.item');
+            if(first) first.focus();
+        }, 1000);
     }
 
-    function draw(data) {
+    function renderizar(data) {
         const container = document.getElementById('channel-list');
         container.innerHTML = '';
         Object.keys(data).sort().forEach(c => {
@@ -150,7 +137,7 @@
             h.className = 'cat-title'; h.innerText = c;
             container.appendChild(h);
             data[c].forEach(item => {
-                const id = btoa(unescape(encodeURIComponent(item.base))).substring(0,10).replace(/[^a-z]/gi, 'x');
+                const id = btoa(unescape(encodeURIComponent(item.base))).substring(0,8).replace(/[^a-z]/gi, 'x');
                 const div = document.createElement('div');
                 div.className = 'item'; div.tabIndex = 0;
                 div.innerHTML = `
@@ -161,24 +148,24 @@
                 `;
                 div.onclick = () => playStream(item.url, item.base, id, div);
                 container.appendChild(div);
-                fetchImg(item.base, id);
+                buscarPoster(item.base, id);
             });
         });
     }
 
-    async function fetchImg(term, id) {
+    async function buscarPoster(term, id) {
         let q = term.split('|')[0].split('-')[0].trim();
         try {
             const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${KEY_TMDB}&language=pt-BR&query=${encodeURIComponent(q)}`);
             const j = await r.json();
             if (j.results?.[0]?.poster_path) {
                 const path = `https://image.tmdb.org/t/p/w500${j.results[0].poster_path}`;
-                const imgEl = document.getElementById(`img-${id}`);
-                if (imgEl) {
-                    imgEl.src = path;
-                    const itemEl = imgEl.closest('.item');
-                    itemEl.dataset.info = j.results[0].overview;
-                    itemEl.dataset.poster = path;
+                const el = document.getElementById(`img-${id}`);
+                if(el) {
+                    el.src = path;
+                    const item = el.closest('.item');
+                    item.dataset.info = j.results[0].overview;
+                    item.dataset.poster = path;
                 }
             }
         } catch (e) {}
@@ -188,9 +175,8 @@
         document.getElementById('now-playing-side').style.display = 'block';
         document.getElementById('side-playing-title').innerText = nome;
         document.getElementById('title-now').innerText = nome;
-        document.getElementById('desc-now').innerText = el.dataset.info || "Sinopse não disponível para este título.";
+        document.getElementById('desc-now').innerText = el.dataset.info || "Sinopse não disponível.";
         
-        // IMAGEM NO PLAYER (BLUR AO FUNDO)
         if(el.dataset.poster) {
             document.getElementById('bg-poster').style.backgroundImage = `url('${el.dataset.poster}')`;
         }
@@ -198,39 +184,43 @@
         document.querySelectorAll('.item').forEach(i => i.classList.remove('playing'));
         el.classList.add('playing');
 
-        let finalUrl = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
-        
+        let link = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
         if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(finalUrl);
-            hls.attachMedia(videoNode);
+            const hls = new Hls(); hls.loadSource(link); hls.attachMedia(videoNode);
             hls.on(Hls.Events.MANIFEST_PARSED, () => videoNode.play());
-        } else {
-            videoNode.src = finalUrl;
-            videoNode.play();
-        }
+        } else { videoNode.src = link; videoNode.play(); }
     }
 
-    // NAVEGAÇÃO SETAS
+    // Navegação Teclado
     document.addEventListener('keydown', (e) => {
         const items = document.querySelectorAll('.item');
-        let focused = document.activeElement;
-        let index = Array.from(items).indexOf(focused);
-
+        let idx = Array.from(items).indexOf(document.activeElement);
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            index = (index + 1) % items.length;
-            items[index].focus();
-            items[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            idx = (idx + 1) % items.length;
+            items[idx].focus();
+            items[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            index = (index - 1 + items.length) % items.length;
-            items[index].focus();
-            items[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            idx = (idx - 1 + items.length) % items.length;
+            items[idx].focus();
+            items[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else if (e.key === 'Enter') {
-            if (focused.classList.contains('item')) focused.click();
+            if (document.activeElement.classList.contains('item')) document.activeElement.click();
         }
     });
 
     document.getElementById('search').onkeyup = function() {
-        const v = this.value
+        const v = this.value.toLowerCase();
+        let f = {};
+        for (let c in masterList) {
+            let m = masterList[c].filter(i => i.base.toLowerCase().includes(v));
+            if (m.length > 0) f[c] = m;
+        }
+        renderizar(f);
+    };
+
+    carregarLista();
+</script>
+</body>
+</html>
