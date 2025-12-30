@@ -4,43 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PAIXÃOFLIX</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
+        :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; --hover: #222; }
         body { font-family: 'Roboto', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
-        /* Sidebar */
         #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; height: 100%; }
-        
         .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
-        .logo-area img { max-width: 180px; height: auto; display: inline-block; }
+        .logo-area img { max-width: 180px; height: auto; }
         
-        .search-area { padding: 15px 35px 15px 15px; } 
-        .search-box { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; font-size: 13px; }
+        .search-area { padding: 15px; } 
+        .search-box { width: 90%; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; }
         
-        /* Barra de Rolagem Restaurada e Visível */
-        #channel-list { flex: 1; overflow-y: scroll; scrollbar-width: thin; scrollbar-color: #333 transparent; }
+        #channel-list { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 transparent; }
         #channel-list::-webkit-scrollbar { width: 6px; }
-        #channel-list::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        #channel-list::-webkit-scrollbar-thumb { background: #333; }
 
-        .cat-title { 
-            background: #1a1a1a; padding: 6px 15px; margin-right: 40px; 
-            font-size: 11px; text-transform: uppercase; color: #888; 
-            font-weight: bold; border-radius: 0 4px 4px 0; margin-top: 15px;
-            position: sticky; top: 0; z-index: 10;
-        }
+        .cat-title { background: #1a1a1a; padding: 8px 15px; font-size: 11px; text-transform: uppercase; color: #888; font-weight: bold; position: sticky; top: 0; z-index: 10; margin-top: 10px; }
         
-        /* Itens com Borda e Efeito de Seleção */
+        /* Efeito de Foco/Seleção para Controle Remoto */
         .item { 
             display: flex; align-items: center; padding: 12px 15px; cursor: pointer; 
-            transition: 0.2s; border-bottom: 1px solid #0a0a0a; 
-            border-left: 3px solid transparent; 
+            border-bottom: 1px solid #0a0a0a; border-left: 4px solid transparent; outline: none;
         }
-        .item:hover { background: #1a1a1a; border-left: 3px solid var(--primary); }
-        .item img { width: 55px; height: 75px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
-        .item-name { font-size: 14px; font-weight: 400; flex: 1; }
+        /* Quando navega com setas ou mouse */
+        .item:hover, .item:focus, .item.active-focus { 
+            background: var(--hover); 
+            border-left: 4px solid var(--primary);
+            box-shadow: inset 5px 0 10px rgba(229, 9, 20, 0.2);
+        }
+        /* Quando o canal está tocando */
+        .item.playing { background: rgba(229, 9, 20, 0.15); border-left: 4px solid var(--primary); }
 
-        /* Área do Player */
+        .item img { width: 55px; height: 75px; border-radius: 4px; margin-right: 15px; object-fit: cover; background: #222; }
+        .item-name { font-size: 14px; flex: 1; pointer-events: none; }
+
         #main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
         #player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: contain; }
@@ -56,10 +55,10 @@
 
 <div id="sidebar">
     <div class="logo-area">
-        <img src="https://i.imgur.com/rIJwt2Q.png" alt="Logo" onerror="this.src='https://via.placeholder.com/150x50?text=PAIXAOFLIX'">
+        <img src="https://i.imgur.com/rIJwt2Q.png" alt="Logo">
     </div>
     <div class="search-area">
-        <input type="text" id="search" class="search-box" placeholder="Buscar canal ou filme..." onkeyup="filter()">
+        <input type="text" id="search" class="search-box" placeholder="Buscar..." onkeyup="filter()">
     </div>
     <div id="channel-list"></div>
 </div>
@@ -69,27 +68,24 @@
         <video id="video" controls autoplay playsinline></video>
     </div>
     <div class="info-panel">
-        <h1 id="title-now">Bem-vindo</h1>
-        <p id="desc-now">Selecione um conteúdo na lista para assistir.</p>
+        <h1 id="title-now">Canais Online</h1>
+        <p id="desc-now">Use as setas para navegar e OK para assistir.</p>
     </div>
 </div>
 
 <script>
-    // Variáveis globais únicas (limpas)
     const KEY_TMDB = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
     const URL_M3U = '/tv.paixaoflix.m3u?v=' + Date.now();
     const player = document.getElementById('video');
     let listaCanais = {};
+    let focusedIndex = -1;
 
     async function carregarApp() {
         try {
             const res = await fetch(URL_M3U);
             const text = await res.text();
-            if(!text.includes('#EXTM3U')) throw "Erro";
             processar(text);
-        } catch (e) {
-            document.getElementById('channel-list').innerHTML = "<p style='padding:20px'>Erro ao carregar lista.</p>";
-        }
+        } catch (e) { console.error("Erro"); }
     }
 
     function processar(text) {
@@ -105,7 +101,7 @@
                 if (link && link.startsWith('http')) {
                     if (!cats[grupo]) cats[grupo] = [];
                     if (!cats[grupo].find(x => x.base === base)) {
-                        cats[grupo].push({ nome, base, link, grupo });
+                        cats[grupo].push({ nome, base, link });
                     }
                 }
             }
@@ -119,59 +115,75 @@
         container.innerHTML = '';
         
         Object.keys(data).sort().forEach(c => {
-            const titulo = document.createElement('div');
-            titulo.className = 'cat-title';
-            titulo.innerText = c;
-            container.appendChild(titulo);
+            const h = document.createElement('div');
+            h.className = 'cat-title'; h.innerText = c;
+            container.appendChild(h);
 
-            data[c].forEach(canal => {
-                const id = btoa(unescape(encodeURIComponent(canal.base))).substring(0,12).replace(/[^a-z]/gi, 'x');
+            data[c].forEach(item => {
+                const id = btoa(unescape(encodeURIComponent(item.base))).substring(0,10).replace(/[^a-z]/gi, 'x');
                 const div = document.createElement('div');
                 div.className = 'item';
+                div.tabIndex = 0; // Torna o item focável por teclado
                 div.innerHTML = `
-                    <img src="https://via.placeholder.com/100x150/111/222?text= " id="img-${id}">
-                    <div class="item-name">${canal.base}</div>
+                    <div style="width:55px;height:75px;background:#222;margin-right:15px;border-radius:4px;flex-shrink:0;">
+                        <img src="" id="img-${id}" style="width:100%;height:100%;display:none;" onload="this.style.display='block'">
+                    </div>
+                    <div class="item-name">${item.base}</div>
                 `;
-                div.onclick = () => tocar(canal.link, canal.base, id);
+                div.onclick = () => tocar(item.link, item.base, id, div);
                 container.appendChild(div);
-                buscarImg(canal.base, id, c);
+                buscarImg(item.base, id);
             });
         });
     }
 
-    async function buscarImg(termo, id, categoria) {
+    async function buscarImg(termo, id) {
         let q = termo.split('|')[0].split('-')[0].trim();
         try {
             const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${KEY_TMDB}&language=pt-BR&query=${encodeURIComponent(q)}`);
             const j = await r.json();
-            if (j.results && j.results[0]) {
-                const res = j.results[0];
+            if (j.results?.[0]?.poster_path) {
                 const el = document.getElementById(`img-${id}`);
-                if (el && res.poster_path) {
-                    el.src = `https://image.tmdb.org/t/p/w200${res.poster_path}`;
-                    el.dataset.info = res.overview;
+                if (el) {
+                    el.src = `https://image.tmdb.org/t/p/w200${j.results[0].poster_path}`;
+                    el.closest('.item').dataset.info = j.results[0].overview;
                 }
             }
         } catch (e) {}
     }
 
-    function tocar(url, nome, id) {
-        const img = document.getElementById(`img-${id}`);
+    function tocar(url, nome, id, el) {
+        document.querySelectorAll('.item').forEach(i => i.classList.remove('playing'));
+        el.classList.add('playing');
         document.getElementById('title-now').innerText = nome;
-        document.getElementById('desc-now').innerText = img?.dataset.info || "Descrição indisponível.";
+        document.getElementById('desc-now').innerText = el.dataset.info || "Sinopse indisponível.";
 
-        let linkFinal = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
-        
+        let link = url.startsWith('http:') ? `/proxy?url=${encodeURIComponent(url)}` : url;
         if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(linkFinal);
-            hls.attachMedia(player);
+            const hls = new Hls(); hls.loadSource(link); hls.attachMedia(player);
             hls.on(Hls.Events.MANIFEST_PARSED, () => player.play());
-        } else {
-            player.src = linkFinal;
-            player.play();
-        }
+        } else { player.src = link; player.play(); }
     }
+
+    // NAVEGAÇÃO POR TECLADO / CONTROLE REMOTO
+    document.addEventListener('keydown', (e) => {
+        const items = document.querySelectorAll('.item');
+        if (items.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            focusedIndex = (focusedIndex + 1) % items.length;
+            items[focusedIndex].focus();
+            items[focusedIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (e.key === 'ArrowUp') {
+            focusedIndex = (focusedIndex - 1 + items.length) % items.length;
+            items[focusedIndex].focus();
+            items[focusedIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (e.key === 'Enter') {
+            if (document.activeElement.classList.contains('item')) {
+                document.activeElement.click();
+            }
+        }
+    });
 
     function filter() {
         const val = document.getElementById('search').value.toLowerCase();
@@ -181,6 +193,7 @@
             if (m.length > 0) f[c] = m;
         }
         desenhar(f);
+        focusedIndex = -1;
     }
 
     carregarApp();
