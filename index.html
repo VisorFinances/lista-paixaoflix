@@ -1,134 +1,29 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!doctype html>
+<html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PaixãoFlix_Tv</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.10/dist/hls.min.js"></script>
-    <style>
-        :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        #sidebar { width: 280px; min-width: 280px; background: var(--side); display: flex; flex-direction: column; border-right: 1px solid #222; }
-        .logo-area { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
-        .logo-area img { height: 80px; }
-        .search-area { padding: 15px; } 
-        .search-box { width: calc(100% - 17px); padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; outline: none; font-size: 13px; }
-        #channel-list { flex: 1; overflow-y: auto; scrollbar-width: none; }
-        .cat-title { background: #050505; padding: 12px 15px; font-size: 14px; font-weight: 700; color: #fff; text-transform: uppercase; }
-        .item { display: flex; align-items: center; padding: 10px 15px; cursor: pointer; border-left: 3px solid transparent; outline: none; }
-        .item:focus, .item.active { background: #1a1a1a; border-left: 3px solid var(--primary); }
-        .item-name { font-size: 13px; color: #ccc; }
-        #main-view { flex: 1; display: flex; background: #000; }
-        #player-wrapper { flex: 1; width: 100%; height: 100%; }
-        iframe, video { width: 100%; height: 100%; border: none; background: #000; }
-    </style>
+    <meta charset="utf-8">
+    <title>PaixãoFlix Ultra</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#0a0a0a">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preload" href="catalogo.json" as="fetch">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 </head>
 <body>
-
-<div id="sidebar">
-    <div class="logo-area"><img src="https://tv.paixaoflix.vip/logo.png" alt="Logo"></div>
-    <div class="search-area"><input type="text" id="search" class="search-box" placeholder="Buscar..." onkeyup="filter()"></div>
-    <div id="channel-list"></div>
-</div>
-
-<div id="main-view">
-    <div id="player-wrapper"></div>
-</div>
-
-<script>
-    const URL_M3U = 'tv.paixaoflix.m3u';
-    let hls = null;
-
-    async function carregarApp() {
-        try {
-            const res = await fetch(URL_M3U);
-            const text = await res.text();
-            processar(text);
-        } catch (e) { console.error("Erro M3U"); }
-    }
-
-    function processar(text) {
-        const linhas = text.split('\n');
-        let cats = {};
-        for (let i = 0; i < linhas.length; i++) {
-            if (linhas[i].includes('#EXTINF')) {
-                let nome = linhas[i].split(',')[1]?.trim();
-                let link = linhas[i+1]?.trim();
-                let grupo = linhas[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
-                if (link && link.startsWith('http')) {
-                    if (!cats[grupo]) cats[grupo] = [];
-                    cats[grupo].push({ nome, link });
-                }
-            }
-        }
-        desenhar(cats);
-        setTimeout(() => { 
-            const p = document.querySelector('.item'); 
-            if(p) p.focus(); 
-        }, 500);
-    }
-
-    function desenhar(data) {
-        const container = document.getElementById('channel-list');
-        container.innerHTML = '';
-        for (let c in data) {
-            const t = document.createElement('div'); t.className = 'cat-title'; t.innerText = c;
-            container.appendChild(t);
-            data[c].forEach(canal => {
-                const div = document.createElement('div');
-                div.className = 'item'; div.tabIndex = 0;
-                div.innerHTML = `<div class="item-name">${canal.nome}</div>`;
-                div.onclick = () => tocar(canal.link, div);
-                container.appendChild(div);
-            });
-        }
-    }
-
-    function tocar(url, el) {
-        document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
-        el.classList.add('active');
-        const wrapper = document.getElementById('player-wrapper');
-
-        if (hls) { hls.destroy(); hls = null; }
-
-        if (url.includes('drive.google.com')) {
-            // Ajuste para evitar o pedido de login em alguns casos usando o modo embed
-            let id = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
-            wrapper.innerHTML = `<iframe src="https://docs.google.com/get_video_info?docid=${id}" style="display:none"></iframe>
-                                 <iframe src="https://drive.google.com/file/d/${id}/preview" allow="autoplay"></iframe>`;
-        } else if (url.includes('archive.org')) {
-            wrapper.innerHTML = `<iframe src="${url}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
-        } else {
-            wrapper.innerHTML = `<video id="video" controls autoplay playsinline></video>`;
-            const v = document.getElementById('video');
-            
-            // LÓGICA PARA FIREFOX E SMART TV
-            if (url.includes('.m3u8')) {
-                if (Hls.isSupported()) {
-                    hls = new Hls();
-                    hls.loadSource(url);
-                    hls.attachMedia(v);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => v.play());
-                } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
-                    v.src = url;
-                }
-            } else {
-                v.src = url;
-            }
-        }
-    }
-
-    // Setas para Smart TV LG e PC
-    document.addEventListener('keydown', (e) => {
-        const itens = Array.from(document.querySelectorAll('.item'));
-        const index = itens.indexOf(document.activeElement);
-        if (e.key === 'ArrowDown') { e.preventDefault(); if (index < itens.length - 1) itens[index + 1].focus(); }
-        else if (e.key === 'ArrowUp') { e.preventDefault(); if (index > 0) itens[index - 1].focus(); }
-        else if (e.key === 'Enter') { e.preventDefault(); document.activeElement.click(); }
-    });
-
-    carregarApp();
-</script>
+    <header>
+        <h1>PaixãoFlix</h1>
+        <nav id="cats"></nav>
+        <input id="search" type="search" autocomplete="off" placeholder="Título, gênero, ano... [ / ]">
+    </header>
+    <main>
+        <div id="player" hidden>
+            <video id="vid" controls autoplay playsinline></video>
+            <button id="close" aria-label="Fechar">X</button>
+        </div>
+        <section id="grids"></section>
+        <div id="spinner"></div>
+    </main>
+    <script src="app.js"></script>
 </body>
 </html>
