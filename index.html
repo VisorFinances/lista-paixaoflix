@@ -1,134 +1,238 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="utf-8"/>
-    <title>PaixãoFlix – Web TV</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <link rel="icon" href="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/favicon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
-    <style>
-        :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
-        body { margin:0; background:var(--bg); color:var(--text); font-family: 'Poppins', sans-serif; display:flex; height:100vh; overflow:hidden; }
-        #sidebar { width:320px; min-width:320px; background:var(--side); display:flex; flex-direction:column; border-right:1px solid #222; }
-        .header-area { padding: 15px; border-bottom: 1px solid #222; display: flex; flex-direction: column; gap: 12px; }
-        .logo-area img { width: 100%; max-height: 55px; object-fit: contain; }
-        #btnInstalar { width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; display: none; font-size: 13px; text-transform: uppercase; }
-        #search-box { width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; font-size: 14px; outline: none; }
-        #channel-list { flex:1; overflow-y:auto; outline: none; }
-        .cat-title { background:#000; padding:15px; color:#FFFFFF !important; font-weight:700 !important; font-size:14px !important; text-transform: uppercase; position:sticky; top:0; z-index:5; border-bottom: 1px solid #1a1a1a; }
-        .item { padding:12px 15px; cursor:pointer; font-size:13px; border-bottom:1px solid #1a1a1a; border-left: 4px solid transparent; color: #ccc; }
-        .item.active { background: #1a1a1a; border-left-color: var(--primary); font-weight: 700; color: #fff; }
-        #main-view { flex:1; background:#000; position: relative; display: flex; align-items: center; justify-content: center; }
-        video { width:100%; height:100%; background: #000; }
-        #loader { position: absolute; background: rgba(0,0,0,0.9); width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; font-weight: 700; }
-        .spin { border: 4px solid #333; border-top: 4px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: s 1s linear infinite; margin-bottom: 15px; }
-        @keyframes s { 100% { transform: rotate(360deg); } }
-    </style>
+<meta charset="utf-8">
+<title>PaixãoFlix – Web TV</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="icon" href="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
+
+<style>
+:root {
+  --primary:#e50914;
+  --bg:#000;
+  --side:#111;
+  --text:#fff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Poppins, sans-serif;
+  display:flex;
+  height:100vh;
+  overflow:hidden;
+}
+#sidebar {
+  width:320px;
+  background:var(--side);
+  display:flex;
+  flex-direction:column;
+}
+.header {
+  padding:15px;
+  border-bottom:1px solid #222;
+}
+.header img {
+  width:100%;
+  max-height:55px;
+  object-fit:contain;
+}
+#search {
+  margin-top:10px;
+  width:100%;
+  padding:10px;
+  background:#222;
+  border:1px solid #333;
+  color:#fff;
+}
+#list {
+  flex:1;
+  overflow-y:auto;
+}
+.cat {
+  padding:12px;
+  font-weight:700;
+  background:#000;
+  border-bottom:1px solid #222;
+}
+.item {
+  padding:12px;
+  cursor:pointer;
+  border-bottom:1px solid #1a1a1a;
+  color:#ccc;
+}
+.item.active {
+  background:#1a1a1a;
+  color:#fff;
+  border-left:4px solid var(--primary);
+}
+#player-area {
+  flex:1;
+  position:relative;
+}
+video {
+  width:100%;
+  height:100%;
+  background:#000;
+}
+#loader {
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.85);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  z-index:10;
+}
+.spin {
+  width:50px;
+  height:50px;
+  border:4px solid #333;
+  border-top:4px solid var(--primary);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin-bottom:15px;
+}
+@keyframes spin {
+  100% { transform:rotate(360deg); }
+}
+</style>
 </head>
+
 <body>
-    <div id="sidebar">
-        <div class="header-area">
-            <div class="logo-area"><img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logo.png"></div>
-            <button id="btnInstalar">DOWNLOAD WEB TV</button>
-            <input type="text" id="search-box" placeholder="Pesquisar canal...">
-        </div>
-        <div id="channel-list" tabindex="0"></div>
-    </div>
-    <div id="main-view">
-        <div id="loader"><div class="spin"></div>CONECTANDO SINAL...</div>
-        <video id="player" controls autoplay playsinline></video>
-    </div>
 
-    <script>
-        const M3U = 'https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/tv.paixaoflix.m3u';
-        // USANDO A NOVA ROTA /SINAL/
-        const PROXY = 'https://tv.paixaoflix.vip/sinal/';
-        
-        const video = document.getElementById('player');
-        const listEl = document.getElementById('channel-list');
-        const loader = document.getElementById('loader');
-        const searchBox = document.getElementById('search-box');
-        let channels = [], filtered = [], currentIndex = 0;
-        let hls = null;
+<div id="sidebar">
+  <div class="header">
+    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logo.png">
+    <input id="search" placeholder="Pesquisar...">
+  </div>
+  <div id="list"></div>
+</div>
 
-        async function init() {
-            try {
-                const res = await fetch(M3U);
-                const text = await res.text();
-                const lines = text.split('\n');
-                let group = "CANAIS";
-                channels = [];
-                for (let i=0; i<lines.length; i++) {
-                    if (lines[i].startsWith('#EXTINF:')) {
-                        const t = lines[i].split(',').pop().trim();
-                        const g = lines[i].match(/group-title="([^"]+)"/);
-                        if (g) group = g[1];
-                        const v = lines[i+1]?.trim();
-                        if (v && v.startsWith('http')) channels.push({ t, g: group, v });
-                    }
-                }
-                filtered = channels;
-                render();
-                if (filtered.length > 0) play(0);
-            } catch(e) {}
-        }
+<div id="player-area">
+  <div id="loader">
+    <div class="spin"></div>
+    CARREGANDO SINAL...
+  </div>
+  <video id="video" controls autoplay playsinline></video>
+</div>
 
-        function render() {
-            listEl.innerHTML = ''; let lastG = '';
-            filtered.forEach((c, i) => {
-                if (c.g !== lastG) {
-                    const d = document.createElement('div'); d.className='cat-title'; d.innerText=c.g;
-                    listEl.appendChild(d); lastG = c.g;
-                }
-                const d = document.createElement('div'); d.className='item'; d.id='ch-'+i; d.innerText=c.t;
-                d.onclick = () => play(i);
-                listEl.appendChild(d);
-            });
-        }
+<script>
+/* ================= CONFIG ================= */
+const M3U_URL = "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/tv.paixaoflix.m3u";
+const PROXY   = "https://tv.paixaoflix.vip/proxy?url=";
+/* ========================================== */
 
-        function play(index) {
-            if (index < 0 || index >= filtered.length) return;
-            currentIndex = index;
-            document.querySelectorAll('.item').forEach(el => el.classList.remove('active'));
-            const sel = document.getElementById('ch-'+index);
-            if (sel) { sel.classList.add('active'); sel.scrollIntoView({ block: 'center' }); }
+const video = document.getElementById("video");
+const list  = document.getElementById("list");
+const search = document.getElementById("search");
+const loader = document.getElementById("loader");
 
-            if (hls) hls.destroy();
-            video.pause();
-            loader.style.display = 'flex';
+let channels = [];
+let filtered = [];
+let hls = null;
+let current = -1;
 
-            // O link agora é montado como: dominio.com/sinal/http://...
-            const finalUrl = PROXY + filtered[index].v;
+fetch(M3U_URL)
+  .then(r => r.text())
+  .then(parseM3U);
 
-            setTimeout(() => {
-                if (Hls.isSupported()) {
-                    hls = new Hls();
-                    hls.loadSource(finalUrl);
-                    hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => { loader.style.display='none'; video.play(); });
-                } else {
-                    video.src = finalUrl;
-                    video.onloadedmetadata = () => { loader.style.display='none'; video.play(); };
-                }
-            }, 1000);
-        }
+function parseM3U(text) {
+  const lines = text.split("\n");
+  let group = "CANAIS";
 
-        window.addEventListener('keydown', e => {
-            if (document.activeElement === searchBox) return;
-            if (e.key === 'ArrowDown') { e.preventDefault(); play(currentIndex + 1); }
-            else if (e.key === 'ArrowUp') { e.preventDefault(); play(currentIndex - 1); }
-            else if (e.key === 'ArrowRight') { e.preventDefault(); video.currentTime += 10; }
-            else if (e.key === 'ArrowLeft') { e.preventDefault(); video.currentTime -= 10; }
-        });
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].startsWith("#EXTINF")) {
+      const name = lines[i].split(",").pop().trim();
+      const g = lines[i].match(/group-title="([^"]+)"/);
+      if (g) group = g[1];
+      const url = lines[i + 1]?.trim();
+      if (url && url.startsWith("http")) {
+        channels.push({ name, group, url });
+      }
+    }
+  }
+  filtered = channels;
+  render();
+  if (filtered.length) play(0);
+}
 
-        searchBox.oninput = e => {
-            const q = e.target.value.toLowerCase();
-            filtered = channels.filter(c => c.t.toLowerCase().includes(q));
-            render();
-        };
+function render() {
+  list.innerHTML = "";
+  let last = "";
 
-        init();
-    </script>
+  filtered.forEach((c, i) => {
+    if (c.group !== last) {
+      const d = document.createElement("div");
+      d.className = "cat";
+      d.textContent = c.group;
+      list.appendChild(d);
+      last = c.group;
+    }
+    const it = document.createElement("div");
+    it.className = "item";
+    it.textContent = c.name;
+    it.onclick = () => play(i);
+    list.appendChild(it);
+  });
+}
+
+function play(i) {
+  if (!filtered[i]) return;
+  current = i;
+
+  document.querySelectorAll(".item").forEach(e => e.classList.remove("active"));
+  document.querySelectorAll(".item")[i]?.classList.add("active");
+
+  loader.style.display = "flex";
+
+  if (hls) {
+    hls.destroy();
+    hls = null;
+  }
+
+  const original = filtered[i].url;
+
+  /* 🔥 REGRA FINAL 🔥
+     Archive.org = direto
+     IPTV bloqueado = proxy
+  */
+  const finalUrl = original.includes("archive.org")
+    ? original
+    : PROXY + encodeURIComponent(original);
+
+  if (finalUrl.endsWith(".m3u8") && Hls.isSupported()) {
+    hls = new Hls();
+    hls.loadSource(finalUrl);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      loader.style.display = "none";
+      video.play();
+    });
+  } else {
+    video.src = finalUrl;
+    video.load();
+    video.onloadeddata = () => {
+      loader.style.display = "none";
+      video.play();
+    };
+  }
+}
+
+search.oninput = () => {
+  const q = search.value.toLowerCase();
+  filtered = channels.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    c.group.toLowerCase().includes(q)
+  );
+  render();
+};
+</script>
+
 </body>
 </html>
