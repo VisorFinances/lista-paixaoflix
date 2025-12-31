@@ -132,27 +132,25 @@
         }
 
         // Play Canal
-        function playChannel(index) {
-            if (index < 0 || index >= filtered.length) return;
-            currentIndex = index;
-
-            // UI Active State
-            document.querySelectorAll('.item').forEach(el => el.classList.remove('active'));
-            const activeEl = document.getElementById('ch-' + index);
-            if (activeEl) {
-                activeEl.classList.add('active');
-                activeEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        hls.on(Hls.Events.ERROR, (event, data) => {
+            console.error("ERRO DETECTADO:", data);
+            if (data.response) {
+                alert("ERRO DO SERVIDOR: " + data.response.code + " - " + data.response.text);
             }
-
-            // Destruir HLS anterior
-            if (hls) {
-                hls.destroy();
-                hls = null;
+            if (data.fatal) {
+                switch (data.type) {
+                    case Hls.ErrorTypes.NETWORK_ERROR:
+                        alert("ERRO DE REDE: O Worker ou o Link do canal não responderam.");
+                        break;
+                    case Hls.ErrorTypes.MEDIA_ERROR:
+                        alert("ERRO DE MÍDIA: Formato de vídeo incompatível.");
+                        break;
+                    default:
+                        alert("ERRO FATAL: " + data.details);
+                        break;
+                }
             }
-            
-            video.pause();
-            loader.style.display = 'flex';
-
+        });
             // Montar URL Final com Proxy
             const streamUrl = filtered[index].v;
             const finalUrl = PROXY_URL + streamUrl;
