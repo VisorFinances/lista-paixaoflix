@@ -1,4 +1,3 @@
-// m3u2json.js - Conversor de Alta Performance para PaixãoFlix
 const fs = require('fs');
 const [,,inFile,outFile='catalogo.json'] = process.argv;
 
@@ -15,33 +14,27 @@ try {
 
     for(let i=0; i<lines.length; i++){
         const line = lines[i];
-        
-        // Captura metadados da linha #EXTINF
         if(line.startsWith('#EXTINF:')){
             const logo = line.match(/tvg-logo="(.+?)"/);
             const group = line.match(/group-title="(.+?)"/);
             const title = line.split(',').pop();
-            
             temp = {
                 id: Math.random().toString(36).slice(2,9),
-                t: title.trim(), // Título
-                g: group ? group[1] : 'GERAL', // Categoria/Grupo
-                c: logo ? logo[1] : 'https://tv.paixaoflix.vip/logo.png', // Capa/Logo
-                v: '' // URL do vídeo (capturada na próxima linha)
+                t: title.trim(),
+                g: group ? group[1] : 'GERAL',
+                c: logo ? logo[1] : 'https://tv.paixaoflix.vip/logo.png',
+                v: ''
             };
-        } 
-        // Captura a URL que vem logo após o #EXTINF
-        else if(line.startsWith('http')){
+        } else if(line.startsWith('http')){
             if(temp.t){
                 temp.v = line.trim();
                 cat.push(temp);
-                temp = {}; // Limpa para o próximo item
+                temp = {};
             }
         }
     }
-
-    fs.writeFileSync(outFile, JSON.stringify(cat, null, 2));
-    console.log(`✅ Sucesso! ${cat.length} itens convertidos para ${outFile}`);
+    fs.writeFileSync(outFile, JSON.stringify(cat));
+    console.log(`✅ Gerado: ${cat.length} itens em ${outFile}`);
 } catch (err) {
-    console.error("❌ Erro ao converter arquivo:", err.message);
+    console.error("❌ Erro:", err.message);
 }
