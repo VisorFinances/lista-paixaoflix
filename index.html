@@ -36,82 +36,104 @@
 
   <div id="main-view">
     <div id="loader"><div class="spin"></div>CONECTANDO SINAL...</div>
-    <video id="player" controls autoplay playsinline muted></video>
+    <video id="player" controls autoplay playsinline></video>
   </div>
 
   <script>
+    // Configurações principais
     const M3U = 'https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/tv.paixaoflix.m3u';
     const PROXY = 'https://tv.paixaoflix.vip/sinal/';
 
-    const video   = document.getElementById('player');
-    const listEl  = document.getElementById('channel-list');
-    const loader  = document.getElementById('loader');
-    const searchBox=document.getElementById('search-box');
-    let channels=[],filtered=[],currentIndex=0,hls=null;
+    const video = document.getElementById('player');
+    const listEl = document.getElementById('channel-list');
+    const loader = document.getElementById('loader');
+    const searchBox = document.getElementById('search-box');
+    let channels = [], filtered = [], currentIndex = 0, hls = null;
 
     async function init(){
       try{
-        const txt=await(await fetch(M3U)).text();
-        let grp='CANAIS';
-        channels=[];
-        const lines=txt.split('\n');
-        for(let i=0;i<lines.length;i++){
+        const txt = await (await fetch(M3U)).text();
+        let grp = 'CANAIS';
+        channels = [];
+        const lines = txt.split('\n');
+        for(let i=0; i<lines.length; i++){
           if(lines[i].startsWith('#EXTINF:')){
-            const name=lines[i].split(',').pop().trim();
-            const g=lines[i].match(/group-title="([^"]+)"/);
-            if(g)grp=g[1];
-            const url=lines[i+1]?.trim();
-            if(url&&url.startsWith('http'))channels.push({t:name,g:grp,v:url});
+            const name = lines[i].split(',').pop().trim();
+            const g = lines[i].match(/group-title="([^"]+)"/);
+            if(g) grp = g[1];
+            const url = lines[i+1]?.trim();
+            if(url && url.startsWith('http')) channels.push({t:name, g:grp, v:url});
           }
         }
-        filtered=channels;render();play(0);
-      }catch(e){console.error(e)}
+        filtered = channels; render(); play(0);
+      }catch(e){ console.error("Erro ao carregar M3U:", e); }
     }
+
     function render(){
-      listEl.innerHTML='';let last='';
-      filtered.forEach((c,i)=>{
-        if(c.g!==last){
-          const d=document.createElement('div');d.className='cat-title';d.textContent=c.g;
-          listEl.appendChild(d);last=c.g;
+      listEl.innerHTML = ''; let last = '';
+      filtered.forEach((c, i)=>{
+        if(c.g !== last){
+          const d = document.createElement('div'); d.className = 'cat-title'; d.textContent = c.g;
+          listEl.appendChild(d); last = c.g;
         }
-        const d=document.createElement('div');d.className='item';d.id='ch'+i;d.textContent=c.t;
-        d.onclick=()=>play(i);listEl.appendChild(d);
+        const d = document.createElement('div'); d.className = 'item'; d.id = 'ch' + i; d.textContent = c.t;
+        d.onclick = () => play(i); listEl.appendChild(d);
       });
     }
+
     function play(idx){
-      if(idx<0||idx>=filtered.length)return;
-      currentIndex=idx;
-      document.querySelectorAll('.item').forEach(el=>el.classList.remove('active'));
-      const sel=document.getElementById('ch'+idx);if(sel){sel.classList.add('active');sel.scrollIntoView({block:'center'});}
-      if(hls){hls.destroy();hls=null;}
-      video.pause();loader.style.display='flex';
-      const finalUrl=filtered[idx].v;
-      video.setAttribute("crossorigin","anonymous");
+      if(idx < 0 || idx >= filtered.length) return;
+      currentIndex = idx;
+      
+      // Estilo de seleção
+      document.querySelectorAll('.item').forEach(el => el.classList.remove('active'));
+      const sel = document.getElementById('ch' + idx);
+      if(sel){ sel.classList.add('active'); sel.scrollIntoView({block:'center'}); }
+      
+      if(hls){ hls.destroy(); hls = null; }
+      video.pause();
+      loader.style.display = 'flex';
+
+      // CORREÇÃO: O link AGORA passa pelo seu PROXY HTTPS
+      const rawUrl = filtered[idx].v;
+      const finalUrl = PROXY + rawUrl; 
+
+      console.log("Abrindo sinal via Proxy:", finalUrl);
+
       if(Hls.isSupported()){
-        hls=new Hls({maxBufferLength:30,maxMaxBufferLength:60,manifestLoadingMaxRetry:6});
+        hls = new Hls({
+            manifestLoadingMaxRetry: 10,
+            manifestLoadingRetryDelay: 1000,
+            enableWorker: true
+        });
         hls.loadSource(finalUrl);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED,()=>{loader.style.display='none';video.play()});
-        hls.on(Hls.Events.ERROR,(e,data)=>{
-          if(data.fatal){hls.stopLoad();hls.startLoad()}
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          loader.style.display = 'none';
+          video.play().catch(e => console.log("Auto-play barrado"));
         });
-      }else{
-        video.src=finalUrl;
-        video.onloadeddata=()=>{loader.style.display='none';video.play()};
+        hls.on(Hls.Events.ERROR, (e, data) => {
+          if(data.fatal){ hls.startLoad(); }
+        });
+      } else {
+        video.src = finalUrl;
+        video.onloadeddata = () => { loader.style.display = 'none'; video.play(); };
       }
     }
-    window.addEventListener('keydown',e=>{
-      if(document.activeElement===searchBox)return;
-      if(e.key==='ArrowDown'){e.preventDefault();play(currentIndex+1)}
-      else if(e.key==='ArrowUp'){e.preventDefault();play(currentIndex-1)}
-      else if(e.key==='ArrowRight')video.currentTime+=10;
-      else if(e.key==='ArrowLeft')video.currentTime-=10;
+
+    // Navegação e Busca
+    window.addEventListener('keydown', e => {
+      if(document.activeElement === searchBox) return;
+      if(e.key === 'ArrowDown'){ e.preventDefault(); play(currentIndex + 1); }
+      else if(e.key === 'ArrowUp'){ e.preventDefault(); play(currentIndex - 1); }
     });
-    searchBox.oninput=()=>{
-      const q=searchBox.value.toLowerCase();
-      filtered=channels.filter(c=>c.t.toLowerCase().includes(q));
+
+    searchBox.oninput = () => {
+      const q = searchBox.value.toLowerCase();
+      filtered = channels.filter(c => c.t.toLowerCase().includes(q));
       render();
     };
+
     init();
   </script>
 </body>
