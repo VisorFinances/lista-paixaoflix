@@ -16,98 +16,117 @@ body{
   font-family:Poppins;
   display:flex;
   height:100vh;
+  overflow:hidden
 }
 
 /* SIDEBAR */
 #side{
   width:320px;
   background:#111;
+  overflow-y:auto;
   display:flex;
-  flex-direction:column;
-  overflow:hidden;
+  flex-direction:column
 }
 
+/* SCROLL */
+#side::-webkit-scrollbar{width:6px}
+#side::-webkit-scrollbar-thumb{background:#e50914;border-radius:6px}
+#side::-webkit-scrollbar-track{background:#111}
+
+/* LOGO */
 #logo{
   padding:15px;
-  text-align:center;
+  text-align:center
 }
 #logo img{
-  max-width:180px;
+  max-width:100%;
+  max-height:55px
 }
 
 /* SEARCH */
 #search{
   margin:10px;
-  padding:8px;
-  width:calc(100% - 20px);
-  border:1px solid #e50914;
+  height:33px;
+  padding:6px 10px;
+  border-radius:6px;
+  border:1px solid rgba(229,9,20,.6);
   background:#000;
   color:#fff;
-  outline:none;
+  outline:none
 }
 
 /* NOW PLAYING */
 #now{
-  display:none;
-  padding:8px 12px;
+  padding:10px;
   font-size:13px;
-  border-bottom:1px solid #222;
+  color:#aaa;
+  display:none
 }
 
-/* MENU */
-#menu{
+/* BUTTONS */
+#buttons{
   display:flex;
+  padding:6px
 }
-#menu button{
+#buttons button{
   flex:1;
+  margin:0 2px;
   padding:10px;
   border:0;
   background:#222;
   color:#fff;
   border-radius:6px;
+  font-size:13px;
+  cursor:pointer
 }
-#menu button.active{
-  background:#e50914;
+#buttons button.active{
+  background:#e50914
 }
 
 /* LIST */
 #list{
-  overflow:auto;
-  flex:1;
+  flex:1
 }
-.section-title{
-  padding:10px;
-  font-size:14px;
-  font-weight:700;
-}
+
+/* ITEMS */
 .item{
   padding:10px;
-  font-size:13px;
+  border-bottom:1px solid #222;
   cursor:pointer;
+  font-size:13px;
+  color:#fff;
+  border-left:4px solid transparent
 }
-.item:focus,
 .item.active{
-  background:#1a1a1a;
+  background:rgba(255,255,255,.12);
+  border-left:4px solid #e50914
+}
+.item:focus{
   outline:none;
+  background:rgba(255,255,255,.12);
+  border-left:4px solid #e50914
 }
 
 /* PLAYER */
 #player{
   flex:1;
   background:#000;
-  position:relative;
+  position:relative
 }
 video{
   width:100%;
-  height:100%;
+  height:100%
 }
+
+/* ERROR */
 #error{
   position:absolute;
-  color:#fff;
-  background:#000c;
-  padding:20px;
+  top:20px;
+  left:20px;
+  background:rgba(0,0,0,.8);
+  padding:15px;
   display:none;
-  z-index:10;
+  z-index:10
 }
 </style>
 </head>
@@ -119,11 +138,11 @@ video{
     <img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
   </div>
 
-  <input id="search" placeholder="Pesquisar...">
+  <input id="search" type="text" placeholder="Pesquisar...">
 
-  <div id="now">▶ Assistindo agora</div>
+  <div id="now">Assistindo agora: <span></span></div>
 
-  <div id="menu">
+  <div id="buttons">
     <button id="t">TV AO VIVO</button>
     <button id="f" class="active">FILMES</button>
     <button id="s">SÉRIES</button>
@@ -141,112 +160,136 @@ video{
 const video=document.getElementById('video');
 const list=document.getElementById('list');
 const errorBox=document.getElementById('error');
+const search=document.getElementById('search');
 const now=document.getElementById('now');
-let hls, items=[], index=0;
+let hls,items=[],index=0;
 
-/* PLAYER */
 function showError(msg){
   errorBox.style.display='block';
-  errorBox.innerText=msg;
+  errorBox.innerText=msg
 }
-function clearError(){errorBox.style.display='none';}
+function clearError(){
+  errorBox.style.display='none'
+}
 
-function play(url){
+function setItems(){
+  items=[...document.querySelectorAll('.item')];
+  items.forEach((i,n)=>{
+    i.tabIndex=0;
+    i.onfocus=()=>select(n);
+  });
+  if(items[0]) select(0)
+}
+
+function select(i){
+  if(i<0||i>=items.length)return;
+  items.forEach(x=>x.classList.remove('active'));
+  index=i;
+  items[i].classList.add('active');
+  items[i].scrollIntoView({block:'nearest'});
+  items[i].focus()
+}
+
+function play(url,title){
   clearError();
+  if(hls){hls.destroy();hls=null}
   now.style.display='block';
-  if(hls){hls.destroy();hls=null;}
+  now.querySelector('span').innerText=title;
   try{
-    if(url.endsWith('.m3u8') && Hls.isSupported()){
-      hls=new Hls();
-      hls.loadSource(url);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.ERROR,()=>showError("Canal bloqueado pelo provedor (CORS)"));
-    }else{
-      video.src=url;
-    }
-    video.play();
+    if(url.endsWith('.m3u8')){
+      if(Hls.isSupported()){
+        hls=new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.ERROR,()=>showError("Canal bloqueado pelo provedor (CORS)"));
+      }else video.src=url;
+    }else video.src=url;
+    video.play()
   }catch{
-    showError("Este conteúdo não pode ser reproduzido");
+    showError("Não foi possível reproduzir")
   }
 }
 
-/* LOADERS */
-function setItems(){
-  items=[...document.querySelectorAll('.item')];
-  index=0;
-  if(items[0]) items[0].focus();
-}
-
 async function loadFilmes(){
-  list.innerHTML='<div class="section-title">Filmes</div>';
+  activate('f');
+  list.innerHTML='';
   const data=await fetch('./data/filmes.json').then(r=>r.json()).catch(()=>[]);
   data.forEach(f=>{
     const d=document.createElement('div');
     d.className='item';
-    d.tabIndex=0;
     d.innerText=f.titulo;
-    d.onclick=()=>play(f.url);
-    list.appendChild(d);
+    d.onclick=()=>play(f.url,f.titulo);
+    list.appendChild(d)
   });
-  setItems();
+  setItems()
 }
 
 async function loadSeries(){
-  list.innerHTML='<div class="section-title">Séries</div>';
+  activate('s');
+  list.innerHTML='';
   const data=await fetch('./data/series.json').then(r=>r.json()).catch(()=>[]);
   data.forEach(s=>{
     const h=document.createElement('div');
     h.className='item';
     h.style.fontWeight='700';
-    h.tabIndex=0;
     h.innerText=s.nome;
     list.appendChild(h);
     (s.episodios||[]).forEach(e=>{
       const d=document.createElement('div');
       d.className='item';
       d.style.paddingLeft='25px';
-      d.tabIndex=0;
       d.innerText=e.titulo;
-      d.onclick=()=>play(e.url);
-      list.appendChild(d);
-    });
+      d.onclick=()=>play(e.url,e.titulo);
+      list.appendChild(d)
+    })
   });
-  setItems();
+  setItems()
 }
 
 async function loadTV(){
-  list.innerHTML='<div class="section-title">TV ao Vivo</div>';
+  activate('t');
+  list.innerHTML='';
   const txt=await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
-  if(!txt){showError("Lista indisponível");return;}
+  if(!txt){showError("Lista indisponível");return}
   let name='';
   txt.split('\n').forEach(l=>{
     if(l.startsWith('#EXTINF')) name=l.split(',').pop();
     else if(l.startsWith('http')){
       const d=document.createElement('div');
       d.className='item';
-      d.tabIndex=0;
       d.innerText=name;
-      d.onclick=()=>play(l.trim());
-      list.appendChild(d);
+      d.onclick=()=>play(l.trim(),name);
+      list.appendChild(d)
     }
   });
-  setItems();
+  setItems()
 }
 
-/* NAVEGAÇÃO CONTROLE / TECLADO */
-document.addEventListener('keydown',e=>{
-  if(!items.length) return;
-  if(e.key==='ArrowDown'){index=(index+1)%items.length;items[index].focus();}
-  if(e.key==='ArrowUp'){index=(index-1+items.length)%items.length;items[index].focus();}
-  if(e.key==='Enter'){items[index].click();}
+function activate(id){
+  document.querySelectorAll('#buttons button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active')
+}
+
+/* SEARCH FILTER */
+search.addEventListener('input',()=>{
+  const q=search.value.toLowerCase();
+  items.forEach(i=>{
+    i.style.display=i.innerText.toLowerCase().includes(q)?'block':'none'
+  });
+  setItems()
 });
 
-/* MENU */
-f.onclick=()=>loadFilmes();
-s.onclick=()=>loadSeries();
-t.onclick=()=>loadTV();
+/* NAVIGATION */
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){e.preventDefault();select(index+1)}
+  if(e.key==='ArrowUp'){e.preventDefault();select(index-1)}
+  if(e.key==='Enter'&&items[index])items[index].click()
+});
 
-/* START */
+document.getElementById('f').onclick=loadFilmes;
+document.getElementById('s').onclick=loadSeries;
+document.getElementById('t').onclick=loadTV;
+
 loadFilmes();
 </script>
 
