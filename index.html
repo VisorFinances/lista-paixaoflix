@@ -9,104 +9,74 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-:root {
-  --bg:#000; --side:#111; --text:#fff; --primary:#e50914;
-}
-body {
-  margin:0; background:var(--bg); color:var(--text);
-  font-family:Poppins,sans-serif; display:flex; height:100vh;
-}
-#sidebar {
-  width:320px; background:var(--side);
-  display:flex; flex-direction:column; overflow:hidden;
-}
-.header {
-  padding:15px; border-bottom:1px solid #222;
-}
-.header img { width:100%; max-height:55px; object-fit:contain; }
-.menu {
-  display:flex; gap:8px; margin-top:10px;
-}
-.menu button {
-  flex:1; padding:10px; background:#222; color:#fff;
-  border:none; cursor:pointer; font-weight:700;
-}
-.menu button.active { background:var(--primary); }
-#list {
-  flex:1; overflow-y:auto;
-}
-.group {
-  padding:10px; background:#000; font-weight:700;
-  border-bottom:1px solid #222;
-}
-.item {
-  padding:10px; cursor:pointer; border-bottom:1px solid #1a1a1a;
-}
-.item:hover,.item.active { background:#1a1a1a; }
-#player-area {
-  flex:1; background:#000; display:flex;
-  align-items:center; justify-content:center;
-}
-video {
-  width:100%; height:100%; background:#000;
-}
+body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh}
+#side{width:320px;background:#111;overflow:auto}
+#side button{width:33%;padding:10px;border:0;background:#222;color:#fff}
+#side button.active{background:#e50914}
+.item{padding:10px;border-bottom:1px solid #222;cursor:pointer}
+.item:hover{background:#1a1a1a}
+#player{flex:1;background:#000}
+video{width:100%;height:100%}
+#error{position:absolute;color:#fff;background:#000c;padding:20px;display:none}
 </style>
 </head>
 
 <body>
 
-<div id="sidebar">
-  <div class="header">
-    <img src="logo.png">
-    <div class="menu">
-      <button id="btnFilmes" class="active">FILMES</button>
-      <button id="btnSeries">SÉRIES</button>
-      <button id="btnTV">TV</button>
-    </div>
+<div id="side">
+  <div>
+    <button id="f" class="active">FILMES</button>
+    <button id="s">SÉRIES</button>
+    <button id="t">TV</button>
   </div>
   <div id="list"></div>
 </div>
 
-<div id="player-area">
+<div id="player">
+  <div id="error"></div>
   <video id="video" controls autoplay playsinline></video>
 </div>
 
 <script>
 const video = document.getElementById('video');
 const list = document.getElementById('list');
-
-const btnFilmes = document.getElementById('btnFilmes');
-const btnSeries = document.getElementById('btnSeries');
-const btnTV = document.getElementById('btnTV');
-
+const errorBox = document.getElementById('error');
 let hls;
 
-btnFilmes.onclick = () => loadFilmes();
-btnSeries.onclick = () => loadSeries();
-btnTV.onclick = () => loadTV();
+function showError(msg){
+  errorBox.style.display='block';
+  errorBox.innerText=msg;
+}
 
-function setActive(btn){
-  [btnFilmes,btnSeries,btnTV].forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+function clearError(){
+  errorBox.style.display='none';
 }
 
 function play(url){
-  if(hls){ hls.destroy(); hls=null; }
-  if(url.endsWith('.m3u8') && Hls.isSupported()){
-    hls = new Hls();
-    hls.loadSource(url);
-    hls.attachMedia(video);
-  } else {
-    video.src = url;
+  clearError();
+  if(hls){hls.destroy();hls=null;}
+  try{
+    if(url.endsWith('.m3u8')){
+      if(Hls.isSupported()){
+        hls=new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.ERROR,()=>showError("Canal bloqueado pelo provedor (CORS)"));
+      }else{
+        video.src=url;
+      }
+    }else{
+      video.src=url;
+    }
+    video.play();
+  }catch(e){
+    showError("Este canal não pode ser reproduzido no navegador");
   }
-  video.play();
 }
 
-/* ========= FILMES ========= */
 async function loadFilmes(){
-  setActive(btnFilmes);
   list.innerHTML='';
-  const data = await fetch('./data/filmes.json').then(r=>r.json());
+  const data = await fetch('./data/filmes.json').then(r=>r.json()).catch(()=>[]);
   data.forEach(f=>{
     const d=document.createElement('div');
     d.className='item';
@@ -116,19 +86,19 @@ async function loadFilmes(){
   });
 }
 
-/* ========= SÉRIES ========= */
 async function loadSeries(){
-  setActive(btnSeries);
   list.innerHTML='';
-  const data = await fetch('./data/series.json').then(r=>r.json());
+  const data = await fetch('./data/series.json').then(r=>r.json()).catch(()=>[]);
   data.forEach(s=>{
-    const g=document.createElement('div');
-    g.className='group';
-    g.innerText=s.nome;
-    list.appendChild(g);
-    s.episodios.forEach(e=>{
+    const h=document.createElement('div');
+    h.className='item';
+    h.style.fontWeight='700';
+    h.innerText=s.nome;
+    list.appendChild(h);
+    (s.episodios||[]).forEach(e=>{
       const d=document.createElement('div');
       d.className='item';
+      d.style.paddingLeft='25px';
       d.innerText=e.titulo;
       d.onclick=()=>play(e.url);
       list.appendChild(d);
@@ -136,17 +106,15 @@ async function loadSeries(){
   });
 }
 
-/* ========= TV / IPTV ========= */
 async function loadTV(){
-  setActive(btnTV);
   list.innerHTML='';
-  const txt = await fetch('./data/canais.m3u').then(r=>r.text());
-  const lines = txt.split('\n');
+  const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
+  if(!txt){showError("Lista IPTV indisponível");return;}
+  const lines=txt.split('\n');
   let name='';
   lines.forEach(l=>{
-    if(l.startsWith('#EXTINF')){
-      name = l.split(',').pop();
-    } else if(l.startsWith('http')){
+    if(l.startsWith('#EXTINF')) name=l.split(',').pop();
+    else if(l.startsWith('http')){
       const d=document.createElement('div');
       d.className='item';
       d.innerText=name;
@@ -156,7 +124,10 @@ async function loadTV(){
   });
 }
 
-/* Inicial */
+document.getElementById('f').onclick=()=>loadFilmes();
+document.getElementById('s').onclick=()=>loadSeries();
+document.getElementById('t').onclick=()=>loadTV();
+
 loadFilmes();
 </script>
 
