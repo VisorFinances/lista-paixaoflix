@@ -4,9 +4,6 @@
     <meta charset="utf-8">
     <title>PaixãoFlix Ultra</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="theme-color" content="#0a0a0a">
-    <link rel="manifest" href="manifest.json">
-    <link rel="preload" href="catalogo.json" as="fetch">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 </head>
@@ -14,15 +11,15 @@
     <header>
         <h1>PaixãoFlix</h1>
         <nav id="cats"></nav>
-        <input id="search" type="search" autocomplete="off" placeholder="Título, gênero, ano... [ / ]">
+        <input id="search" type="search" placeholder="Buscar...">
     </header>
     <main>
         <div id="player" hidden>
             <video id="vid" controls autoplay playsinline></video>
-            <button id="close" aria-label="Fechar">X</button>
+            <button id="close">X</button>
         </div>
+        <div id="spinner" style="text-align:center;padding:50px;">Carregando...</div>
         <section id="grids"></section>
-        <div id="spinner"></div>
     </main>
     <script src="app.js"></script>
 </body>
