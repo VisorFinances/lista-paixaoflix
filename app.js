@@ -1,5 +1,5 @@
 (() => {
-    const PROXY = 'https://SEU_WORKER.workers.dev/?url='; 
+    const PROXY = 'https://tv.paixaoflix-vip.workers.dev/?url='; 
     const CATALOG = 'catalogo.json';
     
     let catData = [], filtered = [], hls = null, activeCat = 'Todos';
