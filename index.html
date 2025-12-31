@@ -5,6 +5,7 @@
     <title>PaixãoFlix – Web TV</title>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#e50914">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
     <style>
         :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
@@ -21,11 +22,13 @@
         #main-view { flex:1; background:#000; display:flex; position:relative; }
         video { width:100%; height:100%; }
         mark { background: var(--primary); color: #fff; }
+        #btnInstalar { display:none; margin:10px; padding:10px; background:var(--primary); border:none; color:#fff; font-weight:bold; cursor:pointer; border-radius:4px; }
     </style>
 </head>
 <body>
     <div id="sidebar">
-        <div class="logo-area"><img src="https://tv.paixaoflix.vip/logo.png" alt="Logo"></div>
+        <div class="logo-area"><img src="https://tv.paixaoflix.vip/logo.png"></div>
+        <button id="btnInstalar">📥 Download Web TV</button>
         <div class="search-area"><input type="text" id="search" placeholder="Buscar em 17.994 itens..."></div>
         <div id="channel-list">Carregando canais...</div>
     </div>
@@ -50,7 +53,7 @@
             const list = document.getElementById('channel-list');
             list.innerHTML = '';
             let lastG = '';
-            canais.forEach(c => {
+            canais.slice(0, 1000).forEach(c => {
                 if(c.g !== lastG && !q) {
                     const h = document.createElement('div'); h.className = 'cat-title'; h.innerText = c.g;
                     list.appendChild(h); lastG = c.g;
@@ -58,7 +61,7 @@
                 const div = document.createElement('div');
                 div.className = 'item'; 
                 let t = c.t;
-                if(q) { t = t.replace(new RegExp(`(${q})`, 'ig'), '<mark>$1</mark>'); }
+                if(q) { t = t.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'ig'), '<mark>$1</mark>'); }
                 div.innerHTML = t;
                 div.onclick = () => playStream(c.v, div);
                 list.appendChild(div);
@@ -82,8 +85,23 @@
             const q = e.target.value.toLowerCase();
             timer = setTimeout(() => {
                 const filtrados = catalogo.filter(c => c.t.toLowerCase().includes(q) || c.g.toLowerCase().includes(q));
-                render(filtrados.slice(0, 500), q); // Limita a 500 na busca para não travar a tela
+                render(filtrados, q);
             }, 200);
+        };
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); deferredPrompt = e;
+            document.getElementById('btnInstalar').style.display = 'block';
+        });
+
+        document.getElementById('btnInstalar').onclick = async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') document.getElementById('btnInstalar').style.display = 'none';
+                deferredPrompt = null;
+            }
         };
 
         init();
