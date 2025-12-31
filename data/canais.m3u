@@ -1,9 +1,87 @@
 #EXTM3U
-#EXTINF:-1 group-title="FAST",Pluto TV Filmes
-https://service-stitcher.clusters.pluto.tv/v1/stitch/embed/hls/channel/5f4d3d06fb60c0001a5d6f3b/master.m3u8
 
-#EXTINF:-1 group-title="FAST",Samsung TV Plus
-https://i.mjh.nz/SamsungTVPlus/BRBA2000005JF.m3u8
+########## ABERTOS ##########
+#EXTINF:-1 tvg-id="globo.rj" tvg-name="Globo RJ" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/2/2f/Rede_Globo_logo.png" group-title="ABERTOS",Globo RJ
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/52814
 
-#EXTINF:-1 group-title="Notícias",Times Brasil
-https://video01.soultv.com.br/timesbrasil/timesbrasil/playlist.m3u8
+#EXTINF:-1 tvg-id="sbt.br" tvg-name="SBT HD" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/8/8c/SBT_logo_2015.png" group-title="ABERTOS",SBT HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53250
+
+#EXTINF:-1 tvg-id="record.sp" tvg-name="Record SP" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/7/7a/RecordTV_logo_2019.png" group-title="ABERTOS",Record SP
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53248
+
+#EXTINF:-1 tvg-id="band.br" tvg-name="Band HD" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/9/9a/Rede_Bandeirantes_logo_2019.png" group-title="ABERTOS",Band HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3545
+
+#EXTINF:-1 tvg-id="redetv.br" tvg-name="RedeTV HD" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/63/RedeTV%21_logo_2019.png" group-title="ABERTOS",RedeTV HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53249
+
+
+########## ESPORTES ##########
+#EXTINF:-1 tvg-id="sportv.br" tvg-name="SporTV HD" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/1c/SporTV_logo.png" group-title="ESPORTES",SporTV HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3854
+
+#EXTINF:-1 tvg-id="sportv2.br" tvg-name="SporTV 2 HD" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/1c/SporTV_logo.png" group-title="ESPORTES",SporTV 2 HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3855
+
+#EXTINF:-1 tvg-id="premiere1.br" tvg-name="Premiere 1 HD" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4a/Premiere_logo.png" group-title="ESPORTES",Premiere 1 HD
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/51469
+
+#EXTINF:-1 tvg-id="espn.br" tvg-name="ESPN Brasil" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/2/2f/ESPN_wordmark.svg" group-title="ESPORTES",ESPN Brasil
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3841
+
+#EXTINF:-1 tvg-id="tntsports.br" tvg-name="TNT Sports" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/8/86/TNT_Sports_logo.svg" group-title="ESPORTES",TNT Sports
+http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3829
+
+
+########## INFANTIL ##########
+#EXTINF:-1 tvg-id="nick.br" tvg-name="Nickelodeon" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/3/3a/Nickelodeon_2023_logo.svg" group-title="INFANTIL",Nickelodeon
+http://vipketseyket.top:8080/VIP017741743173529373/aacb05f76c36/4873
+
+#EXTINF:-1 tvg-id="cartoon.br" tvg-name="Cartoon Network" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/66/Cartoon_Network_logo.svg" group-title="INFANTIL",Cartoon Network
+http://vipketseyket.top:8080/VIP017741743173529373/aacb05f76c36/4844
+
+#EXTINF:-1 tvg-id="discoverykids.br" tvg-name="Discovery Kids" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4e/Discovery_Kids_logo.png" group-title="INFANTIL",Discovery Kids
+http://vipketseyket.top:8080/VIP017741743173529373/aacb05f76c36/4849
+
+#EXTINF:-1 tvg-id="disney.br" tvg-name="Disney Channel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney_Channel_logo.svg" group-title="INFANTIL",Disney Channel
+http://vipketseyket.top:8080/VIP017741743173529373/aacb05f76c36/4851
+
+
+########## PLUTO TV (OFICIAL / FAST) ##########
+#EXTINF:-1 tvg-id="plutotv.cine" tvg-name="Pluto TV Cine Sucessos" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/7/7a/Pluto_TV_logo.svg" group-title="PLUTO TV",Pluto TV Cine Sucessos
+http://stitcher-ipv4.pluto.tv/stitch/v1/playlist/type/m3u8/channel/5f5108f0293d080007207604.m3u8
+
+#EXTINF:-1 tvg-id="plutotv.acao" tvg-name="Pluto TV Filmes Ação" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/7/7a/Pluto_TV_logo.svg" group-title="PLUTO TV",Pluto TV Filmes Ação
+http://stitcher-ipv4.pluto.tv/stitch/v1/playlist/type/m3u8/channel/5f5109b86026850007621f37.m3u8
+
+#EXTINF:-1 tvg-id="plutotv.terror" tvg-name="Pluto TV Terror" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/7/7a/Pluto_TV_logo.svg" group-title="PLUTO TV",Pluto TV Terror
+http://stitcher-ipv4.pluto.tv/stitch/v1/playlist/type/m3u8/channel/5f510972648793000787e937.m3u8
+
+########## SÉRIES ##########
+
+#EXTM3U
+
+########## SÉRIES | EU, A PATROA E AS CRIANÇAS ##########
+
+#EXTINF:-1 group-title="SÉRIES | Eu, a Patroa e as Crianças",S01E01 - Piloto
+https://archive.org/serve/paixaoflix/E.P.C%20S01E01%20-%20Piloto%20720p%20-%20By-LuanHarper.mp4
+
+#EXTINF:-1 group-title="SÉRIES | Eu, a Patroa e as Crianças",S01E02 - A Verdade Machuca
+https://archive.org/serve/paixaoflix/E.P.C%20S01E02%20-%20A%20Verdade%20Machuca%20720p%20-%20By-LuanHarper.mp4
+
+#EXTINF:-1 group-title="SÉRIES | Eu, a Patroa e as Crianças",S01E03 - Pequeno Monte de Grama
+https://archive.org/serve/paixaoflix/E.P.C%20S01E03%20-%20Pequeno%20Monte%20de%20Grama%20720p%20-%20By-LuanHarper.mp4
+
+#EXTINF:-1 group-title="SÉRIES | Eu, a Patroa e as Crianças",S01E04 - De Seios e Basquete
+https://archive.org/serve/paixaoflix/E.P.C%20S01E04%20-%20De%20Seios%20e%20Basquete%20720p%20-%20By-LuanHarper.mp4
+
+#EXTINF:-1 group-title="SÉRIES | Eu, a Patroa e as Crianças",S01E05 - Na Sala de Aula
+https://archive.org/serve/paixaoflix/E.P.C%20S01E05%20-%20Na%20Sala%20de%20Aula%20720p%20-%20By-LuanHarper.mp4
+
+
+########## FILMES ##########
+#EXTINF:-1 tvg-name="AS TARTARUGAS NINJA - O RETORNO" tvg-logo="https://cdn.iset.io/assets/52438/produtos/40738/thumb_350-350-atn.jpg" group-title="Filmes", AS TARTARUGAS NINJA - O RETORNO
+https://drive.google.com/uc?id=1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC&export=view
+
+
