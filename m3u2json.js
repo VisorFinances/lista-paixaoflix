@@ -1,40 +1,39 @@
 const fs = require('fs');
-const [,,inFile,outFile='catalogo.json'] = process.argv;
+const inFile = process.argv[2];
+const outFile = 'catalogo.json';
 
-if(!inFile) {
-    console.log('Uso: node m3u2json.js lista.m3u');
+if (!inFile) {
+    console.log('Uso: node m3u2json.js caminho/da/lista.m3u');
     process.exit(1);
 }
 
 try {
-    const raw = fs.readFileSync(inFile,'utf8');
-    const lines = raw.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    const raw = fs.readFileSync(inFile, 'utf8');
+    const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     const cat = [];
     let temp = {};
 
-    for(let i=0; i<lines.length; i++){
-        const line = lines[i];
-        if(line.startsWith('#EXTINF:')){
-            const logo = line.match(/tvg-logo="(.+?)"/);
-            const group = line.match(/group-title="(.+?)"/);
-            const title = line.split(',').pop();
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith('#EXTINF:')) {
+            const logo = lines[i].match(/tvg-logo="(.+?)"/);
+            const group = lines[i].match(/group-title="(.+?)"/);
+            const title = lines[i].split(',').pop();
             temp = {
-                id: Math.random().toString(36).slice(2,9),
                 t: title.trim(),
                 g: group ? group[1] : 'GERAL',
-                c: logo ? logo[1] : 'https://tv.paixaoflix.vip/logo.png',
+                c: logo ? logo[1] : '',
                 v: ''
             };
-        } else if(line.startsWith('http')){
-            if(temp.t){
-                temp.v = line.trim();
+        } else if (lines[i].startsWith('http')) {
+            if (temp.t) {
+                temp.v = lines[i].trim();
                 cat.push(temp);
                 temp = {};
             }
         }
     }
     fs.writeFileSync(outFile, JSON.stringify(cat));
-    console.log(`✅ Gerado: ${cat.length} itens em ${outFile}`);
-} catch (err) {
-    console.error("❌ Erro:", err.message);
+    console.log('✅ Sucesso! O arquivo catalogo.json foi criado com ' + cat.length + ' canais.');
+} catch (e) {
+    console.log('❌ Erro: ' + e.message);
 }
