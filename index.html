@@ -1,59 +1,118 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web TV - Paixão Flix</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.10/dist/hls.min.js"></script>
-    <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
-        #video { width: 100%; height: 100%; }
-        #error-msg { 
-            display: none; color: white; text-align: center; font-family: sans-serif;
-            position: absolute; top: 50%; width: 100%; transform: translateY(-50%);
-        }
-    </style>
+<meta charset="utf-8">
+<title>PaixãoFlix</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
+
+<style>
+body { margin:0; background:#000; color:#fff; font-family:Arial }
+header { padding:15px; background:#111; display:flex; gap:20px }
+header button { background:#e50914; border:0; padding:10px 20px; color:#fff; cursor:pointer }
+#grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:15px; padding:20px }
+.card img { width:100%; border-radius:6px }
+.card { cursor:pointer }
+#playerView { position:fixed; inset:0; background:#000; display:none; flex-direction:column }
+video { width:100%; height:100% }
+.back { padding:10px; background:#111; cursor:pointer }
+</style>
 </head>
+
 <body>
 
-    <div id="error-msg">
-        <h3>Erro de Conexão Segura</h3>
-        <p>O sinal é HTTP e seu site é HTTPS. <br> 
-        <a href="http://tv.paixaoflix.vip" style="color: yellow;">Clique aqui para acessar a versão compatível</a></p>
-    </div>
-    <video id="video" controls autoplay playsinline></video>
+<header>
+<button onclick="loadFilmes()">Filmes</button>
+<button onclick="loadSeries()">Séries</button>
+<button onclick="loadCanais()">TV Ao Vivo</button>
+</header>
 
-    <script>
-        // Tenta usar HTTPS se disponível, senão mantém HTTP
-        const streamUrl = 'http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/52814';
-        const video = document.getElementById('video');
-        const errorMsg = document.getElementById('error-msg');
+<div id="grid"></div>
 
-        function initPlayer() {
-            if (window.location.protocol === 'https:' && streamUrl.startsWith('http:')) {
-                console.error("BLOQUEIO DE CONTEÚDO MISTO: O sinal não vai rodar em site HTTPS.");
-                errorMsg.style.display = 'block';
-            }
+<div id="playerView">
+<div class="back" onclick="closePlayer()">⬅ Voltar</div>
+<video id="video" controls autoplay></video>
+</div>
 
-            if (Hls.isSupported()) {
-                const hls = new Hls({
-                    xhrSetup: function (xhr) {
-                        xhr.withCredentials = false;
-                    }
-                });
-                hls.loadSource(streamUrl);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.ERROR, function (event, data) {
-                    if (data.fatal) {
-                        hls.recoverMediaError();
-                    }
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = streamUrl;
-            }
-        }
+<script>
+const grid = document.getElementById('grid');
+const video = document.getElementById('video');
+const player = document.getElementById('playerView');
+let hls;
 
-        initPlayer();
-    </script>
+function play(url) {
+  player.style.display='flex';
+  if (Hls.isSupported() && url.endsWith('.m3u8')) {
+    hls = new Hls();
+    hls.loadSource(url);
+    hls.attachMedia(video);
+  } else {
+    video.src = url;
+  }
+}
+
+function closePlayer(){
+  player.style.display='none';
+  video.pause();
+  video.src='';
+  if(hls) hls.destroy();
+}
+
+async function loadFilmes(){
+  grid.innerHTML='';
+  const res = await fetch('data/filmes.json');
+  const data = await res.json();
+  data.forEach(f=>{
+    const d=document.createElement('div');
+    d.className='card';
+    d.innerHTML=`<img src="${f.capa}"><p>${f.titulo}</p>`;
+    d.onclick=()=>play(f.url);
+    grid.appendChild(d);
+  });
+}
+
+async function loadSeries(){
+  grid.innerHTML='';
+  const res = await fetch('data/series.json');
+  const data = await res.json();
+  data.forEach(s=>{
+    const d=document.createElement('div');
+    d.className='card';
+    d.innerHTML=`<img src="${s.capa}"><p>${s.titulo}</p>`;
+    d.onclick=()=>{
+      grid.innerHTML='';
+      Object.keys(s.temporadas).forEach(t=>{
+        s.temporadas[t].forEach(e=>{
+          const ep=document.createElement('div');
+          ep.className='card';
+          ep.innerHTML=`<p>T${t}E${e.ep} - ${e.nome}</p>`;
+          ep.onclick=()=>play(e.url);
+          grid.appendChild(ep);
+        });
+      });
+    };
+    grid.appendChild(d);
+  });
+}
+
+async function loadCanais(){
+  grid.innerHTML='';
+  const res = await fetch('data/canais.m3u');
+  const text = await res.text();
+  const lines = text.split('\n');
+  for(let i=0;i<lines.length;i++){
+    if(lines[i].startsWith('#EXTINF')){
+      const name = lines[i].split(',')[1];
+      const url = lines[i+1];
+      const d=document.createElement('div');
+      d.className='card';
+      d.innerHTML=`<p>${name}</p>`;
+      d.onclick=()=>play(url);
+      grid.appendChild(d);
+    }
+  }
+}
+</script>
+
 </body>
 </html>
