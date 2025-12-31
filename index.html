@@ -1,26 +1,146 @@
-<!doctype html>
-<html lang="pt">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-    <meta charset="utf-8">
-    <title>PaixãoFlix Ultra</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <link rel="stylesheet" href="style.css">
+    <meta charset="utf-8"/>
+    <title>PaixãoFlix – TV Web</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
+    <style>
+        :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
+        body { margin:0; background:var(--bg); color:var(--text); font-family:'Poppins', sans-serif; display:flex; height:100vh; overflow:hidden; }
+        
+        /* Sidebar Original */
+        #sidebar { width:300px; min-width:300px; background:var(--side); display:flex; flex-direction:column; border-right:1px solid #222; }
+        .logo-area { padding:20px; text-align:center; border-bottom:1px solid #222; }
+        .logo-area img { height:60px; }
+        
+        .search-area { padding:15px; }
+        #search { width:calc(100% - 24px); padding:10px; border-radius:4px; border:1px solid #333; background:#222; color:#fff; outline:none; }
+        #search:focus { border-color: var(--primary); }
+
+        #channel-list { flex:1; overflow-y:auto; scrollbar-width: thin; }
+        .cat-title { background:#050505; padding:12px 15px; font-size:13px; font-weight:700; color:var(--primary); text-transform:uppercase; position:sticky; top:0; }
+        
+        .item { padding:12px 15px; cursor:pointer; border-left:3px solid transparent; outline:none; font-size:13px; border-bottom:1px solid #1a1a1a; transition: 0.1s; }
+        .item:focus, .item.active { background:#1a1a1a; border-left-color:var(--primary); }
+        
+        /* Área do Player */
+        #main-view { flex:1; background:#000; display:flex; align-items:center; justify-content:center; }
+        video { width:100%; height:100%; background:#000; }
+        
+        mark { background: var(--primary); color: #fff; }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>PaixãoFlix</h1>
-        <nav id="cats"></nav>
-        <input id="search" type="search" placeholder="Buscar...">
-    </header>
-    <main>
-        <div id="player" hidden>
-            <video id="vid" controls autoplay playsinline></video>
-            <button id="close">X</button>
-        </div>
-        <div id="spinner" style="text-align:center;padding:50px;">Carregando...</div>
-        <section id="grids"></section>
-    </main>
-    <script src="app.js"></script>
+
+<div id="sidebar">
+    <div class="logo-area"><img src="https://tv.paixaoflix.vip/logo.png" alt="Logo"></div>
+    <div class="search-area">
+        <input type="text" id="search" placeholder="Buscar canal ou categoria...">
+    </div>
+    <div id="channel-list">
+        <div style="padding:20px; text-align:center;">Carregando canais...</div>
+    </div>
+</div>
+
+<div id="main-view">
+    <video id="player" controls autoplay playsinline></video>
+</div>
+
+<script>
+    const PROXY = 'https://tv.paixaoflix-vip.workers.dev/?url=';
+    const video = document.getElementById('player');
+    let hls = null;
+    let catalogoCompleto = [];
+
+    // Carregar o catálogo JSON (melhoria de performance)
+    async function init() {
+        try {
+            const res = await fetch('catalogo.json');
+            catalogoCompleto = await res.json();
+            render(catalogoCompleto);
+        } catch (e) {
+            document.getElementById('channel-list').innerHTML = '<div style="padding:20px;">Erro ao carregar catalogo.json</div>';
+        }
+    }
+
+    function render(canais, query = "") {
+        const container = document.getElementById('channel-list');
+        container.innerHTML = '';
+        let lastGroup = "";
+
+        canais.forEach(c => {
+            if (c.g !== lastGroup && !query) {
+                const head = document.createElement('div');
+                head.className = 'cat-title'; head.innerText = c.g;
+                container.appendChild(head);
+                lastGroup = c.g;
+            }
+            
+            const el = document.createElement('div');
+            el.className = 'item';
+            el.tabIndex = 0;
+            
+            let nomeDisplay = c.t;
+            if (query) {
+                const re = new RegExp(`(${query})`, 'ig');
+                nomeDisplay = nomeDisplay.replace(re, '<mark>$1</mark>');
+            }
+            
+            el.innerHTML = nomeDisplay;
+            el.onclick = () => play(c.v, el);
+            container.appendChild(el);
+        });
+    }
+
+    // Busca com melhoria Debounce
+    let timer;
+    document.getElementById('search').addEventListener('input', e => {
+        clearTimeout(timer);
+        const q = e.target.value.trim();
+        timer = setTimeout(() => {
+            if (!q) return render(catalogoCompleto);
+            const filtrados = catalogoCompleto.filter(c => 
+                c.t.toLowerCase().includes(q.toLowerCase()) || 
+                c.g.toLowerCase().includes(q.toLowerCase())
+            );
+            render(filtrados, q);
+        }, 150);
+    });
+
+    function play(url, el) {
+        document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        
+        if (hls) hls.destroy();
+        const finalUrl = PROXY + encodeURIComponent(url);
+
+        if (Hls.isSupported()) {
+            hls = new Hls({ maxBufferLength: 30 });
+            hls.loadSource(finalUrl);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+        } else {
+            video.src = finalUrl;
+        }
+    }
+
+    // Teclas de navegação Smart TV
+    document.addEventListener('keydown', e => {
+        const active = document.activeElement;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            active.nextElementSibling?.focus();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            active.previousElementSibling?.focus();
+        } else if (e.key === 'Enter') {
+            active.click();
+        }
+    });
+
+    init();
+</script>
 </body>
 </html>
