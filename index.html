@@ -4,130 +4,29 @@
 <meta charset="utf-8">
 <title>PaixãoFlix – Web TV</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="favicon.ico">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-body{
-  margin:0;
-  background:#000;
-  color:#fff;
-  font-family:Poppins;
-  display:flex;
-  height:100vh;
-  overflow:hidden
-}
+body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
 
 /* SIDEBAR */
-#side{
-  width:320px;
-  background:#111;
-  overflow-y:auto;
-  display:flex;
-  flex-direction:column
-}
+#side{width:320px;background:#111;padding:15px;display:flex;flex-direction:column}
+#logo img{width:100%;max-height:55px;object-fit:contain}
+#now{font-size:13px;color:#aaa;margin:10px 0;display:none}
+button{margin:4px 0;padding:10px;border:0;border-radius:6px;background:#222;color:#fff}
+button.active{background:#e50914}
 
-/* SCROLL */
-#side::-webkit-scrollbar{width:6px}
-#side::-webkit-scrollbar-thumb{background:#e50914;border-radius:6px}
-#side::-webkit-scrollbar-track{background:#111}
-
-/* LOGO */
-#logo{
-  padding:15px;
-  text-align:center
-}
-#logo img{
-  max-width:100%;
-  max-height:55px
-}
-
-/* SEARCH */
-#search{
-  margin:10px;
-  height:33px;
-  padding:6px 10px;
-  border-radius:6px;
-  border:1px solid rgba(229,9,20,.6);
-  background:#000;
-  color:#fff;
-  outline:none
-}
-
-/* NOW PLAYING */
-#now{
-  padding:10px;
-  font-size:13px;
-  color:#aaa;
-  display:none
-}
-
-/* BUTTONS */
-#buttons{
-  display:flex;
-  padding:6px
-}
-#buttons button{
-  flex:1;
-  margin:0 2px;
-  padding:10px;
-  border:0;
-  background:#222;
-  color:#fff;
-  border-radius:6px;
-  font-size:13px;
-  cursor:pointer
-}
-#buttons button.active{
-  background:#e50914
-}
-
-/* LIST */
-#list{
-  flex:1
-}
-
-/* ITEMS */
-.item{
-  padding:10px;
-  border-bottom:1px solid #222;
-  cursor:pointer;
-  font-size:13px;
-  color:#fff;
-  border-left:4px solid transparent
-}
-.item.active{
-  background:rgba(255,255,255,.12);
-  border-left:4px solid #e50914
-}
-.item:focus{
-  outline:none;
-  background:rgba(255,255,255,.12);
-  border-left:4px solid #e50914
-}
+/* GRID */
+#main{flex:1;display:flex;flex-direction:column}
+#grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;padding:20px;overflow-y:auto}
+.card{cursor:pointer}
+.card img{width:100%;border-radius:8px}
+.card.active{outline:3px solid #e50914}
 
 /* PLAYER */
-#player{
-  flex:1;
-  background:#000;
-  position:relative
-}
-video{
-  width:100%;
-  height:100%
-}
-
-/* ERROR */
-#error{
-  position:absolute;
-  top:20px;
-  left:20px;
-  background:rgba(0,0,0,.8);
-  padding:15px;
-  display:none;
-  z-index:10
-}
+#player{height:45vh;background:#000}
+video{width:100%;height:100%}
 </style>
 </head>
 
@@ -138,159 +37,82 @@ video{
     <img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
   </div>
 
-  <input id="search" type="text" placeholder="Pesquisar...">
-
   <div id="now">Assistindo agora: <span></span></div>
 
-  <div id="buttons">
-    <button id="t">TV AO VIVO</button>
-    <button id="f" class="active">FILMES</button>
-    <button id="s">SÉRIES</button>
-  </div>
-
-  <div id="list" tabindex="0"></div>
+  <button class="active">FILMES</button>
 </div>
 
-<div id="player">
-  <div id="error"></div>
-  <video id="video" controls autoplay playsinline></video>
+<div id="main">
+  <div id="player">
+    <video id="video" controls autoplay playsinline></video>
+  </div>
+
+  <div id="grid"></div>
 </div>
 
 <script>
-const video=document.getElementById('video');
-const list=document.getElementById('list');
-const errorBox=document.getElementById('error');
-const search=document.getElementById('search');
-const now=document.getElementById('now');
-let hls,items=[],index=0;
+const video = document.getElementById('video');
+const grid = document.getElementById('grid');
+const now = document.getElementById('now');
+const nowText = now.querySelector('span');
 
-function showError(msg){
-  errorBox.style.display='block';
-  errorBox.innerText=msg
-}
-function clearError(){
-  errorBox.style.display='none'
-}
+let currentIndex = 0;
 
-function setItems(){
-  items=[...document.querySelectorAll('.item')];
-  items.forEach((i,n)=>{
-    i.tabIndex=0;
-    i.onfocus=()=>select(n);
+/* EXEMPLO REAL */
+const filmes = [
+  {
+    titulo: "AS TARTARUGAS NINJA - O RETORNO",
+    capa: "https://cdn.iset.io/assets/52438/produtos/40738/thumb_350-350-atn.jpg",
+    url: "https://drive.google.com/uc?id=1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC"
+  }
+];
+
+/* GRID */
+function renderGrid(){
+  grid.innerHTML='';
+  filmes.forEach((f,i)=>{
+    const c=document.createElement('div');
+    c.className='card';
+    c.innerHTML=`<img src="${f.capa}"><div>${f.titulo}</div>`;
+    c.onclick=()=>play(i);
+    grid.appendChild(c);
   });
-  if(items[0]) select(0)
+  select(0);
 }
 
 function select(i){
-  if(i<0||i>=items.length)return;
-  items.forEach(x=>x.classList.remove('active'));
-  index=i;
-  items[i].classList.add('active');
-  items[i].scrollIntoView({block:'nearest'});
-  items[i].focus()
+  const cards=[...document.querySelectorAll('.card')];
+  cards.forEach(c=>c.classList.remove('active'));
+  if(cards[i]) cards[i].classList.add('active');
+  currentIndex=i;
 }
 
-function play(url,title){
-  clearError();
-  if(hls){hls.destroy();hls=null}
+/* PLAY */
+function play(i){
+  const f=filmes[i];
+  select(i);
   now.style.display='block';
-  now.querySelector('span').innerText=title;
-  try{
-    if(url.endsWith('.m3u8')){
-      if(Hls.isSupported()){
-        hls=new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.ERROR,()=>showError("Canal bloqueado pelo provedor (CORS)"));
-      }else video.src=url;
-    }else video.src=url;
-    video.play()
-  }catch{
-    showError("Não foi possível reproduzir")
+  nowText.innerText=f.titulo;
+
+  video.src=f.url;
+  video.play();
+}
+
+/* CONTINUAÇÃO AUTOMÁTICA */
+video.onended=()=>{
+  if(currentIndex+1<filmes.length){
+    play(currentIndex+1);
   }
-}
+};
 
-async function loadFilmes(){
-  activate('f');
-  list.innerHTML='';
-  const data=await fetch('./data/filmes.json').then(r=>r.json()).catch(()=>[]);
-  data.forEach(f=>{
-    const d=document.createElement('div');
-    d.className='item';
-    d.innerText=f.titulo;
-    d.onclick=()=>play(f.url,f.titulo);
-    list.appendChild(d)
-  });
-  setItems()
-}
-
-async function loadSeries(){
-  activate('s');
-  list.innerHTML='';
-  const data=await fetch('./data/series.json').then(r=>r.json()).catch(()=>[]);
-  data.forEach(s=>{
-    const h=document.createElement('div');
-    h.className='item';
-    h.style.fontWeight='700';
-    h.innerText=s.nome;
-    list.appendChild(h);
-    (s.episodios||[]).forEach(e=>{
-      const d=document.createElement('div');
-      d.className='item';
-      d.style.paddingLeft='25px';
-      d.innerText=e.titulo;
-      d.onclick=()=>play(e.url,e.titulo);
-      list.appendChild(d)
-    })
-  });
-  setItems()
-}
-
-async function loadTV(){
-  activate('t');
-  list.innerHTML='';
-  const txt=await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
-  if(!txt){showError("Lista indisponível");return}
-  let name='';
-  txt.split('\n').forEach(l=>{
-    if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-    else if(l.startsWith('http')){
-      const d=document.createElement('div');
-      d.className='item';
-      d.innerText=name;
-      d.onclick=()=>play(l.trim(),name);
-      list.appendChild(d)
-    }
-  });
-  setItems()
-}
-
-function activate(id){
-  document.querySelectorAll('#buttons button').forEach(b=>b.classList.remove('active'));
-  document.getElementById(id).classList.add('active')
-}
-
-/* SEARCH FILTER */
-search.addEventListener('input',()=>{
-  const q=search.value.toLowerCase();
-  items.forEach(i=>{
-    i.style.display=i.innerText.toLowerCase().includes(q)?'block':'none'
-  });
-  setItems()
-});
-
-/* NAVIGATION */
+/* TECLADO / CONTROLE */
 document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowDown'){e.preventDefault();select(index+1)}
-  if(e.key==='ArrowUp'){e.preventDefault();select(index-1)}
-  if(e.key==='Enter'&&items[index])items[index].click()
+  if(e.key==='ArrowRight') select(Math.min(currentIndex+1,filmes.length-1));
+  if(e.key==='ArrowLeft') select(Math.max(currentIndex-1,0));
+  if(e.key==='Enter') play(currentIndex);
 });
 
-document.getElementById('f').onclick=loadFilmes;
-document.getElementById('s').onclick=loadSeries;
-document.getElementById('t').onclick=loadTV;
-
-loadFilmes();
+renderGrid();
 </script>
 
 </body>
