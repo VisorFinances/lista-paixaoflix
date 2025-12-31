@@ -85,16 +85,18 @@
       const sel=document.getElementById('ch'+idx);if(sel){sel.classList.add('active');sel.scrollIntoView({block:'center'});}
       if(hls){hls.destroy();hls=null;}
       video.pause();loader.style.display='flex';
-      const url=PROXY+encodeURIComponent(filtered[idx].v);
+      const finalUrl=filtered[idx].v;
+      video.setAttribute("crossorigin","anonymous");
       if(Hls.isSupported()){
         hls=new Hls({maxBufferLength:30,maxMaxBufferLength:60,manifestLoadingMaxRetry:6});
-        hls.loadSource(url);hls.attachMedia(video);
+        hls.loadSource(finalUrl);
+        hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED,()=>{loader.style.display='none';video.play()});
         hls.on(Hls.Events.ERROR,(e,data)=>{
-          if(data.fatal){hls.stopLoad();hls.startLoad()}   // reconexão silenciosa
+          if(data.fatal){hls.stopLoad();hls.startLoad()}
         });
       }else{
-        video.src=url;
+        video.src=finalUrl;
         video.onloadeddata=()=>{loader.style.display='none';video.play()};
       }
     }
