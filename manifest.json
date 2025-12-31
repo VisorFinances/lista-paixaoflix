@@ -1,20 +1,14 @@
 {
-  "name": "PaixãoFlix Web TV",
+  "name": "PaixãoFlix Ultra",
   "short_name": "PaixãoFlix",
-  "description": "Sua Web TV de Canais e Séries",
-  "start_url": "index.html",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
+  "background_color": "#0a0a0a",
   "theme_color": "#e50914",
   "icons": [
     {
-      "src": "https://i.imgur.com/rIJwt2Q.png",
+      "src": "https://tv.paixaoflix.vip/logo.png",
       "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://i.imgur.com/rIJwt2Q.png",
-      "sizes": "512x512",
       "type": "image/png"
     }
   ]
