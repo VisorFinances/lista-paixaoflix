@@ -1,3 +1,4 @@
+cat << 'EOF' > /home/paixaomario/iptv-limpeza/index.html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -8,103 +9,160 @@
     <meta name="theme-color" content="#e50914">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
     <style>
-        :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; }
+        :root { --primary: #e50914; --bg: #000; --side: #111; --text: #fff; --select: rgba(229, 9, 20, 0.3); }
         body { margin:0; background:var(--bg); color:var(--text); font-family:sans-serif; display:flex; height:100vh; overflow:hidden; }
-        #sidebar { width:280px; min-width:280px; background:var(--side); display:flex; flex-direction:column; border-right:1px solid #222; }
-        .logo-area { padding:15px; text-align:center; border-bottom:1px solid #222; }
-        .logo-area img { height:50px; }
-        .search-area { padding:10px; }
-        #search { width:calc(100% - 24px); padding:10px; border-radius:4px; border:1px solid #333; background:#222; color:#fff; outline:none; }
-        #channel-list { flex:1; overflow-y:auto; scrollbar-width: thin; }
-        .cat-title { background:#000; padding:10px; color:var(--primary); font-weight:bold; font-size:11px; text-transform:uppercase; position:sticky; top:0; z-index:5; }
-        .item { padding:12px; cursor:pointer; font-size:13px; border-bottom:1px solid #1a1a1a; transition: 0.1s; }
-        .item:hover, .item.active { background:#222; border-left:3px solid var(--primary); }
-        #main-view { flex:1; background:#000; display:flex; position:relative; }
-        video { width:100%; height:100%; }
-        mark { background: var(--primary); color: #fff; }
-        #btnInstalar { display:none; margin:10px; padding:10px; background:var(--primary); border:none; color:#fff; font-weight:bold; cursor:pointer; border-radius:4px; }
+        
+        #sidebar { width:300px; min-width:300px; background:var(--side); display:flex; flex-direction:column; border-right:1px solid #222; }
+        .logo-area { padding:20px; text-align:center; border-bottom:1px solid #222; }
+        .logo-area img { height:60px; object-fit: contain; }
+        
+        #channel-list { flex:1; overflow-y:auto; scrollbar-width: thin; outline: none; }
+        .cat-title { background:#000; padding:12px; color:var(--primary); font-weight:bold; font-size:11px; text-transform:uppercase; position:sticky; top:0; z-index:5; border-bottom: 1px solid #1a1a1a; }
+        
+        .item { padding:15px; cursor:pointer; font-size:14px; border-bottom:1px solid #1a1a1a; transition: 0.2s; display: flex; align-items: center; border-left: 4px solid transparent; }
+        
+        /* Seletor Visual para Navegação */
+        .item.focused { background: var(--select); border-left-color: #fff; outline: none; }
+        .item.active { background: #222; border-left-color: var(--primary); font-weight: bold; }
+
+        #main-view { flex:1; background:#000; display:flex; align-items: center; justify-content: center; }
+        video { width:100%; height:100%; background:#000; }
+        
+        #loading-info { position: absolute; bottom: 20px; left: 320px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 5px; font-size: 12px; display: none; }
     </style>
 </head>
 <body>
     <div id="sidebar">
-        <div class="logo-area"><img src="https://tv.paixaoflix.vip/logo.png"></div>
-        <button id="btnInstalar">📥 Download Web TV</button>
-        <div class="search-area"><input type="text" id="search" placeholder="Buscar em 17.994 itens..."></div>
-        <div id="channel-list">Carregando canais...</div>
+        <div class="logo-area">
+            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logo.png" alt="PaixãoFlix">
+        </div>
+        <div id="channel-list" tabindex="0">Carregando lista...</div>
     </div>
-    <div id="main-view"><video id="player" controls autoplay playsinline></video></div>
+    <div id="main-view">
+        <video id="player" controls playsinline></video>
+        <div id="loading-info">Iniciando transmissão em 2s...</div>
+    </div>
 
     <script>
+        const M3U_URL = 'https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/tv.paixaoflix.m3u';
         const PROXY = 'https://tv.paixaoflix-vip.workers.dev/?url=';
-        let catalogo = [];
         const video = document.getElementById('player');
+        const listEl = document.getElementById('channel-list');
+        const loadingInfo = document.getElementById('loading-info');
+        
+        let channels = [];
+        let currentIndex = -1;
         let hls = null;
 
-        async function init() {
+        async function loadM3U() {
             try {
-                const res = await fetch('catalogo.json');
-                catalogo = await res.json();
-                render(catalogo);
-                if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
-            } catch (e) { document.getElementById('channel-list').innerText = "Erro ao carregar catálogo."; }
+                const response = await fetch(M3U_URL);
+                const data = await response.text();
+                parseM3U(data);
+            } catch (e) {
+                listEl.innerText = "Erro ao carregar lista do GitHub.";
+            }
         }
 
-        function render(canais, q = "") {
-            const list = document.getElementById('channel-list');
-            list.innerHTML = '';
-            let lastG = '';
-            canais.slice(0, 1000).forEach(c => {
-                if(c.g !== lastG && !q) {
-                    const h = document.createElement('div'); h.className = 'cat-title'; h.innerText = c.g;
-                    list.appendChild(h); lastG = c.g;
+        function parseM3U(text) {
+            const lines = text.split('\n');
+            channels = [];
+            let currentGroup = "CANAIS";
+
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].startsWith('#EXTINF:')) {
+                    const title = lines[i].split(',').pop().trim();
+                    const groupMatch = lines[i].match(/group-title="([^"]+)"/);
+                    if (groupMatch) currentGroup = groupMatch[1];
+                    
+                    const url = lines[i + 1] ? lines[i + 1].trim() : "";
+                    if (url.startsWith('http')) {
+                        channels.push({ t: title, g: currentGroup, v: url });
+                    }
+                }
+            }
+            renderChannels();
+            if (channels.length > 0) selectAndPlay(0); // Autoplay no primeiro canal
+        }
+
+        function renderChannels() {
+            listEl.innerHTML = '';
+            let lastGroup = '';
+            channels.forEach((c, index) => {
+                if (c.g !== lastGroup) {
+                    const gDiv = document.createElement('div');
+                    gDiv.className = 'cat-title';
+                    gDiv.innerText = c.g;
+                    listEl.appendChild(gDiv);
+                    lastGroup = c.g;
                 }
                 const div = document.createElement('div');
-                div.className = 'item'; 
-                let t = c.t;
-                if(q) { t = t.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'ig'), '<mark>$1</mark>'); }
-                div.innerHTML = t;
-                div.onclick = () => playStream(c.v, div);
-                list.appendChild(div);
+                div.className = 'item';
+                div.id = 'ch-' + index;
+                div.innerText = c.t;
+                div.onclick = () => selectAndPlay(index);
+                listEl.appendChild(div);
             });
         }
 
-        function playStream(url, el) {
-            document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            const finalUrl = PROXY + encodeURIComponent(url);
+        function selectAndPlay(index) {
+            if (index < 0 || index >= channels.length) return;
+            
+            currentIndex = index;
+            const items = document.querySelectorAll('.item');
+            items.forEach(i => i.classList.remove('active', 'focused'));
+            
+            const selectedEl = document.getElementById('ch-' + index);
+            if (selectedEl) {
+                selectedEl.classList.add('active', 'focused');
+                selectedEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+
+            // Lógica de Delay de 2 segundos para Smart TV
             if (hls) hls.destroy();
-            if (Hls.isSupported()) {
-                hls = new Hls(); hls.loadSource(finalUrl); hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-            } else { video.src = finalUrl; }
+            video.pause();
+            loadingInfo.style.display = 'block';
+
+            setTimeout(() => {
+                const finalUrl = PROXY + encodeURIComponent(channels[index].v);
+                loadingInfo.style.display = 'none';
+
+                if (Hls.isSupported()) {
+                    hls = new Hls();
+                    hls.loadSource(finalUrl);
+                    hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        video.muted = false; // Garante som normal
+                        video.play();
+                    });
+                } else {
+                    video.src = finalUrl;
+                    video.muted = false;
+                    video.play();
+                }
+            }, 2000); // 2 segundos de intervalo
         }
 
-        let timer;
-        document.getElementById('search').oninput = (e) => {
-            clearTimeout(timer);
-            const q = e.target.value.toLowerCase();
-            timer = setTimeout(() => {
-                const filtrados = catalogo.filter(c => c.t.toLowerCase().includes(q) || c.g.toLowerCase().includes(q));
-                render(filtrados, q);
-            }, 200);
-        };
+        // Navegação por Teclado / Controle Remoto
+        window.addEventListener('keydown', (e) => {
+            if (channels.length === 0) return;
 
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault(); deferredPrompt = e;
-            document.getElementById('btnInstalar').style.display = 'block';
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                let next = currentIndex + 1;
+                if (next < channels.length) selectAndPlay(next);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                let prev = currentIndex - 1;
+                if (prev >= 0) selectAndPlay(prev);
+            } else if (e.key === 'Enter') {
+                selectAndPlay(currentIndex);
+            }
         });
 
-        document.getElementById('btnInstalar').onclick = async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') document.getElementById('btnInstalar').style.display = 'none';
-                deferredPrompt = null;
-            }
-        };
-
-        init();
+        loadM3U();
     </script>
 </body>
 </html>
+EOF
+echo "✅ index.html atualizado: GitHub M3U, Som OK, Delay 2s e Setas OK!"
