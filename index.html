@@ -40,6 +40,7 @@
 
   <script>
     const M3U = 'https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/tv.paixaoflix.m3u';
+    // Rota que você confirmou que funciona
     const PROXY = 'https://tv.paixaoflix.vip/sinal/';
 
     const video = document.getElementById('player');
@@ -89,12 +90,14 @@
       video.pause();
       loader.style.display = 'flex';
 
-      // Encripta o link para o navegador não bloquear o HTTP
-      const encodedUrl = btoa(filtered[idx].v);
-      const finalUrl = PROXY + encodedUrl;
+      // Monta a URL passando pelo Proxy
+      const finalUrl = PROXY + filtered[idx].v;
 
       if(Hls.isSupported()){
-        hls = new Hls({ manifestLoadingMaxRetry: 10, xhrSetup: (xhr) => { xhr.withCredentials = false; } });
+        hls = new Hls({
+            manifestLoadingMaxRetry: 15,
+            manifestLoadingRetryDelay: 1000
+        });
         hls.loadSource(finalUrl);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => { loader.style.display = 'none'; video.play(); });
