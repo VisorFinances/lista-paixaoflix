@@ -15,7 +15,7 @@
         
         #sidebar { width:320px; min-width:320px; background:var(--side); display:flex; flex-direction:column; border-right:1px solid #222; }
         
-        /* Cabeçalho Organizador */
+        /* Cabeçalho com Logotipo, Download e Pesquisa */
         .header-area { padding: 15px; border-bottom: 1px solid #222; display: flex; flex-direction: column; gap: 12px; }
         .logo-area img { width: 100%; max-height: 55px; object-fit: contain; }
         
@@ -60,7 +60,7 @@
 
     <script>
         const M3U = 'https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/tv.paixaoflix.m3u';
-        // DOMÍNIO OFICIAL CONFORME ORDEM
+        // CONFIGURADO CONFORME PEDIDO
         const PROXY = 'https://tv.paixaoflix.vip/proxy?url=';
         
         const video = document.getElementById('player');
@@ -119,17 +119,28 @@
             setTimeout(() => {
                 const url = PROXY + encodeURIComponent(filtered[index].v);
                 if (Hls.isSupported()) {
-                    hls = new Hls({ manifestLoadingMaxRetry: 10 });
+                    hls = new Hls({ manifestLoadingMaxRetry: 15, levelLoadingMaxRetry: 15 });
                     hls.loadSource(url); hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => { loader.style.display='none'; video.play(); });
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => { 
+                        loader.style.display='none'; 
+                        video.muted = false;
+                        video.play().catch(() => {
+                            video.muted = true;
+                            video.play();
+                        });
+                    });
                     hls.on(Hls.Events.ERROR, (n,e) => { if(e.fatal) hls.loadSource(url); });
                 } else {
-                    video.src = url; video.onloadedmetadata = () => { loader.style.display='none'; video.play(); };
+                    video.src = url; 
+                    video.onloadedmetadata = () => { 
+                        loader.style.display='none'; 
+                        video.play(); 
+                    };
                 }
             }, 2000);
         }
 
-        // TODAS AS SETAS FUNCIONANDO: CIMA, BAIXO, ESQUERDA, DIREITA
+        // SETAS DIRECIONAIS: CIMA, BAIXO, ESQUERDA, DIREITA
         window.addEventListener('keydown', e => {
             if (document.activeElement === searchBox) return;
             if (e.key === 'ArrowDown') { e.preventDefault(); play(currentIndex + 1); }
