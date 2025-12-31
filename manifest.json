@@ -1,20 +1,24 @@
 {
   "name": "PaixãoFlix Web TV",
   "short_name": "PaixãoFlix",
+  "description": "Sua TV Online em qualquer lugar",
   "start_url": "index.html",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#000000",
   "theme_color": "#e50914",
   "icons": [
     {
       "src": "logo192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "logo512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
