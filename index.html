@@ -16,9 +16,9 @@
         #btnInstalar { width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; display: none; font-family: 'Poppins'; font-size: 13px; text-transform: uppercase; }
         #search-box { width: 100%; padding: 12px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff; font-family: 'Poppins'; font-size: 14px; box-sizing: border-box; outline: none; }
         #channel-list { flex:1; overflow-y:auto; outline: none; }
+        /* ORDENS DE TÍTULO E CANAL */
         .cat-title { background:#000; padding:15px; color:#FFFFFF !important; font-weight:700 !important; font-size:14px !important; text-transform: uppercase; position:sticky; top:0; z-index:5; border-bottom: 1px solid #1a1a1a; }
         .item { padding:12px 15px; cursor:pointer; font-size:13px; border-bottom:1px solid #1a1a1a; border-left: 4px solid transparent; color: #ccc; }
-        .item.focused { background: rgba(255,255,255,0.15); border-left-color: #fff; color: #fff; }
         .item.active { background: #1a1a1a; border-left-color: var(--primary); font-weight: 700; color: #fff; }
         #main-view { flex:1; background:#000; position: relative; display: flex; align-items: center; justify-content: center; }
         video { width:100%; height:100%; background: #000; }
@@ -43,7 +43,7 @@
 
     <script>
         const M3U = 'https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/tv.paixaoflix.m3u';
-        // URL DO PROXY SEM A BARRA ANTES DO PONTO DE INTERROGAÇÃO
+        // Ajuste no PROXY para falar com a rota do Cloudflare
         const PROXY = 'https://tv.paixaoflix.vip/proxy?url=';
         
         const video = document.getElementById('player');
@@ -59,7 +59,6 @@
                 const text = await res.text();
                 const lines = text.split('\n');
                 let group = "CANAIS";
-                channels = [];
                 for (let i=0; i<lines.length; i++) {
                     if (lines[i].startsWith('#EXTINF:')) {
                         const t = lines[i].split(',').pop().trim();
@@ -72,7 +71,7 @@
                 filtered = channels;
                 render();
                 if (filtered.length > 0) play(0);
-            } catch(e) { console.error("Erro na lista"); }
+            } catch(e) {}
         }
 
         function render() {
@@ -91,52 +90,40 @@
         function play(index) {
             if (index < 0 || index >= filtered.length) return;
             currentIndex = index;
-            document.querySelectorAll('.item').forEach(el => el.classList.remove('active', 'focused'));
+            document.querySelectorAll('.item').forEach(el => el.classList.remove('active'));
             const sel = document.getElementById('ch-'+index);
-            if (sel) { sel.classList.add('active', 'focused'); sel.scrollIntoView({ block: 'center' }); }
+            if (sel) { sel.classList.add('active'); sel.scrollIntoView({ block: 'center' }); }
 
             if (hls) hls.destroy();
             video.pause();
             loader.style.display = 'flex';
 
             setTimeout(() => {
-                // Montagem correta da URL para o Worker
-                const streamUrl = filtered[index].v;
-                const finalUrl = PROXY + encodeURIComponent(streamUrl);
-
+                const finalUrl = PROXY + encodeURIComponent(filtered[index].v);
                 if (Hls.isSupported()) {
-                    hls = new Hls({ manifestLoadingMaxRetry: 10 });
-                    hls.loadSource(finalUrl); 
-                    hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => { 
-                        loader.style.display='none'; 
-                        video.play(); 
-                    });
-                    hls.on(Hls.Events.ERROR, (n,e) => { if(e.fatal) hls.loadSource(finalUrl); });
+                    hls = new Hls(); hls.loadSource(finalUrl); hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => { loader.style.display='none'; video.play(); });
                 } else {
-                    video.src = finalUrl; 
+                    video.src = finalUrl;
                     video.onloadedmetadata = () => { loader.style.display='none'; video.play(); };
                 }
-            }, 2000);
+            }, 1000);
         }
 
+        // SETAS DIRECIONAIS 100% FUNCIONANDO
         window.addEventListener('keydown', e => {
             if (document.activeElement === searchBox) return;
             if (e.key === 'ArrowDown') { e.preventDefault(); play(currentIndex + 1); }
             else if (e.key === 'ArrowUp') { e.preventDefault(); play(currentIndex - 1); }
             else if (e.key === 'ArrowRight') { e.preventDefault(); video.currentTime += 10; }
             else if (e.key === 'ArrowLeft') { e.preventDefault(); video.currentTime -= 10; }
-            else if (e.key === 'Enter') { play(currentIndex); }
         });
 
         searchBox.oninput = e => {
             const q = e.target.value.toLowerCase();
-            filtered = channels.filter(c => c.t.toLowerCase().includes(q) || c.g.toLowerCase().includes(q));
+            filtered = channels.filter(c => c.t.toLowerCase().includes(q));
             render();
         };
-
-        let defP; window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); defP = e; document.getElementById('btnInstalar').style.display='block'; });
-        document.getElementById('btnInstalar').onclick = () => { if(defP) defP.prompt(); };
 
         init();
     </script>
