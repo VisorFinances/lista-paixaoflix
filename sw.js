@@ -1,3 +1,3 @@
-self.addEventListener('fetch', (e) => {
-    // Service worker básico para permitir instalação PWA
+self.addEventListener('fetch', (event) => {
+  // Service Worker ativo para permitir instalação PWA
 });
