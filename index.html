@@ -33,14 +33,12 @@
     </div>
     <div id="channel-list" tabindex="0"></div>
   </div>
-
   <div id="main-view">
     <div id="loader"><div class="spin"></div>CONECTANDO SINAL...</div>
     <video id="player" controls autoplay playsinline></video>
   </div>
 
   <script>
-    // Configurações principais
     const M3U = 'https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/tv.paixaoflix.m3u';
     const PROXY = 'https://tv.paixaoflix.vip/sinal/';
 
@@ -53,8 +51,7 @@
     async function init(){
       try{
         const txt = await (await fetch(M3U)).text();
-        let grp = 'CANAIS';
-        channels = [];
+        let grp = 'CANAIS'; channels = [];
         const lines = txt.split('\n');
         for(let i=0; i<lines.length; i++){
           if(lines[i].startsWith('#EXTINF:')){
@@ -66,7 +63,7 @@
           }
         }
         filtered = channels; render(); play(0);
-      }catch(e){ console.error("Erro ao carregar M3U:", e); }
+      }catch(e){ console.error(e); }
     }
 
     function render(){
@@ -84,8 +81,6 @@
     function play(idx){
       if(idx < 0 || idx >= filtered.length) return;
       currentIndex = idx;
-      
-      // Estilo de seleção
       document.querySelectorAll('.item').forEach(el => el.classList.remove('active'));
       const sel = document.getElementById('ch' + idx);
       if(sel){ sel.classList.add('active'); sel.scrollIntoView({block:'center'}); }
@@ -94,46 +89,27 @@
       video.pause();
       loader.style.display = 'flex';
 
-      // CORREÇÃO: O link AGORA passa pelo seu PROXY HTTPS
-      const rawUrl = filtered[idx].v;
-      const finalUrl = PROXY + rawUrl; 
-
-      console.log("Abrindo sinal via Proxy:", finalUrl);
+      // Encripta o link para o navegador não bloquear o HTTP
+      const encodedUrl = btoa(filtered[idx].v);
+      const finalUrl = PROXY + encodedUrl;
 
       if(Hls.isSupported()){
-        hls = new Hls({
-            manifestLoadingMaxRetry: 10,
-            manifestLoadingRetryDelay: 1000,
-            enableWorker: true
-        });
+        hls = new Hls({ manifestLoadingMaxRetry: 10, xhrSetup: (xhr) => { xhr.withCredentials = false; } });
         hls.loadSource(finalUrl);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          loader.style.display = 'none';
-          video.play().catch(e => console.log("Auto-play barrado"));
-        });
-        hls.on(Hls.Events.ERROR, (e, data) => {
-          if(data.fatal){ hls.startLoad(); }
-        });
+        hls.on(Hls.Events.MANIFEST_PARSED, () => { loader.style.display = 'none'; video.play(); });
+        hls.on(Hls.Events.ERROR, (e, data) => { if(data.fatal) hls.startLoad(); });
       } else {
         video.src = finalUrl;
         video.onloadeddata = () => { loader.style.display = 'none'; video.play(); };
       }
     }
 
-    // Navegação e Busca
-    window.addEventListener('keydown', e => {
-      if(document.activeElement === searchBox) return;
-      if(e.key === 'ArrowDown'){ e.preventDefault(); play(currentIndex + 1); }
-      else if(e.key === 'ArrowUp'){ e.preventDefault(); play(currentIndex - 1); }
-    });
-
     searchBox.oninput = () => {
       const q = searchBox.value.toLowerCase();
       filtered = channels.filter(c => c.t.toLowerCase().includes(q));
       render();
     };
-
     init();
   </script>
 </body>
