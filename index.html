@@ -10,43 +10,32 @@
 
 <style>
 body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
-#side{width:320px;background:#111;overflow:auto}
-#side button{width:33%;padding:10px;border:0;background:#222;color:#fff}
-#side button.active{background:#e50914}
-.item{padding:10px;border-bottom:1px solid #222;cursor:pointer}
-.item.active{background:#1a1a1a;border-left:4px solid #e50914}
-#player{flex:1;background:#000;position:relative}
+#side{width:320px;background:#111;display:flex;flex-direction:column}
+#logo{padding:15px;text-align:center}
+#logo img{max-width:200px}
+#search{margin:0 15px 10px;border:1px solid #b00;border-radius:6px;padding:6px;background:#000;color:#fff}
+#assistindo{padding:8px 15px;font-size:13px;color:#ccc;display:none}
+#assistindo span{color:#fff;font-weight:700}
+#tabs{display:flex;padding:5px}
+#tabs button{flex:1;margin:0 2px;padding:10px;border:0;border-radius:6px;background:#222;color:#fff}
+#tabs button.active{background:#e50914}
+#list{flex:1;overflow:auto;position:relative}
+.item{padding:10px 10px 10px 14px;border-bottom:1px solid #222;cursor:pointer;font-size:13px}
+.item.active{background:#1a1a1a;border-left:3px solid #e50914}
+.section{padding:8px 10px;font-size:14px;font-weight:700}
+#player{flex:1;position:relative;background:#000}
 video{width:100%;height:100%}
-#error{position:absolute;color:#fff;background:#000c;padding:20px;display:none;z-index:5}
-
-/* OVERLAY NETFLIX */
 #overlay{
-  position:absolute;
-  inset:0;
-  background:linear-gradient(to top, rgba(0,0,0,.9), rgba(0,0,0,.3));
-  padding:40px;
-  display:none;
-  z-index:6;
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:linear-gradient(to right,#000c 30%,transparent);
+  display:none;padding:40px
 }
-#overlay h1{
-  font-size:32px;
-  margin:0 0 10px;
-  font-weight:700;
-}
-#overlay p{
-  max-width:600px;
-  font-size:15px;
-  line-height:1.4;
-  color:#ddd;
-}
-#overlay .tag{
-  display:inline-block;
-  margin-bottom:15px;
-  padding:4px 10px;
-  border-left:4px solid #e50914;
-  background:#111;
-  font-size:12px;
-  font-weight:700;
+#overlay h1{margin:0;font-size:32px}
+#overlay p{max-width:420px;color:#ccc}
+#channelName{
+  position:absolute;bottom:20px;left:20px;
+  background:#000c;padding:10px 15px;border-radius:6px;
+  display:none;font-weight:700
 }
 </style>
 </head>
@@ -54,134 +43,146 @@ video{width:100%;height:100%}
 <body>
 
 <div id="side">
-  <div>
-    <button id="f">FILMES</button>
-    <button id="s">SÉRIES</button>
-    <button id="t" class="active">TV</button>
+  <div id="logo">
+    <img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
   </div>
+
+  <input id="search" placeholder="Pesquisar...">
+
+  <div id="assistindo">Assistindo agora: <span></span></div>
+
+  <div id="tabs">
+    <button id="btTv">TV AO VIVO</button>
+    <button id="btFilme" class="active">FILMES</button>
+    <button id="btSerie">SÉRIES</button>
+  </div>
+
   <div id="list"></div>
 </div>
 
 <div id="player">
   <div id="overlay">
-    <span class="tag" id="ovType"></span>
     <h1 id="ovTitle"></h1>
     <p id="ovDesc"></p>
   </div>
-  <div id="error"></div>
-  <video id="video" autoplay playsinline></video>
+  <div id="channelName"></div>
+  <video id="video" controls autoplay playsinline></video>
 </div>
 
 <script>
-const video = document.getElementById('video');
-const list = document.getElementById('list');
-const errorBox = document.getElementById('error');
-const overlay = document.getElementById('overlay');
+const video=document.getElementById('video');
+const list=document.getElementById('list');
+const assist=document.getElementById('assistindo');
+const assistName=assist.querySelector('span');
+const overlay=document.getElementById('overlay');
+const ovTitle=document.getElementById('ovTitle');
+const ovDesc=document.getElementById('ovDesc');
+const channelName=document.getElementById('channelName');
+const search=document.getElementById('search');
+let items=[],index=0,mode='filme',hls;
 
-const ovTitle = document.getElementById('ovTitle');
-const ovDesc = document.getElementById('ovDesc');
-const ovType = document.getElementById('ovType');
-
-let hls=null;
-let channels=[];
-let currentChannelIndex=0;
-let overlayTimer=null;
-
-function showError(msg){
-  errorBox.style.display='block';
-  errorBox.innerText=msg;
+function setAssistindo(nome){
+  assist.style.display='block';
+  assistName.innerText=nome;
 }
-function clearError(){ errorBox.style.display='none'; }
 
-function showOverlay(type,title,desc){
-  ovType.innerText=type;
-  ovTitle.innerText=title;
-  ovDesc.innerText=desc||'';
+function showOverlay(t,d){
+  ovTitle.innerText=t;
+  ovDesc.innerText=d||'';
   overlay.style.display='block';
-  clearTimeout(overlayTimer);
-  overlayTimer=setTimeout(()=>overlay.style.display='none',2000);
 }
 
-function play(url,title,type,desc){
-  clearError();
-  showOverlay(type,title,desc);
+function hideOverlay(){
+  overlay.style.display='none';
+}
 
+function play(url,nome,isTV){
+  hideOverlay();
+  setAssistindo(nome);
   if(hls){hls.destroy();hls=null;}
-  try{
-    if(url.endsWith('.m3u8')){
-      if(Hls.isSupported()){
-        hls=new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.ERROR,()=>showError("Canal bloqueado pelo provedor (CORS)"));
-      }else{
-        video.src=url;
-      }
-    }else{
-      video.src=url;
-    }
-    video.play();
-    video.onplaying=()=>overlay.style.display='none';
-  }catch(e){
-    showError("Não foi possível reproduzir");
+  if(isTV){
+    channelName.innerText=nome;
+    channelName.style.display='block';
+    setTimeout(()=>channelName.style.display='none',2000);
   }
+  if(url.endsWith('.m3u8')){
+    if(Hls.isSupported()){
+      hls=new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+    }else video.src=url;
+  }else video.src=url;
+  video.play();
 }
 
-async function loadTV(){
+function render(){
   list.innerHTML='';
-  channels=[];
-  const txt=await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
-  if(!txt){showError("Lista IPTV indisponível");return;}
-  const lines=txt.split('\n');
-  let name='';
-  lines.forEach(l=>{
-    if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-    else if(l.startsWith('http')) channels.push({name,url:l.trim()});
-  });
-
-  channels.forEach((c,i)=>{
+  items.forEach((i,n)=>{
     const d=document.createElement('div');
-    d.className='item';
-    d.innerText=c.name;
+    d.className='item'+(n===index?' active':'');
+    d.innerText=i.nome;
     d.onclick=()=>{
-      currentChannelIndex=i;
-      updateSel();
-      play(c.url,c.name,'TV AO VIVO','Transmissão em tempo real');
+      index=n;
+      render();
+      play(i.url,i.nome,i.tv);
+    };
+    d.onmouseenter=()=>{
+      showOverlay(i.nome,i.desc);
     };
     list.appendChild(d);
   });
-
-  if(channels.length){
-    play(channels[0].url,channels[0].name,'TV AO VIVO','Transmissão em tempo real');
-    updateSel();
-  }
 }
 
-function updateSel(){
-  document.querySelectorAll('.item').forEach(e=>e.classList.remove('active'));
-  if(list.children[currentChannelIndex]){
-    list.children[currentChannelIndex].classList.add('active');
-    list.children[currentChannelIndex].scrollIntoView({block:'center'});
-  }
+async function loadFilmes(){
+  mode='filme';index=0;
+  const data=await fetch('./data/filmes.json').then(r=>r.json()).catch(()=>[]);
+  items=data.map(f=>({nome:f.titulo,url:f.url,desc:f.descricao||'Filme',tv:false}));
+  render();
 }
+
+async function loadSeries(){
+  mode='serie';index=0;
+  const data=await fetch('./data/series.json').then(r=>r.json()).catch(()=>[]);
+  items=[];
+  data.forEach(s=>{
+    s.episodios.forEach(e=>{
+      items.push({nome:s.nome+' - '+e.titulo,url:e.url,desc:s.descricao||'Série',tv:false});
+    });
+  });
+  render();
+}
+
+async function loadTV(){
+  mode='tv';index=0;
+  const txt=await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
+  if(!txt)return;
+  let nome='';
+  items=[];
+  txt.split('\n').forEach(l=>{
+    if(l.startsWith('#EXTINF'))nome=l.split(',').pop();
+    else if(l.startsWith('http'))items.push({nome,url:l.trim(),desc:'Canal ao vivo',tv:true});
+  });
+  render();
+}
+
+document.getElementById('btFilme').onclick=loadFilmes;
+document.getElementById('btSerie').onclick=loadSeries;
+document.getElementById('btTv').onclick=loadTV;
 
 document.addEventListener('keydown',e=>{
-  if(!channels.length) return;
-  if(e.key==='ArrowDown'){
-    currentChannelIndex=(currentChannelIndex+1)%channels.length;
-    updateSel();
-    const c=channels[currentChannelIndex];
-    play(c.url,c.name,'TV AO VIVO','Transmissão em tempo real');
-  }
-  if(e.key==='ArrowUp'){
-    currentChannelIndex=(currentChannelIndex-1+channels.length)%channels.length;
-    updateSel();
-    const c=channels[currentChannelIndex];
-    play(c.url,c.name,'TV AO VIVO','Transmissão em tempo real');
-  }
+  if(e.key==='ArrowDown'){index=Math.min(index+1,items.length-1);render();}
+  if(e.key==='ArrowUp'){index=Math.max(index-1,0);render();}
+  if(e.key==='Enter'){const i=items[index];play(i.url,i.nome,i.tv);}
 });
 
-loadTV();
+search.oninput=()=>{
+  const q=search.value.toLowerCase();
+  document.querySelectorAll('.item').forEach(i=>{
+    i.style.display=i.innerText.toLowerCase().includes(q)?'block':'none';
+  });
+};
+
+loadFilmes();
 </script>
 
 </body>
