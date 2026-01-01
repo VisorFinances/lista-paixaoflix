@@ -19,18 +19,34 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height
 video{width:100%;height:100%}
 #error{position:absolute;color:#fff;background:#000c;padding:20px;display:none;z-index:5}
 
-/* Overlay zap rápido */
+/* OVERLAY NETFLIX */
 #overlay{
   position:absolute;
-  left:20px;
-  bottom:40px;
-  background:rgba(0,0,0,.75);
-  padding:12px 18px;
-  border-left:4px solid #e50914;
-  font-size:16px;
-  font-weight:700;
+  inset:0;
+  background:linear-gradient(to top, rgba(0,0,0,.9), rgba(0,0,0,.3));
+  padding:40px;
   display:none;
   z-index:6;
+}
+#overlay h1{
+  font-size:32px;
+  margin:0 0 10px;
+  font-weight:700;
+}
+#overlay p{
+  max-width:600px;
+  font-size:15px;
+  line-height:1.4;
+  color:#ddd;
+}
+#overlay .tag{
+  display:inline-block;
+  margin-bottom:15px;
+  padding:4px 10px;
+  border-left:4px solid #e50914;
+  background:#111;
+  font-size:12px;
+  font-weight:700;
 }
 </style>
 </head>
@@ -47,7 +63,11 @@ video{width:100%;height:100%}
 </div>
 
 <div id="player">
-  <div id="overlay"></div>
+  <div id="overlay">
+    <span class="tag" id="ovType"></span>
+    <h1 id="ovTitle"></h1>
+    <p id="ovDesc"></p>
+  </div>
   <div id="error"></div>
   <video id="video" autoplay playsinline></video>
 </div>
@@ -58,31 +78,33 @@ const list = document.getElementById('list');
 const errorBox = document.getElementById('error');
 const overlay = document.getElementById('overlay');
 
-let hls = null;
-let channels = [];
-let currentChannelIndex = 0;
-let overlayTimer = null;
+const ovTitle = document.getElementById('ovTitle');
+const ovDesc = document.getElementById('ovDesc');
+const ovType = document.getElementById('ovType');
+
+let hls=null;
+let channels=[];
+let currentChannelIndex=0;
+let overlayTimer=null;
 
 function showError(msg){
   errorBox.style.display='block';
   errorBox.innerText=msg;
 }
-function clearError(){
-  errorBox.style.display='none';
-}
+function clearError(){ errorBox.style.display='none'; }
 
-function showOverlay(text){
-  overlay.innerText = text;
-  overlay.style.display = 'block';
+function showOverlay(type,title,desc){
+  ovType.innerText=type;
+  ovTitle.innerText=title;
+  ovDesc.innerText=desc||'';
+  overlay.style.display='block';
   clearTimeout(overlayTimer);
-  overlayTimer = setTimeout(()=>{
-    overlay.style.display = 'none';
-  },2000);
+  overlayTimer=setTimeout(()=>overlay.style.display='none',2000);
 }
 
-function play(url, name){
+function play(url,title,type,desc){
   clearError();
-  showOverlay(name);
+  showOverlay(type,title,desc);
 
   if(hls){hls.destroy();hls=null;}
   try{
@@ -99,25 +121,22 @@ function play(url, name){
       video.src=url;
     }
     video.play();
+    video.onplaying=()=>overlay.style.display='none';
   }catch(e){
-    showError("Este canal não pode ser reproduzido");
+    showError("Não foi possível reproduzir");
   }
 }
 
 async function loadTV(){
   list.innerHTML='';
   channels=[];
-  const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
+  const txt=await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
   if(!txt){showError("Lista IPTV indisponível");return;}
-
   const lines=txt.split('\n');
   let name='';
   lines.forEach(l=>{
-    if(l.startsWith('#EXTINF')){
-      name=l.split(',').pop();
-    }else if(l.startsWith('http')){
-      channels.push({name,url:l.trim()});
-    }
+    if(l.startsWith('#EXTINF')) name=l.split(',').pop();
+    else if(l.startsWith('http')) channels.push({name,url:l.trim()});
   });
 
   channels.forEach((c,i)=>{
@@ -126,39 +145,39 @@ async function loadTV(){
     d.innerText=c.name;
     d.onclick=()=>{
       currentChannelIndex=i;
-      updateSelection();
-      play(c.url,c.name);
+      updateSel();
+      play(c.url,c.name,'TV AO VIVO','Transmissão em tempo real');
     };
     list.appendChild(d);
   });
 
   if(channels.length){
-    play(channels[0].url,channels[0].name);
-    updateSelection();
+    play(channels[0].url,channels[0].name,'TV AO VIVO','Transmissão em tempo real');
+    updateSel();
   }
 }
 
-function updateSelection(){
-  document.querySelectorAll('.item').forEach(el=>el.classList.remove('active'));
+function updateSel(){
+  document.querySelectorAll('.item').forEach(e=>e.classList.remove('active'));
   if(list.children[currentChannelIndex]){
     list.children[currentChannelIndex].classList.add('active');
     list.children[currentChannelIndex].scrollIntoView({block:'center'});
   }
 }
 
-/* ZAP RÁPIDO */
 document.addEventListener('keydown',e=>{
   if(!channels.length) return;
-
   if(e.key==='ArrowDown'){
-    currentChannelIndex = (currentChannelIndex+1)%channels.length;
-    updateSelection();
-    play(channels[currentChannelIndex].url,channels[currentChannelIndex].name);
+    currentChannelIndex=(currentChannelIndex+1)%channels.length;
+    updateSel();
+    const c=channels[currentChannelIndex];
+    play(c.url,c.name,'TV AO VIVO','Transmissão em tempo real');
   }
   if(e.key==='ArrowUp'){
-    currentChannelIndex = (currentChannelIndex-1+channels.length)%channels.length;
-    updateSelection();
-    play(channels[currentChannelIndex].url,channels[currentChannelIndex].name);
+    currentChannelIndex=(currentChannelIndex-1+channels.length)%channels.length;
+    updateSel();
+    const c=channels[currentChannelIndex];
+    play(c.url,c.name,'TV AO VIVO','Transmissão em tempo real');
   }
 });
 
