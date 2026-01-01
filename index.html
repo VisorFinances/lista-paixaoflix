@@ -9,77 +9,30 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-body{
-  margin:0;
-  background:#000;
-  color:#fff;
-  font-family:Poppins;
-  display:flex;
-  height:100vh
-}
-#side{
-  width:320px;
-  background:#111;
-  overflow:auto
-}
-#side button{
-  width:33%;
-  padding:10px;
-  border:0;
-  background:#222;
-  color:#fff
-}
-#side button.active{
-  background:#e50914
-}
-.item{
-  padding:10px;
-  border-bottom:1px solid #222;
-  cursor:pointer
-}
-.item:hover{
-  background:#1a1a1a
-}
-#player{
-  flex:1;
-  background:#000;
-  position:relative
-}
-video{
-  width:100%;
-  height:100%
-}
-#error{
-  position:absolute;
-  color:#fff;
-  background:#000c;
-  padding:20px;
-  display:none;
-  z-index:5
-}
+body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh}
+#side{width:320px;background:#111;overflow:auto}
+#side button{width:33%;padding:10px;border:0;background:#222;color:#fff}
+#side button.active{background:#e50914}
+.item{padding:10px;border-bottom:1px solid #222;cursor:pointer}
+.item:hover{background:#1a1a1a}
+#player{flex:1;background:#000;position:relative}
+video{width:100%;height:100%}
+#error{position:absolute;color:#fff;background:#000c;padding:20px;display:none;z-index:5}
 
-/* ===== OVERLAY NETFLIX ===== */
+/* OVERLAY */
 #overlay{
   position:absolute;
   left:40px;
   bottom:40px;
-  background:rgba(0,0,0,0.65);
+  background:rgba(0,0,0,.65);
   padding:20px 26px;
   border-left:4px solid #e50914;
   border-radius:6px;
   display:none;
-  z-index:10;
-  max-width:60%
+  z-index:10
 }
-#overlay .type{
-  font-size:13px;
-  opacity:.8
-}
-#overlay .title{
-  font-size:22px;
-  font-weight:700;
-  margin-top:4px
-}
+#overlay .type{font-size:13px;opacity:.8}
+#overlay .title{font-size:22px;font-weight:700;margin-top:4px}
 </style>
 </head>
 
@@ -87,9 +40,9 @@ video{
 
 <div id="side">
   <div>
-    <button id="f" class="active">FILMES</button>
+    <button id="f">FILMES</button>
     <button id="s">SÉRIES</button>
-    <button id="t">TV</button>
+    <button id="t" class="active">TV</button>
   </div>
   <div id="list"></div>
 </div>
@@ -97,7 +50,6 @@ video{
 <div id="player">
   <div id="error"></div>
 
-  <!-- OVERLAY -->
   <div id="overlay">
     <div class="type" id="overlayType"></div>
     <div class="title" id="overlayTitle"></div>
@@ -110,139 +62,108 @@ video{
 const video = document.getElementById('video');
 const list = document.getElementById('list');
 const errorBox = document.getElementById('error');
-
 const overlay = document.getElementById('overlay');
 const overlayType = document.getElementById('overlayType');
 const overlayTitle = document.getElementById('overlayTitle');
 
 let hls;
 let overlayTimer;
+let tvChannels = [];
+let currentTVIndex = 0;
+let mode = 'tv';
 
-/* ===== OVERLAY CONTROL ===== */
+/* OVERLAY */
 function showOverlay(type, title){
   overlayType.innerText = type;
   overlayTitle.innerText = title;
-  overlay.style.display = 'block';
-
+  overlay.style.display='block';
   clearTimeout(overlayTimer);
-  overlayTimer = setTimeout(()=>{
-    overlay.style.display = 'none';
-  }, 2000);
+  overlayTimer = setTimeout(()=>overlay.style.display='none',2000);
 }
 
 function showError(msg){
   errorBox.style.display='block';
   errorBox.innerText=msg;
 }
+function clearError(){errorBox.style.display='none';}
 
-function clearError(){
-  errorBox.style.display='none';
-}
-
-/* ===== PLAYER ===== */
-function play(url, title, type){
+/* PLAYER */
+function play(url,title,type){
   clearError();
-  showOverlay(type, title);
+  showOverlay(type,title);
 
-  if(hls){
-    hls.destroy();
-    hls=null;
-  }
+  if(hls){hls.destroy();hls=null;}
   try{
     if(url.endsWith('.m3u8')){
       if(Hls.isSupported()){
         hls=new Hls();
         hls.loadSource(url);
         hls.attachMedia(video);
-        hls.on(Hls.Events.ERROR,()=>{
-          showError("Canal bloqueado pelo provedor (CORS)");
-        });
-      }else{
-        video.src=url;
-      }
-    }else{
-      video.src=url;
-    }
+        hls.on(Hls.Events.ERROR,()=>showError("Canal bloqueado pelo provedor (CORS)"));
+      }else video.src=url;
+    }else video.src=url;
     video.play();
-  }catch(e){
-    showError("Este conteúdo não pode ser reproduzido");
-  }
+  }catch(e){showError("Erro ao reproduzir");}
 }
 
-/* ===== FILMES ===== */
-async function loadFilmes(){
-  list.innerHTML='';
-  const data = await fetch('./data/filmes.json')
-    .then(r=>r.json())
-    .catch(()=>[]);
-  data.forEach(f=>{
-    const d=document.createElement('div');
-    d.className='item';
-    d.innerText=f.titulo;
-    d.onclick=()=>play(f.url, f.titulo, 'FILME');
-    list.appendChild(d);
-  });
-}
-
-/* ===== SÉRIES ===== */
-async function loadSeries(){
-  list.innerHTML='';
-  const data = await fetch('./data/series.json')
-    .then(r=>r.json())
-    .catch(()=>[]);
-  data.forEach(s=>{
-    const h=document.createElement('div');
-    h.className='item';
-    h.style.fontWeight='700';
-    h.innerText=s.nome;
-    list.appendChild(h);
-
-    (s.episodios||[]).forEach(e=>{
-      const d=document.createElement('div');
-      d.className='item';
-      d.style.paddingLeft='25px';
-      d.innerText=e.titulo;
-      d.onclick=()=>play(e.url, e.titulo, 'SÉRIE');
-      list.appendChild(d);
-    });
-  });
-}
-
-/* ===== TV ===== */
+/* TV AO VIVO */
 async function loadTV(){
+  mode='tv';
   list.innerHTML='';
-  const txt = await fetch('./data/canais.m3u')
-    .then(r=>r.text())
-    .catch(()=>null);
+  tvChannels=[];
+  currentTVIndex=0;
 
-  if(!txt){
-    showError("Lista IPTV indisponível");
-    return;
-  }
+  const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
+  if(!txt){showError("Lista IPTV indisponível");return;}
 
   const lines=txt.split('\n');
   let name='';
   lines.forEach(l=>{
-    if(l.startsWith('#EXTINF')){
-      name=l.split(',').pop();
-    }
+    if(l.startsWith('#EXTINF')) name=l.split(',').pop();
     else if(l.startsWith('http')){
+      tvChannels.push({name,url:l.trim()});
       const d=document.createElement('div');
       d.className='item';
       d.innerText=name;
-      d.onclick=()=>play(l.trim(), name, 'TV AO VIVO');
+      d.onclick=()=>{
+        currentTVIndex=tvChannels.length-1;
+        play(l.trim(),name,'TV AO VIVO');
+      };
       list.appendChild(d);
     }
   });
+
+  if(tvChannels.length>0){
+    play(tvChannels[0].url,tvChannels[0].name,'TV AO VIVO');
+  }
 }
 
-/* ===== BOTÕES ===== */
-document.getElementById('f').onclick=()=>loadFilmes();
-document.getElementById('s').onclick=()=>loadSeries();
-document.getElementById('t').onclick=()=>loadTV();
+/* ZAP RÁPIDO */
+document.addEventListener('keydown',e=>{
+  if(mode!=='tv') return;
 
-/* INICIAL */
-loadFilmes();
+  if(e.key==='ArrowUp'){
+    currentTVIndex--;
+    if(currentTVIndex<0) currentTVIndex=tvChannels.length-1;
+    const ch=tvChannels[currentTVIndex];
+    play(ch.url,ch.name,'TV AO VIVO');
+  }
+
+  if(e.key==='ArrowDown'){
+    currentTVIndex++;
+    if(currentTVIndex>=tvChannels.length) currentTVIndex=0;
+    const ch=tvChannels[currentTVIndex];
+    play(ch.url,ch.name,'TV AO VIVO');
+  }
+});
+
+/* BOTÕES */
+document.getElementById('t').onclick=()=>loadTV();
+document.getElementById('f').onclick=()=>{mode='filmes';list.innerHTML='';};
+document.getElementById('s').onclick=()=>{mode='series';list.innerHTML='';};
+
+/* START */
+loadTV();
 </script>
 
 </body>
