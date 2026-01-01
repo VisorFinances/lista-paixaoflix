@@ -12,13 +12,13 @@
 body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
 #side{width:320px;background:#111;display:flex;flex-direction:column}
 #logo{text-align:center;padding:18px}
-#logo img{max-width:240px}
+#logo img{max-width:260px}
 #search{margin:0 17px 8px 17px;padding:6px;border-radius:8px;border:1px solid #b30000;background:#000;color:#fff;font-size:13px}
 #now{padding:6px 15px;font-size:12px;display:none;color:#ccc}
 #buttons{display:flex;padding:6px}
 #buttons button{flex:1;margin:0 2px;padding:10px;border-radius:6px;border:0;background:#222;color:#fff;font-size:13px}
 #buttons button.active{background:#e50914}
-#list{flex:1;overflow:auto}
+#list{flex:1;overflow-y:auto}
 .item{padding:10px;border-bottom:1px solid #222;cursor:pointer;font-size:13px}
 .item.selected{background:#1a1a1a;border-left:4px solid #e50914}
 #player{flex:1;position:relative;background:#000}
@@ -39,8 +39,8 @@ video{width:100%;height:100%}
   <div id="now">Assistindo agora: <span id="nowTitle"></span></div>
 
   <div id="buttons">
-    <button id="t">TV AO VIVO</button>
-    <button id="f" class="active">FILMES</button>
+    <button id="t" class="active">TV AO VIVO</button>
+    <button id="f">FILMES</button>
     <button id="s">SÉRIES</button>
   </div>
 
@@ -53,71 +53,78 @@ video{width:100%;height:100%}
 </div>
 
 <script>
-const video=document.getElementById('video');
-const list=document.getElementById('list');
-const overlay=document.getElementById('overlay');
-const now=document.getElementById('now');
-const nowTitle=document.getElementById('nowTitle');
-const search=document.getElementById('search');
-const btnF=document.getElementById('f');
-const btnS=document.getElementById('s');
-const btnT=document.getElementById('t');
+const video = document.getElementById('video');
+const list = document.getElementById('list');
+const overlay = document.getElementById('overlay');
+const now = document.getElementById('now');
+const nowTitle = document.getElementById('nowTitle');
+const search = document.getElementById('search');
 
-let hls=null;
-let items=[];
-let selected=0;
-let mode='filmes';
-let focus='list';
-let overlayTimer=null;
+const btnT = document.getElementById('t');
+const btnF = document.getElementById('f');
+const btnS = document.getElementById('s');
 
-/* ===== Overlay ===== */
-function showOverlay(txt){
-  overlay.innerText=txt;
-  overlay.style.display='block';
+let hls = null;
+let items = [];
+let selected = 0;
+let focus = 'list';
+let overlayTimer = null;
+
+/* ================= Overlay ================= */
+function showOverlay(text){
+  overlay.innerText = text;
+  overlay.style.display = 'block';
   clearTimeout(overlayTimer);
-  overlayTimer=setTimeout(()=>overlay.style.display='none',2000);
+  overlayTimer = setTimeout(()=>overlay.style.display='none',2000);
 }
 
-/* ===== Assistindo Agora ===== */
-function setNow(txt){
-  now.style.display='block';
-  nowTitle.innerText=txt;
+/* ================= Assistindo Agora ================= */
+function setNow(text){
+  now.style.display = 'block';
+  nowTitle.innerText = text;
 }
 
-/* ===== Seleção ===== */
+/* ================= Seleção ================= */
 function updateSelection(){
   items.forEach(i=>i.classList.remove('selected'));
   if(items[selected]){
     items[selected].classList.add('selected');
     items[selected].scrollIntoView({block:'nearest'});
-    showOverlay(items[selected].innerText);
+    showOverlay(items[selected].dataset.title);
   }
 }
 
-/* ===== Player ===== */
+/* ================= Player ================= */
 function play(url,title){
   if(hls){hls.destroy();hls=null;}
   if(url.endsWith('.m3u8') && Hls.isSupported()){
-    hls=new Hls();
+    hls = new Hls();
     hls.loadSource(url);
     hls.attachMedia(video);
   } else {
-    video.src=url;
+    video.src = url;
   }
   video.play();
   setNow(title);
   showOverlay(title);
 }
 
-/* ===== Filmes ===== */
+/* ================= Limpar ================= */
+function reset(){
+  list.innerHTML='';
+  items=[];
+  selected=0;
+}
+
+/* ================= Filmes ================= */
 async function loadFilmes(){
-  mode='filmes'; focus='list';
+  reset();
   btnF.classList.add('active'); btnS.classList.remove('active'); btnT.classList.remove('active');
-  list.innerHTML=''; items=[]; selected=0;
-  const data=await fetch('./data/filmes.json').then(r=>r.json()).catch(()=>[]);
+  const data = await fetch('./data/filmes.json').then(r=>r.json()).catch(()=>[]);
   data.forEach(f=>{
     const d=document.createElement('div');
     d.className='item';
+    d.dataset.title=f.titulo;
     d.innerText=f.titulo;
     d.onclick=()=>play(f.url,f.titulo);
     list.appendChild(d);
@@ -126,25 +133,18 @@ async function loadFilmes(){
   updateSelection();
 }
 
-/* ===== Séries ===== */
+/* ================= Séries ================= */
 async function loadSeries(){
-  mode='series'; focus='list';
+  reset();
   btnS.classList.add('active'); btnF.classList.remove('active'); btnT.classList.remove('active');
-  list.innerHTML=''; items=[]; selected=0;
-  const data=await fetch('./data/series.json').then(r=>r.json()).catch(()=>[]);
+  const data = await fetch('./data/series.json').then(r=>r.json()).catch(()=>[]);
   data.forEach(s=>{
-    const h=document.createElement('div');
-    h.className='item';
-    h.style.fontWeight='700';
-    h.innerText=s.nome;
-    list.appendChild(h);
-    items.push(h);
-    (s.episodios||[]).forEach(e=>{
+    s.episodios.forEach(e=>{
       const d=document.createElement('div');
       d.className='item';
-      d.style.paddingLeft='25px';
-      d.innerText=e.titulo;
-      d.onclick=()=>play(e.url,e.titulo);
+      d.dataset.title=`${s.nome} - ${e.titulo}`;
+      d.innerText=`${s.nome} - ${e.titulo}`;
+      d.onclick=()=>play(e.url,`${s.nome} - ${e.titulo}`);
       list.appendChild(d);
       items.push(d);
     });
@@ -152,19 +152,19 @@ async function loadSeries(){
   updateSelection();
 }
 
-/* ===== TV ===== */
+/* ================= TV AO VIVO ================= */
 async function loadTV(){
-  mode='tv'; focus='list';
+  reset();
   btnT.classList.add('active'); btnF.classList.remove('active'); btnS.classList.remove('active');
-  list.innerHTML=''; items=[]; selected=0;
-  const txt=await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
+  const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
   if(!txt) return;
   let name='';
   txt.split('\n').forEach(l=>{
-    if(l.startsWith('#EXTINF')) name=l.split(',').pop();
+    if(l.startsWith('#EXTINF')) name=l.split(',').pop().trim();
     else if(l.startsWith('http')){
       const d=document.createElement('div');
       d.className='item';
+      d.dataset.title=name;
       d.innerText=name;
       d.onclick=()=>play(l.trim(),name);
       list.appendChild(d);
@@ -174,20 +174,14 @@ async function loadTV(){
   updateSelection();
 }
 
-/* ===== Navegação ===== */
+/* ================= Navegação + ZAP ================= */
 document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowDown' && focus==='list'){selected=Math.min(selected+1,items.length-1);updateSelection();}
-  if(e.key==='ArrowUp' && focus==='list'){selected=Math.max(selected-1,0);updateSelection();}
-  if(e.key==='ArrowLeft'){
-    if(focus==='list'){focus='buttons'; btnF.focus();}
-  }
-  if(e.key==='ArrowRight'){
-    if(focus==='buttons'){focus='list'; updateSelection();}
-  }
-  if(e.key==='Enter' && focus==='list'){items[selected]?.click();}
+  if(e.key==='ArrowDown'){selected=Math.min(selected+1,items.length-1);updateSelection();}
+  if(e.key==='ArrowUp'){selected=Math.max(selected-1,0);updateSelection();}
+  if(e.key==='Enter'){items[selected]?.click();}
 });
 
-/* ===== Busca ===== */
+/* ================= Busca ================= */
 search.addEventListener('input',()=>{
   const q=search.value.toLowerCase();
   items.forEach(i=>{
@@ -195,13 +189,13 @@ search.addEventListener('input',()=>{
   });
 });
 
-/* ===== Botões ===== */
+/* ================= Botões ================= */
 btnF.onclick=loadFilmes;
 btnS.onclick=loadSeries;
 btnT.onclick=loadTV;
 
-/* ===== Init ===== */
-loadFilmes();
+/* ================= INIT (TV AO VIVO PADRÃO) ================= */
+loadTV();
 </script>
 
 </body>
