@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <title>PaixãoFlix – Web TV</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="favicon.ico">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
@@ -20,6 +19,8 @@ body{
   height:100vh;
   overflow:hidden;
 }
+
+/* ===== SIDEBAR ===== */
 #side{
   width:320px;
   background:#111;
@@ -27,20 +28,22 @@ body{
   flex-direction:column;
 }
 #logo{
-  padding:15px;
+  padding:20px;
 }
 #logo img{
   width:100%;
-  max-height:70px;
+  max-height:110px;
   object-fit:contain;
 }
 #search{
   margin:0 15px 10px;
   padding:10px;
   font-size:13px;
-  border:1px solid rgba(229,9,20,.5);
+  border-radius:8px;
+  border:1px solid rgba(229,9,20,.6);
   background:#000;
   color:#fff;
+  outline:none;
 }
 #watching{
   display:none;
@@ -60,6 +63,7 @@ body{
   background:#222;
   color:#fff;
   border-radius:6px;
+  cursor:pointer;
 }
 #buttons button.active{
   background:var(--red);
@@ -83,6 +87,8 @@ body{
   background:rgba(255,255,255,.12);
   border-left:4px solid var(--red);
 }
+
+/* ===== MAIN ===== */
 #main{
   flex:1;
   position:relative;
@@ -93,9 +99,18 @@ body{
   display:none;
   padding:60px;
   background:linear-gradient(to right,rgba(0,0,0,.95),rgba(0,0,0,.3));
+  z-index:5;
 }
-#card h1{font-size:28px;margin:0 0 10px}
-#card p{font-size:14px;opacity:.85}
+#card h1{
+  font-size:28px;
+  margin:0 0 10px;
+  font-weight:700;
+}
+#card p{
+  font-size:14px;
+  opacity:.85;
+  max-width:60%;
+}
 video{
   width:100%;
   height:100%;
@@ -104,7 +119,7 @@ video{
 </style>
 </head>
 
-<body>
+<body tabindex="0">
 
 <div id="side">
   <div id="logo">
@@ -117,7 +132,7 @@ video{
 
   <div id="buttons">
     <button id="btnTv">TV AO VIVO</button>
-    <button id="btnFilmes" class="active">FILMES</button>
+    <button id="btnFilmes">FILMES</button>
     <button id="btnSeries">SÉRIES</button>
   </div>
 
@@ -126,10 +141,8 @@ video{
 
 <div id="main">
   <div id="card">
-    <div>
-      <h1 id="cardTitle"></h1>
-      <p id="cardDesc"></p>
-    </div>
+    <h1 id="cardTitle"></h1>
+    <p id="cardDesc"></p>
   </div>
   <video id="video" controls autoplay playsinline></video>
 </div>
@@ -143,20 +156,27 @@ const cardDesc=document.getElementById('cardDesc');
 const watching=document.getElementById('watching');
 const now=document.getElementById('now');
 const video=document.getElementById('video');
+const btns=[btnTv,btnFilmes,btnSeries];
 
-let items=[],filtered=[],focus=0,mode='filmes',hls=null;
+let items=[],filtered=[],focus=0,hls=null;
+
+function setActive(btn){
+  btns.forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
 
 function setFocus(i){
+  if(!filtered.length)return;
+  focus=Math.max(0,Math.min(i,filtered.length-1));
   document.querySelectorAll('.item').forEach(e=>e.classList.remove('focus'));
-  const el=document.getElementById('i'+i);
+  const el=document.getElementById('i'+focus);
   if(el){
     el.classList.add('focus');
     el.scrollIntoView({block:'center'});
     card.style.display='block';
-    cardTitle.innerText=filtered[i].title;
-    cardDesc.innerText=filtered[i].desc;
+    cardTitle.innerText=filtered[focus].title;
+    cardDesc.innerText=filtered[focus].desc;
   }
-  focus=i;
 }
 
 function play(){
@@ -188,15 +208,15 @@ function render(){
 }
 
 async function loadFilmes(){
-  mode='filmes';
+  setActive(btnFilmes);
   const d=await fetch('./data/filmes.json').then(r=>r.json());
   items=d.map(f=>({title:f.titulo,desc:f.descricao||'Filme disponível',url:f.url}));
-  filtered=items;
+  filtered=[...items];
   render();
 }
 
 async function loadSeries(){
-  mode='series';
+  setActive(btnSeries);
   const d=await fetch('./data/series.json').then(r=>r.json());
   items=[];
   d.forEach(s=>{
@@ -204,12 +224,12 @@ async function loadSeries(){
       items.push({title:s.nome+' - '+e.titulo,desc:s.descricao||'Série',url:e.url});
     });
   });
-  filtered=items;
+  filtered=[...items];
   render();
 }
 
 async function loadTV(){
-  mode='tv';
+  setActive(btnTv);
   const txt=await fetch('./data/canais.m3u').then(r=>r.text());
   items=[];
   let name='';
@@ -217,24 +237,24 @@ async function loadTV(){
     if(l.startsWith('#EXTINF')) name=l.split(',').pop();
     else if(l.startsWith('http')) items.push({title:name,desc:'Canal ao vivo',url:l.trim()});
   });
-  filtered=items;
+  filtered=[...items];
   render();
 }
 
-search.oninput=()=>{
+search.addEventListener('input',()=>{
   const q=search.value.toLowerCase();
   filtered=items.filter(i=>i.title.toLowerCase().includes(q));
   render();
-};
+});
 
-document.getElementById('btnFilmes').onclick=loadFilmes;
-document.getElementById('btnSeries').onclick=loadSeries;
-document.getElementById('btnTv').onclick=loadTV;
+btnFilmes.onclick=loadFilmes;
+btnSeries.onclick=loadSeries;
+btnTv.onclick=loadTV;
 
-window.addEventListener('keydown',e=>{
-  if(e.key==='ArrowDown')setFocus(Math.min(focus+1,filtered.length-1));
-  if(e.key==='ArrowUp')setFocus(Math.max(focus-1,0));
-  if(e.key==='Enter')play();
+document.body.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){e.preventDefault();setFocus(focus+1);}
+  if(e.key==='ArrowUp'){e.preventDefault();setFocus(focus-1);}
+  if(e.key==='Enter'){e.preventDefault();play();}
 });
 
 loadFilmes();
