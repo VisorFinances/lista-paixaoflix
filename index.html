@@ -10,21 +10,20 @@
 
 <style>
 body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
-#side{width:320px;background:#111;overflow:auto;position:relative}
-#logo{padding:15px;text-align:center}
-#logo img{max-width:200px}
-#search{width:calc(100% - 34px);margin:10px 17px;padding:8px;border-radius:6px;border:1px solid #b30000;background:#000;color:#fff}
-#now{padding:10px;font-size:13px;display:none}
+#side{width:320px;background:#111;overflow:auto}
+#logo{text-align:center;padding:15px}
+#logo img{max-width:220px}
+#search{width:calc(100% - 34px);margin:10px 17px;padding:6px;border-radius:8px;border:1px solid #b30000;background:#000;color:#fff}
+#now{padding:8px 15px;font-size:13px;display:none}
 #buttons{display:flex;padding:5px}
 #buttons button{flex:1;margin:0 2px;padding:10px;border-radius:6px;border:0;background:#222;color:#fff}
 #buttons button.active{background:#e50914}
 .item{padding:10px;border-bottom:1px solid #222;cursor:pointer}
 .item.selected{background:#1a1a1a;border-left:4px solid #e50914}
-#player{flex:1;background:#000;position:relative}
+#player{flex:1;position:relative;background:#000}
 video{width:100%;height:100%}
-#overlay{position:absolute;bottom:20px;left:20px;background:#000c;padding:10px;border-radius:6px;display:none}
-#card{position:absolute;right:20px;top:20px;width:40%;background:#000e;padding:20px;border-radius:8px;display:none}
-#error{position:absolute;color:#fff;background:#000c;padding:20px;display:none}
+#overlay{position:absolute;bottom:30px;left:30px;background:#000c;padding:12px;border-radius:6px;font-size:14px;display:none}
+#error{position:absolute;top:20px;left:20px;background:#000c;padding:10px;display:none}
 </style>
 </head>
 
@@ -50,102 +49,113 @@ video{width:100%;height:100%}
 
 <div id="player">
   <div id="overlay"></div>
-  <div id="card"></div>
   <div id="error"></div>
   <video id="video" controls autoplay playsinline></video>
 </div>
 
 <script>
-const video=document.getElementById('video');
-const list=document.getElementById('list');
-const overlay=document.getElementById('overlay');
-const card=document.getElementById('card');
-const now=document.getElementById('now');
-const nowTitle=document.getElementById('nowTitle');
-const search=document.getElementById('search');
-let hls,items=[],idx=0;
+const video = document.getElementById('video');
+const list = document.getElementById('list');
+const overlay = document.getElementById('overlay');
+const now = document.getElementById('now');
+const nowTitle = document.getElementById('nowTitle');
+const search = document.getElementById('search');
+const buttons = [...document.querySelectorAll('#buttons button')];
 
-function showOverlay(txt){
-  overlay.innerText=txt;
+let hls=null;
+let items=[];
+let index=0;
+let focusArea='list'; // search | buttons | list
+let zapTimer=null;
+
+function setActive(btn){
+  buttons.forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function showOverlay(text){
+  overlay.innerText=text;
   overlay.style.display='block';
-  setTimeout(()=>overlay.style.display='none',2000);
+  clearTimeout(zapTimer);
+  zapTimer=setTimeout(()=>overlay.style.display='none',2000);
 }
 
-function setNow(txt){
+function setNow(title){
   now.style.display='block';
-  nowTitle.innerText=txt;
+  nowTitle.innerText=title;
 }
 
-function selectItem(i){
+function select(i){
+  if(!items.length) return;
   items.forEach(x=>x.classList.remove('selected'));
-  if(items[i]){
-    items[i].classList.add('selected');
-    items[i].scrollIntoView({block:'nearest'});
-  }
-  idx=i;
+  index=Math.max(0,Math.min(i,items.length-1));
+  items[index].classList.add('selected');
+  items[index].scrollIntoView({block:'nearest'});
+  showOverlay(items[index].innerText);
 }
 
-function play(url,title,desc){
+function play(url,title){
   if(hls){hls.destroy();hls=null;}
-  card.style.display='none';
   try{
     if(url.endsWith('.m3u8')){
       if(Hls.isSupported()){
         hls=new Hls();
         hls.loadSource(url);
         hls.attachMedia(video);
-      }else video.src=url;
-    }else video.src=url;
+      } else video.src=url;
+    } else video.src=url;
     video.play();
     setNow(title);
     showOverlay(title);
   }catch(e){}
 }
 
-function showCard(title,desc){
-  card.innerHTML='<h2>'+title+'</h2><p>'+desc+'</p>';
-  card.style.display='block';
-}
-
 async function loadFilmes(){
-  list.innerHTML='';items=[];
+  setActive(document.getElementById('f'));
+  list.innerHTML=''; items=[];
   const data=await fetch('./data/filmes.json').then(r=>r.json()).catch(()=>[]);
   data.forEach(f=>{
     const d=document.createElement('div');
     d.className='item';
     d.innerText=f.titulo;
-    d.onmouseenter=()=>showCard(f.titulo,f.descricao||'');
-    d.onclick=()=>play(f.url,f.titulo,f.descricao);
-    list.appendChild(d);items.push(d);
+    d.onclick=()=>play(f.url,f.titulo);
+    list.appendChild(d);
+    items.push(d);
   });
-  selectItem(0);
+  focusArea='list';
+  select(0);
 }
 
 async function loadSeries(){
-  list.innerHTML='';items=[];
+  setActive(document.getElementById('s'));
+  list.innerHTML=''; items=[];
   const data=await fetch('./data/series.json').then(r=>r.json()).catch(()=>[]);
   data.forEach(s=>{
     const h=document.createElement('div');
     h.className='item';
     h.style.fontWeight='700';
     h.innerText=s.nome;
-    list.appendChild(h);items.push(h);
+    list.appendChild(h);
+    items.push(h);
     (s.episodios||[]).forEach(e=>{
       const d=document.createElement('div');
       d.className='item';
       d.style.paddingLeft='25px';
       d.innerText=e.titulo;
-      d.onclick=()=>play(e.url,e.titulo,'');
-      list.appendChild(d);items.push(d);
+      d.onclick=()=>play(e.url,e.titulo);
+      list.appendChild(d);
+      items.push(d);
     });
   });
-  selectItem(0);
+  focusArea='list';
+  select(0);
 }
 
 async function loadTV(){
-  list.innerHTML='';items=[];
+  setActive(document.getElementById('t'));
+  list.innerHTML=''; items=[];
   const txt=await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
-  if(!txt)return;
+  if(!txt) return;
   let name='';
   txt.split('\n').forEach(l=>{
     if(l.startsWith('#EXTINF')) name=l.split(',').pop();
@@ -153,22 +163,35 @@ async function loadTV(){
       const d=document.createElement('div');
       d.className='item';
       d.innerText=name;
-      d.onclick=()=>play(l.trim(),name,'Canal ao vivo');
-      list.appendChild(d);items.push(d);
+      d.onclick=()=>play(l.trim(),name);
+      list.appendChild(d);
+      items.push(d);
     }
   });
-  selectItem(0);
+  focusArea='list';
+  select(0);
 }
 
 document.onkeydown=e=>{
-  if(e.key==='ArrowDown')selectItem(Math.min(idx+1,items.length-1));
-  if(e.key==='ArrowUp')selectItem(Math.max(idx-1,0));
-  if(e.key==='Enter')items[idx]?.click();
+  if(e.key==='ArrowDown' && focusArea==='list') select(index+1);
+  if(e.key==='ArrowUp' && focusArea==='list') select(index-1);
+
+  if(e.key==='ArrowLeft'){
+    if(focusArea==='list'){ focusArea='buttons'; buttons[0].focus(); }
+  }
+  if(e.key==='ArrowRight'){
+    if(focusArea==='buttons'){ focusArea='list'; select(index); }
+  }
+  if(e.key==='Enter'){
+    if(focusArea==='list') items[index]?.click();
+  }
 };
 
 search.oninput=()=>{
   const v=search.value.toLowerCase();
-  items.forEach(i=>i.style.display=i.innerText.toLowerCase().includes(v)?'block':'none');
+  items.forEach(i=>{
+    i.style.display=i.innerText.toLowerCase().includes(v)?'block':'none';
+  });
 };
 
 document.getElementById('f').onclick=loadFilmes;
