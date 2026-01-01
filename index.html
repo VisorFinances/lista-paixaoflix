@@ -9,10 +9,8 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-:root{
-  --red:#e50914;
-  --gray:#1a1a1a;
-}
+:root{--red:#e50914}
+*{box-sizing:border-box}
 body{
   margin:0;
   background:#000;
@@ -33,23 +31,21 @@ body{
 }
 #logo img{
   width:100%;
-  max-height:55px;
+  max-height:70px;
   object-fit:contain;
 }
 #search{
   margin:0 15px 10px;
   padding:10px;
-  border:1px solid rgba(229,9,20,.6);
+  font-size:13px;
+  border:1px solid rgba(229,9,20,.5);
   background:#000;
   color:#fff;
-  outline:none;
-  font-size:13px;
 }
 #watching{
   display:none;
-  padding:10px 15px;
+  padding:8px 15px;
   font-size:12px;
-  background:#000;
   border-bottom:1px solid #222;
 }
 #buttons{
@@ -83,8 +79,8 @@ body{
   cursor:pointer;
   border-left:4px solid transparent;
 }
-.item.selected{
-  background:rgba(255,255,255,.1);
+.item.focus{
+  background:rgba(255,255,255,.12);
   border-left:4px solid var(--red);
 }
 #main{
@@ -94,34 +90,16 @@ body{
 #card{
   position:absolute;
   inset:0;
-  display:flex;
-  align-items:center;
+  display:none;
   padding:60px;
   background:linear-gradient(to right,rgba(0,0,0,.95),rgba(0,0,0,.3));
 }
-#cardContent{
-  max-width:600px;
-}
-#card h1{
-  font-size:28px;
-  margin:0 0 10px;
-}
-#card p{
-  font-size:14px;
-  opacity:.85;
-}
+#card h1{font-size:28px;margin:0 0 10px}
+#card p{font-size:14px;opacity:.85}
 video{
   width:100%;
   height:100%;
   background:#000;
-}
-#error{
-  position:absolute;
-  inset:0;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  background:#000c;
 }
 </style>
 </head>
@@ -148,75 +126,90 @@ video{
 
 <div id="main">
   <div id="card">
-    <div id="cardContent">
+    <div>
       <h1 id="cardTitle"></h1>
       <p id="cardDesc"></p>
     </div>
   </div>
-
-  <div id="error"></div>
   <video id="video" controls autoplay playsinline></video>
 </div>
 
 <script>
-const video=document.getElementById('video');
 const list=document.getElementById('list');
+const search=document.getElementById('search');
 const card=document.getElementById('card');
 const cardTitle=document.getElementById('cardTitle');
 const cardDesc=document.getElementById('cardDesc');
 const watching=document.getElementById('watching');
 const now=document.getElementById('now');
-let items=[],index=0,hls=null,current=null;
+const video=document.getElementById('video');
 
-function select(i){
-  document.querySelectorAll('.item').forEach(e=>e.classList.remove('selected'));
+let items=[],filtered=[],focus=0,mode='filmes',hls=null;
+
+function setFocus(i){
+  document.querySelectorAll('.item').forEach(e=>e.classList.remove('focus'));
   const el=document.getElementById('i'+i);
   if(el){
-    el.classList.add('selected');
+    el.classList.add('focus');
     el.scrollIntoView({block:'center'});
-    current=items[i];
-    cardTitle.innerText=current.title;
-    cardDesc.innerText=current.desc || 'Conteúdo disponível para reprodução imediata.';
-    card.style.display='flex';
+    card.style.display='block';
+    cardTitle.innerText=filtered[i].title;
+    cardDesc.innerText=filtered[i].desc;
   }
-  index=i;
+  focus=i;
 }
 
 function play(){
-  if(!current)return;
+  const c=filtered[focus];
+  if(!c)return;
   card.style.display='none';
   watching.style.display='block';
-  now.innerText=current.title;
+  now.innerText=c.title;
   if(hls){hls.destroy();hls=null;}
-  if(current.url.endsWith('.m3u8') && Hls.isSupported()){
+  if(c.url.endsWith('.m3u8') && Hls.isSupported()){
     hls=new Hls();
-    hls.loadSource(current.url);
+    hls.loadSource(c.url);
     hls.attachMedia(video);
-  }else{
-    video.src=current.url;
-  }
+  }else video.src=c.url;
   video.play();
 }
 
 function render(){
   list.innerHTML='';
-  items.forEach((i,n)=>{
+  filtered.forEach((i,n)=>{
     const d=document.createElement('div');
     d.className='item';
     d.id='i'+n;
     d.innerText=i.title;
-    d.onclick=()=>{select(n);play();};
+    d.onclick=()=>{setFocus(n);play()};
     list.appendChild(d);
   });
-  select(0);
+  setFocus(0);
 }
 
 async function loadFilmes(){
-  const data=await fetch('./data/filmes.json').then(r=>r.json());
-  items=data.map(f=>({title:f.titulo,desc:f.descricao,url:f.url}));
+  mode='filmes';
+  const d=await fetch('./data/filmes.json').then(r=>r.json());
+  items=d.map(f=>({title:f.titulo,desc:f.descricao||'Filme disponível',url:f.url}));
+  filtered=items;
   render();
 }
+
+async function loadSeries(){
+  mode='series';
+  const d=await fetch('./data/series.json').then(r=>r.json());
+  items=[];
+  d.forEach(s=>{
+    (s.episodios||[]).forEach(e=>{
+      items.push({title:s.nome+' - '+e.titulo,desc:s.descricao||'Série',url:e.url});
+    });
+  });
+  filtered=items;
+  render();
+}
+
 async function loadTV(){
+  mode='tv';
   const txt=await fetch('./data/canais.m3u').then(r=>r.text());
   items=[];
   let name='';
@@ -224,15 +217,23 @@ async function loadTV(){
     if(l.startsWith('#EXTINF')) name=l.split(',').pop();
     else if(l.startsWith('http')) items.push({title:name,desc:'Canal ao vivo',url:l.trim()});
   });
+  filtered=items;
   render();
 }
 
+search.oninput=()=>{
+  const q=search.value.toLowerCase();
+  filtered=items.filter(i=>i.title.toLowerCase().includes(q));
+  render();
+};
+
 document.getElementById('btnFilmes').onclick=loadFilmes;
+document.getElementById('btnSeries').onclick=loadSeries;
 document.getElementById('btnTv').onclick=loadTV;
 
 window.addEventListener('keydown',e=>{
-  if(e.key==='ArrowDown')select(Math.min(index+1,items.length-1));
-  if(e.key==='ArrowUp')select(Math.max(index-1,0));
+  if(e.key==='ArrowDown')setFocus(Math.min(focus+1,filtered.length-1));
+  if(e.key==='ArrowUp')setFocus(Math.max(focus-1,0));
   if(e.key==='Enter')play();
 });
 
