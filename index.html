@@ -9,32 +9,104 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
-#side{width:320px;background:#111;display:flex;flex-direction:column}
-#logo{text-align:center;padding:20px}
-#logo img{max-width:220px}
-#search{margin:0 15px 10px;border:1px solid #b00;border-radius:8px;padding:8px;background:#000;color:#fff}
-#assistindo{padding:8px 15px;font-size:13px;display:none}
-#assistindo span{font-weight:700}
-#tabs{display:flex;padding:6px}
-#tabs button{flex:1;margin:0 2px;padding:10px;border:0;border-radius:6px;background:#222;color:#fff}
-#tabs button.active{background:#e50914}
-#list{flex:1;overflow:auto}
-.item{padding:10px 10px 10px 14px;border-bottom:1px solid #222;cursor:pointer}
-.item.active{background:#1a1a1a;border-left:4px solid #e50914}
-#player{flex:1;position:relative}
-video{width:100%;height:100%}
-#overlay{
-  position:absolute;top:0;left:0;right:0;bottom:0;
-  background:linear-gradient(to right,#000d 35%,transparent);
-  display:none;padding:40px
+body{
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family:Poppins;
+  display:flex;
+  height:100vh;
+  overflow:hidden
 }
-#overlay h1{margin:0;font-size:32px}
-#overlay p{max-width:420px;color:#ccc}
-#channelName{
-  position:absolute;bottom:20px;left:20px;
-  background:#000c;padding:10px 15px;border-radius:6px;
-  display:none;font-weight:700
+
+/* SIDEBAR */
+#side{
+  width:320px;
+  background:#111;
+  overflow:auto
+}
+
+#side button{
+  width:33%;
+  padding:10px;
+  border:0;
+  background:#222;
+  color:#fff;
+  margin:0 2px;
+  border-radius:4px;
+  cursor:pointer
+}
+
+#side button.active{
+  background:#e50914
+}
+
+#list{
+  position:relative
+}
+
+.item{
+  padding:10px;
+  border-bottom:1px solid #222;
+  cursor:pointer;
+  font-size:13px;
+}
+
+.item.active{
+  background:#1a1a1a;
+  border-left:4px solid #e50914;
+}
+
+/* PLAYER */
+#player{
+  flex:1;
+  background:#000;
+  position:relative
+}
+
+video{
+  width:100%;
+  height:100%
+}
+
+#error{
+  position:absolute;
+  color:#fff;
+  background:#000c;
+  padding:20px;
+  display:none;
+  z-index:5
+}
+
+/* OVERLAY NETFLIX */
+#overlay{
+  position:absolute;
+  right:0;
+  bottom:0;
+  width:45%;
+  padding:30px;
+  background:linear-gradient(to left, rgba(0,0,0,0.9), transparent);
+  z-index:4;
+  display:none;
+}
+
+#overlay h1{
+  font-size:26px;
+  margin:0 0 10px 0;
+  font-weight:700
+}
+
+#overlay p{
+  font-size:14px;
+  opacity:0.85;
+  max-width:90%
+}
+
+#assistindo{
+  padding:10px;
+  font-size:13px;
+  border-bottom:1px solid #222;
+  display:none
 }
 </style>
 </head>
@@ -42,143 +114,220 @@ video{width:100%;height:100%}
 <body>
 
 <div id="side">
-  <div id="logo">
-    <img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
+  <div>
+    <button id="f" class="active">FILMES</button>
+    <button id="s">SÉRIES</button>
+    <button id="t">TV</button>
   </div>
 
-  <input id="search" placeholder="Pesquisar...">
-
-  <div id="assistindo">Assistindo agora: <span></span></div>
-
-  <div id="tabs">
-    <button id="btTv">TV AO VIVO</button>
-    <button id="btFilme" class="active">FILMES</button>
-    <button id="btSerie">SÉRIES</button>
-  </div>
-
+  <div id="assistindo"></div>
   <div id="list"></div>
 </div>
 
 <div id="player">
+  <div id="error"></div>
+
+  <!-- OVERLAY -->
   <div id="overlay">
-    <h1 id="ovTitle"></h1>
-    <p id="ovDesc"></p>
+    <h1 id="ov-title"></h1>
+    <p id="ov-desc"></p>
   </div>
-  <div id="channelName"></div>
+
   <video id="video" controls autoplay playsinline></video>
 </div>
 
 <script>
-const video=document.getElementById('video');
-const list=document.getElementById('list');
-const assist=document.getElementById('assistindo');
-const assistName=assist.querySelector('span');
-const overlay=document.getElementById('overlay');
-const ovTitle=document.getElementById('ovTitle');
-const ovDesc=document.getElementById('ovDesc');
-const channelName=document.getElementById('channelName');
-const search=document.getElementById('search');
-const tabs=[btTv,btFilme,btSerie];
+const video = document.getElementById('video');
+const list = document.getElementById('list');
+const errorBox = document.getElementById('error');
+const overlay = document.getElementById('overlay');
+const ovTitle = document.getElementById('ov-title');
+const ovDesc = document.getElementById('ov-desc');
+const assistindo = document.getElementById('assistindo');
 
-let items=[],focusArea='list',index=0,hls;
+let hls;
+let currentItems = [];
+let currentIndex = 0;
+let currentMode = 'filmes';
+let overlayTimer;
 
-function setAssist(nome){
-  assist.style.display='block';
-  assistName.innerText=nome;
+/* ERROS */
+function showError(msg){
+  errorBox.style.display='block';
+  errorBox.innerText=msg;
 }
 
-function showOverlay(t,d){
-  ovTitle.innerText=t;
-  ovDesc.innerText=d||'';
-  overlay.style.display='block';
+function clearError(){
+  errorBox.style.display='none';
 }
 
-function hideOverlay(){overlay.style.display='none';}
+/* OVERLAY */
+function showOverlay(title, desc){
+  ovTitle.innerText = title || '';
+  ovDesc.innerText = desc || '';
+  overlay.style.display = 'block';
 
-function play(i){
+  clearTimeout(overlayTimer);
+  overlayTimer = setTimeout(()=>{
+    overlay.style.display='none';
+  },2000);
+}
+
+function hideOverlay(){
+  overlay.style.display='none';
+}
+
+/* PLAYER */
+function play(url, title){
   hideOverlay();
-  setAssist(i.nome);
+  assistindo.style.display='block';
+  assistindo.innerText = 'Assistindo agora: ' + title;
+
+  clearError();
   if(hls){hls.destroy();hls=null;}
-  if(i.tv){
-    channelName.innerText=i.nome;
-    channelName.style.display='block';
-    setTimeout(()=>channelName.style.display='none',2000);
+
+  try{
+    if(url.endsWith('.m3u8')){
+      if(Hls.isSupported()){
+        hls=new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.ERROR,()=>showError("Canal bloqueado pelo provedor (CORS)"));
+      }else{
+        video.src=url;
+      }
+    }else{
+      video.src=url;
+    }
+    video.play();
+  }catch(e){
+    showError("Este conteúdo não pode ser reproduzido");
   }
-  if(i.url.endsWith('.m3u8') && Hls.isSupported()){
-    hls=new Hls();
-    hls.loadSource(i.url);
-    hls.attachMedia(video);
-  }else video.src=i.url;
-  video.play();
 }
 
-function render(){
+/* RENDER LISTA */
+function renderList(){
   list.innerHTML='';
-  items.forEach((i,n)=>{
+  currentItems.forEach((item,i)=>{
     const d=document.createElement('div');
-    d.className='item'+(n===index?' active':'');
-    d.innerText=i.nome;
-    d.onclick=()=>{index=n;render();play(i);};
-    d.onmouseenter=()=>showOverlay(i.nome,i.desc);
+    d.className='item';
+    d.innerText=item.title;
+    if(i===currentIndex) d.classList.add('active');
+
+    d.onclick=()=>{
+      currentIndex=i;
+      updateSelection();
+      play(item.url,item.title);
+    };
+
+    d.onmouseenter=()=>{
+      if(currentMode!=='tv'){
+        showOverlay(item.title,item.desc||'');
+      }
+    };
+
     list.appendChild(d);
   });
 }
 
-async function loadFilmes(){
-  tabs.forEach(b=>b.classList.remove('active'));
-  btFilme.classList.add('active');
-  index=0;
-  const d=await fetch('./data/filmes.json').then(r=>r.json()).catch(()=>[]);
-  items=d.map(f=>({nome:f.titulo,url:f.url,desc:f.descricao||'Filme',tv:false}));
-  render();
+/* SELEÇÃO */
+function updateSelection(){
+  document.querySelectorAll('.item').forEach((el,i)=>{
+    el.classList.toggle('active', i===currentIndex);
+  });
+
+  const item=currentItems[currentIndex];
+  if(item && currentMode!=='tv'){
+    showOverlay(item.title,item.desc||'');
+  }
 }
 
+/* FILMES */
+async function loadFilmes(){
+  currentMode='filmes';
+  document.getElementById('f').classList.add('active');
+  document.getElementById('s').classList.remove('active');
+  document.getElementById('t').classList.remove('active');
+
+  const data = await fetch('./data/filmes.json').then(r=>r.json()).catch(()=>[]);
+  currentItems = data.map(f=>({
+    title:f.titulo,
+    url:f.url,
+    desc:f.descricao || 'Filme disponível no PaixãoFlix'
+  }));
+  currentIndex=0;
+  renderList();
+  updateSelection();
+}
+
+/* SERIES */
 async function loadSeries(){
-  tabs.forEach(b=>b.classList.remove('active'));
-  btSerie.classList.add('active');
-  index=0;
-  const d=await fetch('./data/series.json').then(r=>r.json()).catch(()=>[]);
-  items=[];
-  d.forEach(s=>{
-    s.episodios.forEach(e=>{
-      items.push({nome:`${s.nome} - ${e.titulo}`,url:e.url,desc:s.descricao||'Série',tv:false});
+  currentMode='series';
+  document.getElementById('s').classList.add('active');
+  document.getElementById('f').classList.remove('active');
+  document.getElementById('t').classList.remove('active');
+
+  const data = await fetch('./data/series.json').then(r=>r.json()).catch(()=>[]);
+  currentItems=[];
+  data.forEach(s=>{
+    (s.episodios||[]).forEach(e=>{
+      currentItems.push({
+        title:s.nome+' - '+e.titulo,
+        url:e.url,
+        desc:s.descricao || 'Episódio disponível'
+      });
     });
   });
-  render();
+  currentIndex=0;
+  renderList();
+  updateSelection();
 }
 
+/* TV */
 async function loadTV(){
-  tabs.forEach(b=>b.classList.remove('active'));
-  btTv.classList.add('active');
-  index=0;
-  const txt=await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
-  items=[];
-  if(!txt)return;
-  let nome='';
+  currentMode='tv';
+  document.getElementById('t').classList.add('active');
+  document.getElementById('f').classList.remove('active');
+  document.getElementById('s').classList.remove('active');
+
+  const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
+  currentItems=[];
+  if(!txt){showError("Lista IPTV indisponível");return;}
+
+  let name='';
   txt.split('\n').forEach(l=>{
-    if(l.startsWith('#EXTINF')) nome=l.split(',').pop();
-    else if(l.startsWith('http')) items.push({nome,url:l.trim(),desc:'Canal ao vivo',tv:true});
+    if(l.startsWith('#EXTINF')) name=l.split(',').pop();
+    else if(l.startsWith('http')){
+      currentItems.push({title:name,url:l.trim()});
+    }
   });
-  render();
+
+  currentIndex=0;
+  renderList();
 }
 
-btFilme.onclick=loadFilmes;
-btSerie.onclick=loadSeries;
-btTv.onclick=loadTV;
+/* BOTÕES */
+document.getElementById('f').onclick=loadFilmes;
+document.getElementById('s').onclick=loadSeries;
+document.getElementById('t').onclick=loadTV;
 
+/* SETAS */
 document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowDown'){index=Math.min(index+1,items.length-1);render();}
-  if(e.key==='ArrowUp'){index=Math.max(index-1,0);render();}
-  if(e.key==='Enter'){play(items[index]);}
+  if(e.key==='ArrowDown'){
+    currentIndex=Math.min(currentIndex+1,currentItems.length-1);
+    updateSelection();
+  }
+  if(e.key==='ArrowUp'){
+    currentIndex=Math.max(currentIndex-1,0);
+    updateSelection();
+  }
+  if(e.key==='Enter'){
+    const item=currentItems[currentIndex];
+    if(item) play(item.url,item.title);
+  }
 });
 
-search.oninput=()=>{
-  const q=search.value.toLowerCase();
-  document.querySelectorAll('.item').forEach(i=>{
-    i.style.display=i.innerText.toLowerCase().includes(q)?'block':'none';
-  });
-};
-
+/* INIT */
 loadFilmes();
 </script>
 
