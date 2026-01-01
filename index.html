@@ -1,304 +1,181 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PaixaoFlix TV</title>
+<meta charset="utf-8">
+<title>PaixãoFlix – Web TV</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial,Helvetica,sans-serif;
-  background:#000;
-  color:#fff;
-  overflow:hidden;
-}
-
-/* HEADER */
-header{
-  display:flex;
-  align-items:center;
-  gap:20px;
-  padding:12px 20px;
-  background:#111;
-}
-
-header img{
-  height:48px;
-}
-
-nav button{
-  background:#222;
-  border:none;
-  color:#fff;
-  padding:8px 14px;
-  border-radius:6px;
-  margin:0 2px;
-  cursor:pointer;
-}
-
-nav button.active{
-  border-left:4px solid red;
-  background:#333;
-}
-
-#search{
-  margin-left:auto;
-  padding:6px 10px;
-  border-radius:8px;
-  border:none;
-  outline:none;
-  width:180px;
-}
-
-/* LAYOUT */
-#app{
-  display:flex;
-  height:calc(100vh - 72px);
-}
-
-#list{
-  width:320px;
-  overflow-y:auto;
-  background:#111;
-}
-
-.item{
-  padding:10px 12px;
-  cursor:pointer;
-}
-
-.item.active{
-  background:#222;
-  border-left:4px solid red;
-}
-
-/* PLAYER */
-#player{
-  flex:1;
-  position:relative;
-  background:#000;
-}
-
-video, iframe{
-  width:100%;
-  height:100%;
-  border:none;
-  background:#000;
-}
-
-/* ASSISTINDO AGORA */
-#now{
-  position:absolute;
-  top:10px;
-  left:10px;
-  background:rgba(0,0,0,.7);
-  padding:6px 10px;
-  border-radius:6px;
-  font-size:14px;
-}
-
-/* OVERLAY NETFLIX */
-#netflixOverlay{
-  position:absolute;
-  bottom:40px;
-  left:40px;
-  display:none;
-  gap:15px;
-  align-items:flex-start;
-  background:rgba(0,0,0,.75);
-  padding:18px;
-  border-radius:10px;
-  max-width:620px;
-}
-
-#netflixOverlay img{
-  width:110px;
-  height:160px;
-  object-fit:cover;
-  border-radius:6px;
-}
-
-#netflixOverlay h2{
-  margin:0;
-  font-size:20px;
-}
-
-#netflixOverlay p{
-  margin-top:6px;
-  font-size:14px;
-  color:#ccc;
-}
-
-/* SCROLL */
-#list::-webkit-scrollbar{
-  width:6px;
-}
-#list::-webkit-scrollbar-thumb{
-  background:#444;
-  border-radius:10px;
-}
+body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
+#side{width:320px;background:#111;overflow:auto;position:relative}
+#logo{padding:15px;text-align:center}
+#logo img{max-width:200px}
+#search{width:calc(100% - 34px);margin:10px 17px;padding:8px;border-radius:6px;border:1px solid #b30000;background:#000;color:#fff}
+#now{padding:10px;font-size:13px;display:none}
+#buttons{display:flex;padding:5px}
+#buttons button{flex:1;margin:0 2px;padding:10px;border-radius:6px;border:0;background:#222;color:#fff}
+#buttons button.active{background:#e50914}
+.item{padding:10px;border-bottom:1px solid #222;cursor:pointer}
+.item.selected{background:#1a1a1a;border-left:4px solid #e50914}
+#player{flex:1;background:#000;position:relative}
+video{width:100%;height:100%}
+#overlay{position:absolute;bottom:20px;left:20px;background:#000c;padding:10px;border-radius:6px;display:none}
+#card{position:absolute;right:20px;top:20px;width:40%;background:#000e;padding:20px;border-radius:8px;display:none}
+#error{position:absolute;color:#fff;background:#000c;padding:20px;display:none}
 </style>
 </head>
 
 <body>
 
-<header>
-  <img src="logo.png" alt="PaixaoFlix">
-  <nav>
-    <button id="btnTv">TV</button>
-    <button id="btnFilmes">Filmes</button>
-    <button id="btnSeries">Séries</button>
-  </nav>
-  <input id="search" placeholder="Buscar...">
-</header>
-
-<div id="app">
-  <div id="list"></div>
-
-  <div id="player">
-    <div id="now"></div>
-
-    <video id="video" controls autoplay></video>
-
-    <div id="netflixOverlay">
-      <img id="ovImg">
-      <div>
-        <h2 id="ovTitle"></h2>
-        <p id="ovDesc"></p>
-      </div>
-    </div>
+<div id="side">
+  <div id="logo">
+    <img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
   </div>
+
+  <input id="search" placeholder="Pesquisar...">
+
+  <div id="now">Assistindo agora: <span id="nowTitle"></span></div>
+
+  <div id="buttons">
+    <button id="t">TV AO VIVO</button>
+    <button id="f" class="active">FILMES</button>
+    <button id="s">SÉRIES</button>
+  </div>
+
+  <div id="list"></div>
+</div>
+
+<div id="player">
+  <div id="overlay"></div>
+  <div id="card"></div>
+  <div id="error"></div>
+  <video id="video" controls autoplay playsinline></video>
 </div>
 
 <script>
-let mode='tv';
-let items=[];
-let index=0;
-
-const list=document.getElementById('list');
 const video=document.getElementById('video');
+const list=document.getElementById('list');
+const overlay=document.getElementById('overlay');
+const card=document.getElementById('card');
 const now=document.getElementById('now');
+const nowTitle=document.getElementById('nowTitle');
 const search=document.getElementById('search');
+let hls,items=[],idx=0;
 
-const btnTv=document.getElementById('btnTv');
-const btnFilmes=document.getElementById('btnFilmes');
-const btnSeries=document.getElementById('btnSeries');
+function showOverlay(txt){
+  overlay.innerText=txt;
+  overlay.style.display='block';
+  setTimeout(()=>overlay.style.display='none',2000);
+}
 
-const netflixOverlay=document.getElementById('netflixOverlay');
-const ovImg=document.getElementById('ovImg');
-const ovTitle=document.getElementById('ovTitle');
-const ovDesc=document.getElementById('ovDesc');
+function setNow(txt){
+  now.style.display='block';
+  nowTitle.innerText=txt;
+}
 
-let overlayTimer=null;
+function selectItem(i){
+  items.forEach(x=>x.classList.remove('selected'));
+  if(items[i]){
+    items[i].classList.add('selected');
+    items[i].scrollIntoView({block:'nearest'});
+  }
+  idx=i;
+}
 
-/* -------------------- LOADERS -------------------- */
-async function loadTv(){
-  const txt=await fetch('data/canais.m3u').then(r=>r.text());
-  items=[];
-  txt.split('#EXTINF').slice(1).forEach(c=>{
-    const name=c.split(',')[1]?.split('\n')[0];
-    const url=c.split('\n').find(l=>l.startsWith('http'));
-    if(name && url) items.push({title:name,url});
-  });
+function play(url,title,desc){
+  if(hls){hls.destroy();hls=null;}
+  card.style.display='none';
+  try{
+    if(url.endsWith('.m3u8')){
+      if(Hls.isSupported()){
+        hls=new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+      }else video.src=url;
+    }else video.src=url;
+    video.play();
+    setNow(title);
+    showOverlay(title);
+  }catch(e){}
+}
+
+function showCard(title,desc){
+  card.innerHTML='<h2>'+title+'</h2><p>'+desc+'</p>';
+  card.style.display='block';
 }
 
 async function loadFilmes(){
-  items=await fetch('data/filmes.json').then(r=>r.json());
+  list.innerHTML='';items=[];
+  const data=await fetch('./data/filmes.json').then(r=>r.json()).catch(()=>[]);
+  data.forEach(f=>{
+    const d=document.createElement('div');
+    d.className='item';
+    d.innerText=f.titulo;
+    d.onmouseenter=()=>showCard(f.titulo,f.descricao||'');
+    d.onclick=()=>play(f.url,f.titulo,f.descricao);
+    list.appendChild(d);items.push(d);
+  });
+  selectItem(0);
 }
 
 async function loadSeries(){
-  items=await fetch('data/series.json').then(r=>r.json());
-}
-
-/* -------------------- RENDER -------------------- */
-function render(){
-  list.innerHTML='';
-  items.forEach((i,n)=>{
-    const d=document.createElement('div');
-    d.className='item'+(n===index?' active':'');
-    d.innerText=i.title||i.nome;
-    list.appendChild(d);
+  list.innerHTML='';items=[];
+  const data=await fetch('./data/series.json').then(r=>r.json()).catch(()=>[]);
+  data.forEach(s=>{
+    const h=document.createElement('div');
+    h.className='item';
+    h.style.fontWeight='700';
+    h.innerText=s.nome;
+    list.appendChild(h);items.push(h);
+    (s.episodios||[]).forEach(e=>{
+      const d=document.createElement('div');
+      d.className='item';
+      d.style.paddingLeft='25px';
+      d.innerText=e.titulo;
+      d.onclick=()=>play(e.url,e.titulo,'');
+      list.appendChild(d);items.push(d);
+    });
   });
+  selectItem(0);
 }
 
-/* -------------------- PLAYER -------------------- */
-function play(item){
-  netflixOverlay.style.display='none';
-  now.innerText='Assistindo agora: '+(item.title||item.nome);
-
-  if(item.url){
-    video.src=item.url;
-    video.play();
-  }
-}
-
-/* -------------------- OVERLAY -------------------- */
-function showOverlay(item){
-  if(mode==='tv') return;
-  ovImg.src=item.poster||'';
-  ovTitle.innerText=item.title||item.nome;
-  ovDesc.innerText=item.desc||'';
-  netflixOverlay.style.display='flex';
-
-  clearTimeout(overlayTimer);
-  overlayTimer=setTimeout(()=>{
-    netflixOverlay.style.display='none';
-  },3000);
-}
-
-/* -------------------- NAV -------------------- */
-document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowDown'){
-    index=Math.min(index+1,items.length-1);
-    render();
-    showOverlay(items[index]);
-  }
-  if(e.key==='ArrowUp'){
-    index=Math.max(index-1,0);
-    render();
-    showOverlay(items[index]);
-  }
-  if(e.key==='Enter'){
-    play(items[index]);
-  }
-});
-
-/* -------------------- SEARCH -------------------- */
-search.addEventListener('input',()=>{
-  const q=search.value.toLowerCase();
-  document.querySelectorAll('.item').forEach(i=>{
-    i.style.display=i.innerText.toLowerCase().includes(q)?'block':'none';
+async function loadTV(){
+  list.innerHTML='';items=[];
+  const txt=await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
+  if(!txt)return;
+  let name='';
+  txt.split('\n').forEach(l=>{
+    if(l.startsWith('#EXTINF')) name=l.split(',').pop();
+    else if(l.startsWith('http')){
+      const d=document.createElement('div');
+      d.className='item';
+      d.innerText=name;
+      d.onclick=()=>play(l.trim(),name,'Canal ao vivo');
+      list.appendChild(d);items.push(d);
+    }
   });
-});
+  selectItem(0);
+}
 
-/* -------------------- BUTTONS -------------------- */
-btnTv.onclick=async()=>{
-  mode='tv';
-  btnTv.classList.add('active');
-  btnFilmes.classList.remove('active');
-  btnSeries.classList.remove('active');
-  await loadTv(); index=0; render();
+document.onkeydown=e=>{
+  if(e.key==='ArrowDown')selectItem(Math.min(idx+1,items.length-1));
+  if(e.key==='ArrowUp')selectItem(Math.max(idx-1,0));
+  if(e.key==='Enter')items[idx]?.click();
 };
 
-btnFilmes.onclick=async()=>{
-  mode='filmes';
-  btnFilmes.classList.add('active');
-  btnTv.classList.remove('active');
-  btnSeries.classList.remove('active');
-  await loadFilmes(); index=0; render();
+search.oninput=()=>{
+  const v=search.value.toLowerCase();
+  items.forEach(i=>i.style.display=i.innerText.toLowerCase().includes(v)?'block':'none');
 };
 
-btnSeries.onclick=async()=>{
-  mode='series';
-  btnSeries.classList.add('active');
-  btnTv.classList.remove('active');
-  btnFilmes.classList.remove('active');
-  await loadSeries(); index=0; render();
-};
+document.getElementById('f').onclick=loadFilmes;
+document.getElementById('s').onclick=loadSeries;
+document.getElementById('t').onclick=loadTV;
 
-/* START */
-btnTv.click();
+loadFilmes();
 </script>
 
 </body>
