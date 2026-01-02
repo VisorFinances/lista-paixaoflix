@@ -12,18 +12,21 @@
 body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
 #side{width:320px;background:#111;display:flex;flex-direction:column}
 #top{padding:15px}
-#logo{width:100%;max-height:70px;object-fit:contain}
-#search{margin-top:10px;padding:8px;border-radius:8px;border:1px solid #e50914;background:#000;color:#fff}
+#logo{width:100%;max-height:90px;object-fit:contain}
+#search{margin-top:10px;padding:8px;border-radius:8px;border:1px solid #e50914;background:#000;color:#fff;outline:none}
+#search.focus{box-shadow:0 0 0 2px #e50914}
 #now{margin-top:10px;font-size:13px;color:#aaa;display:none}
 #buttons{display:flex;gap:4px;padding:10px}
 #buttons button{flex:1;padding:10px;border:0;border-radius:6px;background:#222;color:#fff;font-weight:700}
 #buttons button.active{background:#e50914}
+#buttons button.focus{outline:2px solid #e50914}
+
 #list{flex:1;overflow-y:auto}
 .item{padding:10px;border-bottom:1px solid #222;cursor:pointer}
 .item.active{background:#1a1a1a;border-left:4px solid #e50914}
 
-#player{flex:1;position:relative;background:#000}
-video{width:100%;height:100%}
+#player{flex:1;position:relative}
+video{width:100%;height:100%;background:#000}
 
 #overlay{
   position:absolute;
@@ -37,20 +40,15 @@ video{width:100%;height:100%}
   border-left:4px solid #e50914
 }
 
-/* ===== CARD NETFLIX ===== */
 #card{
   position:absolute;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
+  top:0;left:0;width:100%;height:100%;
   background:linear-gradient(90deg,rgba(0,0,0,.9) 40%,rgba(0,0,0,.4));
   padding:60px;
-  box-sizing:border-box;
   display:none;
 }
-#card h1{margin:0 0 15px;font-size:36px}
-#card p{max-width:600px;font-size:18px;color:#ccc;line-height:1.4}
+#card h1{font-size:36px;margin:0 0 15px}
+#card p{font-size:18px;color:#ccc;max-width:600px}
 </style>
 </head>
 
@@ -75,8 +73,6 @@ video{width:100%;height:100%}
 <div id="player">
   <video id="video" controls autoplay playsinline></video>
   <div id="overlay"></div>
-
-  <!-- CARD -->
   <div id="card">
     <h1 id="cardTitle"></h1>
     <p id="cardDesc"></p>
@@ -89,58 +85,30 @@ const list=document.getElementById('list');
 const overlay=document.getElementById('overlay');
 const nowBox=document.getElementById('now');
 const nowTitle=document.getElementById('nowTitle');
-
 const card=document.getElementById('card');
 const cardTitle=document.getElementById('cardTitle');
 const cardDesc=document.getElementById('cardDesc');
+const search=document.getElementById('search');
+const buttons=[btnTV,btnFilmes,btnSeries];
 
-let hls=null;
-let mode='filmes';
-let items=[];
-let index=0;
-let autoNext=false;
-let overlayTimer=null;
+let hls=null, mode='filmes', items=[], index=0;
+let focusArea='list', focusIndex=0;
 
 /* ===== PLAYER ===== */
 function play(url,title,zap=false){
   card.style.display='none';
-
   if(hls){hls.destroy();hls=null;}
   if(url.endsWith('.m3u8') && Hls.isSupported()){
-    hls=new Hls();
-    hls.loadSource(url);
-    hls.attachMedia(video);
+    hls=new Hls();hls.loadSource(url);hls.attachMedia(video);
   } else video.src=url;
-
   video.play();
   nowBox.style.display='block';
   nowTitle.innerText=title;
-  autoNext=(mode==='series');
-
   if(zap){
     overlay.innerText=title;
     overlay.style.display='block';
-    clearTimeout(overlayTimer);
-    overlayTimer=setTimeout(()=>overlay.style.display='none',2000);
+    setTimeout(()=>overlay.style.display='none',2000);
   }
-}
-
-/* ===== AUTO NEXT ===== */
-video.onended=()=>{
-  if(autoNext && index<items.length-1){
-    index++;
-    const i=items[index];
-    play(i.url,i.title,false);
-    render();
-  }
-};
-
-/* ===== CARD ===== */
-function showCard(item){
-  if(mode==='tv' || !item.desc) return;
-  cardTitle.innerText=item.title;
-  cardDesc.innerText=item.desc;
-  card.style.display='block';
 }
 
 /* ===== RENDER ===== */
@@ -150,59 +118,45 @@ function render(){
     const d=document.createElement('div');
     d.className='item'+(n===index?' active':'');
     d.innerText=i.title;
-    d.onclick=()=>{
-      index=n;
-      if(i.action) i.action();
-      else play(i.url,i.title,mode==='tv');
-      render();
-    };
+    d.onclick=()=>{index=n;i.action?i.action():play(i.url,i.title,mode==='tv');render();}
     list.appendChild(d);
   });
   showCard(items[index]);
 }
 
+function showCard(i){
+  if(!i || !i.desc || mode==='tv'){card.style.display='none';return;}
+  cardTitle.innerText=i.title;
+  cardDesc.innerText=i.desc;
+  card.style.display='block';
+}
+
 /* ===== LOADERS ===== */
 async function loadFilmes(){
-  mode='filmes'; index=0;
+  mode='filmes';index=0;
   items=await fetch('./data/filmes.json').then(r=>r.json());
   render();
 }
-
 async function loadTV(){
-  mode='tv'; index=0;
+  mode='tv';index=0;
   const txt=await fetch('./data/canais.m3u').then(r=>r.text());
-  const lines=txt.split('\n');
-  items=[];
-  let name='';
-  lines.forEach(l=>{
+  items=[];let name='';
+  txt.split('\n').forEach(l=>{
     if(l.startsWith('#EXTINF')) name=l.split(',').pop();
     else if(l.startsWith('http')) items.push({title:name,url:l.trim()});
   });
-  render();
-  play(items[0].url,items[0].title,true);
+  render();play(items[0].url,items[0].title,true);
 }
-
 async function loadSeries(){
-  mode='series'; index=0;
+  mode='series';index=0;
   const data=await fetch('./data/series.json').then(r=>r.json());
-  items=data.map(s=>({
-    title:s.nome,
-    desc:s.desc,
-    action:()=>openSerie(s)
-  }));
+  items=data.map(s=>({title:s.nome,desc:s.desc,action:()=>openSerie(s)}));
   render();
 }
-
-function openSerie(serie){
+function openSerie(s){
   index=0;
-  items=[
-    {title:'◀ Voltar',desc:'',action:loadSeries},
-    ...serie.episodios.map(e=>({
-      title:e.titulo,
-      url:e.url,
-      desc:serie.desc
-    }))
-  ];
+  items=[{title:'◀ Voltar',action:loadSeries},
+    ...s.episodios.map(e=>({title:e.titulo,url:e.url,desc:s.desc}))];
   render();
 }
 
@@ -210,20 +164,36 @@ function openSerie(serie){
 btnTV.onclick=()=>{setActive(btnTV);loadTV();}
 btnFilmes.onclick=()=>{setActive(btnFilmes);loadFilmes();}
 btnSeries.onclick=()=>{setActive(btnSeries);loadSeries();}
+function setActive(b){buttons.forEach(x=>x.classList.remove('active'));b.classList.add('active');}
 
-function setActive(btn){
-  document.querySelectorAll('#buttons button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-/* ===== CONTROLE ===== */
+/* ===== CONTROLE TOTAL ===== */
 document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowDown'){index=Math.min(index+1,items.length-1);render();}
-  if(e.key==='ArrowUp'){index=Math.max(index-1,0);render();}
+  if(e.key==='ArrowUp'){
+    if(focusArea==='list' && index>0){index--;render();}
+    else if(focusArea==='buttons'){focusArea='search';search.classList.add('focus');}
+  }
+  if(e.key==='ArrowDown'){
+    if(focusArea==='search'){search.classList.remove('focus');focusArea='buttons';buttons[focusIndex].classList.add('focus');}
+    else if(focusArea==='buttons'){focusArea='list';buttons.forEach(b=>b.classList.remove('focus'));render();}
+    else if(focusArea==='list' && index<items.length-1){index++;render();}
+  }
+  if(e.key==='ArrowLeft' && focusArea==='buttons'){
+    focusIndex=Math.max(0,focusIndex-1);
+    buttons.forEach(b=>b.classList.remove('focus'));
+    buttons[focusIndex].classList.add('focus');
+  }
+  if(e.key==='ArrowRight' && focusArea==='buttons'){
+    focusIndex=Math.min(buttons.length-1,focusIndex+1);
+    buttons.forEach(b=>b.classList.remove('focus'));
+    buttons[focusIndex].classList.add('focus');
+  }
   if(e.key==='Enter'){
-    const i=items[index];
-    if(i.action) i.action();
-    else play(i.url,i.title,mode==='tv');
+    if(focusArea==='search') search.focus();
+    else if(focusArea==='buttons') buttons[focusIndex].click();
+    else if(focusArea==='list'){
+      const i=items[index];
+      i.action?i.action():play(i.url,i.title,mode==='tv');
+    }
   }
 });
 
