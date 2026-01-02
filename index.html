@@ -26,8 +26,7 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height
   color:#fff;
   font-weight:700
 }
-#buttons button.active,
-#buttons button.focused{background:#e50914}
+#buttons button.active{background:#e50914}
 
 #list{flex:1;overflow-y:auto}
 .item{padding:10px;border-bottom:1px solid #222;cursor:pointer}
@@ -47,6 +46,29 @@ video{width:100%;height:100%;background:#000}
   display:none;
   border-left:4px solid #e50914;
   max-width:60%;
+}
+
+/* ===== CARD ===== */
+#card{
+  position:absolute;
+  right:40px;
+  top:50%;
+  transform:translateY(-50%);
+  width:420px;
+  background:rgba(0,0,0,.85);
+  padding:25px;
+  border-left:4px solid #e50914;
+  display:none;
+}
+#card h2{
+  margin:0 0 10px;
+  font-size:26px;
+  font-weight:700;
+}
+#card p{
+  font-size:15px;
+  line-height:1.4;
+  color:#ddd;
 }
 </style>
 </head>
@@ -72,20 +94,22 @@ video{width:100%;height:100%;background:#000}
 <div id="player">
   <video id="video" controls autoplay playsinline></video>
   <div id="overlay"></div>
+
+  <div id="card">
+    <h2 id="cardTitle"></h2>
+    <p id="cardDesc"></p>
+  </div>
 </div>
 
 <script>
 const video=document.getElementById('video');
 const list=document.getElementById('list');
 const overlay=document.getElementById('overlay');
+const card=document.getElementById('card');
+const cardTitle=document.getElementById('cardTitle');
+const cardDesc=document.getElementById('cardDesc');
 const nowBox=document.getElementById('now');
 const nowTitle=document.getElementById('nowTitle');
-
-const buttons=[
-  btnTV,
-  btnFilmes,
-  btnSeries
-];
 
 let hls=null;
 let mode='filmes';
@@ -94,30 +118,37 @@ let index=0;
 let overlayTimer=null;
 
 /* ===== PLAYER ===== */
-function play(url,title,zap=false){
+function play(item,zap=false){
   if(hls){hls.destroy();hls=null;}
 
-  if(url.endsWith('.m3u8') && Hls.isSupported()){
+  if(item.url.endsWith('.m3u8') && Hls.isSupported()){
     hls=new Hls();
-    hls.loadSource(url);
+    hls.loadSource(item.url);
     hls.attachMedia(video);
   }else{
-    video.src=url;
+    video.src=item.url;
   }
 
   video.play();
+  card.style.display='none';
 
-  // Assistindo agora CORRETO
   nowBox.style.display='block';
-  nowTitle.textContent=title;
+  nowTitle.textContent=item.title;
 
-  // Overlay
-  overlay.textContent=title;
-  overlay.style.display='block';
-  clearTimeout(overlayTimer);
-  overlayTimer=setTimeout(()=>{
-    overlay.style.display='none';
-  },2000);
+  if(zap){
+    overlay.textContent=item.title;
+    overlay.style.display='block';
+    clearTimeout(overlayTimer);
+    overlayTimer=setTimeout(()=>overlay.style.display='none',2000);
+  }
+}
+
+/* ===== CARD ===== */
+function showCard(item){
+  if(mode==='tv') return;
+  cardTitle.textContent=item.title;
+  cardDesc.textContent=item.desc||'';
+  card.style.display='block';
 }
 
 /* ===== RENDER ===== */
@@ -129,8 +160,13 @@ function render(){
     d.textContent=i.title;
     d.onclick=()=>{
       index=n;
-      play(i.url,i.title,mode==='tv');
+      play(i,mode==='tv');
       render();
+    };
+    d.onmouseenter=()=>{
+      index=n;
+      render();
+      showCard(i);
     };
     list.appendChild(d);
   });
@@ -138,14 +174,14 @@ function render(){
 
 /* ===== LOADERS ===== */
 async function loadTV(){
-  mode='tv'; index=0;
+  mode='tv'; index=0; card.style.display='none';
   const txt=await fetch('./data/canais.m3u').then(r=>r.text());
   const lines=txt.split('\n');
   items=[];
   let name='';
   lines.forEach(l=>{
     if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-    else if(l.startsWith('http')) items.push({title:name,url:l.trim()});
+    else if(l.startsWith('http')) items.push({title:name,url:l});
   });
   render();
 }
@@ -154,6 +190,7 @@ async function loadFilmes(){
   mode='filmes'; index=0;
   items=await fetch('./data/filmes.json').then(r=>r.json());
   render();
+  showCard(items[0]);
 }
 
 async function loadSeries(){
@@ -161,45 +198,44 @@ async function loadSeries(){
   items=[];
   const data=await fetch('./data/series.json').then(r=>r.json());
   data.forEach(s=>{
-    (s.episodios||[]).forEach(e=>{
+    s.episodios.forEach(e=>{
       items.push({
-        title:`${s.nome} - ${e.titulo}`,
-        url:e.url
+        title:s.nome+' - '+e.titulo,
+        url:e.url,
+        desc:e.desc
       });
     });
   });
   render();
+  showCard(items[0]);
 }
 
 /* ===== BOTÕES ===== */
-btnTV.onclick=()=>{setActive(0);loadTV();}
-btnFilmes.onclick=()=>{setActive(1);loadFilmes();}
-btnSeries.onclick=()=>{setActive(2);loadSeries();}
+btnTV.onclick=()=>{setActive(btnTV);loadTV();}
+btnFilmes.onclick=()=>{setActive(btnFilmes);loadFilmes();}
+btnSeries.onclick=()=>{setActive(btnSeries);loadSeries();}
 
-function setActive(i){
-  buttons.forEach(b=>b.classList.remove('active'));
-  buttons[i].classList.add('active');
+function setActive(btn){
+  document.querySelectorAll('#buttons button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
 }
 
-/* ===== ZAP + NAVEGAÇÃO ===== */
-let section=1;
-let btnIndex=1;
-
+/* ===== ZAP ===== */
 document.addEventListener('keydown',e=>{
-  if(section===2){
-    if(e.key==='ArrowDown'){
-      index=Math.min(index+1,items.length-1);
-      if(mode==='tv') play(items[index].url,items[index].title,true);
-      render();
-    }
-    if(e.key==='ArrowUp'){
-      index=Math.max(index-1,0);
-      if(mode==='tv') play(items[index].url,items[index].title,true);
-      render();
-    }
-    if(e.key==='Enter'){
-      play(items[index].url,items[index].title,mode==='tv');
-    }
+  if(e.key==='ArrowDown'){
+    index=Math.min(index+1,items.length-1);
+    render();
+    if(mode==='tv') play(items[index],true);
+    else showCard(items[index]);
+  }
+  if(e.key==='ArrowUp'){
+    index=Math.max(index-1,0);
+    render();
+    if(mode==='tv') play(items[index],true);
+    else showCard(items[index]);
+  }
+  if(e.key==='Enter'){
+    play(items[index],mode==='tv');
   }
 });
 
