@@ -12,40 +12,35 @@
 body{margin:0;background:#000;color:#fff;font-family:Poppins;height:100vh;overflow:hidden}
 
 /* SPLASH */
-#splash{
-  position:fixed;inset:0;
-  background:#000;
-  display:flex;align-items:center;justify-content:center;
-  z-index:9999
-}
-#splash img{width:280px;animation:fade 2s}
-@keyframes fade{from{opacity:0}to{opacity:1}}
+#splash{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:9999}
+#splash img{width:280px}
 
-/* LAYOUT */
-#app{display:flex;height:100%;display:none}
-#side{width:320px;background:#111;display:flex;flex-direction:column}
+/* APP */
+#app{display:none;height:100%;display:flex}
+#side{width:320px;background:#111;display:flex;flex-direction:column;overflow:hidden}
 #top{padding:15px}
 #logo{width:100%;max-height:80px;object-fit:contain}
 #search{margin-top:10px;padding:8px;border-radius:6px;border:1px solid #333;background:#000;color:#fff}
-#now{margin-top:8px;font-size:13px;color:#aaa}
+#now{margin-top:6px;font-size:13px;color:#aaa}
 #buttons{display:flex;gap:5px;padding:10px}
 #buttons button{flex:1;padding:10px;border:0;border-radius:6px;background:#222;color:#fff;font-weight:700}
 #buttons button.active{background:#e50914}
 #list{flex:1;overflow-y:auto}
 #list::-webkit-scrollbar{width:5px}
 #list::-webkit-scrollbar-thumb{background:#444;border-radius:10px}
+
 .item{padding:10px;border-bottom:1px solid #222;cursor:pointer}
 .item.active{background:#1a1a1a;border-left:4px solid #e50914}
+
 #player{flex:1;position:relative}
 video{width:100%;height:100%}
+
 #overlay{
   position:absolute;bottom:30px;left:30px;
-  background:rgba(0,0,0,.7);
-  padding:10px 15px;
-  font-weight:700;display:none;
-  border-left:4px solid #e50914
+  background:rgba(0,0,0,.75);
+  padding:12px 18px;font-weight:700;
+  display:none;border-left:4px solid #e50914
 }
-.focus{outline:2px solid #e50914}
 </style>
 </head>
 
@@ -82,7 +77,7 @@ video{width:100%;height:100%}
 setTimeout(()=>{
   splash.style.display='none';
   app.style.display='flex';
-},2000);
+},1800);
 
 const video=document.getElementById('video');
 const list=document.getElementById('list');
@@ -91,20 +86,18 @@ const nowTitle=document.getElementById('nowTitle');
 const search=document.getElementById('search');
 
 let items=[],allItems=[],index=0,mode='tv',hls=null;
-let focusArea='list',menuIndex=0;
+let seriesStack=null;
 
-function play(url,title,zap=false){
+function play(url,title){
   if(hls){hls.destroy();hls=null;}
   if(url.endsWith('.m3u8') && Hls.isSupported()){
     hls=new Hls();hls.loadSource(url);hls.attachMedia(video);
   } else video.src=url;
   video.play();
   nowTitle.innerText=title;
-  if(zap){
-    overlay.innerText=title;
-    overlay.style.display='block';
-    setTimeout(()=>overlay.style.display='none',2000);
-  }
+  overlay.innerText=title;
+  overlay.style.display='block';
+  setTimeout(()=>overlay.style.display='none',2000);
 }
 
 function render(){
@@ -113,6 +106,16 @@ function render(){
     const d=document.createElement('div');
     d.className='item'+(n===index?' active':'');
     d.innerText=i.title;
+    d.onclick=()=>{
+      index=n;
+      if(i.episodes){
+        seriesStack=items;
+        items=i.episodes;
+        index=0;
+        render();
+      } else play(i.url,i.title);
+      render();
+    };
     list.appendChild(d);
   });
 }
@@ -127,36 +130,45 @@ async function loadTV(){
   });
   allItems=[...items];
   render();
-  play(items[0].url,items[0].title,true);
+  play(items[0].url,items[0].title);
 }
 
 async function loadFilmes(){
   mode='filmes'; index=0;
   const data=await fetch('./data/filmes.json').then(r=>r.json());
-  items=allItems=data.map(f=>({
-    title:f.titulo,
-    url:f.url
+  items=allItems=data.map(f=>({title:f.titulo,url:f.url}));
+  render();
+}
+
+async function loadSeries(){
+  mode='series'; index=0;
+  const data=await fetch('./data/series.json').then(r=>r.json());
+  items=data.map(s=>({
+    title:s.nome,
+    episodes:s.episodios.map(e=>({title:e.titulo,url:e.url}))
   }));
   render();
 }
 
 btnTV.onclick=()=>{setActive(btnTV);loadTV();}
 btnFilmes.onclick=()=>{setActive(btnFilmes);loadFilmes();}
-btnSeries.onclick=()=>alert('Séries já validadas anteriormente');
+btnSeries.onclick=()=>{setActive(btnSeries);loadSeries();}
 
 function setActive(b){
   [btnTV,btnFilmes,btnSeries].forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
 }
 
+search.oninput=()=>{
+  const q=search.value.toLowerCase();
+  items=allItems.filter(i=>i.title.toLowerCase().includes(q));
+  index=0;render();
+};
+
 document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowDown'){
-    if(index<items.length-1){index++; if(mode==='tv') play(items[index].url,items[index].title,true); render();}
-  }
-  if(e.key==='ArrowUp'){
-    if(index>0){index--; if(mode==='tv') play(items[index].url,items[index].title,true); render();}
-  }
-  if(e.key==='Enter') play(items[index].url,items[index].title,mode==='tv');
+  if(e.key==='ArrowDown'){if(index<items.length-1){index++;render();}}
+  if(e.key==='ArrowUp'){if(index>0){index--;render();}}
+  if(e.key==='Enter'){play(items[index].url,items[index].title);}
 });
 
 loadTV();
