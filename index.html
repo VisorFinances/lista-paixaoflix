@@ -14,75 +14,79 @@ body{
   font-family:Poppins;display:flex;
   height:100vh;overflow:hidden
 }
-#side{width:320px;background:#111;display:flex;flex-direction:column;z-index: 10;}
-#top{padding:15px; position: relative;}
-#header-row{display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;}
-#logo{max-width:150px;max-height:60px;object-fit:contain}
-#clock{font-size: 14px; font-weight: bold; color: #e50914;}
+#side{width:340px;background:#111;display:flex;flex-direction:column;z-index: 10;border-right: 1px solid #222;}
+#top{padding:20px; position: relative;}
+#header-row{display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;}
+#logo{max-width:180px; max-height:90px; object-fit:contain}
+#clock{font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 1px;}
 
 #search{
   width: 100%; box-sizing: border-box;
-  margin-top:10px;padding:8px;
+  margin-top:10px;padding:12px;
   border-radius:8px;
   border:1px solid #e50914;
-  background:#000;color:#fff
+  background:#000;color:#fff; outline: none;
 }
 #now{margin-top:10px;font-size:13px;color:#aaa;display:none}
 
-#buttons{display:grid; grid-template-columns: 1fr 1fr; gap:4px; padding:10px}
+#buttons{display:grid; grid-template-columns: 1fr 1fr; gap:6px; padding:10px}
 #buttons button{
   padding:10px;border:0;
   border-radius:6px;
   background:#222;color:#fff;
   font-weight:700; cursor: pointer;
-  font-size: 11px;
+  font-size: 11px; transition: 0.3s;
 }
 #buttons button.active{background:#e50914}
 
-#list{flex:1;overflow-y:auto}
+#list-container{flex:1; display:flex; flex-direction:column; overflow:hidden;}
+#list{flex:1;overflow-y:auto; padding-bottom: 20px;}
 #list::-webkit-scrollbar{width:4px}
 #list::-webkit-scrollbar-thumb{background:#444;border-radius:4px}
 
 .item{
-  padding:12px;border-bottom:1px solid #222;
+  padding:14px;border-bottom:1px solid #222;
   cursor:pointer; display: flex; justify-content: space-between; align-items: center;
 }
-.item .fav-icon { color: #555; font-size: 18px; }
+.item .fav-icon { color: #444; font-size: 20px; padding: 0 5px; }
 .item.is-fav .fav-icon { color: #e50914; }
 
 .focus{
-  background:#1a1a1a !important;
-  border-left:4px solid #e50914 !important;
+  background:#e50914 !important;
+  color: white !important;
   outline: none;
 }
 
 #player{flex:1;position:relative; background: #000;}
 video{width:100%;height:100%;background:#000}
 
-/* Overlays Melhorados */
+/* Overlays */
 #overlay-zap{
   position:absolute; bottom:50px; left:40px;
-  background:rgba(0,0,0,.8); padding:15px 25px;
-  font-size:24px; font-weight:700; display:none;
+  background:rgba(0,0,0,.85); padding:15px 25px;
+  font-size:26px; font-weight:700; display:none;
   border-left:6px solid #e50914; z-index: 5;
 }
 
 #overlay-meta {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.8); display: none;
-  flex-direction: column; justify-content: center; padding: 50px; box-sizing: border-box;
+  background: rgba(0,0,0,0.9); display: none;
+  flex-direction: column; justify-content: center; padding: 60px; box-sizing: border-box;
 }
-#overlay-meta h1 { font-size: 48px; margin: 0; color: #e50914; }
-#overlay-meta p { font-size: 18px; max-width: 600px; color: #ccc; }
-#overlay-meta .meta-info { margin: 15px 0; font-weight: bold; }
-#overlay-meta .btn-play { 
-    background: #e50914; color: #fff; border: none; padding: 15px 30px; 
+#overlay-meta h1 { font-size: 52px; margin: 0; color: #e50914; }
+#overlay-meta p { font-size: 18px; max-width: 700px; color: #ccc; line-height: 1.6; }
+#overlay-meta .meta-info { margin: 20px 0; font-weight: bold; font-size: 20px;}
+.btn-play { 
+    background: #e50914; color: #fff; border: none; padding: 18px 40px; 
     font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 5px; width: fit-content;
 }
 
-#download-app {
-    position: absolute; bottom: 10px; right: 10px; font-size: 10px; opacity: 0.5;
+#clear-hist {
+    margin: 10px; padding: 8px; background: #333; color: #ff4444; 
+    border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;
 }
+
+#download-app { padding: 10px; text-align: center; font-size: 11px; background: #0a0a0a;}
 </style>
 </head>
 
@@ -107,23 +111,28 @@ video{width:100%;height:100%;background:#000}
     <button id="btnHist">HISTÓRICO</button>
   </div>
 
-  <div id="list"></div>
+  <div id="list-container">
+    <div id="list"></div>
+    <button id="clear-hist" style="display:none;">LIMPAR HISTÓRICO</button>
+  </div>
   
   <div id="download-app">
-      <a href="https://github.com/VisorFinances/lista-paixaoflix" style="color:white; text-decoration:none;">Download App <img src="logo192.png" width="15"></a>
+      <a href="https://github.com/VisorFinances/lista-paixaoflix" style="color:white; text-decoration:none;">Download App <img src="logo192.png" width="16" style="vertical-align: middle;"></a>
   </div>
 </div>
 
 <div id="player">
   <video id="video" controls autoplay playsinline></video>
-  
   <div id="overlay-zap"></div>
 
   <div id="overlay-meta">
       <h1 id="meta-title">Título</h1>
-      <div class="meta-info">Nota: <span id="meta-rating">--</span> | <span id="meta-year">2024</span></div>
-      <p id="meta-desc">Descrição do conteúdo aqui...</p>
-      <button class="btn-play" id="btn-start-content" data-focus>ASSISTIR AGORA</button>
+      <div class="meta-info">Nota: <span id="meta-rating">--</span> | <span id="meta-year">2026</span></div>
+      <p id="meta-desc">Descrição do conteúdo...</p>
+      <div style="display:flex; gap: 15px;">
+        <button class="btn-play" id="btn-start-content">ASSISTIR AGORA</button>
+        <button class="btn-play" id="btn-close-meta" style="background:#444;">VOLTAR</button>
+      </div>
   </div>
 </div>
 
@@ -133,61 +142,108 @@ const list = document.getElementById('list');
 const overlayZap = document.getElementById('overlay-zap');
 const overlayMeta = document.getElementById('overlay-meta');
 const clockEl = document.getElementById('clock');
-const nowBox = document.getElementById('now');
-const nowTitle = document.getElementById('nowTitle');
+const searchInput = document.getElementById('search');
+const clearHistBtn = document.getElementById('clear-hist');
 
-let hls=null, items=[], mode='tv', index=0, favoritos = JSON.parse(localStorage.getItem('favs') || '[]');
+let hls=null, items=[], allItems=[], mode='tv', index=0;
+let favoritos = JSON.parse(localStorage.getItem('favs') || '[]');
 let historico = JSON.parse(localStorage.getItem('hist') || '[]');
 
-/* ================= RELÓGIO ================= */
+/* ================= UTILS ================= */
 function updateClock() {
     const now = new Date();
     clockEl.innerText = now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
 }
-setInterval(updateClock, 1000);
-updateClock();
+setInterval(updateClock, 1000); updateClock();
+
+/* ================= PESQUISA ================= */
+searchInput.oninput = () => {
+    const term = searchInput.value.toLowerCase();
+    items = allItems.filter(i => i.title.toLowerCase().includes(term));
+    render(true);
+};
 
 /* ================= PLAYER ================= */
 function play(url, title, isZap=false, meta={}){
-  if(hls){hls.destroy(); hls=null;}
-  
-  // Salvar no histórico (Continuar assistindo)
-  saveHistory(title, url, meta);
+    if(hls){hls.destroy(); hls=null;}
+    saveHistory(title, url, meta);
+    
+    if(url.endsWith('.m3u8') && Hls.isSupported()){
+        hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
+    } else { video.src=url; }
+    
+    video.play();
+    overlayMeta.style.display='none';
+    document.getElementById('now').style.display='block';
+    document.getElementById('nowTitle').innerText=title;
 
-  if(url.endsWith('.m3u8') && Hls.isSupported()){
-    hls=new Hls();
-    hls.loadSource(url);
-    hls.attachMedia(video);
-  }else{
-    video.src=url;
-  }
-  
-  video.play();
-  nowBox.style.display='block';
-  nowTitle.innerText=title;
-  overlayMeta.style.display='none';
-
-  if(isZap){
-    overlayZap.innerText=title;
-    overlayZap.style.display='block';
-    setTimeout(()=>overlayZap.style.display='none',2500);
-  }
+    if(isZap){
+        overlayZap.innerText=title;
+        overlayZap.style.display='block';
+        setTimeout(()=>overlayZap.style.display='none',2500);
+    }
 }
 
 function openMeta(item) {
     document.getElementById('meta-title').innerText = item.title;
-    document.getElementById('meta-desc').innerText = item.description || "Sem descrição disponível.";
-    document.getElementById('meta-rating').innerText = item.rating || "8.5";
+    document.getElementById('meta-desc').innerText = item.description || "Sinopse não disponível para este título.";
+    document.getElementById('meta-rating').innerText = item.rating || "8.2";
     overlayMeta.style.display = 'flex';
-    focusIndex = focusables.indexOf(document.getElementById('btn-start-content'));
-    updateFocus();
     
-    document.getElementById('btn-start-content').onclick = () => {
-        play(item.url, item.title, false, item);
-    };
+    document.getElementById('btn-start-content').onclick = () => play(item.url, item.title, false, item);
+    document.getElementById('btn-close-meta').onclick = () => overlayMeta.style.display = 'none';
 }
 
-/* ================= LÓGICA DE DADOS ================= */
+/* ================= CARREGADORES ================= */
+async function loadTV(){
+    mode='tv'; clearHistBtn.style.display='none';
+    const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>"");
+    let name=''; allItems=[];
+    txt.split('\n').forEach(l=>{
+        if(l.startsWith('#EXTINF')) name=l.split(',').pop();
+        else if(l.startsWith('http')) allItems.push({title:name.trim(), url:l.trim()});
+    });
+    items = [...allItems]; render();
+    if(items.length > 0) play(items[0].url, items[0].title, true);
+}
+
+async function loadJSON(type, file) {
+    mode = type; clearHistBtn.style.display='none';
+    allItems = await fetch(file).then(r => r.json()).catch(() => []);
+    items = [...allItems];
+    render();
+}
+
+function loadSeriesEpisodes(serie) {
+    const mainTitle = serie.nome || serie.title;
+    allItems = serie.episodios.map(e => ({
+        title: `${mainTitle} - ${e.titulo}`,
+        url: e.url,
+        description: serie.description,
+        isEpisode: true
+    }));
+    items = [...allItems];
+    render();
+    // Adiciona botão voltar no topo da lista
+    const back = document.createElement('div');
+    back.className = 'item'; back.innerHTML = '<strong>⬅ VOLTAR PARA SÉRIES</strong>';
+    back.onclick = () => loadJSON('series', './data/series.json');
+    list.prepend(back);
+}
+
+/* ================= HISTÓRICO E FAV ================= */
+function saveHistory(title, url, meta) {
+    historico = historico.filter(h => h.url !== url);
+    historico.unshift({title, url, meta, time: new Date().getTime()});
+    if(historico.length > 30) historico.pop();
+    localStorage.setItem('hist', JSON.stringify(historico));
+}
+
+clearHistBtn.onclick = () => {
+    historico = []; localStorage.setItem('hist', '[]');
+    items = []; render();
+};
+
 function toggleFav(e, item) {
     e.stopPropagation();
     const idx = favoritos.findIndex(f => f.url === item.url);
@@ -197,120 +253,82 @@ function toggleFav(e, item) {
     render();
 }
 
-function saveHistory(title, url, meta) {
-    historico = historico.filter(h => h.url !== url);
-    historico.unshift({title, url, meta, time: new Date().getTime()});
-    if(historico.length > 20) historico.pop();
-    localStorage.setItem('hist', JSON.stringify(historico));
+/* ================= RENDER ================= */
+function render(isFiltering=false){
+    list.innerHTML='';
+    if(!isFiltering && mode !== 'fav' && mode !== 'hist' && mode !== 'series_ep') items = [...allItems];
+
+    items.forEach((i, n)=>{
+        const d=document.createElement('div');
+        const isFav = favoritos.some(f => f.url === i.url);
+        d.className = 'item' + (isFav ? ' is-fav' : '');
+        d.innerHTML = `<span>${i.title || i.nome}</span> <span class="fav-icon">★</span>`;
+        
+        d.onclick=()=>{
+            if(mode === 'tv') play(i.url, i.title, true);
+            else if(mode === 'series' && i.episodios) loadSeriesEpisodes(i);
+            else openMeta(i);
+        };
+        d.querySelector('.fav-icon').onclick = (e) => toggleFav(e, i);
+        list.appendChild(d);
+    });
+    refreshFocus();
 }
 
-/* ================= RENDERIZAÇÃO ================= */
-function render(){
-  list.innerHTML='';
-  items.forEach((i,n)=>{
-    const d=document.createElement('div');
-    const isFav = favoritos.some(f => f.url === i.url);
-    d.className = 'item' + (isFav ? ' is-fav' : '');
-    d.innerHTML = `<span>${i.title}</span> <span class="fav-icon">★</span>`;
-    
-    d.onclick=()=>{
-      index=n;
-      if(mode === 'tv') play(i.url, i.title, true);
-      else openMeta(i);
-      render();
-    };
-
-    // Clique na estrela
-    d.querySelector('.fav-icon').onclick = (e) => toggleFav(e, i);
-
-    list.appendChild(d);
-  });
-  refreshFocus();
-}
-
-/* ================= CARREGADORES ================= */
-async function loadTV(){
-  mode='tv'; items=[];
-  const txt=await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>"");
-  let name='';
-  txt.split('\n').forEach(l=>{
-    if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-    else if(l.startsWith('http')) items.push({title:name.trim(), url:l.trim()});
-  });
-  render();
-  if(items.length > 0) play(items[0].url, items[0].title, true);
-}
-
-async function loadContent(type, file) {
-    mode = type;
-    items = await fetch(file).then(r => r.json()).catch(() => []);
-    render();
-}
-
-/* ================= BOTÕES ================= */
-document.getElementById('btnTV').onclick=()=>{setActive('btnTV'); loadTV();}
-document.getElementById('btnFilmes').onclick=()=>{setActive('btnFilmes'); loadContent('filmes', './data/filmes.json');}
-document.getElementById('btnSeries').onclick=()=>{setActive('btnSeries'); loadContent('series', './data/series.json');}
-document.getElementById('btnKids').onclick=()=>{setActive('btnKids'); loadContent('kids', './data/kids_filmes.json');}
-document.getElementById('btnFav').onclick=()=>{setActive('btnFav'); mode='fav'; items=favoritos; render();}
-document.getElementById('btnHist').onclick=()=>{setActive('btnHist'); mode='hist'; items=historico; render();}
-
-function setActive(id){
-  document.querySelectorAll('#buttons button').forEach(x=>x.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-/* ================= NAVEGAÇÃO CONTROLE REMOTO ================= */
+/* ================= NAVEGAÇÃO ================= */
 let focusables=[];
 let focusIndex=0;
 
 function refreshFocus(){
-  focusables=[
-    document.getElementById('search'),
-    ...document.querySelectorAll('#buttons button'),
-    ...document.querySelectorAll('#list .item'),
-    document.getElementById('btn-start-content')
-  ].filter(el => el && el.offsetParent !== null);
+    focusables=[
+        searchInput,
+        ...document.querySelectorAll('#buttons button'),
+        ...document.querySelectorAll('#list .item'),
+        document.getElementById('btn-start-content'),
+        document.getElementById('btn-close-meta'),
+        clearHistBtn
+    ].filter(el => el && el.offsetParent !== null);
 }
 
 function updateFocus(){
-  focusables.forEach(e=>e.classList.remove('focus'));
-  if(focusables[focusIndex]){
-    const el = focusables[focusIndex];
-    el.classList.add('focus');
-    el.scrollIntoView({block:'center', behavior:'smooth'});
-    if(el.tagName === 'INPUT') el.focus();
-  }
+    focusables.forEach(e=>e.classList.remove('focus'));
+    if(focusables[focusIndex]){
+        const el = focusables[focusIndex];
+        el.classList.add('focus');
+        el.scrollIntoView({block:'center', behavior:'smooth'});
+        if(el === searchInput) el.focus(); else searchInput.blur();
+    }
 }
 
-document.addEventListener('keydown',e=>{
-  refreshFocus();
-  if(e.key==='ArrowDown'){ e.preventDefault(); focusIndex=Math.min(focusIndex+1, focusables.length-1); }
-  if(e.key==='ArrowUp'){ e.preventDefault(); focusIndex=Math.max(focusIndex-1, 0); }
-  
-  // Atalho lateral para pular da lista para botões
-  if(e.key==='ArrowLeft' && focusIndex > 5) { focusIndex = 1; } 
-  
-  if(e.key==='Enter'){ 
-      e.preventDefault();
-      focusables[focusIndex]?.click(); 
-  }
-  updateFocus();
+document.addEventListener('keydown', e=>{
+    refreshFocus();
+    if(e.key==='ArrowDown'){ e.preventDefault(); focusIndex=Math.min(focusIndex+1, focusables.length-1); }
+    if(e.key==='ArrowUp'){ e.preventDefault(); focusIndex=Math.max(focusIndex-1, 0); }
+    if(e.key==='ArrowRight' && focusIndex < 7) { focusIndex = Math.min(focusIndex + 2, focusables.length-1); }
+    if(e.key==='ArrowLeft' && focusIndex > 0) { focusIndex = Math.max(focusIndex - 2, 0); }
+    
+    if(e.key==='Enter'){ 
+        e.preventDefault();
+        focusables[focusIndex]?.click(); 
+    }
+    updateFocus();
 });
 
-// Autoplay próxima série
-video.onended = () => {
-    if(mode === 'series') {
-        index = (index + 1) % items.length;
-        play(items[index].url, items[index].title);
-    }
-};
+/* ================= EVENTOS BOTÕES ================= */
+document.getElementById('btnTV').onclick=()=>{setActive('btnTV'); loadTV();}
+document.getElementById('btnFilmes').onclick=()=>{setActive('btnFilmes'); loadJSON('filmes', './data/filmes.json');}
+document.getElementById('btnSeries').onclick=()=>{setActive('btnSeries'); loadJSON('series', './data/series.json');}
+document.getElementById('btnKids').onclick=()=>{setActive('btnKids'); loadJSON('kids', './data/kids_filmes.json');}
+document.getElementById('btnFav').onclick=()=>{setActive('btnFav'); mode='fav'; items=[...favoritos]; render(true);}
+document.getElementById('btnHist').onclick=()=>{setActive('btnHist'); mode='hist'; items=[...historico]; clearHistBtn.style.display='block'; render(true);}
 
-/* ================= INIT ================= */
-window.onload = () => {
-    loadTV();
-    updateFocus();
-};
+function setActive(id){
+    document.querySelectorAll('#buttons button').forEach(x=>x.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    searchInput.value = '';
+}
+
+window.onload = () => { loadTV(); updateFocus(); };
 </script>
 
 </body>
