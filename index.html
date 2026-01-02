@@ -67,36 +67,32 @@ const overlay = document.getElementById('overlay');
 const nowBox = document.getElementById('now');
 const nowTitle = document.getElementById('nowTitle');
 
-let hls = null;
-let mode = 'filmes';
-let items = [];
-let index = 0;
-let overlayTimer = null;
+let hls=null;
+let mode='filmes';
+let items=[];
+let index=0;
+let overlayTimer=null;
 
 /* ===== PLAYER ===== */
-function play(url, title, zap=false){
+function play(url,title,zap=false){
   if(hls){hls.destroy();hls=null;}
   if(url.endsWith('.m3u8') && Hls.isSupported()){
-    hls = new Hls();
-    hls.loadSource(url);
-    hls.attachMedia(video);
-  } else {
-    video.src = url;
-  }
-  video.play();
+    hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
+  } else video.src=url;
 
-  nowBox.style.display = 'block';
-  nowTitle.innerText = title;
+  video.play();
+  nowBox.style.display='block';
+  nowTitle.innerText=title;
 
   if(zap){
-    overlay.innerText = title;
-    overlay.style.display = 'block';
+    overlay.innerText=title;
+    overlay.style.display='block';
     clearTimeout(overlayTimer);
-    overlayTimer = setTimeout(()=>overlay.style.display='none',2000);
+    overlayTimer=setTimeout(()=>overlay.style.display='none',2000);
   }
 }
 
-/* ===== LIST RENDER ===== */
+/* ===== RENDER ===== */
 function render(){
   list.innerHTML='';
   items.forEach((i,n)=>{
@@ -105,7 +101,8 @@ function render(){
     d.innerText=i.title;
     d.onclick=()=>{
       index=n;
-      play(i.url,i.title,mode==='tv');
+      if(i.action) i.action();
+      else play(i.url,i.title,mode==='tv');
       render();
     };
     list.appendChild(d);
@@ -113,10 +110,16 @@ function render(){
 }
 
 /* ===== LOADERS ===== */
+async function loadFilmes(){
+  mode='filmes'; index=0;
+  items=await fetch('./data/filmes.json').then(r=>r.json());
+  render();
+}
+
 async function loadTV(){
   mode='tv'; index=0;
-  const txt = await fetch('./data/canais.m3u').then(r=>r.text());
-  const lines = txt.split('\n');
+  const txt=await fetch('./data/canais.m3u').then(r=>r.text());
+  const lines=txt.split('\n');
   items=[];
   let name='';
   lines.forEach(l=>{
@@ -127,24 +130,27 @@ async function loadTV(){
   play(items[0].url,items[0].title,true);
 }
 
-async function loadFilmes(){
-  mode='filmes'; index=0;
-  items = await fetch('./data/filmes.json').then(r=>r.json());
+/* ===== SÉRIES (PASSO 1) ===== */
+async function loadSeries(){
+  mode='series'; index=0;
+  const data=await fetch('./data/series.json').then(r=>r.json());
+
+  items=data.map(s=>({
+    title:s.nome,
+    action:()=>openSerie(s)
+  }));
   render();
 }
 
-async function loadSeries(){
-  mode='series'; index=0;
-  items=[];
-  const data = await fetch('./data/series.json').then(r=>r.json());
-  data.forEach(s=>{
-    s.episodios.forEach(e=>{
-      items.push({
-        title: s.nome + ' - ' + e.titulo,
-        url: e.url
-      });
-    });
-  });
+function openSerie(serie){
+  index=0;
+  items=[
+    {title:'◀ Voltar',action:loadSeries},
+    ...serie.episodios.map(e=>({
+      title:e.titulo,
+      url:e.url
+    }))
+  ];
   render();
 }
 
@@ -158,20 +164,14 @@ function setActive(btn){
   btn.classList.add('active');
 }
 
-/* ===== ZAP RÁPIDO ===== */
+/* ===== ZAP ===== */
 document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowDown'){
-    index=Math.min(index+1,items.length-1);
-    if(mode==='tv') play(items[index].url,items[index].title,true);
-    render();
-  }
-  if(e.key==='ArrowUp'){
-    index=Math.max(index-1,0);
-    if(mode==='tv') play(items[index].url,items[index].title,true);
-    render();
-  }
+  if(e.key==='ArrowDown'){index=Math.min(index+1,items.length-1);render();}
+  if(e.key==='ArrowUp'){index=Math.max(index-1,0);render();}
   if(e.key==='Enter'){
-    play(items[index].url,items[index].title,mode==='tv');
+    const i=items[index];
+    if(i.action) i.action();
+    else play(i.url,i.title,mode==='tv');
   }
 });
 
