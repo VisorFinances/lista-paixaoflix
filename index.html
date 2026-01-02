@@ -23,8 +23,8 @@ body{
 #clock{font-size: 24px; font-weight: 700; color: #fff; line-height: 1;}
 #date{font-size: 14px; color: #fff; margin-top: 4px; opacity: 0.8;}
 
-#app-download-top { text-align: center; margin-bottom: 10px; font-size: 11px; }
-#app-download-top a { color: #888; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px; }
+#app-download-top { text-align: center; margin-bottom: 10px; font-size: 11px; display: flex; flex-direction: column; gap: 5px; align-items: center;}
+#app-download-top a { color: #888; text-decoration: none; display: flex; align-items: center; gap: 5px; }
 
 #search{
   width: 100%; box-sizing: border-box;
@@ -45,10 +45,11 @@ body{
 #list::-webkit-scrollbar{width:4px}
 #list::-webkit-scrollbar-thumb{background:#444;border-radius:4px}
 
-.item{ padding:14px;border-bottom:1px solid #222; cursor:pointer; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid transparent; transition: 0.1s;}
+.item{ padding:14px;border-bottom:1px solid #222; cursor:pointer; display: flex; flex-direction: column; border-left: 5px solid transparent; transition: 0.1s;}
 .item.focus{ border-left-color: #e50914; background: rgba(255,255,255,0.05) !important; color: white !important; outline: none; }
-.item.back-btn { color: #e50914; font-weight: bold; border-bottom: 2px solid #e50914; }
-.item .fav-icon { color: #555; font-size: 18px; }
+.item .row-main { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+.item .epg { font-size: 11px; color: #e50914; margin-top: 4px; font-weight: bold; }
+.item .fav-icon { color: #555; font-size: 16px; }
 
 #buttons button.focus, #search.focus, .btn-play.focus, .btn-back.focus { outline: 2px solid white; background: #444; }
 
@@ -68,7 +69,8 @@ video{width:100%;height:100%;background:#000}
   display: none; flex-direction: column; justify-content: center; padding: 60px; box-sizing: border-box;
 }
 #overlay-meta h1 { font-size: 56px; margin: 0; color: #fff; }
-#overlay-meta p { font-size: 20px; max-width: 600px; color: #ccc; line-height: 1.6; }
+#overlay-meta .meta-details { color: #e50914; font-weight: bold; font-size: 20px; margin-top: 10px; }
+#overlay-meta p { font-size: 18px; max-width: 600px; color: #ccc; line-height: 1.6; margin-top: 20px; }
 
 .btn-play { background: #e50914; color: #fff; border: none; padding: 22px 50px; font-size: 22px; font-weight: bold; cursor: pointer; border-radius: 8px; }
 .btn-back { background: #333; color: #fff; border: none; padding: 22px 30px; font-size: 22px; font-weight: bold; cursor: pointer; border-radius: 8px; margin-left: 15px; }
@@ -88,7 +90,10 @@ video{width:100%;height:100%;background:#000}
     </div>
     <div id="app-download-top">
         <a href="https://github.com/VisorFinances/lista-paixaoflix">
-            <img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo192.png?raw=true" width="14"> Baixar Aplicativo PaixãoFlix
+            <img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo192.png?raw=true" width="14"> PaixãoFlix Mobile
+        </a>
+        <a href="https://github.com/VisorFinances/lista-paixaoflix">
+            <img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true" width="14"> PaixãoFlix TV Box
         </a>
     </div>
     <input id="search" placeholder="Pesquisar...">
@@ -114,7 +119,8 @@ video{width:100%;height:100%;background:#000}
 
   <div id="overlay-meta">
       <h1 id="meta-title">Título</h1>
-      <p id="meta-desc">Descrição do conteúdo...</p>
+      <div class="meta-details">★ <span id="meta-rating">--</span> | <span id="meta-year">2026</span></div>
+      <p id="meta-desc">Descrição...</p>
       <div style="display:flex; margin-top: 30px;">
         <button class="btn-play" id="btn-start-content">ASSISTIR AGORA</button>
         <button class="btn-back" id="btn-close-meta">VOLTAR</button>
@@ -157,11 +163,12 @@ function play(url, title, isZap=false){
 }
 
 async function loadTV(){
-    mode='tv'; currentSerieEpisodes=null; const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>"");
+    mode='tv'; currentSerieEpisodes=null; 
+    const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>"");
     let name=''; allItems=[];
     txt.split('\n').forEach(l=>{
         if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-        else if(l.startsWith('http')) allItems.push({title:name.trim(), url:l.trim()});
+        else if(l.startsWith('http')) allItems.push({title:name.trim(), url:l.trim(), epg: "Programação ao vivo"});
     });
     items = [...allItems]; render();
     if(items.length > 0) play(items[0].url, items[0].title, true);
@@ -177,11 +184,10 @@ function render(customList = null){
     list.innerHTML='';
     const target = customList || items;
     
-    // Se estivermos dentro de uma série, adiciona o botão voltar
     if(currentSerieEpisodes) {
         const back = document.createElement('div');
-        back.className = 'item back-btn';
-        back.innerHTML = '<span>⬅ VOLTAR PARA LISTA</span>';
+        back.className = 'item';
+        back.innerHTML = '<div class="row-main"><span>⬅ VOLTAR PARA LISTA</span></div>';
         back.onclick = () => { currentSerieEpisodes = null; render(); focusIndex = 7; updateFocus(); };
         list.appendChild(back);
     }
@@ -189,13 +195,15 @@ function render(customList = null){
     target.forEach((i)=>{
         const d=document.createElement('div');
         d.className = 'item';
-        d.innerHTML = `<span>${i.title || i.nome}</span> <span class="fav-icon">★</span>`;
+        let html = `<div class="row-main"><span>${i.title || i.nome}</span> <span class="fav-icon">★</span></div>`;
+        if(mode === 'tv' && i.epg) html += `<div class="epg">${i.epg}</div>`;
+        d.innerHTML = html;
         d.onclick=()=>{ 
             if(mode==='tv') play(i.url, i.title, true);
             else if(i.episodios) { 
-                currentSerieEpisodes = i.episodios.map(e => ({...e, title: `${i.nome} - ${e.titulo}`, description: i.description}));
+                currentSerieEpisodes = i.episodios.map(e => ({...e, title: `${i.nome} - ${e.titulo}`, description: i.description, rating: i.rating, year: i.year}));
                 render(currentSerieEpisodes);
-                focusIndex = 7; // Foca no botão voltar
+                focusIndex = 7;
                 updateFocus();
             }
             else showMeta(i); 
@@ -207,7 +215,9 @@ function render(customList = null){
 
 function showMeta(item) {
     document.getElementById('meta-title').innerText = item.title || item.nome;
-    document.getElementById('meta-desc').innerText = item.description || "Inicie para assistir.";
+    document.getElementById('meta-desc').innerText = item.description || "Sem descrição disponível.";
+    document.getElementById('meta-rating').innerText = item.rating || "8.5";
+    document.getElementById('meta-year').innerText = item.year || "2026";
     overlayMeta.style.display = 'flex';
     document.getElementById('btn-start-content').onclick = () => play(item.url, item.title || item.nome);
 }
@@ -231,14 +241,14 @@ function updateFocus(){
         el.scrollIntoView({block:'center', behavior:'smooth'});
         if(el === searchInput) el.focus(); else searchInput.blur();
 
-        if(el.classList.contains('item') && !el.classList.contains('back-btn')){
+        if(el.classList.contains('item')){
             const listItems = Array.from(document.querySelectorAll('#list .item'));
             const idxInList = listItems.indexOf(el);
-            // Ajuste de índice se houver botão voltar
+            const isBackBtn = currentSerieEpisodes && idxInList === 0;
             const realIdx = currentSerieEpisodes ? idxInList - 1 : idxInList;
             const item = currentSerieEpisodes ? currentSerieEpisodes[realIdx] : items[idxInList];
             
-            if(item && mode !== 'tv') showMeta(item);
+            if(!isBackBtn && item && mode !== 'tv') showMeta(item);
             if(item && mode === 'tv') {
                 clearTimeout(zapDelayTimer);
                 zapDelayTimer = setTimeout(() => play(item.url, item.title, true), 800);
