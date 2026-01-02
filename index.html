@@ -11,7 +11,7 @@
 <style>
 body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh}
 #side{width:320px;background:#111;overflow:auto}
-#side button{width:33%;padding:10px;border:0;background:#222;color:#fff}
+#side button{width:25%;padding:10px;border:0;background:#222;color:#fff}
 #side button.active{background:#e50914}
 .item{padding:10px;border-bottom:1px solid #222;cursor:pointer}
 .item:hover{background:#1a1a1a}
@@ -19,7 +19,7 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height
 video{width:100%;height:100%}
 #error{position:absolute;color:#fff;background:#000c;padding:20px;display:none;z-index:5}
 
-/* OVERLAY ZAP */
+/* OVERLAY */
 #overlay{
   position:absolute;
   left:40px;
@@ -58,7 +58,8 @@ video{width:100%;height:100%}
   <div>
     <button id="f">FILMES</button>
     <button id="s">SÉRIES</button>
-    <button id="t" class="active">TV</button>
+    <button id="tv">TV</button>
+    <button id="c247" class="active">24/7</button>
   </div>
   <div id="list"></div>
 </div>
@@ -91,10 +92,38 @@ const cardTitle=document.getElementById('cardTitle');
 const cardDesc=document.getElementById('cardDesc');
 
 let hls,overlayTimer;
-let tvChannels=[],currentTVIndex=0;
-let mode='tv';
+let channels=[],index=0;
+let mode='247';
 
-/* CARD */
+/* DADOS 24/7 (ARCHIVE.ORG) */
+const canais247=[
+  {
+    nome:"Tom & Jerry 24/7",
+    tipo:"DESENHO 24/7",
+    desc:"Episódios clássicos de Tom & Jerry sem parar",
+    url:"https://archive.org/download/tom-jerry-collection-720p/Tom%20and%20Jerry%20Collection.m3u8"
+  },
+  {
+    nome:"Chapolin 24/7",
+    tipo:"SÉRIE 24/7",
+    desc:"Episódios clássicos de Chapolin Colorado",
+    url:"https://archive.org/download/chapolin-colorado/Chapolin.m3u8"
+  },
+  {
+    nome:"Chaves 24/7",
+    tipo:"SÉRIE 24/7",
+    desc:"Canal contínuo com episódios de Chaves",
+    url:"https://archive.org/download/chaves-series/Chaves.m3u8"
+  },
+  {
+    nome:"Filmes Clássicos 24/7",
+    tipo:"FILMES 24/7",
+    desc:"Cinema clássico em transmissão contínua",
+    url:"https://archive.org/download/classic_movies_collection/classic_movies.m3u8"
+  }
+];
+
+/* UI */
 function showCard(title,desc){
   if(!desc){card.style.display='none';return;}
   cardTitle.innerText=title;
@@ -102,8 +131,6 @@ function showCard(title,desc){
   card.style.display='block';
 }
 function hideCard(){card.style.display='none';}
-
-/* OVERLAY */
 function showOverlay(type,title){
   overlayType.innerText=type;
   overlayTitle.innerText=title;
@@ -111,7 +138,6 @@ function showOverlay(type,title){
   clearTimeout(overlayTimer);
   overlayTimer=setTimeout(()=>overlay.style.display='none',2000);
 }
-
 function showError(msg){errorBox.style.display='block';errorBox.innerText=msg;}
 function clearError(){errorBox.style.display='none';}
 
@@ -127,53 +153,46 @@ function play(url,title,type){
         hls=new Hls();
         hls.loadSource(url);
         hls.attachMedia(video);
-        hls.on(Hls.Events.ERROR,()=>showError("Canal bloqueado pelo provedor (CORS)"));
+        hls.on(Hls.Events.ERROR,()=>showError("Erro no stream"));
       }else video.src=url;
     }else video.src=url;
     video.play();
   }catch(e){showError("Erro ao reproduzir");}
 }
 
-/* TV */
-async function loadTV(){
-  mode='tv';
+/* 24/7 */
+function load247(){
+  mode='247';
   list.innerHTML='';
-  tvChannels=[];
-  currentTVIndex=0;
+  channels=canais247;
+  index=0;
 
-  const txt=await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
-  if(!txt){showError("Lista IPTV indisponível");return;}
-
-  let name='';
-  txt.split('\n').forEach(l=>{
-    if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-    else if(l.startsWith('http')){
-      tvChannels.push({name,url:l.trim()});
-      const d=document.createElement('div');
-      d.className='item';
-      d.innerText=name;
-      d.onmouseenter=()=>showCard(name,'Canal de TV ao vivo');
-      d.onclick=()=>{currentTVIndex=tvChannels.length-1;play(l.trim(),name,'TV AO VIVO');};
-      list.appendChild(d);
-    }
+  canais247.forEach((c,i)=>{
+    const d=document.createElement('div');
+    d.className='item';
+    d.innerText=c.nome;
+    d.onmouseenter=()=>showCard(c.nome,c.desc);
+    d.onclick=()=>{index=i;play(c.url,c.nome,c.tipo);};
+    list.appendChild(d);
   });
 
-  if(tvChannels.length>0) play(tvChannels[0].url,tvChannels[0].name,'TV AO VIVO');
+  play(canais247[0].url,canais247[0].nome,canais247[0].tipo);
 }
 
-/* ZAP */
+/* CONTROLE REMOTO */
 document.addEventListener('keydown',e=>{
-  if(mode!=='tv')return;
-  if(e.key==='ArrowUp'){currentTVIndex=(currentTVIndex-1+tvChannels.length)%tvChannels.length;play(tvChannels[currentTVIndex].url,tvChannels[currentTVIndex].name,'TV AO VIVO');}
-  if(e.key==='ArrowDown'){currentTVIndex=(currentTVIndex+1)%tvChannels.length;play(tvChannels[currentTVIndex].url,tvChannels[currentTVIndex].name,'TV AO VIVO');}
+  if(mode!=='247')return;
+  if(e.key==='ArrowUp'){index=(index-1+channels.length)%channels.length;play(channels[index].url,channels[index].nome,channels[index].tipo);}
+  if(e.key==='ArrowDown'){index=(index+1)%channels.length;play(channels[index].url,channels[index].nome,channels[index].tipo);}
 });
 
 /* BOTÕES */
-document.getElementById('t').onclick=()=>loadTV();
+document.getElementById('c247').onclick=()=>load247();
+document.getElementById('tv').onclick=()=>{mode='tv';list.innerHTML='';hideCard();};
 document.getElementById('f').onclick=()=>{mode='filmes';list.innerHTML='';hideCard();};
 document.getElementById('s').onclick=()=>{mode='series';list.innerHTML='';hideCard();};
 
-loadTV();
+load247();
 </script>
 
 </body>
