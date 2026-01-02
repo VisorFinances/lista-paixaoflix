@@ -2,183 +2,209 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>PaixãoFlix</title>
+<title>PaixãoFlix – Web TV</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="favicon.ico">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#000;color:#fff;font-family:Poppins;height:100vh;display:flex;overflow:hidden}
-:focus{outline:3px solid #e50914}
-
+body{
+  margin:0;background:#000;color:#fff;
+  font-family:Poppins;display:flex;
+  height:100vh;overflow:hidden
+}
 #side{width:320px;background:#111;display:flex;flex-direction:column}
-#top{padding:12px}
-#logo{width:100%;max-height:70px;object-fit:contain;margin-bottom:8px}
-#search{width:100%;padding:8px;border-radius:6px;background:#000;color:#fff;border:1px solid #333}
-#now{font-size:12px;color:#aaa;margin-top:6px}
+#top{padding:15px}
+#logo{width:100%;max-height:80px;object-fit:contain}
+#search{
+  margin-top:10px;padding:6px;
+  border-radius:8px;
+  border:1px solid #e50914;
+  background:#000;color:#fff
+}
+#now{margin-top:10px;font-size:13px;color:#aaa;display:none}
 
-#buttons{display:flex;gap:4px;padding:8px}
-#buttons button{flex:1;background:#222;color:#fff;border:0;padding:8px;border-radius:6px}
+#buttons{display:flex;gap:4px;padding:10px}
+#buttons button{
+  flex:1;padding:10px;border:0;
+  border-radius:6px;
+  background:#222;color:#fff;
+  font-weight:700
+}
 #buttons button.active{background:#e50914}
 
 #list{flex:1;overflow-y:auto}
-#list::-webkit-scrollbar{width:5px}
-#list::-webkit-scrollbar-thumb{background:#333;border-radius:10px}
+#list::-webkit-scrollbar{width:4px}
+#list::-webkit-scrollbar-thumb{background:#444;border-radius:4px}
 
-.item{padding:10px;border-bottom:1px solid #222;cursor:pointer}
-.item.active{background:#1a1a1a;border-left:4px solid #e50914}
+.item{
+  padding:10px;border-bottom:1px solid #222;
+  cursor:pointer
+}
+.focus{
+  background:#1a1a1a;
+  border-left:4px solid #e50914
+}
 
 #player{flex:1;position:relative}
-video{width:100%;height:100%}
+video{width:100%;height:100%;background:#000}
 
 #overlay{
- position:absolute;
- bottom:30px;
- left:30px;
- background:rgba(0,0,0,.8);
- padding:14px;
- max-width:420px;
- display:none;
- border-left:4px solid #e50914
+  position:absolute;
+  bottom:40px;
+  left:40px;
+  background:rgba(0,0,0,.7);
+  padding:14px 20px;
+  font-size:18px;
+  font-weight:700;
+  display:none;
+  border-left:4px solid #e50914
 }
-#overlay img{width:100%;border-radius:6px;margin-bottom:6px}
-#overlay h3{margin:0;font-size:18px}
-#overlay p{font-size:13px;color:#ccc}
 </style>
 </head>
 
 <body>
 
 <div id="side">
- <div id="top">
-  <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true" tabindex="1">
-  <input id="search" tabindex="2" placeholder="Pesquisar...">
-  <div id="now">Assistindo agora: <span id="nowTitle"></span></div>
- </div>
+  <div id="top">
+    <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
+    <input id="search" placeholder="Pesquisar..." data-focus>
+    <div id="now">Assistindo agora: <span id="nowTitle"></span></div>
+  </div>
 
- <div id="buttons">
-  <button tabindex="3" id="btnTV">TV</button>
-  <button tabindex="4" id="btnFilmes">Filmes</button>
-  <button tabindex="5" id="btnSeries">Séries</button>
-  <button tabindex="6" id="btnKids">Kids</button>
-  <button tabindex="7" id="btnFav">★</button>
- </div>
+  <div id="buttons">
+    <button id="btnTV" data-focus>TV</button>
+    <button id="btnFilmes" data-focus>Filmes</button>
+    <button id="btnSeries" data-focus>Séries</button>
+  </div>
 
- <div id="list"></div>
+  <div id="list"></div>
 </div>
 
 <div id="player">
- <video id="video" controls autoplay playsinline></video>
- <div id="overlay"></div>
+  <video id="video" controls autoplay playsinline></video>
+  <div id="overlay"></div>
 </div>
 
 <script>
-const video=document.getElementById('video');
-const list=document.getElementById('list');
-const overlay=document.getElementById('overlay');
-const nowTitle=document.getElementById('nowTitle');
-const search=document.getElementById('search');
+const video = document.getElementById('video');
+const list = document.getElementById('list');
+const overlay = document.getElementById('overlay');
+const nowBox = document.getElementById('now');
+const nowTitle = document.getElementById('nowTitle');
 
-let mode='tv',items=[],filtered=[],index=0,hls=null;
-let fav=JSON.parse(localStorage.getItem('fav')||'[]');
-let cont=JSON.parse(localStorage.getItem('cont')||'{}');
+let hls=null, items=[], mode='tv', index=0;
 
-function showOverlay(i){
- overlay.innerHTML=`
- ${i.poster?`<img src="${i.poster}">`:''}
- <h3>${i.title}</h3>
- <p>${i.desc||''}</p>`;
- overlay.style.display='block';
- setTimeout(()=>overlay.style.display='none',2000);
+/* ================= PLAYER ================= */
+function play(url,title,zap=false){
+  if(hls){hls.destroy();hls=null;}
+  if(url.endsWith('.m3u8') && Hls.isSupported()){
+    hls=new Hls();
+    hls.loadSource(url);
+    hls.attachMedia(video);
+  }else{
+    video.src=url;
+  }
+  video.play();
+  nowBox.style.display='block';
+  nowTitle.innerText=title;
+
+  if(zap){
+    overlay.innerText=title;
+    overlay.style.display='block';
+    setTimeout(()=>overlay.style.display='none',2000);
+  }
 }
 
-function play(i,zap=false){
- if(hls){hls.destroy();hls=null}
- if(i.url.endsWith('.m3u8')&&Hls.isSupported()){
-  hls=new Hls();hls.loadSource(i.url);hls.attachMedia(video)
- }else video.src=i.url;
- video.play();
- nowTitle.textContent=i.title;
- showOverlay(i);
-}
-
-video.ontimeupdate=()=>{
- if(items[index]){
-  cont[items[index].url]=video.currentTime;
-  localStorage.setItem('cont',JSON.stringify(cont));
- }
-};
-
+/* ================= LIST ================= */
 function render(){
- list.innerHTML='';
- filtered.forEach((i,n)=>{
-  const d=document.createElement('div');
-  d.className='item'+(n===index?' active':'');
-  d.tabIndex=10+n;
-  d.textContent=(fav.find(f=>f.url===i.url)?'★ ':'')+i.title;
-  d.onclick=()=>{index=n;play(i,mode==='tv')}
-  list.appendChild(d);
- });
+  list.innerHTML='';
+  items.forEach((i,n)=>{
+    const d=document.createElement('div');
+    d.className='item';
+    d.innerText=i.title;
+    d.dataset.focus='item';
+    if(n===index)d.classList.add('focus');
+    d.onclick=()=>{
+      index=n;
+      play(i.url,i.title,mode==='tv');
+      render();
+    };
+    list.appendChild(d);
+  });
 }
 
-function applySearch(){
- const q=search.value.toLowerCase();
- filtered=items.filter(i=>i.title.toLowerCase().includes(q));
- index=0;render();
+/* ================= LOADERS ================= */
+async function loadTV(){
+  mode='tv'; index=0; items=[];
+  const txt=await fetch('./data/canais.m3u').then(r=>r.text());
+  let name='';
+  txt.split('\n').forEach(l=>{
+    if(l.startsWith('#EXTINF')) name=l.split(',').pop();
+    else if(l.startsWith('http')) items.push({title:name,url:l.trim()});
+  });
+  render();
+  play(items[0].url,items[0].title,true);
 }
-search.oninput=applySearch;
-
-async function loadTV(src='./data/canais.m3u'){
- mode='tv';items=[];index=0;
- const t=await fetch(src).then(r=>r.text());
- let name='';
- t.split('\n').forEach(l=>{
-  if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-  else if(l.startsWith('http')) items.push({title:name,url:l});
- });
- filtered=items;render();play(items[0],true);
+async function loadFilmes(){
+  mode='filmes'; index=0;
+  items=await fetch('./data/filmes.json').then(r=>r.json());
+  render();
+}
+async function loadSeries(){
+  mode='series'; index=0; items=[];
+  const data=await fetch('./data/series.json').then(r=>r.json());
+  data.forEach(s=>{
+    s.episodios.forEach(e=>{
+      items.push({title:s.nome+' - '+e.titulo,url:e.url});
+    });
+  });
+  render();
 }
 
-async function loadFilmes(src='./data/filmes.json'){
- mode='filmes';
- items=await fetch(src).then(r=>r.json());
- filtered=items;render();
+/* ================= BOTÕES ================= */
+btnTV.onclick=()=>{setActive(btnTV);loadTV();}
+btnFilmes.onclick=()=>{setActive(btnFilmes);loadFilmes();}
+btnSeries.onclick=()=>{setActive(btnSeries);loadSeries();}
+function setActive(b){
+  document.querySelectorAll('#buttons button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
 }
 
-async function loadSeries(src='./data/series.json'){
- mode='series';items=[];
- const data=await fetch(src).then(r=>r.json());
- data.forEach(s=>items.push({title:s.nome,serie:s}));
- filtered=items;render();
+/* ================= FOCO GLOBAL ================= */
+let focusables=[];
+let focusIndex=0;
+
+function updateFocus(){
+  focusables.forEach(e=>e.classList.remove('focus'));
+  if(focusables[focusIndex]){
+    focusables[focusIndex].classList.add('focus');
+    focusables[focusIndex].scrollIntoView({block:'nearest'});
+  }
+}
+
+function refreshFocus(){
+  focusables=[
+    document.getElementById('search'),
+    ...document.querySelectorAll('#buttons button'),
+    ...document.querySelectorAll('#list .item')
+  ];
+  updateFocus();
 }
 
 document.addEventListener('keydown',e=>{
- if(e.key==='ArrowDown'){index=Math.min(index+1,filtered.length-1);render()}
- if(e.key==='ArrowUp'){index=Math.max(index-1,0);render()}
- if(e.key==='Enter'){
-  const i=filtered[index];
-  if(i.serie){
-   items=i.serie.episodios.map(e=>({...e}));
-   filtered=items;index=0;render();
-  }else play(i,true);
- }
- if(e.key==='f'){
-  const i=filtered[index];
-  if(!fav.find(f=>f.url===i.url)) fav.push(i);
-  localStorage.setItem('fav',JSON.stringify(fav));
-  render();
- }
+  if(e.key==='ArrowDown'){focusIndex=Math.min(focusIndex+1,focusables.length-1);}
+  if(e.key==='ArrowUp'){focusIndex=Math.max(focusIndex-1,0);}
+  if(e.key==='Enter'){focusables[focusIndex]?.click();}
+  updateFocus();
 });
 
-btnTV.onclick=()=>loadTV();
-btnFilmes.onclick=()=>loadFilmes();
-btnSeries.onclick=()=>loadSeries();
-btnKids.onclick=()=>loadTV('./data/kids.m3u');
-btnFav.onclick=()=>{items=fav;filtered=items;index=0;render()};
+new MutationObserver(refreshFocus).observe(list,{childList:true});
 
+/* ================= INIT ================= */
 loadTV();
+setActive(btnTV);
 </script>
 
 </body>
