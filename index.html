@@ -47,8 +47,8 @@ body{
 
 .item{ padding:14px;border-bottom:1px solid #222; cursor:pointer; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid transparent; transition: 0.1s;}
 .item.focus{ border-left-color: #e50914; background: rgba(255,255,255,0.05) !important; color: white !important; outline: none; }
+.item.back-btn { color: #e50914; font-weight: bold; border-bottom: 2px solid #e50914; }
 .item .fav-icon { color: #555; font-size: 18px; }
-.item.is-fav .fav-icon { color: #e50914; }
 
 #buttons button.focus, #search.focus, .btn-play.focus, .btn-back.focus { outline: 2px solid white; background: #444; }
 
@@ -131,8 +131,7 @@ const clockEl = document.getElementById('clock');
 const dateEl = document.getElementById('date');
 const searchInput = document.getElementById('search');
 
-let hls=null, items=[], allItems=[], mode='tv', focusIndex=0, zapDelayTimer=null;
-let favoritos = JSON.parse(localStorage.getItem('paixaoflix_favs') || '[]');
+let hls=null, items=[], allItems=[], mode='tv', focusIndex=0, zapDelayTimer=null, currentSerieEpisodes=null;
 
 function updateDateTime() {
     const now = new Date();
@@ -158,7 +157,7 @@ function play(url, title, isZap=false){
 }
 
 async function loadTV(){
-    mode='tv'; const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>"");
+    mode='tv'; currentSerieEpisodes=null; const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>"");
     let name=''; allItems=[];
     txt.split('\n').forEach(l=>{
         if(l.startsWith('#EXTINF')) name=l.split(',').pop();
@@ -169,24 +168,35 @@ async function loadTV(){
 }
 
 async function loadJSON(type, file) {
-    mode = type; allItems = await fetch(file).then(r => r.json()).catch(() => []);
+    mode = type; currentSerieEpisodes=null;
+    allItems = await fetch(file).then(r => r.json()).catch(() => []);
     items = [...allItems]; render();
 }
 
-function render(customItems = null){
-    const target = customItems || items;
+function render(customList = null){
     list.innerHTML='';
-    target.forEach((i, n)=>{
-        const isFav = favoritos.some(f => f.url === i.url);
+    const target = customList || items;
+    
+    // Se estivermos dentro de uma série, adiciona o botão voltar
+    if(currentSerieEpisodes) {
+        const back = document.createElement('div');
+        back.className = 'item back-btn';
+        back.innerHTML = '<span>⬅ VOLTAR PARA LISTA</span>';
+        back.onclick = () => { currentSerieEpisodes = null; render(); focusIndex = 7; updateFocus(); };
+        list.appendChild(back);
+    }
+
+    target.forEach((i)=>{
         const d=document.createElement('div');
-        d.className = `item ${isFav ? 'is-fav' : ''}`;
+        d.className = 'item';
         d.innerHTML = `<span>${i.title || i.nome}</span> <span class="fav-icon">★</span>`;
         d.onclick=()=>{ 
             if(mode==='tv') play(i.url, i.title, true);
-            else if(i.episodios) { // Lógica para abrir séries
-                items = i.episodios.map(e => ({...e, title: `${i.nome} - ${e.titulo}`, description: i.description}));
-                focusIndex = 7; // Pula para o primeiro item da nova lista
-                render();
+            else if(i.episodios) { 
+                currentSerieEpisodes = i.episodios.map(e => ({...e, title: `${i.nome} - ${e.titulo}`, description: i.description}));
+                render(currentSerieEpisodes);
+                focusIndex = 7; // Foca no botão voltar
+                updateFocus();
             }
             else showMeta(i); 
         };
@@ -221,11 +231,13 @@ function updateFocus(){
         el.scrollIntoView({block:'center', behavior:'smooth'});
         if(el === searchInput) el.focus(); else searchInput.blur();
 
-        // Preview de Séries/Filmes ao navegar
-        if(el.classList.contains('item')){
+        if(el.classList.contains('item') && !el.classList.contains('back-btn')){
             const listItems = Array.from(document.querySelectorAll('#list .item'));
-            const idx = listItems.indexOf(el);
-            const item = items[idx];
+            const idxInList = listItems.indexOf(el);
+            // Ajuste de índice se houver botão voltar
+            const realIdx = currentSerieEpisodes ? idxInList - 1 : idxInList;
+            const item = currentSerieEpisodes ? currentSerieEpisodes[realIdx] : items[idxInList];
+            
             if(item && mode !== 'tv') showMeta(item);
             if(item && mode === 'tv') {
                 clearTimeout(zapDelayTimer);
@@ -240,7 +252,7 @@ document.addEventListener('keydown', e=>{
     if(e.key==='ArrowDown') { focusIndex=Math.min(focusIndex+1, focusables.length-1); e.preventDefault(); }
     if(e.key==='ArrowUp') { focusIndex=Math.max(focusIndex-1, 0); e.preventDefault(); }
     if(e.key==='ArrowRight' || e.key==='ArrowLeft') {
-        if(focusIndex >= 1 && focusIndex <= 6) { // Navegação horizontal nos botões de categoria
+        if(focusIndex >= 1 && focusIndex <= 6) {
             if(e.key==='ArrowRight') focusIndex = Math.min(focusIndex+1, 6);
             else focusIndex = Math.max(focusIndex-1, 1);
             e.preventDefault();
@@ -254,18 +266,13 @@ document.getElementById('btnTV').onclick=()=>{ setActive('btnTV'); loadTV(); }
 document.getElementById('btnFilmes').onclick=()=>{ setActive('btnFilmes'); loadJSON('filmes', './data/filmes.json'); }
 document.getElementById('btnSeries').onclick=()=>{ setActive('btnSeries'); loadJSON('series', './data/series.json'); }
 document.getElementById('btnKids').onclick=()=>{ setActive('btnKids'); loadJSON('kids', './data/kids_filmes.json'); }
-document.getElementById('btnFav').onclick=()=>{ 
-    setActive('btnFav'); mode='fav'; 
-    items = JSON.parse(localStorage.getItem('paixaoflix_favs') || '[]'); 
-    render(); 
-}
 document.getElementById('btn-close-meta').onclick=()=>overlayMeta.style.display='none';
 
 function setActive(id){
     document.querySelectorAll('#buttons button').forEach(x=>x.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     overlayMeta.style.display='none';
-    focusIndex = 7; // Ao trocar de categoria, foca no primeiro item da lista
+    focusIndex = 7; 
 }
 
 searchInput.oninput = () => {
@@ -278,3 +285,6 @@ window.onload = () => { loadTV(); updateFocus(); };
 </script>
 </body>
 </html>
+Agora, ao entrar em uma série:
+
+Ele mostra o b
