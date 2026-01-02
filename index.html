@@ -19,7 +19,7 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height
 video{width:100%;height:100%}
 #error{position:absolute;color:#fff;background:#000c;padding:20px;display:none;z-index:5}
 
-/* OVERLAY */
+/* OVERLAY ZAP */
 #overlay{
   position:absolute;
   left:40px;
@@ -33,6 +33,22 @@ video{width:100%;height:100%}
 }
 #overlay .type{font-size:13px;opacity:.8}
 #overlay .title{font-size:22px;font-weight:700;margin-top:4px}
+
+/* CARD NETFLIX */
+#card{
+  position:absolute;
+  right:40px;
+  top:50%;
+  transform:translateY(-50%);
+  width:420px;
+  background:linear-gradient(90deg,rgba(0,0,0,.95),rgba(0,0,0,.75));
+  padding:26px;
+  border-radius:10px;
+  display:none;
+  z-index:8
+}
+#card h1{margin:0 0 10px;font-size:26px;font-weight:700}
+#card p{margin:0;font-size:15px;line-height:1.4;opacity:.9}
 </style>
 </head>
 
@@ -55,43 +71,55 @@ video{width:100%;height:100%}
     <div class="title" id="overlayTitle"></div>
   </div>
 
+  <div id="card">
+    <h1 id="cardTitle"></h1>
+    <p id="cardDesc"></p>
+  </div>
+
   <video id="video" controls autoplay playsinline></video>
 </div>
 
 <script>
-const video = document.getElementById('video');
-const list = document.getElementById('list');
-const errorBox = document.getElementById('error');
-const overlay = document.getElementById('overlay');
-const overlayType = document.getElementById('overlayType');
-const overlayTitle = document.getElementById('overlayTitle');
+const video=document.getElementById('video');
+const list=document.getElementById('list');
+const errorBox=document.getElementById('error');
+const overlay=document.getElementById('overlay');
+const overlayType=document.getElementById('overlayType');
+const overlayTitle=document.getElementById('overlayTitle');
+const card=document.getElementById('card');
+const cardTitle=document.getElementById('cardTitle');
+const cardDesc=document.getElementById('cardDesc');
 
-let hls;
-let overlayTimer;
-let tvChannels = [];
-let currentTVIndex = 0;
-let mode = 'tv';
+let hls,overlayTimer;
+let tvChannels=[],currentTVIndex=0;
+let mode='tv';
+
+/* CARD */
+function showCard(title,desc){
+  if(!desc){card.style.display='none';return;}
+  cardTitle.innerText=title;
+  cardDesc.innerText=desc;
+  card.style.display='block';
+}
+function hideCard(){card.style.display='none';}
 
 /* OVERLAY */
-function showOverlay(type, title){
-  overlayType.innerText = type;
-  overlayTitle.innerText = title;
+function showOverlay(type,title){
+  overlayType.innerText=type;
+  overlayTitle.innerText=title;
   overlay.style.display='block';
   clearTimeout(overlayTimer);
-  overlayTimer = setTimeout(()=>overlay.style.display='none',2000);
+  overlayTimer=setTimeout(()=>overlay.style.display='none',2000);
 }
 
-function showError(msg){
-  errorBox.style.display='block';
-  errorBox.innerText=msg;
-}
+function showError(msg){errorBox.style.display='block';errorBox.innerText=msg;}
 function clearError(){errorBox.style.display='none';}
 
 /* PLAYER */
 function play(url,title,type){
+  hideCard();
   clearError();
   showOverlay(type,title);
-
   if(hls){hls.destroy();hls=null;}
   try{
     if(url.endsWith('.m3u8')){
@@ -106,63 +134,45 @@ function play(url,title,type){
   }catch(e){showError("Erro ao reproduzir");}
 }
 
-/* TV AO VIVO */
+/* TV */
 async function loadTV(){
   mode='tv';
   list.innerHTML='';
   tvChannels=[];
   currentTVIndex=0;
 
-  const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
+  const txt=await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>null);
   if(!txt){showError("Lista IPTV indisponível");return;}
 
-  const lines=txt.split('\n');
   let name='';
-  lines.forEach(l=>{
+  txt.split('\n').forEach(l=>{
     if(l.startsWith('#EXTINF')) name=l.split(',').pop();
     else if(l.startsWith('http')){
       tvChannels.push({name,url:l.trim()});
       const d=document.createElement('div');
       d.className='item';
       d.innerText=name;
-      d.onclick=()=>{
-        currentTVIndex=tvChannels.length-1;
-        play(l.trim(),name,'TV AO VIVO');
-      };
+      d.onmouseenter=()=>showCard(name,'Canal de TV ao vivo');
+      d.onclick=()=>{currentTVIndex=tvChannels.length-1;play(l.trim(),name,'TV AO VIVO');};
       list.appendChild(d);
     }
   });
 
-  if(tvChannels.length>0){
-    play(tvChannels[0].url,tvChannels[0].name,'TV AO VIVO');
-  }
+  if(tvChannels.length>0) play(tvChannels[0].url,tvChannels[0].name,'TV AO VIVO');
 }
 
-/* ZAP RÁPIDO */
+/* ZAP */
 document.addEventListener('keydown',e=>{
-  if(mode!=='tv') return;
-
-  if(e.key==='ArrowUp'){
-    currentTVIndex--;
-    if(currentTVIndex<0) currentTVIndex=tvChannels.length-1;
-    const ch=tvChannels[currentTVIndex];
-    play(ch.url,ch.name,'TV AO VIVO');
-  }
-
-  if(e.key==='ArrowDown'){
-    currentTVIndex++;
-    if(currentTVIndex>=tvChannels.length) currentTVIndex=0;
-    const ch=tvChannels[currentTVIndex];
-    play(ch.url,ch.name,'TV AO VIVO');
-  }
+  if(mode!=='tv')return;
+  if(e.key==='ArrowUp'){currentTVIndex=(currentTVIndex-1+tvChannels.length)%tvChannels.length;play(tvChannels[currentTVIndex].url,tvChannels[currentTVIndex].name,'TV AO VIVO');}
+  if(e.key==='ArrowDown'){currentTVIndex=(currentTVIndex+1)%tvChannels.length;play(tvChannels[currentTVIndex].url,tvChannels[currentTVIndex].name,'TV AO VIVO');}
 });
 
 /* BOTÕES */
 document.getElementById('t').onclick=()=>loadTV();
-document.getElementById('f').onclick=()=>{mode='filmes';list.innerHTML='';};
-document.getElementById('s').onclick=()=>{mode='series';list.innerHTML='';};
+document.getElementById('f').onclick=()=>{mode='filmes';list.innerHTML='';hideCard();};
+document.getElementById('s').onclick=()=>{mode='series';list.innerHTML='';hideCard();};
 
-/* START */
 loadTV();
 </script>
 
