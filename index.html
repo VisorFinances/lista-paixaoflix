@@ -1,246 +1,225 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<title>PaixãoFlix – Web TV</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="favicon.ico">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
+<meta charset="UTF-8">
+<title>TV System</title>
 
 <style>
-body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
-#side{width:320px;background:#111;display:flex;flex-direction:column}
-#top{padding:15px}
-#logo{width:100%;max-height:90px;object-fit:contain}
-#search{margin-top:10px;padding:8px;border-radius:8px;border:1px solid #e50914;background:#000;color:#fff}
-#now{margin-top:10px;font-size:13px;color:#aaa;display:none}
-
-#buttons{display:flex;gap:6px;padding:10px}
-#buttons button{
-  flex:1;
-  padding:10px;
-  border:0;
-  border-radius:6px;
-  background:#222;
-  color:#fff;
-  font-weight:700
-}
-#buttons button.active{background:#e50914}
-
-#list{flex:1;overflow-y:auto}
-.item{padding:10px;border-bottom:1px solid #222;cursor:pointer}
-.item.active{background:#1a1a1a;border-left:4px solid #e50914}
-
-#player{flex:1;position:relative}
-video{width:100%;height:100%;background:#000}
-
-#overlay{
-  position:absolute;
-  bottom:40px;
-  left:40px;
-  background:rgba(0,0,0,.75);
-  padding:14px 20px;
-  font-size:20px;
-  font-weight:700;
-  display:none;
-  border-left:4px solid #e50914;
-  max-width:60%;
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
 }
 
-/* ===== CARD ===== */
-#card{
-  position:absolute;
-  right:40px;
-  top:50%;
-  transform:translateY(-50%);
-  width:420px;
-  background:rgba(0,0,0,.85);
-  padding:25px;
-  border-left:4px solid #e50914;
-  display:none;
+header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
 }
-#card h2{
-  margin:0 0 10px;
-  font-size:26px;
-  font-weight:700;
+
+#logo {
+  font-size: 42px;
+  font-weight: bold;
 }
-#card p{
-  font-size:15px;
-  line-height:1.4;
-  color:#ddd;
+
+#menu {
+  display: flex;
+  gap: 20px;
+  margin-left: 40px;
+}
+
+.menu-btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: #222;
+}
+
+.menu-btn.active {
+  background: #e50914;
+}
+
+#content {
+  display: flex;
+  height: calc(100vh - 90px);
+}
+
+#list {
+  width: 60%;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.item {
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  background: #111;
+}
+
+.item.focus {
+  outline: 3px solid #e50914;
+}
+
+#card {
+  width: 40%;
+  padding: 20px;
+  background: #0b0b0b;
+}
+
+#card img {
+  width: 100%;
+  border-radius: 12px;
+}
+
+#player {
+  position: fixed;
+  inset: 0;
+  background: black;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+video {
+  width: 100%;
+  height: 100%;
 }
 </style>
 </head>
 
 <body>
 
-<div id="side">
-  <div id="top">
-    <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
-    <input id="search" placeholder="Pesquisar...">
-    <div id="now">Assistindo agora: <span id="nowTitle"></span></div>
+<header>
+  <div id="logo">MINHA TV</div>
+  <div id="menu">
+    <div class="menu-btn active">TV AO VIVO</div>
+    <div class="menu-btn">FILMES</div>
+    <div class="menu-btn">SÉRIES</div>
   </div>
+</header>
 
-  <div id="buttons">
-    <button id="btnTV">TV</button>
-    <button id="btnFilmes" class="active">Filmes</button>
-    <button id="btnSeries">Séries</button>
-  </div>
-
+<div id="content">
   <div id="list"></div>
-</div>
-
-<div id="player">
-  <video id="video" controls autoplay playsinline></video>
-  <div id="overlay"></div>
-
   <div id="card">
+    <img id="cardImg">
     <h2 id="cardTitle"></h2>
     <p id="cardDesc"></p>
   </div>
 </div>
 
+<div id="player">
+  <video id="video" controls></video>
+</div>
+
 <script>
-const video=document.getElementById('video');
-const list=document.getElementById('list');
-const overlay=document.getElementById('overlay');
-const card=document.getElementById('card');
-const cardTitle=document.getElementById('cardTitle');
-const cardDesc=document.getElementById('cardDesc');
-const nowBox=document.getElementById('now');
-const nowTitle=document.getElementById('nowTitle');
-
-let hls=null;
-let mode='filmes';
-let items=[];
-let index=0;
-let overlayTimer=null;
-
-/* ===== PLAYER ===== */
-function play(item,zap=false){
-  if(hls){hls.destroy();hls=null;}
-
-  if(item.url.endsWith('.m3u8') && Hls.isSupported()){
-    hls=new Hls();
-    hls.loadSource(item.url);
-    hls.attachMedia(video);
-  }else{
-    video.src=item.url;
+const series = [
+  {
+    nome: "Dark",
+    poster: "dark.jpg",
+    desc: "Uma cidade ligada por viagens no tempo.",
+    episodios: [
+      { titulo: "T01E01 - Segredos", url: "video1.mp4" },
+      { titulo: "T01E02 - Mentiras", url: "video2.mp4" }
+    ]
+  },
+  {
+    nome: "Tartarugas Ninjas",
+    poster: "tmnt.jpg",
+    desc: "Heróis mutantes combatem o crime.",
+    episodios: [
+      { titulo: "Episódio 1", url: "https://drive.google.com/uc?id=SEU_ID" }
+    ]
   }
+];
 
+let mode = "series";
+let focusIndex = 0;
+let currentEpisodes = null;
+let episodeIndex = 0;
+
+const list = document.getElementById("list");
+const cardImg = document.getElementById("cardImg");
+const cardTitle = document.getElementById("cardTitle");
+const cardDesc = document.getElementById("cardDesc");
+const player = document.getElementById("player");
+const video = document.getElementById("video");
+
+function renderSeries() {
+  list.innerHTML = "";
+  series.forEach((s, i) => {
+    const div = document.createElement("div");
+    div.className = "item" + (i === focusIndex ? " focus" : "");
+    div.textContent = s.nome;
+    list.appendChild(div);
+  });
+  updateCard(series[focusIndex]);
+}
+
+function renderEpisodes(serie) {
+  list.innerHTML = "";
+  serie.episodios.forEach((e, i) => {
+    const div = document.createElement("div");
+    div.className = "item" + (i === focusIndex ? " focus" : "");
+    div.textContent = e.titulo;
+    list.appendChild(div);
+  });
+  cardTitle.textContent = serie.nome;
+  cardDesc.textContent = serie.desc;
+}
+
+function updateCard(item) {
+  cardImg.src = item.poster;
+  cardTitle.textContent = item.nome;
+  cardDesc.textContent = item.desc;
+}
+
+function playEpisode() {
+  const ep = currentEpisodes[episodeIndex];
+  video.src = ep.url;
+  player.style.display = "flex";
   video.play();
-  card.style.display='none';
+}
 
-  nowBox.style.display='block';
-  nowTitle.textContent=item.title;
-
-  if(zap){
-    overlay.textContent=item.title;
-    overlay.style.display='block';
-    clearTimeout(overlayTimer);
-    overlayTimer=setTimeout(()=>overlay.style.display='none',2000);
+video.onended = () => {
+  episodeIndex++;
+  if (episodeIndex < currentEpisodes.length) {
+    playEpisode();
+  } else {
+    player.style.display = "none";
+    episodeIndex = 0;
   }
-}
+};
 
-/* ===== CARD ===== */
-function showCard(item){
-  if(mode==='tv') return;
-  cardTitle.textContent=item.title;
-  cardDesc.textContent=item.desc||'';
-  card.style.display='block';
-}
+document.addEventListener("keydown", e => {
+  if (player.style.display === "flex") return;
 
-/* ===== RENDER ===== */
-function render(){
-  list.innerHTML='';
-  items.forEach((i,n)=>{
-    const d=document.createElement('div');
-    d.className='item'+(n===index?' active':'');
-    d.textContent=i.title;
-    d.onclick=()=>{
-      index=n;
-      play(i,mode==='tv');
-      render();
-    };
-    d.onmouseenter=()=>{
-      index=n;
-      render();
-      showCard(i);
-    };
-    list.appendChild(d);
-  });
-}
-
-/* ===== LOADERS ===== */
-async function loadTV(){
-  mode='tv'; index=0; card.style.display='none';
-  const txt=await fetch('./data/canais.m3u').then(r=>r.text());
-  const lines=txt.split('\n');
-  items=[];
-  let name='';
-  lines.forEach(l=>{
-    if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-    else if(l.startsWith('http')) items.push({title:name,url:l});
-  });
-  render();
-}
-
-async function loadFilmes(){
-  mode='filmes'; index=0;
-  items=await fetch('./data/filmes.json').then(r=>r.json());
-  render();
-  showCard(items[0]);
-}
-
-async function loadSeries(){
-  mode='series'; index=0;
-  items=[];
-  const data=await fetch('./data/series.json').then(r=>r.json());
-  data.forEach(s=>{
-    s.episodios.forEach(e=>{
-      items.push({
-        title:s.nome+' - '+e.titulo,
-        url:e.url,
-        desc:e.desc
-      });
-    });
-  });
-  render();
-  showCard(items[0]);
-}
-
-/* ===== BOTÕES ===== */
-btnTV.onclick=()=>{setActive(btnTV);loadTV();}
-btnFilmes.onclick=()=>{setActive(btnFilmes);loadFilmes();}
-btnSeries.onclick=()=>{setActive(btnSeries);loadSeries();}
-
-function setActive(btn){
-  document.querySelectorAll('#buttons button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-/* ===== ZAP ===== */
-document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowDown'){
-    index=Math.min(index+1,items.length-1);
-    render();
-    if(mode==='tv') play(items[index],true);
-    else showCard(items[index]);
+  if (e.key === "ArrowDown") {
+    focusIndex++;
   }
-  if(e.key==='ArrowUp'){
-    index=Math.max(index-1,0);
-    render();
-    if(mode==='tv') play(items[index],true);
-    else showCard(items[index]);
+  if (e.key === "ArrowUp") {
+    focusIndex--;
   }
-  if(e.key==='Enter'){
-    play(items[index],mode==='tv');
+
+  if (e.key === "Enter") {
+    if (!currentEpisodes) {
+      currentEpisodes = series[focusIndex].episodios;
+      focusIndex = 0;
+      renderEpisodes(series.find(s => s.episodios === currentEpisodes));
+    } else {
+      episodeIndex = focusIndex;
+      playEpisode();
+    }
   }
+
+  focusIndex = Math.max(0, Math.min(focusIndex, list.children.length - 1));
+  [...list.children].forEach((el, i) =>
+    el.classList.toggle("focus", i === focusIndex)
+  );
 });
 
-/* ===== INIT ===== */
-loadFilmes();
+renderSeries();
 </script>
 
 </body>
