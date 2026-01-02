@@ -19,7 +19,6 @@ body{
 #header-row{display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;}
 #logo{max-width:200px; max-height:100px; object-fit:contain}
 
-/* Relógio e Data (Branco conforme solicitado) */
 #clock-container{text-align: right; display: flex; flex-direction: column; justify-content: center;}
 #clock{font-size: 24px; font-weight: 700; color: #fff; line-height: 1;}
 #date{font-size: 14px; color: #fff; margin-top: 4px; opacity: 0.8;}
@@ -46,16 +45,15 @@ body{
 #list::-webkit-scrollbar{width:4px}
 #list::-webkit-scrollbar-thumb{background:#444;border-radius:4px}
 
-.item{ padding:14px;border-bottom:1px solid #222; cursor:pointer; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid transparent; transition: 0.2s;}
-
-/* Estilo de Foco solicitado: Apenas lista vermelha lateral esquerda */
+.item{ padding:14px;border-bottom:1px solid #222; cursor:pointer; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid transparent; transition: 0.1s;}
 .item.focus{ border-left-color: #e50914; background: rgba(255,255,255,0.05) !important; color: white !important; outline: none; }
+.item.back-btn { color: #e50914; font-weight: bold; border-bottom: 2px solid #e50914; }
+
 #buttons button.focus, #search.focus, .btn-play.focus, .btn-back.focus { outline: 2px solid white; background: #444; }
 
 #player{flex:1;position:relative; background: #000;}
 video{width:100%;height:100%;background:#000}
 
-/* Assistindo Agora (Zapping) */
 #overlay-zap{
   position:absolute; bottom:60px; left:40px;
   background:rgba(20,20,20,0.85); padding:15px 30px;
@@ -70,12 +68,9 @@ video{width:100%;height:100%;background:#000}
 }
 #overlay-meta h1 { font-size: 56px; margin: 0; color: #fff; }
 #overlay-meta p { font-size: 20px; max-width: 600px; color: #ccc; line-height: 1.6; }
-#overlay-meta .meta-info { margin: 20px 0; font-weight: bold; font-size: 22px; color: #e50914;}
 
 .btn-play { background: #e50914; color: #fff; border: none; padding: 22px 50px; font-size: 22px; font-weight: bold; cursor: pointer; border-radius: 8px; width: fit-content; }
 .btn-back { background: #333; color: #fff; border: none; padding: 22px 30px; font-size: 22px; font-weight: bold; cursor: pointer; border-radius: 8px; margin-left: 15px; }
-
-#clear-hist { margin: 10px; padding: 8px; background: #333; color: #ff4444; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
 </style>
 </head>
 
@@ -95,7 +90,7 @@ video{width:100%;height:100%;background:#000}
             <img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo192.png?raw=true" width="14"> Baixar Aplicativo PaixãoFlix
         </a>
     </div>
-    <input id="search" placeholder="Pesquisar..." data-focus>
+    <input id="search" placeholder="Pesquisar...">
   </div>
 
   <div id="buttons">
@@ -109,7 +104,6 @@ video{width:100%;height:100%;background:#000}
 
   <div id="list-container">
     <div id="list"></div>
-    <button id="clear-hist" style="display:none;">LIMPAR HISTÓRICO</button>
   </div>
 </div>
 
@@ -119,7 +113,6 @@ video{width:100%;height:100%;background:#000}
 
   <div id="overlay-meta">
       <h1 id="meta-title">Título</h1>
-      <div class="meta-info">Nota: <span id="meta-rating">--</span> | <span id="meta-year">2026</span></div>
       <p id="meta-desc">Descrição do conteúdo...</p>
       <div style="display:flex; margin-top: 30px;">
         <button class="btn-play" id="btn-start-content">ASSISTIR AGORA</button>
@@ -136,13 +129,9 @@ const overlayMeta = document.getElementById('overlay-meta');
 const clockEl = document.getElementById('clock');
 const dateEl = document.getElementById('date');
 const searchInput = document.getElementById('search');
-const clearHistBtn = document.getElementById('clear-hist');
 
 let hls=null, items=[], allItems=[], mode='tv', currentIndex=0, zapDelayTimer=null, focusIndex=0;
-let favoritos = JSON.parse(localStorage.getItem('favs') || '[]');
-let historico = JSON.parse(localStorage.getItem('hist') || '[]');
 
-/* DATA E HORA */
 function updateDateTime() {
     const now = new Date();
     clockEl.innerText = now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
@@ -150,16 +139,12 @@ function updateDateTime() {
 }
 setInterval(updateDateTime, 1000); updateDateTime();
 
-/* PLAYER */
-function play(url, title, isZap=false, meta={}){
+function play(url, title, isZap=false){
     if(!url) return;
     if(hls){hls.destroy(); hls=null;}
-    saveHistory(title, url, meta);
-    
     if(url.endsWith('.m3u8') && Hls.isSupported()){
         hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
     } else { video.src=url; }
-    
     video.play().catch(()=>{});
     overlayMeta.style.display='none';
     if(isZap){
@@ -170,10 +155,8 @@ function play(url, title, isZap=false, meta={}){
     }
 }
 
-/* CARREGADORES ORIGINAIS REATIVADOS */
 async function loadTV(){
-    mode='tv'; clearHistBtn.style.display='none';
-    const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>"");
+    mode='tv'; const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>"");
     let name=''; allItems=[];
     txt.split('\n').forEach(l=>{
         if(l.startsWith('#EXTINF')) name=l.split(',').pop();
@@ -184,20 +167,45 @@ async function loadTV(){
 }
 
 async function loadJSON(type, file) {
-    mode = type; clearHistBtn.style.display='none';
-    allItems = await fetch(file).then(r => r.json()).catch(() => []);
+    mode = type; allItems = await fetch(file).then(r => r.json()).catch(() => []);
     items = [...allItems]; render();
+}
+
+// FUNÇÃO QUE ABRE OS CAPÍTULOS
+function loadEpisodes(serie) {
+    const episodes = serie.episodios.map(e => ({
+        title: `${serie.nome || serie.title} - ${e.titulo}`,
+        url: e.url,
+        description: serie.description
+    }));
+    
+    list.innerHTML = '';
+    const back = document.createElement('div');
+    back.className = 'item back-btn';
+    back.innerHTML = '⬅ VOLTAR PARA LISTA';
+    back.onclick = () => render();
+    list.appendChild(back);
+
+    episodes.forEach((i) => {
+        const d = document.createElement('div');
+        d.className = 'item';
+        d.innerHTML = `<span>${i.title}</span>`;
+        d.onclick = () => showMeta(i);
+        list.appendChild(d);
+    });
+    refreshFocusables();
 }
 
 function render(){
     list.innerHTML='';
-    items.forEach((i, n)=>{
+    items.forEach((i)=>{
         const d=document.createElement('div');
         d.className = 'item';
         d.innerHTML = `<span>${i.title || i.nome}</span>`;
         d.onclick=()=>{ 
             if(mode==='tv') play(i.url, i.title, true);
-            else { showMeta(i); }
+            else if(i.episodios) loadEpisodes(i); // ABRE A SÉRIE
+            else showMeta(i); 
         };
         list.appendChild(d);
     });
@@ -206,12 +214,11 @@ function render(){
 
 function showMeta(item) {
     document.getElementById('meta-title').innerText = item.title || item.nome;
-    document.getElementById('meta-desc').innerText = item.description || "Inicie para assistir.";
+    document.getElementById('meta-desc').innerText = item.description || "Descrição não disponível.";
     overlayMeta.style.display = 'flex';
-    document.getElementById('btn-start-content').onclick = () => play(item.url, item.title || item.nome, false, item);
+    document.getElementById('btn-start-content').onclick = () => play(item.url, item.title || item.nome);
 }
 
-/* NAVEGAÇÃO E FOCO */
 let focusables=[];
 function refreshFocusables(){
     focusables = [
@@ -231,15 +238,16 @@ function updateFocus(){
         el.scrollIntoView({block:'center', behavior:'smooth'});
         if(el === searchInput) el.focus(); else searchInput.blur();
 
-        // Informações dinâmicas ao navegar
-        if(el.classList.contains('item')){
-            const idx = Array.from(document.querySelectorAll('#list .item')).indexOf(el);
-            const item = items[idx];
-            if(mode === 'tv'){
+        if(el.classList.contains('item') && !el.classList.contains('back-btn')){
+            const listItems = Array.from(document.querySelectorAll('#list .item'));
+            const idx = listItems.indexOf(el);
+            const item = (listItems[0].classList.contains('back-btn')) ? null : items[idx]; 
+            
+            if(mode === 'tv' && items[idx]){
                 clearTimeout(zapDelayTimer);
-                zapDelayTimer = setTimeout(() => { currentIndex = idx; play(item.url, item.title, true); }, 600);
-            } else if(item) {
-                showMeta(item); // Mantém metadados aparecendo ao navegar
+                zapDelayTimer = setTimeout(() => play(items[idx].url, items[idx].title, true), 600);
+            } else if(item && mode !== 'tv') {
+                showMeta(item);
             }
         }
     }
@@ -249,45 +257,26 @@ document.addEventListener('keydown', e=>{
     refreshFocusables();
     if(e.key==='ArrowDown') { focusIndex=Math.min(focusIndex+1, focusables.length-1); e.preventDefault(); }
     if(e.key==='ArrowUp') { focusIndex=Math.max(focusIndex-1, 0); e.preventDefault(); }
-    if(e.key==='ArrowRight' || e.key==='ArrowLeft') { 
-        // Navegação lateral entre botões e lista
+    if(e.key==='ArrowRight' || e.key==='ArrowLeft') {
         if(focusIndex > 0 && focusIndex < 7) {
             if(e.key==='ArrowRight') focusIndex = Math.min(focusIndex+1, 6);
             else focusIndex = Math.max(focusIndex-1, 1);
         }
     }
     if(e.key==='Enter') focusables[focusIndex]?.click();
-    
-    // Zapping CH+/CH-
-    if(e.keyCode===427 || e.key==='PageUp') {
-        if(mode==='tv'){ currentIndex=(currentIndex+1)%items.length; play(items[currentIndex].url, items[currentIndex].title, true); }
-    }
-    if(e.keyCode===428 || e.key==='PageDown') {
-        if(mode==='tv'){ currentIndex=currentIndex>0?currentIndex-1:items.length-1; play(items[currentIndex].url, items[currentIndex].title, true); }
-    }
     updateFocus();
 });
 
-/* EVENTOS DE MENU */
 document.getElementById('btnTV').onclick=()=>{ setActive('btnTV'); loadTV(); }
 document.getElementById('btnFilmes').onclick=()=>{ setActive('btnFilmes'); loadJSON('filmes', './data/filmes.json'); }
 document.getElementById('btnSeries').onclick=()=>{ setActive('btnSeries'); loadJSON('series', './data/series.json'); }
 document.getElementById('btnKids').onclick=()=>{ setActive('btnKids'); loadJSON('kids', './data/kids_filmes.json'); }
-document.getElementById('btnFav').onclick=()=>{ setActive('btnFav'); mode='fav'; items=[...favoritos]; render(); }
-document.getElementById('btnHist').onclick=()=>{ setActive('btnHist'); mode='hist'; items=[...historico]; render(); clearHistBtn.style.display='block'; }
 document.getElementById('btn-close-meta').onclick=()=>overlayMeta.style.display='none';
 
 function setActive(id){
     document.querySelectorAll('#buttons button').forEach(x=>x.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     overlayMeta.style.display='none';
-}
-
-function saveHistory(title, url, meta){
-    historico = historico.filter(h => h.url !== url);
-    historico.unshift({title, url, meta});
-    if(historico.length > 30) historico.pop();
-    localStorage.setItem('hist', JSON.stringify(historico));
 }
 
 searchInput.oninput = () => {
