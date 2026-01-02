@@ -72,17 +72,22 @@ let mode='filmes';
 let items=[];
 let index=0;
 let overlayTimer=null;
+let autoNext=false;
 
 /* ===== PLAYER ===== */
 function play(url,title,zap=false){
   if(hls){hls.destroy();hls=null;}
   if(url.endsWith('.m3u8') && Hls.isSupported()){
-    hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
+    hls=new Hls();
+    hls.loadSource(url);
+    hls.attachMedia(video);
   } else video.src=url;
 
   video.play();
   nowBox.style.display='block';
   nowTitle.innerText=title;
+
+  autoNext = (mode === 'series');
 
   if(zap){
     overlay.innerText=title;
@@ -91,6 +96,16 @@ function play(url,title,zap=false){
     overlayTimer=setTimeout(()=>overlay.style.display='none',2000);
   }
 }
+
+/* ===== CONTINUAÇÃO AUTOMÁTICA ===== */
+video.onended = ()=>{
+  if(autoNext && index < items.length - 1){
+    index++;
+    const i = items[index];
+    play(i.url,i.title,false);
+    render();
+  }
+};
 
 /* ===== RENDER ===== */
 function render(){
@@ -130,15 +145,11 @@ async function loadTV(){
   play(items[0].url,items[0].title,true);
 }
 
-/* ===== SÉRIES (PASSO 1) ===== */
+/* ===== SÉRIES ===== */
 async function loadSeries(){
   mode='series'; index=0;
   const data=await fetch('./data/series.json').then(r=>r.json());
-
-  items=data.map(s=>({
-    title:s.nome,
-    action:()=>openSerie(s)
-  }));
+  items=data.map(s=>({title:s.nome,action:()=>openSerie(s)}));
   render();
 }
 
@@ -146,10 +157,7 @@ function openSerie(serie){
   index=0;
   items=[
     {title:'◀ Voltar',action:loadSeries},
-    ...serie.episodios.map(e=>({
-      title:e.titulo,
-      url:e.url
-    }))
+    ...serie.episodios.map(e=>({title:e.titulo,url:e.url}))
   ];
   render();
 }
