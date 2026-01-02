@@ -16,18 +16,24 @@ body{
 }
 #side{width:340px;background:#111;display:flex;flex-direction:column;z-index: 10;border-right: 1px solid #222;}
 #top{padding:20px; position: relative;}
-#header-row{display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;}
+#header-row{display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;}
 #logo{max-width:200px; max-height:100px; object-fit:contain}
 #clock{font-size: 24px; font-weight: 700; color: #fff; letter-spacing: 1px;}
 
+#app-download-top {
+    text-align: center; margin-bottom: 10px; font-size: 11px;
+}
+#app-download-top a {
+    color: #888; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+
 #search{
   width: 100%; box-sizing: border-box;
-  margin-top:10px;padding:12px;
+  padding:12px;
   border-radius:8px;
   border:1px solid #e50914;
   background:#000;color:#fff; outline: none;
 }
-#now{margin-top:10px;font-size:13px;color:#aaa;display:none}
 
 #buttons{display:grid; grid-template-columns: 1fr 1fr; gap:6px; padding:10px}
 #buttons button{
@@ -35,7 +41,7 @@ body{
   border-radius:6px;
   background:#222;color:#fff;
   font-weight:700; cursor: pointer;
-  font-size: 11px; transition: 0.3s;
+  font-size: 11px;
 }
 #buttons button.active{background:#e50914}
 
@@ -48,8 +54,7 @@ body{
   padding:14px;border-bottom:1px solid #222;
   cursor:pointer; display: flex; justify-content: space-between; align-items: center;
 }
-.item .fav-icon { color: #444; font-size: 20px; padding: 0 5px; }
-.item.is-fav .fav-icon { color: #e50914; }
+.item.back-btn { background: #1a1a1a; color: #e50914; font-weight: bold; border-bottom: 2px solid #e50914; }
 
 .focus{
   background:#e50914 !important;
@@ -63,28 +68,35 @@ video{width:100%;height:100%;background:#000}
 /* Overlays */
 #overlay-zap{
   position:absolute; bottom:60px; left:40px;
-  background:rgba(229, 9, 20, 0.9); padding:15px 30px;
+  background:rgba(20,20,20,0.85); padding:15px 30px;
   font-size:28px; font-weight:700; display:none;
-  border-radius: 4px; z-index: 100;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border-left:6px solid #e50914; border-radius: 4px; z-index: 100;
 }
 
 #overlay-meta {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(90deg, rgba(0,0,0,0.95) 30%, rgba(0,0,0,0.4) 100%); 
+  background: linear-gradient(90deg, rgba(0,0,0,0.95) 40%, rgba(0,0,0,0.3) 100%); 
   display: none;
   flex-direction: column; justify-content: center; padding: 60px; box-sizing: border-box;
 }
-#overlay-meta h1 { font-size: 56px; margin: 0; color: #fff; text-shadow: 2px 2px 4px #000;}
-#overlay-meta p { font-size: 20px; max-width: 600px; color: #ddd; line-height: 1.6; }
+#overlay-meta h1 { font-size: 56px; margin: 0; color: #fff; }
+#overlay-meta p { font-size: 20px; max-width: 600px; color: #ccc; line-height: 1.6; }
 #overlay-meta .meta-info { margin: 20px 0; font-weight: bold; font-size: 22px; color: #e50914;}
+
+.btn-play { 
+    background: #e50914; color: #fff; border: none; padding: 22px 50px; 
+    font-size: 22px; font-weight: bold; cursor: pointer; border-radius: 8px; 
+    width: fit-content; transition: 0.2s;
+}
+.btn-back-meta {
+    background: #333; color: #fff; border: none; padding: 22px 30px; 
+    font-size: 22px; font-weight: bold; cursor: pointer; border-radius: 8px; margin-left: 15px;
+}
 
 #clear-hist {
     margin: 10px; padding: 8px; background: #333; color: #ff4444; 
     border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;
 }
-
-#download-app { padding: 10px; text-align: center; font-size: 11px; background: #0a0a0a;}
 </style>
 </head>
 
@@ -96,8 +108,12 @@ video{width:100%;height:100%;background:#000}
         <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
         <div id="clock">00:00</div>
     </div>
+    <div id="app-download-top">
+        <a href="https://github.com/VisorFinances/lista-paixaoflix">
+            <img src="logo192.png" width="14"> Baixar Aplicativo PaixãoFlix
+        </a>
+    </div>
     <input id="search" placeholder="Pesquisar..." data-focus>
-    <div id="now">Assistindo agora: <span id="nowTitle"></span></div>
   </div>
 
   <div id="buttons">
@@ -113,10 +129,6 @@ video{width:100%;height:100%;background:#000}
     <div id="list"></div>
     <button id="clear-hist" style="display:none;">LIMPAR HISTÓRICO</button>
   </div>
-  
-  <div id="download-app">
-      <a href="https://github.com/VisorFinances/lista-paixaoflix" style="color:white; text-decoration:none;">Download App <img src="logo192.png" width="16" style="vertical-align: middle;"></a>
-  </div>
 </div>
 
 <div id="player">
@@ -127,8 +139,9 @@ video{width:100%;height:100%;background:#000}
       <h1 id="meta-title">Título</h1>
       <div class="meta-info">Nota: <span id="meta-rating">--</span> | <span id="meta-year">2026</span></div>
       <p id="meta-desc">Descrição do conteúdo...</p>
-      <div style="display:flex; gap: 15px; margin-top: 20px;">
+      <div style="display:flex; margin-top: 30px;">
         <button class="btn-play" id="btn-start-content">ASSISTIR AGORA</button>
+        <button class="btn-back-meta" id="btn-close-meta">VOLTAR</button>
       </div>
   </div>
 </div>
@@ -154,11 +167,10 @@ setInterval(updateClock, 1000); updateClock();
 
 searchInput.oninput = () => {
     const term = searchInput.value.toLowerCase();
-    items = allItems.filter(i => i.title.toLowerCase().includes(term));
+    items = allItems.filter(i => (i.title || i.nome || "").toLowerCase().includes(term));
     render(true);
 };
 
-/* ================= ZAP RÁPIDO ================= */
 function showZap(title) {
     overlayZap.innerText = title;
     overlayZap.style.display = 'block';
@@ -177,20 +189,16 @@ function play(url, title, isZap=false, meta={}){
     
     video.play().catch(()=>{});
     overlayMeta.style.display='none';
-    document.getElementById('now').style.display='block';
-    document.getElementById('nowTitle').innerText=title;
-
     if(isZap) showZap(title);
 }
 
-/* ================= VISUALIZAÇÃO DINÂMICA (INFO AO ROLAR) ================= */
 function updateContentPreview(item) {
-    if(mode === 'tv') {
+    if(mode === 'tv' || !item) {
         overlayMeta.style.display = 'none';
         return;
     }
     document.getElementById('meta-title').innerText = item.title || item.nome;
-    document.getElementById('meta-desc').innerText = item.description || "Navegue para ver os detalhes deste título.";
+    document.getElementById('meta-desc').innerText = item.description || "Navegue para assistir agora.";
     document.getElementById('meta-rating').innerText = item.rating || "8.5";
     overlayMeta.style.display = 'flex';
     
@@ -198,9 +206,11 @@ function updateContentPreview(item) {
         if(mode === 'series' && item.episodios) loadSeriesEpisodes(item);
         else play(item.url, item.title || item.nome, false, item);
     };
+    document.getElementById('btn-close-meta').onclick = () => {
+        overlayMeta.style.display = 'none';
+    };
 }
 
-/* ================= CARREGADORES ================= */
 async function loadTV(){
     mode='tv'; clearHistBtn.style.display='none';
     const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>"");
@@ -222,16 +232,31 @@ async function loadJSON(type, file) {
 
 function loadSeriesEpisodes(serie) {
     const mainTitle = serie.nome || serie.title;
-    items = serie.episodios.map(e => ({
+    const episodes = serie.episodios.map(e => ({
         title: `${mainTitle} - ${e.titulo}`,
         url: e.url,
         description: serie.description,
         isEpisode: true
     }));
-    render(true);
+    
+    list.innerHTML = '';
+    const back = document.createElement('div');
+    back.className = 'item back-btn';
+    back.innerHTML = '⬅ VOLTAR PARA SÉRIES';
+    back.onclick = () => loadJSON('series', './data/series.json');
+    list.appendChild(back);
+
+    episodes.forEach((i, n) => {
+        const d = document.createElement('div');
+        d.className = 'item';
+        d.innerHTML = `<span>${i.title}</span>`;
+        d.onclick = () => play(i.url, i.title, false, i);
+        list.appendChild(d);
+    });
+    items = episodes; 
+    refreshFocus();
 }
 
-/* ================= RENDER ================= */
 function render(isFiltering=false){
     list.innerHTML='';
     if(!isFiltering && mode !== 'fav' && mode !== 'hist') items = [...allItems];
@@ -241,28 +266,26 @@ function render(isFiltering=false){
         const isFav = favoritos.some(f => f.url === i.url);
         d.className = 'item' + (isFav ? ' is-fav' : '');
         d.innerHTML = `<span>${i.title || i.nome}</span> <span class="fav-icon">★</span>`;
-        d.id = "item-" + n;
         
         d.onclick=()=>{
             currentIndex = n;
             if(mode === 'tv') play(i.url, i.title, true);
             else if(mode === 'series' && i.episodios) loadSeriesEpisodes(i);
-            else play(i.url, i.title || i.nome, false, i);
+            else updateContentPreview(i);
         };
         list.appendChild(d);
     });
     refreshFocus();
 }
 
-/* ================= HISTÓRICO E FAV ================= */
 function saveHistory(title, url, meta) {
+    if(!title) return;
     historico = historico.filter(h => h.url !== url);
     historico.unshift({title, url, meta});
     if(historico.length > 30) historico.pop();
     localStorage.setItem('hist', JSON.stringify(historico));
 }
 
-/* ================= NAVEGAÇÃO E CONTROLE REMOTO ================= */
 let focusables=[];
 let focusIndex=0;
 
@@ -272,6 +295,7 @@ function refreshFocus(){
         ...document.querySelectorAll('#buttons button'),
         ...document.querySelectorAll('#list .item'),
         document.getElementById('btn-start-content'),
+        document.getElementById('btn-close-meta'),
         clearHistBtn
     ].filter(el => el && el.offsetParent !== null);
 }
@@ -283,38 +307,39 @@ function updateFocus(){
         el.classList.add('focus');
         el.scrollIntoView({block:'center', behavior:'smooth'});
         
-        // Se o foco estiver na lista de Filmes/Séries, atualiza o overlay automaticamente
         if(el.classList.contains('item')){
-            const itemIdx = Array.from(document.querySelectorAll('#list .item')).indexOf(el);
-            if(items[itemIdx]) updateContentPreview(items[itemIdx]);
+            const listItems = Array.from(document.querySelectorAll('#list .item'));
+            const idxInList = listItems.indexOf(el);
+            // Se for botão voltar da série, não faz preview
+            if(el.classList.contains('back-btn')) {
+                overlayMeta.style.display = 'none';
+            } else if (items[idxInList]) {
+                 updateContentPreview(items[idxInList]);
+            }
         }
     }
 }
 
 document.addEventListener('keydown', e=>{
     refreshFocus();
-    
-    // Suporte a botões nativos CH+ e CH- e setas
-    if(e.key==='ArrowDown' || e.keyCode === 427 || e.key === 'ChannelUp'){ 
+    // Zapping CH+/CH-
+    if(e.keyCode === 427 || e.key === 'ChannelUp'){ 
         e.preventDefault(); 
-        if(mode === 'tv' && (e.keyCode === 427 || e.key === 'ChannelUp')){
+        if(mode === 'tv'){
             currentIndex = (currentIndex + 1) % items.length;
             play(items[currentIndex].url, items[currentIndex].title, true);
-        } else {
-            focusIndex = Math.min(focusIndex + 1, focusables.length - 1);
         }
     }
-    
-    if(e.key==='ArrowUp' || e.keyCode === 428 || e.key === 'ChannelDown'){ 
+    if(e.keyCode === 428 || e.key === 'ChannelDown'){ 
         e.preventDefault(); 
-        if(mode === 'tv' && (e.keyCode === 428 || e.key === 'ChannelDown')){
+        if(mode === 'tv'){
             currentIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
             play(items[currentIndex].url, items[currentIndex].title, true);
-        } else {
-            focusIndex = Math.max(focusIndex - 1, 0);
         }
     }
 
+    if(e.key==='ArrowDown') { e.preventDefault(); focusIndex = Math.min(focusIndex + 1, focusables.length - 1); }
+    if(e.key==='ArrowUp') { e.preventDefault(); focusIndex = Math.max(focusIndex - 1, 0); }
     if(e.key==='ArrowRight') { e.preventDefault(); focusIndex = Math.min(focusIndex + 1, focusables.length-1); }
     if(e.key==='ArrowLeft') { e.preventDefault(); focusIndex = Math.max(focusIndex - 1, 0); }
     
@@ -325,7 +350,6 @@ document.addEventListener('keydown', e=>{
     updateFocus();
 });
 
-/* ================= EVENTOS BOTÕES ================= */
 document.getElementById('btnTV').onclick=()=>{setActive('btnTV'); loadTV();}
 document.getElementById('btnFilmes').onclick=()=>{setActive('btnFilmes'); loadJSON('filmes', './data/filmes.json');}
 document.getElementById('btnSeries').onclick=()=>{setActive('btnSeries'); loadJSON('series', './data/series.json');}
@@ -337,6 +361,7 @@ function setActive(id){
     document.querySelectorAll('#buttons button').forEach(x=>x.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     overlayMeta.style.display = 'none';
+    searchInput.value = '';
 }
 
 window.onload = () => { loadTV(); updateFocus(); };
