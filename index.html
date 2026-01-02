@@ -14,7 +14,6 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height
 #top{padding:15px}
 #logo{width:100%;max-height:90px;object-fit:contain}
 #search{margin-top:10px;padding:8px;border-radius:8px;border:1px solid #e50914;background:#000;color:#fff}
-#search:focus{outline:none;box-shadow:0 0 0 2px #e5091440}
 #now{margin-top:10px;font-size:13px;color:#aaa;display:none}
 
 #buttons{display:flex;gap:6px;padding:10px}
@@ -41,12 +40,13 @@ video{width:100%;height:100%;background:#000}
   position:absolute;
   bottom:40px;
   left:40px;
-  background:rgba(0,0,0,.7);
-  padding:12px 18px;
-  font-size:18px;
+  background:rgba(0,0,0,.75);
+  padding:14px 20px;
+  font-size:20px;
   font-weight:700;
   display:none;
-  border-left:4px solid #e50914
+  border-left:4px solid #e50914;
+  max-width:60%;
 }
 </style>
 </head>
@@ -75,27 +75,28 @@ video{width:100%;height:100%;background:#000}
 </div>
 
 <script>
-const video = document.getElementById('video');
-const list = document.getElementById('list');
-const overlay = document.getElementById('overlay');
-const nowBox = document.getElementById('now');
-const nowTitle = document.getElementById('nowTitle');
-const search = document.getElementById('search');
+const video=document.getElementById('video');
+const list=document.getElementById('list');
+const overlay=document.getElementById('overlay');
+const nowBox=document.getElementById('now');
+const nowTitle=document.getElementById('nowTitle');
 
-const buttons = [
-  document.getElementById('btnTV'),
-  document.getElementById('btnFilmes'),
-  document.getElementById('btnSeries')
+const buttons=[
+  btnTV,
+  btnFilmes,
+  btnSeries
 ];
 
 let hls=null;
 let mode='filmes';
 let items=[];
 let index=0;
+let overlayTimer=null;
 
 /* ===== PLAYER ===== */
 function play(url,title,zap=false){
   if(hls){hls.destroy();hls=null;}
+
   if(url.endsWith('.m3u8') && Hls.isSupported()){
     hls=new Hls();
     hls.loadSource(url);
@@ -103,24 +104,29 @@ function play(url,title,zap=false){
   }else{
     video.src=url;
   }
-  video.play();
-  nowBox.style.display='block';
-  nowTitle.innerText=title;
 
-  if(zap){
-    overlay.innerText=title;
-    overlay.style.display='block';
-    setTimeout(()=>overlay.style.display='none',2000);
-  }
+  video.play();
+
+  // Assistindo agora CORRETO
+  nowBox.style.display='block';
+  nowTitle.textContent=title;
+
+  // Overlay
+  overlay.textContent=title;
+  overlay.style.display='block';
+  clearTimeout(overlayTimer);
+  overlayTimer=setTimeout(()=>{
+    overlay.style.display='none';
+  },2000);
 }
 
-/* ===== RENDER LIST ===== */
+/* ===== RENDER ===== */
 function render(){
   list.innerHTML='';
   items.forEach((i,n)=>{
     const d=document.createElement('div');
     d.className='item'+(n===index?' active':'');
-    d.innerText=i.title;
+    d.textContent=i.title;
     d.onclick=()=>{
       index=n;
       play(i.url,i.title,mode==='tv');
@@ -156,7 +162,10 @@ async function loadSeries(){
   const data=await fetch('./data/series.json').then(r=>r.json());
   data.forEach(s=>{
     (s.episodios||[]).forEach(e=>{
-      items.push({title:s.nome+' - '+e.titulo,url:e.url});
+      items.push({
+        title:`${s.nome} - ${e.titulo}`,
+        url:e.url
+      });
     });
   });
   render();
@@ -172,37 +181,25 @@ function setActive(i){
   buttons[i].classList.add('active');
 }
 
-/* ===== NAVEGAÇÃO GLOBAL ===== */
-let section=0; // 0=search,1=buttons,2=list
+/* ===== ZAP + NAVEGAÇÃO ===== */
+let section=1;
 let btnIndex=1;
 
 document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowDown'){
-    if(section<2) section++;
-  }
-  if(e.key==='ArrowUp'){
-    if(section>0) section--;
-  }
-
-  if(section===0){
-    search.focus();
-  }
-
-  if(section===1){
-    buttons.forEach(b=>b.classList.remove('focused'));
-    buttons[btnIndex].classList.add('focused');
-
-    if(e.key==='ArrowLeft') btnIndex=Math.max(0,btnIndex-1);
-    if(e.key==='ArrowRight') btnIndex=Math.min(2,btnIndex+1);
-
-    if(e.key==='Enter') buttons[btnIndex].click();
-  }
-
   if(section===2){
-    if(e.key==='ArrowDown') index=Math.min(index+1,items.length-1);
-    if(e.key==='ArrowUp') index=Math.max(index-1,0);
-    if(e.key==='Enter') play(items[index].url,items[index].title,mode==='tv');
-    render();
+    if(e.key==='ArrowDown'){
+      index=Math.min(index+1,items.length-1);
+      if(mode==='tv') play(items[index].url,items[index].title,true);
+      render();
+    }
+    if(e.key==='ArrowUp'){
+      index=Math.max(index-1,0);
+      if(mode==='tv') play(items[index].url,items[index].title,true);
+      render();
+    }
+    if(e.key==='Enter'){
+      play(items[index].url,items[index].title,mode==='tv');
+    }
   }
 });
 
@@ -212,3 +209,5 @@ loadFilmes();
 
 </body>
 </html>
+✅ RESULTADO REAL AGORA
+✔ Assistindo A
