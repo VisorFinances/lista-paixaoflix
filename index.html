@@ -32,7 +32,6 @@
     #list-container{flex:1;overflow:hidden;position:relative;}
     #list{height:100%;overflow-y:auto;}
     .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;outline:none;}
-    /* SELETOR: APENAS BORDA VERMELHA ESQUERDA */
     .item.focus{border-left-color:var(--primary); background:rgba(255,255,255,0.05); outline: none !important;}
     
     .item.is-fav .fav-icon{color: var(--primary);}
@@ -130,10 +129,10 @@ function play(url, title, isZap=false){
     }
 }
 
-// CAMINHO CORRIGIDO: pasta data/
+// AJUSTE: CAMINHO SEM O PONTO INICIAL (MAIS COMPATÍVEL)
 async function loadKidsCanais(){
     mode='tv'; setActive('btnKidsCanais'); items=[];
-    const txt = await fetch('./data/kids_canais.m3u').then(r=>r.text()).catch(()=>"");
+    const txt = await fetch('data/kids_canais.m3u').then(r=>r.text()).catch(()=>"");
     let name='';
     txt.split('\n').forEach(l=>{
         if(l.startsWith('#EXTINF')) name=l.split(',').pop();
@@ -142,26 +141,26 @@ async function loadKidsCanais(){
     render(); if(items.length>0) play(items[0].url, items[0].nome, true);
 }
 
-// CAMINHO CORRIGIDO: pasta data/ (Processa Filmes e Séries Kids)
 async function loadKidsConteudo(){
     mode='kids'; setActive('btnKidsConteudo'); items=[];
     
     const fetchJson = async (url, type) => {
         try {
             const r = await fetch(url);
-            if(!r.ok) return [];
+            if(!r.ok) throw new Error();
             const data = await r.json();
             return data.map(x => ({...x, type: type}));
         } catch(e) { return []; }
     };
 
-    const fList = await fetchJson('./data/kids_filmes.json', 'movie');
-    const sList = await fetchJson('./data/kids_series.json', 'serie');
+    // TENTA LER OS DOIS ARQUIVOS
+    const fList = await fetchJson('data/kids_filmes.json', 'movie');
+    const sList = await fetchJson('data/kids_series.json', 'serie');
     
     items = [...fList, ...sList];
     
     if(items.length === 0) {
-        list.innerHTML = '<div style="padding:20px;color:#ff4444">Arquivos não encontrados na pasta /data/</div>';
+        list.innerHTML = '<div style="padding:20px;color:#ff4444">Erro: Verifique se os nomes dos arquivos estão corretos dentro da pasta data.</div>';
     } else {
         render();
     }
@@ -169,7 +168,7 @@ async function loadKidsConteudo(){
 
 async function loadTV(){
     mode='tv'; setActive('btnTV');
-    const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>"");
+    const txt = await fetch('data/canais.m3u').then(r=>r.text()).catch(()=>"");
     items=[]; let name='';
     txt.split('\n').forEach(l=>{
         if(l.startsWith('#EXTINF')) name=l.split(',').pop();
@@ -181,11 +180,11 @@ async function loadTV(){
 async function loadJSON(m, file){
     mode=m; setActive('btn'+m.charAt(0).toUpperCase()+m.slice(1));
     try {
-        const data = await fetch('./data/' + file).then(r=>r.json());
+        const data = await fetch('data/' + file).then(r=>r.json());
         items = data.map(x => ({...x, type: (m === 'filmes' ? 'movie' : 'serie')}));
         render();
     } catch(e) { 
-        list.innerHTML = '<div style="padding:20px;color:#ff4444">Erro ao carregar /data/' + file + '</div>';
+        list.innerHTML = '<div style="padding:20px;color:#ff4444">Não carregou: data/' + file + '</div>';
     }
 }
 
