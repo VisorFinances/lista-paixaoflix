@@ -10,47 +10,60 @@
 <style>
     :root { --primary: #e50914; --bg: #111; }
     body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
+    
+    /* REMOVER QUALQUER BARRA DE ROLAGEM */
     * { scrollbar-width: none; -ms-overflow-style: none; }
     *::-webkit-scrollbar { display: none; }
 
     #side{width:340px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
     #top{padding:20px;}
     #header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    
+    /* Logotipo do App */
     #logo{max-width:150px;max-height:60px;object-fit:contain}
+    
     #clock-container{text-align:right;}
     #clock{font-size:22px;font-weight:700;line-height:1;}
     #date{font-size:12px;opacity:0.8;margin-top:4px;}
 
     #search{width:100%;box-sizing:border-box;padding:12px;border-radius:8px;border:1px solid var(--primary);background:#000;color:#fff;outline:none;margin-top:10px;}
+    
     #buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px}
     #buttons button{padding:10px;border:0;border-radius:6px;background:#222;color:#fff;font-weight:700;cursor:pointer;font-size:11px;}
     #buttons button.active{background:var(--primary)}
 
-    #list-container{flex:1;overflow:hidden;}
+    #list-container{flex:1;overflow:hidden;position:relative;}
     #list{height:100%;overflow-y:auto;}
-    .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;}
-    .item.focus{border-left-color:var(--primary);background:rgba(255,255,255,0.1)!important;}
+    
+    /* ESTILO DA LISTA: APENAS BORDA ESQUERDA NO FOCO */
+    .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent; transition: 0.1s;}
+    .item.focus{border-left-color:var(--primary); background:rgba(255,255,255,0.05); outline: none !important;}
+    
     .item.is-fav .fav-icon{color: var(--primary);}
     .fav-icon{opacity:0.5; font-size:18px;}
 
     #player{flex:1;position:relative;background:#000;}
     video{width:100%;height:100%;}
 
+    /* ZAP RÁPIDO */
     #overlay-zap{position:absolute;bottom:60px;left:40px;background:rgba(0,0,0,0.8);padding:15px 30px;display:none;border-left:8px solid var(--primary);z-index:100;}
     #zap-title{font-size:28px;font-weight:700;margin:0;}
 
-    /* CARD DE INFO - RESTAURADO */
+    /* CARD DE INFORMAÇÕES */
     #overlay-meta{position:absolute;top:0;left:0;width:100%;height:100%;background-color:#000;background-size:cover;background-position:center right;display:none;flex-direction:column;justify-content:center;padding:60px;box-sizing:border-box;}
     #overlay-meta::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg, #000 45%, transparent 100%);z-index:1;}
     #overlay-meta * {z-index:2; position:relative;}
-    #overlay-meta h1{font-size:50px;margin:0;max-width:600px;text-shadow: 2px 2px 4px #000;}
-    .meta-extra{color:var(--primary); font-weight:bold; font-size:22px; margin: 12px 0;}
-    #overlay-meta p{font-size:18px;max-width:550px;color:#ccc;line-height:1.4;text-shadow: 1px 1px 2px #000;}
+    #overlay-meta h1{font-size:50px;margin:0;max-width:600px;}
+    .meta-extra{color:var(--primary); font-weight:bold; font-size:20px; margin: 10px 0;}
+    #overlay-meta p{font-size:18px;max-width:550px;color:#ccc;line-height:1.4;}
 
-    .btn-meta{padding:12px 25px; font-weight:bold; border-radius:6px; border:none; cursor:pointer; font-size:14px; transition: 0.2s;}
+    /* BOTÕES META COMPACTOS */
+    .btn-meta{padding:12px 25px; font-weight:bold; border-radius:6px; border:none; cursor:pointer; font-size:14px;}
     .btn-play{background:var(--primary); color:#fff;}
     .btn-back{background:#333; color:#fff; margin-left:10px;}
-    .focus { outline: 3px solid #fff!important; }
+
+    /* FOCO NOS BOTÕES E BUSCA (SEM AFETAR A LISTA) */
+    #search.focus, #buttons button.focus, .btn-meta.focus { outline: 3px solid #fff !important; }
 </style>
 </head>
 <body>
@@ -81,7 +94,7 @@
         <h1 id="meta-title"></h1>
         <div class="meta-extra">★ <span id="meta-rating">--</span> | <span id="meta-year">----</span></div>
         <p id="meta-desc"></p>
-        <div style="display:flex;margin-top:25px;">
+        <div style="display:flex;margin-top:20px;">
             <button class="btn-meta btn-play" id="btn-start">ASSISTIR AGORA</button>
             <button class="btn-meta btn-back" id="btn-close">VOLTAR</button>
         </div>
@@ -105,7 +118,7 @@ const getHist=()=>JSON.parse(localStorage.getItem('flix_hist')||'[]');
 
 function toggleFav(item){
     let favs = getFavs();
-    const idx = favs.findIndex(f => f.nome === item.nome);
+    const idx = favs.findIndex(f => f.nome === (item.nome || item.titulo));
     if(idx > -1) favs.splice(idx, 1); else favs.push(item);
     localStorage.setItem('flix_favs', JSON.stringify(favs));
     render();
@@ -113,7 +126,7 @@ function toggleFav(item){
 
 function addToHist(item){
     let hist = getHist();
-    hist = hist.filter(h => h.nome !== item.nome);
+    hist = hist.filter(h => h.nome !== (item.nome || item.titulo));
     hist.unshift(item);
     localStorage.setItem('flix_hist', JSON.stringify(hist.slice(0,50)));
 }
@@ -133,7 +146,6 @@ function play(url, title, isZap=false){
     }
 }
 
-// CORREÇÃO BOTÃO KIDS - CARREGAMENTO SÍNCRONO GARANTIDO
 async function loadKids(){
     mode='kids'; setActive('btnKids'); items=[];
     try {
@@ -149,7 +161,7 @@ async function loadKids(){
         ]);
         items = [...items, ...f.map(x=>({...x, type:'movie'})), ...s.map(x=>({...x, type:'serie'}))];
         render();
-    } catch(e) { console.error("Erro Kids:", e); }
+    } catch(e) { console.error(e); }
 }
 
 async function loadTV(){
@@ -234,6 +246,8 @@ document.addEventListener('keydown', e=>{
     if(e.key==='ArrowDown') { focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); }
     if(e.key==='ArrowUp') { focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; e.preventDefault(); }
     if(e.key==='Enter') window.focusables[focusIndex].click();
+    
+    // ZAP RÁPIDO CH+/CH-
     if(e.key==='ChannelUp' || e.key==='PageUp') { 
         if(mode==='tv') { focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; window.focusables[focusIndex].click(); }
     }
