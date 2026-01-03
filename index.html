@@ -5,63 +5,51 @@
 <title>PaixãoFlix – Web TV</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
-<link rel="apple-touch-icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 <style>
     :root { --primary: #e50914; --bg: #111; }
     body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
-    
-    /* SEM BARRA DE ROLAGEM */
     * { scrollbar-width: none; -ms-overflow-style: none; }
     *::-webkit-scrollbar { display: none; }
 
     #side{width:340px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
     #top{padding:20px;}
     #header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-    
-    /* LOGOTIPO PRINCIPAL DO APP */
     #logo{max-width:150px;max-height:60px;object-fit:contain}
-    
     #clock-container{text-align:right;}
     #clock{font-size:22px;font-weight:700;line-height:1;}
     #date{font-size:12px;opacity:0.8;margin-top:4px;}
 
     #search{width:100%;box-sizing:border-box;padding:12px;border-radius:8px;border:1px solid var(--primary);background:#000;color:#fff;outline:none;margin-top:10px;}
-    
     #buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px}
     #buttons button{padding:10px;border:0;border-radius:6px;background:#222;color:#fff;font-weight:700;cursor:pointer;font-size:11px;}
     #buttons button.active{background:var(--primary)}
 
-    #list-container{flex:1;overflow:hidden;position:relative;}
+    #list-container{flex:1;overflow:hidden;}
     #list{height:100%;overflow-y:auto;}
-    
     .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;}
-    .item.focus{border-left-color:var(--primary);background:rgba(255,255,255,0.1)!important;outline:none;}
+    .item.focus{border-left-color:var(--primary);background:rgba(255,255,255,0.1)!important;}
     .item.is-fav .fav-icon{color: var(--primary);}
     .fav-icon{opacity:0.5; font-size:18px;}
 
     #player{flex:1;position:relative;background:#000;}
     video{width:100%;height:100%;}
 
-    /* ZAP RÁPIDO */
     #overlay-zap{position:absolute;bottom:60px;left:40px;background:rgba(0,0,0,0.8);padding:15px 30px;display:none;border-left:8px solid var(--primary);z-index:100;}
     #zap-title{font-size:28px;font-weight:700;margin:0;}
 
-    /* META INFO */
+    /* CARD DE INFO - RESTAURADO */
     #overlay-meta{position:absolute;top:0;left:0;width:100%;height:100%;background-color:#000;background-size:cover;background-position:center right;display:none;flex-direction:column;justify-content:center;padding:60px;box-sizing:border-box;}
     #overlay-meta::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg, #000 45%, transparent 100%);z-index:1;}
     #overlay-meta * {z-index:2; position:relative;}
-    #overlay-meta h1{font-size:50px;margin:0;max-width:600px;}
-    
-    .meta-extra{color:var(--primary); font-weight:bold; font-size:20px; margin: 10px 0;}
-    #overlay-meta p{font-size:18px;max-width:550px;color:#ccc;line-height:1.4;}
+    #overlay-meta h1{font-size:50px;margin:0;max-width:600px;text-shadow: 2px 2px 4px #000;}
+    .meta-extra{color:var(--primary); font-weight:bold; font-size:22px; margin: 12px 0;}
+    #overlay-meta p{font-size:18px;max-width:550px;color:#ccc;line-height:1.4;text-shadow: 1px 1px 2px #000;}
 
-    /* BOTÕES PEQUENOS */
-    .btn-meta{padding:12px 25px; font-weight:bold; border-radius:6px; border:none; cursor:pointer; font-size:14px;}
+    .btn-meta{padding:12px 25px; font-weight:bold; border-radius:6px; border:none; cursor:pointer; font-size:14px; transition: 0.2s;}
     .btn-play{background:var(--primary); color:#fff;}
     .btn-back{background:#333; color:#fff; margin-left:10px;}
-
     .focus { outline: 3px solid #fff!important; }
 </style>
 </head>
@@ -93,7 +81,7 @@
         <h1 id="meta-title"></h1>
         <div class="meta-extra">★ <span id="meta-rating">--</span> | <span id="meta-year">----</span></div>
         <p id="meta-desc"></p>
-        <div style="display:flex;margin-top:20px;">
+        <div style="display:flex;margin-top:25px;">
             <button class="btn-meta btn-play" id="btn-start">ASSISTIR AGORA</button>
             <button class="btn-meta btn-back" id="btn-close">VOLTAR</button>
         </div>
@@ -104,7 +92,6 @@
 const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta');
 let hls=null, items=[], mode='tv', focusIndex=0, zapTimer=null, currentSerieEpisodes=null;
 
-// RELÓGIO dd/mm/aa
 function updateClock(){
     const now=new Date();
     document.getElementById('clock').innerText=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
@@ -146,19 +133,23 @@ function play(url, title, isZap=false){
     }
 }
 
-// KIDS UNIFICADO
+// CORREÇÃO BOTÃO KIDS - CARREGAMENTO SÍNCRONO GARANTIDO
 async function loadKids(){
     mode='kids'; setActive('btnKids'); items=[];
-    const txt = await fetch('./data/kids_canais.m3u').then(r=>r.text()).catch(()=>"");
-    let name='';
-    txt.split('\n').forEach(l=>{
-        if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-        else if(l.startsWith('http')) items.push({nome:name.trim(), url:l.trim(), type:'tv'});
-    });
-    const f = await fetch('./data/kids_filmes.json').then(r=>r.json()).catch(()=>[]);
-    const s = await fetch('./data/kids_series.json').then(r=>r.json()).catch(()=>[]);
-    items = [...items, ...f.map(x=>({...x, type:'movie'})), ...s.map(x=>({...x, type:'serie'}))];
-    render();
+    try {
+        const txt = await fetch('./data/kids_canais.m3u').then(r=>r.text());
+        let name='';
+        txt.split('\n').forEach(l=>{
+            if(l.startsWith('#EXTINF')) name=l.split(',').pop();
+            else if(l.startsWith('http')) items.push({nome:name.trim(), url:l.trim(), type:'tv'});
+        });
+        const [f, s] = await Promise.all([
+            fetch('./data/kids_filmes.json').then(r=>r.json()).catch(()=>[]),
+            fetch('./data/kids_series.json').then(r=>r.json()).catch(()=>[])
+        ]);
+        items = [...items, ...f.map(x=>({...x, type:'movie'})), ...s.map(x=>({...x, type:'serie'}))];
+        render();
+    } catch(e) { console.error("Erro Kids:", e); }
 }
 
 async function loadTV(){
@@ -188,7 +179,7 @@ function render(customList=null){
     }
     target.forEach(i=>{
         const d=document.createElement('div');
-        const isF=favs.some(f=>f.nome===i.nome);
+        const isF=favs.some(f=>f.nome===(i.nome||i.titulo));
         d.className=`item ${isF?'is-fav':''}`;
         d.innerHTML=`<span>${i.nome||i.titulo}</span><span class="fav-icon">★</span>`;
         d.onclick=()=>{ 
@@ -229,26 +220,20 @@ function updateFocus(){
     const el = window.focusables[focusIndex];
     if(!el) return;
     el.scrollIntoView({block:'center'});
-
     if(el.id==='search') el.focus();
-
-    // AUTO PREVIEW
     if(el.classList.contains('item') && !currentSerieEpisodes){
         const idx = Array.from(document.querySelectorAll('#list .item')).indexOf(el);
         const item = items[idx];
-        if(item && (item.type==='movie'||item.type==='serie'||mode==='filmes'||mode==='series'||mode==='kids'||mode==='fav'||mode==='hist')) showMeta(item);
-        else if(item && item.type==='tv') overlayMeta.style.display='none';
+        if(item && item.type !== 'tv') showMeta(item);
+        else overlayMeta.style.display='none';
     }
 }
 
 document.addEventListener('keydown', e=>{
     refreshFocus();
-    // ROLAGEM INFINITA
     if(e.key==='ArrowDown') { focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); }
     if(e.key==='ArrowUp') { focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; e.preventDefault(); }
     if(e.key==='Enter') window.focusables[focusIndex].click();
-    
-    // ZAP RÁPIDO CH+/CH-
     if(e.key==='ChannelUp' || e.key==='PageUp') { 
         if(mode==='tv') { focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; window.focusables[focusIndex].click(); }
     }
