@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <title>PaixãoFlix – Web TV</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
+<link rel="apple-touch-icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 <style>
@@ -17,7 +19,10 @@
     #side{width:340px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
     #top{padding:20px;}
     #header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    
+    /* LOGOTIPO PRINCIPAL DO APP */
     #logo{max-width:150px;max-height:60px;object-fit:contain}
+    
     #clock-container{text-align:right;}
     #clock{font-size:22px;font-weight:700;line-height:1;}
     #date{font-size:12px;opacity:0.8;margin-top:4px;}
@@ -50,7 +55,6 @@
     #overlay-meta h1{font-size:50px;margin:0;max-width:600px;}
     
     .meta-extra{color:var(--primary); font-weight:bold; font-size:20px; margin: 10px 0;}
-
     #overlay-meta p{font-size:18px;max-width:550px;color:#ccc;line-height:1.4;}
 
     /* BOTÕES PEQUENOS */
@@ -109,7 +113,6 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-// FAVORITOS E HISTÓRICO LÓGICA
 const getFavs=()=>JSON.parse(localStorage.getItem('flix_favs')||'[]');
 const getHist=()=>JSON.parse(localStorage.getItem('flix_hist')||'[]');
 
@@ -143,7 +146,7 @@ function play(url, title, isZap=false){
     }
 }
 
-// CARREGAMENTO KIDS UNIFICADO
+// KIDS UNIFICADO
 async function loadKids(){
     mode='kids'; setActive('btnKids'); items=[];
     const txt = await fetch('./data/kids_canais.m3u').then(r=>r.text()).catch(()=>"");
@@ -218,7 +221,7 @@ function showMeta(i){
 
 function refreshFocus(){
     const els=[document.getElementById('search'), ...document.querySelectorAll('#buttons button'), ...document.querySelectorAll('#list .item'), document.getElementById('btn-start'), document.getElementById('btn-close')];
-    window.focusables=els.filter(e=>e.offsetParent!==null);
+    window.focusables=els.filter(e=>e.offsetParent !== null);
 }
 
 function updateFocus(){
@@ -229,7 +232,7 @@ function updateFocus(){
 
     if(el.id==='search') el.focus();
 
-    // AUTO-PREVIEW AO NAVEGAR
+    // AUTO PREVIEW
     if(el.classList.contains('item') && !currentSerieEpisodes){
         const idx = Array.from(document.querySelectorAll('#list .item')).indexOf(el);
         const item = items[idx];
