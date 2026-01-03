@@ -2,39 +2,44 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
-    <title>PaixãoFlix - Oficial</title>
+    <title>PaixãoFlix - Sistema Consolidado</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
     <style>
-        :root { --primary: #e50914; }
+        :root { --primary: #e50914; --bg-sidebar: #111; }
         body { margin:0; background:#000; color:#fff; font-family: Arial, sans-serif; display:flex; height:100vh; overflow:hidden; }
         
-        /* Menu Lateral Original */
-        #side { width:340px; background:#111; display:flex; flex-direction:column; border-right:1px solid #222; }
+        /* Layout Lateral Consolidado */
+        #side { width:340px; background:var(--bg-sidebar); display:flex; flex-direction:column; border-right:1px solid #222; z-index: 10; }
         #search-box { padding:15px; }
-        #search { width:90%; padding:10px; background:#000; color:#fff; border:1px solid #444; font-size: 16px; }
+        #search { width:90%; padding:12px; background:#000; color:#fff; border:1px solid #444; font-size: 16px; outline: none; }
         
-        #buttons { display:grid; grid-template-columns: 1fr 1fr; gap:5px; padding:10px; }
-        #buttons button { padding:12px; background:#222; color:#fff; border:none; cursor:pointer; font-weight:bold; }
+        #buttons { display:grid; grid-template-columns: 1fr 1fr; gap:8px; padding:10px; }
+        #buttons button { padding:12px; background:#222; color:#fff; border:none; cursor:pointer; font-weight:bold; font-size: 14px; }
         #buttons button.active { background: var(--primary); }
 
-        #list { flex:1; overflow-y:auto; }
-        .item { padding:15px; border-bottom:1px solid #222; cursor:pointer; font-size: 16px; }
+        #list-container { flex:1; overflow-y:auto; position:relative; }
+        .item { padding:15px; border-bottom:1px solid #222; cursor:pointer; font-size: 16px; display: flex; justify-content: space-between; }
+        .item:hover { background: rgba(255,255,255,0.05); }
         
-        /* Área do Player */
+        /* Área do Player e Overlay */
         #player-area { flex:1; position:relative; background:#000; }
-        video { width:100%; height:100%; display: block; }
+        video { width:100%; height:100%; object-fit: contain; }
 
-        /* Overlay de Sinopse Restaurado */
-        #overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); display:none; flex-direction:column; justify-content:center; padding:60px; box-sizing:border-box; z-index: 100; }
-        #overlay h1 { font-size: 42px; margin: 0; }
-        .meta-info { color: var(--primary); font-weight:bold; margin: 15px 0; }
-        #m-desc { max-width:700px; line-height:1.6; font-size: 18px; color: #ccc; }
+        #overlay { 
+            position:absolute; top:0; left:0; width:100%; height:100%; 
+            background: rgba(0,0,0,0.95); display:none; flex-direction:column; 
+            justify-content:center; padding:60px; box-sizing:border-box; z-index: 100; 
+        }
+        #overlay h1 { font-size: 48px; margin: 0; font-weight: bold; }
+        .meta-info { color: var(--primary); font-weight:bold; margin: 15px 0; font-size: 20px; }
+        #m-desc { max-width:750px; line-height:1.6; font-size: 19px; color: #ccc; }
         
-        .action-btns { margin-top:30px; }
-        #btn-start { padding:18px 35px; background:var(--primary); color:#fff; border:none; font-weight:bold; cursor:pointer; margin-right: 15px; }
-        #btn-close { padding:18px 35px; background:#333; color:#fff; border:none; cursor:pointer; }
+        .action-btns { margin-top:35px; display: flex; gap: 20px; }
+        #btn-start { padding:20px 40px; background:var(--primary); color:#fff; border:none; font-weight:bold; cursor:pointer; font-size: 18px; }
+        #btn-close { padding:20px 40px; background:#333; color:#fff; border:none; cursor:pointer; font-size: 18px; }
 
-        /* Estilo de Foco (Controle Remoto) */
-        .focusable.focus { outline: 3px solid #fff; background: rgba(255,255,255,0.1); }
+        /* Sistema de Foco para Controle Remoto */
+        .focusable.focus { outline: 4px solid #fff; outline-offset: -2px; background: rgba(255,255,255,0.15) !important; }
     </style>
 </head>
 <body>
@@ -44,10 +49,14 @@
         <input id="search" class="focusable" placeholder="Pesquisar..." type="text">
     </div>
     <div id="buttons">
-        <button id="btnTV" class="focusable active">TV</button>
-        <button id="btnFilmes" class="focusable">FILMES</button>
+        <button id="btnTV" class="focusable">TV</button>
+        <button id="btnFilmes" class="focusable active">FILMES</button>
+        <button id="btnSeries" class="focusable">SÉRIES</button>
+        <button id="btnKids" class="focusable">KIDS</button>
     </div>
-    <div id="list"></div>
+    <div id="list-container">
+        <div id="list"></div>
+    </div>
 </div>
 
 <div id="player-area">
@@ -55,7 +64,7 @@
     
     <div id="overlay">
         <h1 id="m-title"></h1>
-        <div class="meta-info">Lançamento: <span id="m-year"></span> | ★ <span id="m-rating"></span></div>
+        <div class="meta-info">★ <span id="m-rating"></span> | Lançamento: <span id="m-year"></span></div>
         <p id="m-desc"></p>
         <div class="action-btns">
             <button id="btn-start" class="focusable">ASSISTIR AGORA</button>
@@ -69,17 +78,24 @@
     const overlay = document.getElementById('overlay');
     const listDiv = document.getElementById('list');
     let focusIdx = 0;
+    let currentCategory = 'filmes';
+    let hls = null;
 
-    // Dados do filme solicitado
-    const filmesData = [
-        {
-            nome: "Avatar: Fogo e Cinzas",
-            id_archive: "avatar-fogo-e-cinzas",
-            desc: "Após a devastadora guerra contra a RDA e a perda do seu filho mais velho, Jake Sully e Neytiri enfrentam uma nova ameaça em Pandora: o Povo das Cinzas, uma tribo Na'vi violenta e sedenta de poder liderada pelo implacável Varang. A família de Jake deve lutar pela sua sobrevivência e pelo futuro de Pandora num conflito que os leva ao limite emocional e físico.",
-            rating: "8.5",
-            year: "17-12-2025"
-        }
-    ];
+    // Base de Dados Consolidada (Avatar incluído)
+    const database = {
+        filmes: [
+            {
+                nome: "Avatar: Fogo e Cinzas",
+                id_archive: "avatar-fogo-e-cinzas",
+                desc: "Após a devastadora guerra contra a RDA e a perda do seu filho mais velho, Jake Sully e Neytiri enfrentam uma nova ameaça em Pandora: o Povo das Cinzas, uma tribo Na'vi violenta e sedenta de poder liderada pelo implacável Varang. A família de Jake deve lutar pela sua sobrevivência e pelo futuro de Pandora.",
+                rating: "8.5",
+                year: "17-12-2025"
+            }
+        ],
+        series: [],
+        kids: [],
+        tv: []
+    };
 
     function getFocusables() {
         return Array.from(document.querySelectorAll('.focusable')).filter(el => el.offsetParent !== null);
@@ -87,78 +103,106 @@
 
     function updateFocus() {
         const els = getFocusables();
+        if (focusIdx >= els.length) focusIdx = els.length - 1;
+        if (focusIdx < 0) focusIdx = 0;
+
         els.forEach((el, i) => {
             el.classList.toggle('focus', i === focusIdx);
             if (i === focusIdx && el.id === 'search') el.focus();
         });
-        if (els[focusIdx]) els[focusIdx].scrollIntoView({ block: 'center' });
+        
+        if (els[focusIdx]) {
+            els[focusIdx].scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
     }
 
-    // Busca o arquivo direto no Archive.org via Metadata API
-    async function playFromArchive(id) {
+    async function playArchive(id, title) {
         overlay.style.display = 'none';
         try {
             const res = await fetch(`https://archive.org/metadata/${id}`);
             const data = await res.json();
-            // Pega o primeiro arquivo que seja vídeo
-            const videoFile = data.files.find(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv') || f.name.endsWith('.m4v'));
-            if (videoFile) {
-                video.src = `https://archive.org/download/${id}/${videoFile.name}`;
+            const file = data.files.find(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv') || f.name.endsWith('.m4v'));
+            if (file) {
+                const url = `https://archive.org/download/${id}/${file.name}`;
+                if (hls) hls.destroy();
+                video.src = url;
                 video.play();
-            } else {
-                alert("Arquivo de vídeo não encontrado no Archive.");
             }
-        } catch (e) {
-            alert("Erro ao conectar com o Archive.org");
-        }
+        } catch (e) { alert("Erro ao carregar do Archive."); }
     }
 
-    function abrirSinopse(item) {
+    function openSinopse(item) {
         document.getElementById('m-title').innerText = item.nome;
         document.getElementById('m-desc').innerText = item.desc;
         document.getElementById('m-year').innerText = item.year;
         document.getElementById('m-rating').innerText = item.rating;
         overlay.style.display = 'flex';
         
-        document.getElementById('btn-start').onclick = () => playFromArchive(item.id_archive);
-        document.getElementById('btn-close').onclick = () => { overlay.style.display = 'none'; focusIdx = 1; updateFocus(); };
+        document.getElementById('btn-start').onclick = () => playArchive(item.id_archive, item.nome);
+        document.getElementById('btn-close').onclick = () => { 
+            overlay.style.display = 'none'; 
+            focusIdx = 2; // Retorna para a lista
+            updateFocus(); 
+        };
         
         focusIdx = getFocusables().indexOf(document.getElementById('btn-start'));
         updateFocus();
     }
 
-    function carregarLista() {
+    function renderLista(cat) {
+        currentCategory = cat;
         listDiv.innerHTML = '';
-        filmesData.forEach(item => {
+        const dados = database[cat] || [];
+        dados.forEach(item => {
             const div = document.createElement('div');
             div.className = 'item focusable';
-            div.innerText = item.nome;
-            div.onclick = () => abrirSinopse(item);
+            div.innerHTML = `<span>${item.nome}</span><span>▶</span>`;
+            div.onclick = () => openSinopse(item);
             listDiv.appendChild(div);
         });
+        
+        document.querySelectorAll('#buttons button').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn' + cat.charAt(0).toUpperCase() + cat.slice(1)).classList.add('active');
+        
         updateFocus();
     }
 
-    // Navegação Teclado/Controle Remoto
+    // Navegação Teclado e Controle Remoto (Mapeamento Completo)
     document.addEventListener('keydown', (e) => {
         const els = getFocusables();
-        if (e.keyCode === 40) focusIdx = Math.min(focusIdx + 1, els.length - 1); // Baixo
-        if (e.keyCode === 38) focusIdx = Math.max(focusIdx - 1, 0); // Cima
-        if (e.keyCode === 13) els[focusIdx].click(); // OK / Enter
+        const key = e.keyCode;
+
+        if (key === 40) focusIdx = Math.min(focusIdx + 1, els.length - 1); // Baixo
+        else if (key === 38) focusIdx = Math.max(focusIdx - 1, 0); // Cima
+        else if (key === 13 || key === 10009) els[focusIdx].click(); // OK / Enter
+        else if (key === 27 || key === 10006) { // Back / ESC
+            if (overlay.style.display === 'flex') {
+                overlay.style.display = 'none';
+                focusIdx = 1;
+            }
+        }
         updateFocus();
     });
 
-    // Filtro de Pesquisa
+    // Pesquisa em tempo real
     document.getElementById('search').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
         Array.from(listDiv.children).forEach(el => {
-            el.style.display = el.innerText.toLowerCase().includes(val) ? 'block' : 'none';
+            el.style.display = el.innerText.toLowerCase().includes(val) ? 'flex' : 'none';
         });
     });
 
-    document.getElementById('btnFilmes').onclick = carregarLista;
-    window.onload = carregarLista;
-</script>
+    // Eventos de Categorias
+    document.getElementById('btnTV').onclick = () => renderLista('tv');
+    document.getElementById('btnFilmes').onclick = () => renderLista('filmes');
+    document.getElementById('btnSeries').onclick = () => renderLista('series');
+    document.getElementById('btnKids').onclick = () => renderLista('kids');
 
+    window.onload = () => {
+        renderLista('filmes');
+        focusIdx = 0;
+        updateFocus();
+    };
+</script>
 </body>
 </html>
