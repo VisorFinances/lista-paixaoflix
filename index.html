@@ -4,12 +4,13 @@
 <meta charset="utf-8">
 <title>PaixãoFlix – Web TV</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-:root { --primary:#e50914; --bg:#111; }
+:root{--primary:#e50914;--bg:#111}
 body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
 *{scrollbar-width:none;-ms-overflow-style:none}
 *::-webkit-scrollbar{display:none}
@@ -37,12 +38,12 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height
 .item.focus{border-left-color:var(--primary);background:rgba(255,255,255,.05)}
 
 #player{flex:1;position:relative}
-video{width:100%;height:100%}
+video{width:100%;height:100%;background:#000}
 
 #overlay-zap{position:absolute;bottom:60px;left:40px;background:rgba(0,0,0,.8);padding:15px 30px;border-left:8px solid var(--primary);display:none}
 #zap-title{font-size:28px;font-weight:700}
 
-#overlay-meta{position:absolute;top:0;left:0;width:100%;height:100%;background-size:cover;display:none;flex-direction:column;justify-content:center;padding:60px}
+#overlay-meta{position:absolute;inset:0;background-size:cover;display:none;flex-direction:column;justify-content:center;padding:60px}
 #overlay-meta::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.85) 30%,transparent 100%)}
 #overlay-meta *{position:relative;z-index:2}
 
@@ -82,16 +83,8 @@ video{width:100%;height:100%}
 </div>
 
 <div id="player">
-  <video id="video" autoplay></video>
+  <video id="video" autoplay playsinline></video>
   <div id="overlay-zap"><div id="zap-title"></div></div>
-  <div id="overlay-meta">
-    <h1 id="meta-title"></h1>
-    <p id="meta-desc"></p>
-    <div>
-      <button id="btn-start" class="btn-meta btn-play">ASSISTIR</button>
-      <button id="btn-close" class="btn-meta btn-back">VOLTAR</button>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -102,6 +95,7 @@ const currentTitle=document.getElementById('current-title');
 
 let items=[],focusIndex=0,hls=null,zapTimer=null;
 
+/* ===== RELÓGIO ===== */
 function updateClock(){
  const d=new Date();
  clock.innerText=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
@@ -109,23 +103,30 @@ function updateClock(){
 }
 setInterval(updateClock,1000);updateClock();
 
+/* ===== PLAYER ===== */
 function play(url,title,zap=false){
- if(hls){hls.destroy();hls=null}
  currentTitle.innerText=title;
- if(url.includes('.m3u8')&&Hls.isSupported()){
-   hls=new Hls();hls.loadSource(url);hls.attachMedia(video);
- }else video.src=url;
- video.play();
+ if(hls){hls.destroy();hls=null}
+
+ if(url.includes('.m3u8') && Hls.isSupported()){
+   hls=new Hls({enableWorker:false});
+   hls.loadSource(url);
+   hls.attachMedia(video);
+ }else{
+   video.src=url;
+ }
+
+ video.play().catch(()=>{});
 
  const key='resume_'+title;
  const saved=localStorage.getItem(key);
  if(saved) video.currentTime=parseFloat(saved);
 
  if(zap){
-  zap-title.innerText=title;
-  overlay-zap.style.display='block';
-  clearTimeout(zapTimer);
-  zapTimer=setTimeout(()=>overlay-zap.style.display='none',2000);
+   zap-title.innerText=title;
+   overlay-zap.style.display='block';
+   clearTimeout(zapTimer);
+   zapTimer=setTimeout(()=>overlay-zap.style.display='none',2000);
  }
 }
 
@@ -134,9 +135,10 @@ video.addEventListener('timeupdate',()=>{
  localStorage.setItem('resume_'+currentTitle.innerText,video.currentTime);
 });
 
+/* ===== LISTA ===== */
 function render(data=items){
  list.innerHTML='';
- data.forEach((i,idx)=>{
+ data.forEach((i)=>{
   const d=document.createElement('div');
   d.className='item';
   d.innerText=i.nome;
@@ -146,8 +148,15 @@ function render(data=items){
  refreshFocus();
 }
 
+/* ===== FOCO (CRÍTICO PARA WEBOS) ===== */
 function refreshFocus(){
- window.focusables=[search,...document.querySelectorAll('button'),...document.querySelectorAll('.item')];
+ window.focusables=[
+   search,
+   ...document.querySelectorAll('#buttons button'),
+   ...document.querySelectorAll('.item')
+ ];
+ if(focusIndex>=window.focusables.length) focusIndex=0;
+ updateFocus();
 }
 
 function updateFocus(){
@@ -155,6 +164,7 @@ function updateFocus(){
  window.focusables[focusIndex]?.scrollIntoView({block:'center'});
 }
 
+/* ===== PESQUISA ===== */
 search.addEventListener('focus',()=>search.classList.add('focus'));
 search.addEventListener('blur',()=>search.classList.remove('focus'));
 search.addEventListener('input',()=>{
@@ -162,28 +172,50 @@ search.addEventListener('input',()=>{
  render(items.filter(i=>i.nome.toLowerCase().includes(q)));
 });
 
-document.addEventListener('keydown',e=>{
+/* ===== CONTROLE REMOTO (WEBOS / TIZEN / ANDROID) ===== */
+function handleKey(e){
  if(document.activeElement===search) return;
- switch(e.key){
-  case'ArrowDown':focusIndex++;break;
-  case'ArrowUp':focusIndex--;break;
-  case'Enter':window.focusables[focusIndex]?.click();break;
-  case' ':video.paused?video.play():video.pause();break;
-  case'f':document.fullscreenElement?document.exitFullscreen():video.requestFullscreen();break;
-  case'PageUp':zap(1);break;
-  case'PageDown':zap(-1);break;
+
+ const k=e.key||e.code;
+
+ if(['ArrowDown','Down'].includes(k)) focusIndex++;
+ if(['ArrowUp','Up'].includes(k)) focusIndex--;
+ if(['ArrowRight','Right'].includes(k)) focusIndex++;
+ if(['ArrowLeft','Left'].includes(k)) focusIndex--;
+
+ if(k==='Enter' || k==='OK'){
+   window.focusables[focusIndex]?.click();
  }
+
+ if(['MediaChannelUp','PageUp','ChannelUp'].includes(k)) zap(1);
+ if(['MediaChannelDown','PageDown','ChannelDown'].includes(k)) zap(-1);
+
+ if(k===' '){
+   video.paused?video.play():video.pause();
+ }
+
+ if(k==='f'){
+   if(document.fullscreenElement) document.exitFullscreen();
+   else video.requestFullscreen?.();
+ }
+
  focusIndex=(focusIndex+window.focusables.length)%window.focusables.length;
  updateFocus();
+}
+
+['keydown','keyup','keypress'].forEach(evt=>{
+ document.addEventListener(evt,handleKey);
 });
 
+/* ===== ZAP ===== */
 function zap(dir){
- if(!items.length)return;
+ if(!items.length) return;
  focusIndex+=dir;
  const i=items[(focusIndex+items.length)%items.length];
  play(i.url,i.nome,true);
 }
 
+/* ===== DADOS EXEMPLO ===== */
 items=[
  {nome:'Canal Exemplo 1',url:'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'},
  {nome:'Canal Exemplo 2',url:'https://test-streams.mux.dev/test_001/stream.m3u8'}
