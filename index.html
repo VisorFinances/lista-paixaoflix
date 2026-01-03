@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>PaixãoFlix – Web TV</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
@@ -34,16 +35,9 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height
 #list{flex:1;overflow-y:auto;}
 .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;}
 .item.focus{border-left-color:var(--primary);background:rgba(255,255,255,0.05)!important;outline:none;}
-.item .fav-icon{color: #444; font-size: 18px;}
-.item.is-fav .fav-icon{color: var(--primary);}
 
 #player{flex:1;position:relative;background:#000;display:flex;align-items:center;justify-content:center;}
-video{width:100%;height:100%;background:#000;cursor:pointer;}
-
-#overlay-zap{position:absolute;bottom:60px;left:40px;background:rgba(15,15,15,0.9);padding:20px 40px;display:none;border-left:8px solid var(--primary);border-radius:4px;z-index:100;pointer-events:none;}
-#zap-title{font-size:32px;font-weight:700;margin:0;}
-
-#overlay-meta{position:absolute;top:0;left:0;width:100%;height:100%;background:#000;display:none;flex-direction:column;justify-content:center;padding:40px;box-sizing:border-box;z-index:110;}
+video{width:100%;height:100%;background:#000;}
 
 @media (max-width: 768px) {
     body { flex-direction: column; }
@@ -81,57 +75,40 @@ video{width:100%;height:100%;background:#000;cursor:pointer;}
 
 <div id="player">
   <video id="video" autoplay playsinline controls style="width:100%; height:100%;"></video>
-  <div id="overlay-zap"><div id="zap-title">Canal</div></div>
-  <div id="overlay-meta">
-      <h1 id="meta-title">Título</h1>
-      <p id="meta-desc">Descrição...</p>
-      <div style="display:flex;margin-top:20px;">
-        <button onclick="document.getElementById('overlay-meta').style.display='none'" style="padding:15px 30px; background:var(--primary); color:#fff; border:none; border-radius:5px; font-weight:bold;">VOLTAR</button>
-      </div>
-  </div>
 </div>
 
 <script>
 const video=document.getElementById('video');
 const currentTitleDisplay = document.getElementById('current-title');
-let hls=null, allItems=[], items=[];
+let hls=null, items=[];
 
-function play(url, title, isZap=false){
+function play(url, title){
     if(!url) return;
-    console.log("Tentando reproduzir:", url);
     
-    currentTitleDisplay.innerText = title;
-
-    if (Hls.isSupported() && (url.includes(".m3u8") || url.includes("stream"))) {
-        if (hls) hls.destroy();
-        hls = new Hls({
-            maxBufferSize: 0,
-            maxBufferLength: 30,
-            enableWorker: true
-        });
-        hls.loadSource(url);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-            video.play().catch(e => console.log("Erro ao dar play:", e));
-        });
-        hls.on(Hls.Events.ERROR, function(event, data) {
-            if (data.fatal) {
-                switch(data.type) {
-                    case Hls.ErrorTypes.NETWORK_ERROR: hls.startLoad(); break;
-                    case Hls.ErrorTypes.MEDIA_ERROR: hls.recoverMediaError(); break;
-                    default: hls.destroy(); break;
-                }
-            }
-        });
-    } else {
-        video.src = url;
-        video.play().catch(e => console.log("Erro ao dar play nativo:", e));
+    // TENTA CONVERTER PARA HTTPS CASO O SERVIDOR SUPORTE SILENCIOSAMENTE
+    let streamUrl = url;
+    if (window.location.protocol === 'https:' && streamUrl.startsWith('http://')) {
+        console.log("Aviso: Link HTTP em página HTTPS. Tentando carregar...");
     }
 
-    if(isZap){
-        document.getElementById('zap-title').innerText = title;
-        document.getElementById('overlay-zap').style.display='block';
-        setTimeout(()=> document.getElementById('overlay-zap').style.display='none', 2000);
+    currentTitleDisplay.innerText = title;
+
+    if (hls) { hls.destroy(); hls = null; }
+
+    if (Hls.isSupported() && (streamUrl.includes(".m3u8") || streamUrl.includes(":8080"))) {
+        hls = new Hls({
+            xhrSetup: function (xhr, url) {
+                xhr.withCredentials = false;
+            }
+        });
+        hls.loadSource(streamUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+    } else {
+        video.src = streamUrl;
+        video.play().catch(e => {
+            alert("Este canal usa protocolo HTTP antigo e pode ser bloqueado pelo seu navegador HTTPS. Tente usar o app ou outro navegador.");
+        });
     }
 }
 
@@ -140,14 +117,14 @@ async function loadTV(isKids=false){
     try {
         const r = await fetch(path);
         const txt = await r.text();
-        let name=''; allItems=[];
+        let name=''; let listItems=[];
         txt.split('\n').forEach(l=>{
             if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-            else if(l.startsWith('http')) allItems.push({title:name.trim(), url:l.trim()});
+            else if(l.startsWith('http')) listItems.push({title:name.trim(), url:l.trim()});
         });
-        items=[...allItems];
+        items = listItems;
         render();
-    } catch(e) { console.log("Erro ao carregar lista:", e); }
+    } catch(e) { console.log(e); }
 }
 
 function render(){
@@ -157,7 +134,7 @@ function render(){
         const d = document.createElement('div');
         d.className = 'item';
         d.innerHTML = `<span>${i.title}</span>`;
-        d.onclick = () => play(i.url, i.title, true);
+        d.onclick = () => play(i.url, i.title);
         list.appendChild(d);
     });
 }
