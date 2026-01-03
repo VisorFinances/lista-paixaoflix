@@ -107,7 +107,6 @@ video{width:100%;height:100%;}
 </div>
 
 <script>
-// Registro do PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').then(reg => {
@@ -175,6 +174,25 @@ searchInput.oninput = () => {
     render(items);
 };
 
+async function fetchArchiveEpisodes(identifier, serieInfo) {
+    try {
+        const res = await fetch(`https://archive.org/metadata/${identifier}`);
+        const data = await res.json();
+        const videos = data.files.filter(f => f.name.endsWith('.mp4') && !f.name.includes('_thumb') && !f.name.includes('_meta'));
+        videos.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
+        return videos.map(v => ({
+            title: v.title || v.name.replace('.mp4', ''),
+            url: `https://archive.org/download/${identifier}/${v.name}`,
+            description: serieInfo.desc || serieInfo.description,
+            rating: serieInfo.rating,
+            year: serieInfo.year
+        }));
+    } catch (e) {
+        console.error(e);
+        return [];
+    }
+}
+
 async function loadTV(isKids=false){
     mode = isKids ? 'kids' : 'tv';
     currentSerieEpisodes = null;
@@ -213,14 +231,15 @@ function render(customList = null){
         const d = document.createElement('div');
         d.className = `item ${isFav ? 'is-fav' : ''}`;
         d.innerHTML = `<span>${i.title || i.nome || i.titulo}</span><span class="fav-icon">★</span>`;
-        d.onclick = () => {
+        d.onclick = async () => {
             if(mode==='tv' || mode==='kids' || mode==='hist') play(i.url, i.title || i.nome || i.titulo, true);
-            else if(i.episodios && !currentSerieEpisodes) { 
-                currentSerieEpisodes = i.episodios.map(e => ({...e, title: `${i.nome} - ${e.titulo}`, description: i.description, rating: i.rating, year: i.year}));
-                render(currentSerieEpisodes);
-            } else if(currentSerieEpisodes) {
+            else if(currentSerieEpisodes) {
                 play(i.url, i.title);
-            } else showMeta(i);
+            } else if(i.identificador_archive || i.episodios) {
+                showMeta(i);
+            } else {
+                play(i.url, i.title || i.nome || i.titulo);
+            }
         };
         d.querySelector('.fav-icon').onclick = (e) => { e.stopPropagation(); toggleFav(i); };
         list.appendChild(d);
@@ -229,17 +248,24 @@ function render(customList = null){
 }
 
 function showMeta(i){
-    document.getElementById('meta-title').innerText = i.title || i.nome || i.titulo;
-    document.getElementById('meta-desc').innerText = i.description || i.descricao || "Sem descrição.";
+    document.getElementById('meta-title').innerText = i.nome || i.titulo || i.title;
+    document.getElementById('meta-desc').innerText = i.desc || i.description || "Sem descrição.";
     document.getElementById('meta-rating').innerText = i.rating || "--";
     document.getElementById('meta-year').innerText = i.year || "----";
     overlayMeta.style.display='flex';
-    document.getElementById('btn-start').onclick = () => {
-        if(i.episodios) {
+    document.getElementById('btn-start').onclick = async () => {
+        if(i.identificador_archive) {
+            currentTitleDisplay.innerText = "Carregando episódios...";
+            const eps = await fetchArchiveEpisodes(i.identificador_archive, i);
+            currentSerieEpisodes = eps;
+            render(currentSerieEpisodes);
+            overlayMeta.style.display='none';
+        } else if(i.episodios) {
             currentSerieEpisodes = i.episodios.map(e => ({...e, title: `${i.nome} - ${e.titulo}`, description: i.description, rating: i.rating, year: i.year}));
             render(currentSerieEpisodes);
+            overlayMeta.style.display='none';
         } else {
-            play(i.url, i.title || i.nome || i.titulo);
+            play(i.url, i.nome || i.titulo || i.title);
         }
     };
 }
@@ -262,7 +288,6 @@ function updateFocus(){
         const listTarget = currentSerieEpisodes || items;
         const realIdx = currentSerieEpisodes ? idx - 1 : idx;
         const item = listTarget[realIdx];
-
         if(item){
             if(mode==='tv' || mode==='kids'){
                 clearTimeout(zapTimer);
@@ -300,7 +325,6 @@ function setActive(id){
     searchInput.value = "";
     focusIndex = 7; updateFocus();
 }
-
 window.onload=()=>loadTV();
 </script>
 </body>
