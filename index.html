@@ -2,47 +2,40 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
-    <title>PaixãoFlix – Sistema de Navegação Total</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <title>PaixãoFlix</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
     <style>
-        :root { --primary: #e50914; --bg: #111; }
-        body { margin:0; background:#000; color:#fff; font-family:Poppins; display:flex; height:100vh; overflow:hidden; }
+        :root { --primary: #e50914; }
+        body { margin:0; background:#000; color:#fff; font-family: Arial, sans-serif; display:flex; height:100vh; overflow:hidden; }
         
-        /* Layout */
-        #side { width:340px; background:var(--bg); display:flex; flex-direction:column; border-right:2px solid #222; z-index:10; }
-        #list-container { flex:1; overflow-y:auto; position:relative; }
-        #player { flex:1; position:relative; background:#000; }
-        video { width:100%; height:100%; background:#000; }
-
-        /* Navegação e Foco */
-        .focusable { border: 2px solid transparent; transition: 0.2s; }
-        .focusable.focus { border-color: #fff; background: rgba(255,255,255,0.15) !important; transform: scale(1.02); box-shadow: 0 0 15px var(--primary); }
-
-        /* Componentes */
-        #search-box { padding:20px; }
-        #search { width:100%; padding:12px; border-radius:8px; border:1px solid #444; background:#000; color:#fff; font-size:16px; }
+        /* Menu Lateral - Layout Original */
+        #side { width:340px; background:#111; display:flex; flex-direction:column; border-right:1px solid #222; }
+        #search-box { padding:15px; }
+        #search { width:90%; padding:10px; background:#000; color:#fff; border:1px solid #444; font-size: 16px; }
         
-        #buttons { display:grid; grid-template-columns: 1fr 1fr; gap:8px; padding:10px; }
-        #buttons button { padding:10px; border:0; border-radius:6px; background:#222; color:#fff; font-weight:700; cursor:pointer; }
+        #buttons { display:grid; grid-template-columns: 1fr 1fr; gap:5px; padding:10px; }
+        #buttons button { padding:12px; background:#222; color:#fff; border:none; cursor:pointer; font-weight:bold; font-size: 14px; }
         #buttons button.active { background: var(--primary); }
 
-        .item { padding:15px; border-bottom:1px solid #222; cursor:pointer; display:flex; justify-content:space-between; }
+        #list-container { flex:1; overflow-y:auto; }
+        .item { padding:15px; border-bottom:1px solid #222; cursor:pointer; font-size: 16px; }
         
-        /* Overlay de Sinopse */
-        #overlay-meta { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); display:none; flex-direction:column; justify-content:center; padding:60px; box-sizing:border-box; z-index:100; }
-        #overlay-meta h1 { font-size:48px; margin:0; }
-        .meta-info { color:var(--primary); font-size:20px; margin:10px 0; font-weight:bold; }
-        #overlay-meta p { font-size:18px; max-width:600px; color:#ccc; }
-        .meta-btns { display:flex; gap:15px; margin-top:30px; }
-        .btn-action { padding:15px 30px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
-        .btn-play { background:var(--primary); color:#fff; }
-        .btn-back { background:#444; color:#fff; }
+        /* Área do Player */
+        #player-area { flex:1; position:relative; background:#000; }
+        video { width:100%; height:100%; display: block; }
 
-        /* Barra de Reprodução */
-        #now-playing { padding:10px 20px; background:#181818; font-size:13px; border-bottom:1px solid #333; }
-        #now-playing b { color: var(--primary); }
+        /* Overlay de Sinopse - Exigência Realizada */
+        #overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); display:none; flex-direction:column; justify-content:center; padding:60px; box-sizing:border-box; z-index: 100; }
+        #overlay h1 { font-size: 42px; margin: 0; }
+        .meta-info { color: var(--primary); font-weight:bold; margin: 15px 0; font-size: 18px; }
+        #m-desc { max-width:700px; line-height:1.6; font-size: 18px; color: #ccc; }
+        
+        .action-btns { margin-top:30px; display: flex; gap: 15px; }
+        #btn-start { padding:18px 35px; background:var(--primary); color:#fff; border:none; font-weight:bold; cursor:pointer; font-size: 16px; }
+        #btn-close { padding:18px 35px; background:#333; color:#fff; border:none; cursor:pointer; font-size: 16px; }
+
+        /* Foco Visual para Controle Remoto e Teclado */
+        .focusable.focus { outline: 4px solid #fff; outline-offset: -4px; background: rgba(255,255,255,0.15); }
     </style>
 </head>
 <body>
@@ -51,189 +44,142 @@
     <div id="search-box">
         <input id="search" class="focusable" placeholder="Pesquisar..." type="text">
     </div>
-    
-    <div id="now-playing">Assistindo: <b id="current-title">Nenhum</b></div>
-
     <div id="buttons">
         <button id="btnTV" class="focusable active">TV</button>
         <button id="btnFilmes" class="focusable">FILMES</button>
         <button id="btnSeries" class="focusable">SÉRIES</button>
-        <button id="btnKids" class="focusable" style="background:#0056b3">KIDS</button>
+        <button id="btnKids" class="focusable">KIDS</button>
     </div>
-
     <div id="list-container">
         <div id="list"></div>
     </div>
 </div>
 
-<div id="player">
-    <video id="video" autoplay controls></video>
+<div id="player-area">
+    <video id="video" controls autoplay></video>
     
-    <div id="overlay-meta">
-        <h1 id="m-title">Título</h1>
-        <div class="meta-info">★ <span id="m-rating">8.5</span> | <span id="m-year">2025</span></div>
-        <p id="m-desc">Descrição do conteúdo aqui.</p>
-        <div class="meta-btns">
-            <button id="btn-start" class="focusable btn-action btn-play">ASSISTIR AGORA</button>
-            <button id="btn-close" class="focusable btn-action btn-back">VOLTAR</button>
+    <div id="overlay">
+        <h1 id="m-title"></h1>
+        <div class="meta-info">Lançamento: <span id="m-year"></span> | ★ <span id="m-rating"></span></div>
+        <p id="m-desc"></p>
+        <div class="action-btns">
+            <button id="btn-start" class="focusable">ASSISTIR AGORA</button>
+            <button id="btn-close" class="focusable">VOLTAR</button>
         </div>
     </div>
 </div>
 
 <script>
     const video = document.getElementById('video');
-    const list = document.getElementById('list');
-    const overlay = document.getElementById('overlay-meta');
-    let hls = null;
-    let items = [];
+    const overlay = document.getElementById('overlay');
+    const listDiv = document.getElementById('list');
     let focusIdx = 0;
-    let currentMode = 'tv';
+    let currentData = [];
 
-    // Gerenciador de Foco
+    // Dados do Avatar integrado (Modelo para os próximos)
+    const filmesData = [
+        {
+            nome: "Avatar: Fogo e Cinzas",
+            id_archive: "avatar-fogo-e-cinzas",
+            desc: "Após a devastadora guerra contra a RDA e a perda do seu filho mais velho, Jake Sully e Neytiri enfrentam uma nova ameaça em Pandora: o Povo das Cinzas, uma tribo Na'vi violenta e sedenta de poder liderada pelo implacável Varang.",
+            rating: "8.5",
+            year: "17-12-2025"
+        }
+    ];
+
     function getFocusables() {
         return Array.from(document.querySelectorAll('.focusable')).filter(el => el.offsetParent !== null);
     }
 
     function updateFocus() {
         const els = getFocusables();
-        els.forEach((el, i) => el.classList.toggle('focus', i === focusIdx));
-        const activeEl = els[focusIdx];
-        if (activeEl) {
-            activeEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
-            
-            // Lógica de Zapping Rápido (Troca ao navegar na TV)
-            if (currentMode === 'tv' && activeEl.classList.contains('item')) {
-                activeEl.click(); 
+        if (focusIdx >= els.length) focusIdx = els.length - 1;
+        els.forEach((el, i) => {
+            el.classList.toggle('focus', i === focusIdx);
+            if (i === focusIdx && el.id === 'search') el.focus();
+            else if (el.id === 'search') el.blur();
+        });
+        if (els[focusIdx]) els[focusIdx].scrollIntoView({ block: 'center' });
+    }
+
+    async function carregarVideoArchive(id) {
+        overlay.style.display = 'none';
+        try {
+            const res = await fetch(`https://archive.org/metadata/${id}`);
+            const data = await res.json();
+            // Filtra o melhor arquivo de vídeo disponível
+            const file = data.files.find(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv') || f.name.endsWith('.m4v'));
+            if (file) {
+                video.src = `https://archive.org/download/${id}/${file.name}`;
+                video.play();
+            } else {
+                alert("Vídeo não encontrado no servidor.");
             }
-            // Auto-foco na pesquisa
-            if (activeEl.id === 'search') {
-                activeEl.focus();
-            }
+        } catch (e) {
+            alert("Erro de conexão com o Archive.");
         }
     }
 
-    // Função de Play
-    function playMedia(url, title) {
-        document.getElementById('current-title').innerText = title;
-        if (hls) { hls.destroy(); }
-        if (url.includes('.m3u8') && Hls.isSupported()) {
-            hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
-        } else {
-            video.src = url;
-        }
-        video.play().catch(e => console.log("Erro autoplay"));
-    }
-
-    // Mostrar Sinopse
-    function openMeta(item) {
-        document.getElementById('m-title').innerText = item.nome || item.titulo;
-        document.getElementById('m-rating').innerText = item.rating || "8.5";
-        document.getElementById('m-year').innerText = item.year || "2025";
-        document.getElementById('m-desc').innerText = item.desc || "Sem descrição disponível.";
+    function mostrarSinopse(item) {
+        document.getElementById('m-title').innerText = item.nome;
+        document.getElementById('m-desc').innerText = item.desc;
+        document.getElementById('m-year').innerText = item.year;
+        document.getElementById('m-rating').innerText = item.rating;
         overlay.style.display = 'flex';
         
-        document.getElementById('btn-start').onclick = () => {
-            playMedia(item.url || item.link, item.nome || item.titulo);
-            overlay.style.display = 'none';
+        document.getElementById('btn-start').onclick = () => carregarVideoArchive(item.id_archive);
+        document.getElementById('btn-close').onclick = () => { 
+            overlay.style.display = 'none'; 
+            focusIdx = 2; // Volta para a lista
+            updateFocus(); 
         };
         
         focusIdx = getFocusables().indexOf(document.getElementById('btn-start'));
         updateFocus();
     }
 
-    // Carregar Canais (M3U)
-    async function loadTV() {
-        currentMode = 'tv';
-        const r = await fetch('data/canais.m3u').catch(()=>null);
-        if(!r) return;
-        const txt = await r.text();
-        items = [];
-        let name = "";
-        txt.split('\n').forEach(l => {
-            if(l.startsWith('#EXTINF')) name = l.split(',').pop().trim();
-            else if(l.startsWith('http')) items.push({nome: name, url: l.trim()});
-        });
-        renderList();
-    }
-
-    function renderList() {
-        list.innerHTML = '';
-        items.forEach(item => {
+    function renderizarLista(dados) {
+        listDiv.innerHTML = '';
+        currentData = dados;
+        dados.forEach((item) => {
             const div = document.createElement('div');
             div.className = 'item focusable';
-            div.innerHTML = `<span>${item.nome || item.titulo}</span><span>▶</span>`;
-            div.onclick = () => {
-                if (currentMode === 'tv') playMedia(item.url, item.nome);
-                else openMeta(item);
-            };
-            list.appendChild(div);
+            div.innerText = item.nome;
+            div.onclick = () => mostrarSinopse(item);
+            listDiv.appendChild(div);
         });
-        focusIdx = 1; // Foca no primeiro botão de menu
         updateFocus();
     }
 
-    // Eventos de Teclado e Controle Remoto
+    // Controle de Teclado e Remoto
     document.addEventListener('keydown', (e) => {
         const els = getFocusables();
-        
-        switch(e.keyCode) {
-            case 38: // Cima
-                focusIdx = Math.max(0, focusIdx - 1);
-                updateFocus();
-                e.preventDefault();
-                break;
-            case 40: // Baixo
-                focusIdx = Math.min(els.length - 1, focusIdx + 1);
-                updateFocus();
-                e.preventDefault();
-                break;
-            case 37: // Esquerda
-                if (overlay.style.display === 'flex') {
-                    focusIdx = els.indexOf(document.getElementById('btn-start'));
-                    updateFocus();
-                }
-                break;
-            case 39: // Direita
-                if (overlay.style.display === 'flex') {
-                    focusIdx = els.indexOf(document.getElementById('btn-close'));
-                    updateFocus();
-                }
-                break;
-            case 13: // Enter / OK
-            case 10009: 
-            case 167:
-                els[focusIdx].click();
-                break;
-            case 33: // CH+
-            case 427:
-                if(currentMode === 'tv') { focusIdx = Math.max(0, focusIdx - 1); updateFocus(); }
-                break;
-            case 34: // CH-
-            case 428:
-                if(currentMode === 'tv') { focusIdx = Math.min(els.length - 1, focusIdx + 1); updateFocus(); }
-                break;
-            case 27: // Back / Esc
-            case 10006:
-                overlay.style.display = 'none';
-                updateFocus();
-                break;
+        if (e.keyCode === 40) { focusIdx = Math.min(focusIdx + 1, els.length - 1); e.preventDefault(); }
+        if (e.keyCode === 38) { focusIdx = Math.max(focusIdx - 1, 0); e.preventDefault(); }
+        if (e.keyCode === 13) { els[focusIdx].click(); e.preventDefault(); }
+        if (e.keyCode === 27) { // Tecla Voltar / ESC
+            overlay.style.display = 'none';
+            updateFocus();
         }
+        updateFocus();
     });
 
     // Filtro de Pesquisa Real
     document.getElementById('search').addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
-        const allItems = document.querySelectorAll('.item');
-        allItems.forEach(el => {
-            const text = el.innerText.toLowerCase();
-            el.style.display = text.includes(val) ? 'flex' : 'none';
+        Array.from(listDiv.children).forEach(el => {
+            el.style.display = el.innerText.toLowerCase().includes(val) ? 'block' : 'none';
         });
     });
 
-    document.getElementById('btnTV').onclick = loadTV;
-    document.getElementById('btn-close').onclick = () => { overlay.style.display = 'none'; updateFocus(); };
-
-    window.onload = loadTV;
+    document.getElementById('btnFilmes').onclick = () => renderizarLista(filmesData);
+    
+    // Inicia o sistema
+    window.onload = () => {
+        renderizarLista(filmesData);
+        focusIdx = 0;
+        updateFocus();
+    };
 </script>
 
 </body>
