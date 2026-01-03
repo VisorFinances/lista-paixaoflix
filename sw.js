@@ -1,5 +1,5 @@
 const CACHE_NAME = 'paixaoflix-v1';
-const ASSETS = [
+const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json'
@@ -8,7 +8,7 @@ const ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
+      return cache.addAll(ASSETS_TO_CACHE);
     })
   );
 });
