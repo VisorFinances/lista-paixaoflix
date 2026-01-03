@@ -79,7 +79,7 @@ video{width:100%;height:100%;}
     <input id="search" placeholder="Pesquisar...">
   </div>
 
-  <div id="now-playing-info"><b>ASSISTINDO:</b> <span id="current-title">Carregando...</span></div>
+  <div id="now-playing-info"><b>ASSISTINDO:</b> <span id="current-title">Nenhum</span></div>
 
   <div id="buttons">
     <button id="btnTV" class="active">TV</button>
@@ -97,7 +97,7 @@ video{width:100%;height:100%;}
 </div>
 
 <div id="player">
-  <video id="video" autoplay></video>
+  <video id="video" autoplay controls></video>
   <div id="overlay-zap">
     <div id="zap-title">Canal</div>
   </div>
@@ -118,7 +118,7 @@ const overlayZap=document.getElementById('overlay-zap'), overlayMeta=document.ge
 const currentTitleDisplay = document.getElementById('current-title');
 const bottomActions = document.getElementById('bottom-actions');
 
-let hls=null, items=[], allItems=[], mode='tv', focusIndex=0, zapTimer=null, currentSerieEpisodes=null;
+let hls=null, items=[], allItems=[], mode='tv', focusIndex=0, currentSerieEpisodes=null;
 
 function updateClock(){
     const now=new Date();
@@ -127,7 +127,6 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-// --- LOGICA DE STORAGE ---
 function getFavs() { return JSON.parse(localStorage.getItem('flix_favs') || '[]'); }
 function getHist() { return JSON.parse(localStorage.getItem('flix_hist') || '[]'); }
 
@@ -142,13 +141,13 @@ function toggleFav(item) {
 
 function addToHist(item) {
     let hist = getHist();
-    hist = hist.filter(h => h.url !== item.url);
+    const id = item.url || item.identificador_archive || item.nome;
+    hist = hist.filter(h => (h.url || h.identificador_archive || h.nome) !== id);
     hist.unshift(item);
     if(hist.length > 50) hist.pop();
     localStorage.setItem('flix_hist', JSON.stringify(hist));
 }
 
-// --- PLAYER ---
 function play(url, title, isZap=false){
     if(!url) return;
     if(hls){hls.destroy(); hls=null;}
@@ -166,33 +165,41 @@ function play(url, title, isZap=false){
     }
 }
 
-// --- CARREGAMENTO ---
-async function fetchArchiveEpisodes(identifier, serieInfo) {
-    try {
-        const res = await fetch(`https://archive.org/metadata/${identifier}`);
-        const data = await res.json();
-        const videos = data.files.filter(f => f.name.endsWith('.mp4') && !f.name.includes('_thumb'));
-        videos.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
-        return videos.map(v => ({
-            title: v.title || v.name.replace('.mp4', ''),
-            url: `https://archive.org/download/${identifier}/${v.name}`
-        }));
-    } catch (e) { return []; }
+// --- NOVA LOGICA KIDS (TV + FILMES + SERIES) ---
+async function loadKids(){
+    mode = 'kids'; currentSerieEpisodes = null;
+    bottomActions.style.display = 'none';
+    allItems = [];
+
+    // 1. Canais M3U
+    const txt = await fetch('./data/kids_canais.m3u').then(r=>r.text()).catch(()=>"");
+    let name='';
+    txt.split('\n').forEach(l=>{
+        if(l.startsWith('#EXTINF')) name=l.split(',').pop();
+        else if(l.startsWith('http')) allItems.push({title:name.trim(), url:l.trim(), type:'tv'});
+    });
+
+    // 2. Filmes JSON
+    const movies = await fetch('./data/kids_filmes.json').then(r=>r.json()).catch(()=>[]);
+    movies.forEach(m => { allItems.push({...m, type:'movie'}); });
+
+    // 3. Séries JSON
+    const series = await fetch('./data/kids_series.json').then(r=>r.json()).catch(()=>[]);
+    series.forEach(s => { allItems.push({...s, type:'serie'}); });
+
+    items=[...allItems]; render();
 }
 
-async function loadTV(isKids=false){
-    mode = isKids ? 'kids' : 'tv';
-    currentSerieEpisodes = null;
+async function loadTV(){
+    mode = 'tv'; currentSerieEpisodes = null;
     bottomActions.style.display = 'none';
-    const path = isKids ? './data/kids_canais.m3u' : './data/canais.m3u';
-    const txt = await fetch(path).then(r=>r.text()).catch(()=>"");
+    const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>"");
     let name=''; allItems=[];
     txt.split('\n').forEach(l=>{
         if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-        else if(l.startsWith('http')) allItems.push({title:name.trim(), url:l.trim()});
+        else if(l.startsWith('http')) allItems.push({title:name.trim(), url:l.trim(), type:'tv'});
     });
     items=[...allItems]; render();
-    if(items.length > 0 && !isKids) play(items[0].url, items[0].title, true);
 }
 
 async function loadJSON(m, file){
@@ -216,15 +223,15 @@ function render(customList = null){
 
     target.forEach((i) => {
         const title = i.nome || i.titulo || i.title;
+        const d = document.createElement('div');
         const id = i.url || i.identificador_archive || i.nome;
         const isFav = favs.some(f => (f.url || f.identificador_archive || f.nome) === id);
-        
-        const d = document.createElement('div');
+
         d.className = `item ${isFav ? 'is-fav' : ''}`;
         d.innerHTML = `<span>${title}</span><span class="fav-icon">★</span>`;
         
-        d.onclick = async () => {
-            if(mode==='tv' || mode==='kids' || currentSerieEpisodes) {
+        d.onclick = () => {
+            if(i.type === 'tv' || currentSerieEpisodes) {
                 play(i.url, title);
                 if(!currentSerieEpisodes) addToHist(i);
             } else {
@@ -237,7 +244,6 @@ function render(customList = null){
     refreshFocusables();
 }
 
-// --- PREVIEW AUTOMATICO ---
 function showMeta(i){
     const title = i.nome || i.titulo || i.title;
     const posterUrl = i.poster || "";
@@ -251,8 +257,12 @@ function showMeta(i){
     document.getElementById('btn-start').onclick = async () => {
         if(i.identificador_archive) {
             currentTitleDisplay.innerText = "Carregando...";
-            const eps = await fetchArchiveEpisodes(i.identificador_archive, i);
-            currentSerieEpisodes = eps;
+            const res = await fetch(`https://archive.org/metadata/${i.identificador_archive}`).then(r=>r.json());
+            const videos = res.files.filter(f => f.name.endsWith('.mp4') && !f.name.includes('_thumb'));
+            currentSerieEpisodes = videos.map(v => ({
+                title: v.title || v.name.replace('.mp4',''),
+                url: `https://archive.org/download/${i.identificador_archive}/${v.name}`
+            }));
             render(currentSerieEpisodes);
         } else if(i.episodios) {
             currentSerieEpisodes = i.episodios.map(e => ({...e, title: `${title} - ${e.titulo}`}));
@@ -264,17 +274,9 @@ function showMeta(i){
     };
 }
 
-// --- CONTROLES E FOCO ---
 let focusables=[];
 function refreshFocusables(){
-    focusables = [
-        searchInput, 
-        ...document.querySelectorAll('#buttons button'), 
-        ...document.querySelectorAll('#list .item'),
-        document.getElementById('btn-clear-hist'),
-        document.getElementById('btn-start'), 
-        document.getElementById('btn-close')
-    ].filter(el => el.offsetParent !== null);
+    focusables = [searchInput, ...document.querySelectorAll('#buttons button'), ...document.querySelectorAll('#list .item'), document.getElementById('btn-clear-hist'), document.getElementById('btn-start'), document.getElementById('btn-close')].filter(el => el.offsetParent !== null);
 }
 
 function updateFocus(){
@@ -284,14 +286,17 @@ function updateFocus(){
     el.classList.add('focus');
     el.scrollIntoView({block:'center', behavior:'smooth'});
 
-    // Logica de auto-preview ao rolar
-    if(el.classList.contains('item') && !currentSerieEpisodes){
-        const idx = Array.from(document.querySelectorAll('#list .item')).indexOf(el);
-        const item = items[idx];
-        if(item && (mode==='filmes' || mode==='series')){
-            showMeta(item);
-        } else {
-            overlayMeta.style.display='none';
+    if(el.classList.contains('item')){
+        const listItems = Array.from(document.querySelectorAll('#list .item'));
+        const idxInList = listItems.indexOf(el);
+        if(idxInList !== -1 && !el.classList.contains('back-item')){
+            const realIdx = currentSerieEpisodes ? idxInList - 1 : idxInList;
+            const item = (currentSerieEpisodes || items)[realIdx];
+            if(item && (item.type === 'movie' || item.type === 'serie' || mode==='filmes' || mode==='series' || mode==='fav')){
+                showMeta(item);
+            } else {
+                overlayMeta.style.display = 'none';
+            }
         }
     }
 }
@@ -304,28 +309,13 @@ document.addEventListener('keydown', e => {
     updateFocus();
 });
 
-// --- Cliques nos Botões ---
 document.getElementById('btnTV').onclick=()=>{ setActive('btnTV'); loadTV(); };
 document.getElementById('btnFilmes').onclick=()=>{ setActive('btnFilmes'); loadJSON('filmes','./data/filmes.json'); };
 document.getElementById('btnSeries').onclick=()=>{ setActive('btnSeries'); loadJSON('series','./data/series.json'); };
-document.getElementById('btnKids').onclick=()=>{ setActive('btnKids'); loadTV(true); };
-
-document.getElementById('btnFav').onclick=()=>{ 
-    setActive('btnFav'); 
-    mode='fav'; items=getFavs(); render(); 
-};
-
-document.getElementById('btnHist').onclick=()=>{ 
-    setActive('btnHist'); 
-    mode='hist'; items=getHist(); render(); 
-    bottomActions.style.display = 'block'; 
-};
-
-document.getElementById('btn-clear-hist').onclick=()=>{
-    localStorage.removeItem('flix_hist');
-    items=[]; render();
-};
-
+document.getElementById('btnKids').onclick=()=>{ setActive('btnKids'); loadKids(); };
+document.getElementById('btnFav').onclick=()=>{ setActive('btnFav'); mode='fav'; items=getFavs(); render(); };
+document.getElementById('btnHist').onclick=()=>{ setActive('btnHist'); mode='hist'; items=getHist(); render(); bottomActions.style.display = 'block'; };
+document.getElementById('btn-clear-hist').onclick=()=>{ localStorage.removeItem('flix_hist'); items=[]; render(); };
 document.getElementById('btn-close').onclick=()=>overlayMeta.style.display='none';
 
 function setActive(id){
@@ -333,10 +323,8 @@ function setActive(id){
     document.getElementById(id).classList.add('active');
     overlayMeta.style.display='none';
     bottomActions.style.display = 'none';
-    focusIndex = 7; 
-    updateFocus();
+    focusIndex = 7; updateFocus();
 }
-
 window.onload=()=>loadTV();
 </script>
 </body>
