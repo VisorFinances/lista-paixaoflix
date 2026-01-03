@@ -2,153 +2,252 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
-    <title>PaixãoFlix – Web TV</title>
+    <title>PaixãoFlix – VIP</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <meta name="referrer" content="no-referrer">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#000000">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
     <style>
-        :root { --primary: #e50914; --bg: #111; }
-        body{margin:0;background:#000;color:#fff;font-family:'Poppins', sans-serif;display:flex;height:100vh;overflow:hidden}
-        * { scrollbar-width: none; box-sizing: border-box; }
-        *::-webkit-scrollbar { display: none; }
+        :root { 
+            --primary: #e50914; 
+            --accent: #ff0a16;
+            --bg-dark: #0a0a0a;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --glass: rgba(20, 20, 20, 0.8);
+        }
 
-        #side{width:340px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
-        #top{padding:20px;}
-        #header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-        #logo{max-width:180px;max-height:80px;object-fit:contain}
-        #clock{font-size:24px;font-weight:700;}
+        body {
+            margin: 0; padding: 0;
+            background: radial-gradient(circle at top left, #1a1a1a, #000);
+            color: #fff; font-family: 'Poppins', sans-serif;
+            display: flex; height: 100vh; overflow: hidden;
+        }
 
-        #search{width:100%;padding:12px;border-radius:8px;border:1px solid var(--primary);background:#000;color:#fff;outline:none;}
-        #now-playing-info{padding:10px 20px;background:rgba(255,255,255,0.05);border-bottom:1px solid #222;font-size:13px;}
-        #now-playing-info b{color:var(--primary);display:block;}
+        /* BARRA LATERAL ESTILIZADA */
+        #side {
+            width: 360px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            display: flex; flex-direction: column;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
 
-        #buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px}
-        #buttons button{padding:10px;border:0;border-radius:6px;background:#222;color:#fff;font-weight:700;cursor:pointer;font-size:11px;}
-        #buttons button.active{background:var(--primary)}
+        #top { padding: 30px 20px; }
+        
+        #header-row { 
+            display: flex; align-items: center; justify-content: space-between; 
+            margin-bottom: 25px; 
+        }
 
-        #list-container{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-        #list{flex:1;overflow-y:auto;}
-        .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
-        .item:hover{background:rgba(255,255,255,0.05);}
+        #logo { width: 160px; filter: drop-shadow(0 0 10px rgba(229, 9, 20, 0.4)); }
+        
+        #clock { 
+            font-size: 20px; font-weight: 300; letter-spacing: 1px;
+            background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px;
+        }
 
-        #player{flex:1;position:relative;background:#000;display:flex;align-items:center;justify-content:center;}
-        video{width:100%;height:100%;background:#000;}
+        /* BUSCA PREMIUM */
+        .search-box { position: relative; }
+        #search {
+            width: 100%; padding: 14px 15px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.4); color: #fff;
+            outline: none; transition: 0.3s; font-size: 14px;
+        }
+        #search:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(229, 9, 20, 0.3); }
 
+        /* CATEGORIAS EM GRID */
+        #buttons { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 20px 20px; 
+        }
+        #buttons button {
+            padding: 12px; border: 0; border-radius: 10px;
+            background: var(--card-bg); color: #aaa;
+            font-weight: 600; cursor: pointer; transition: 0.3s;
+            font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+        }
+        #buttons button:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        #buttons button.active { background: var(--primary); color: #fff; box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4); }
+
+        /* LISTA DE CANAIS */
+        #list-container { flex: 1; overflow: hidden; padding: 0 10px; }
+        #list { height: 100%; overflow-y: auto; padding-right: 5px; }
+        
+        .item {
+            padding: 15px; margin-bottom: 8px; border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            display: flex; align-items: center; cursor: pointer;
+            transition: 0.2s; border: 1px solid transparent;
+        }
+        .item:hover { 
+            background: rgba(255,255,255,0.08); 
+            transform: translateX(5px);
+            border-color: rgba(255,255,255,0.1);
+        }
+        .item.playing { 
+            background: linear-gradient(90deg, rgba(229,9,20,0.2), transparent);
+            border-left: 4px solid var(--primary);
+        }
+        .item span { font-size: 14px; font-weight: 500; }
+
+        /* PLAYER AREA */
+        #player-wrapper {
+            flex: 1; display: flex; flex-direction: column;
+            padding: 20px; background: #000; position: relative;
+        }
+        
+        #video-container {
+            width: 100%; height: 100%; border-radius: 20px;
+            overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            background: #000; border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        video { width: 100%; height: 100%; object-fit: contain; }
+
+        #info-bar {
+            padding: 20px 0; display: flex; align-items: center; justify-content: space-between;
+        }
+        .status { display: flex; align-items: center; gap: 10px; color: #666; font-size: 13px; }
+        .status b { color: var(--primary); font-size: 16px; }
+
+        /* MOBILE */
         @media (max-width: 768px) {
             body { flex-direction: column; }
-            #side { width: 100%; height: auto; border-right: none; }
-            #player { width: 100%; height: 230px; flex: none; order: -1; }
-            #list-container { height: auto; flex: 1; }
+            #side { width: 100%; height: 50vh; border-right: none; border-top: 1px solid rgba(255,255,255,0.1); }
+            #player-wrapper { height: 40vh; flex: none; padding: 10px; }
+            #video-container { border-radius: 10px; }
         }
     </style>
 </head>
 <body>
 
 <div id="side">
-  <div id="top">
-    <div id="header-row">
-        <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
-        <div id="clock">00:00</div>
+    <div id="top">
+        <div id="header-row">
+            <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true" alt="PaixãoFlix">
+            <div id="clock">00:00</div>
+        </div>
+        <div class="search-box">
+            <input type="text" id="search" placeholder="O que vamos assistir hoje?">
+        </div>
     </div>
-    <input id="search" placeholder="Pesquisar canal...">
-  </div>
-  <div id="now-playing-info"><b>ASSISTINDO:</b> <span id="current-title">Selecione um canal</span></div>
-  <div id="buttons">
-    <button id="btnTV" class="active">TV</button>
-    <button id="btnFilmes">FILMES</button>
-    <button id="btnSeries">SÉRIES</button>
-    <button id="btnKids" style="background:#0056b3">KIDS</button>
-    <button id="btnFav">FAVORITOS</button>
-    <button id="btnHist">HISTÓRICO</button>
-  </div>
-  <div id="list-container"><div id="list"></div></div>
+
+    <div id="buttons">
+        <button id="btnTV" class="active">Canais TV</button>
+        <button id="btnKids">Kids</button>
+        <button id="btnFilmes">Filmes</button>
+        <button id="btnSeries">Séries</button>
+    </div>
+
+    <div id="list-container">
+        <div id="list"></div>
+    </div>
 </div>
 
-<div id="player">
-  <video id="video" autoplay playsinline controls></video>
+<div id="player-wrapper">
+    <div id="video-container">
+        <video id="video" autoplay playsinline controls></video>
+    </div>
+    <div id="info-bar">
+        <div class="status">
+            <span>VOCÊ ESTÁ ASSISTINDO: <b id="current-title">Selecione um canal</b></span>
+        </div>
+    </div>
 </div>
 
 <script>
-const video = document.getElementById('video');
-const currentTitleDisplay = document.getElementById('current-title');
-let hls = null;
-let items = [];
+    const video = document.getElementById('video');
+    const currentTitleDisplay = document.getElementById('current-title');
+    const listElement = document.getElementById('list');
+    let hls = null;
+    let allItems = [];
 
-// Função de Play Original
-function play(url, title){
-    if(!url) return;
-    currentTitleDisplay.innerText = title;
-    console.log("Tentando reproduzir:", url);
+    function play(url, title, element) {
+        if (!url) return;
+        
+        // Estilo de seleção
+        document.querySelectorAll('.item').forEach(el => el.classList.remove('playing'));
+        if(element) element.classList.add('playing');
+        
+        currentTitleDisplay.innerText = title;
 
-    if (hls) { hls.destroy(); hls = null; }
+        if (hls) { hls.destroy(); hls = null; }
 
-    if (Hls.isSupported()) {
-        hls = new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-    } else {
-        video.src = url;
-        video.play();
+        if (Hls.isSupported()) {
+            hls = new Hls();
+            hls.loadSource(url);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+            hls.on(Hls.Events.ERROR, (e, data) => {
+                if(data.fatal) console.warn("Erro de carregamento. Verifique se o canal está online.");
+            });
+        } else {
+            video.src = url;
+            video.play();
+        }
     }
-}
 
-// Carregar Listas (Canais e Kids)
-async function loadList(mode){
-    let path = './data/canais.m3u';
-    if(mode === 'kids') path = './data/kids_canais.m3u';
-    
-    try {
-        const r = await fetch(path);
-        const txt = await r.text();
-        let name=''; let listItems=[];
-        txt.split('\n').forEach(l=>{
-            if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-            else if(l.startsWith('http')) listItems.push({title:name.trim(), url:l.trim()});
+    async function loadList(mode) {
+        const path = mode === 'kids' ? './data/kids_canais.m3u' : './data/canais.m3u';
+        try {
+            const r = await fetch(path);
+            const txt = await r.text();
+            let name = ''; allItems = [];
+            txt.split('\n').forEach(l => {
+                if (l.startsWith('#EXTINF')) name = l.split(',').pop();
+                else if (l.startsWith('http')) allItems.push({ title: name.trim(), url: l.trim() });
+            });
+            render(allItems);
+        } catch (e) {
+            listElement.innerHTML = '<p style="padding:20px; color:#666;">Erro ao carregar lista.</p>';
+        }
+    }
+
+    function render(data) {
+        listElement.innerHTML = '';
+        data.forEach(item => {
+            const d = document.createElement('div');
+            d.className = 'item';
+            d.innerHTML = `<span>${item.title}</span>`;
+            d.onclick = () => play(item.url, item.title, d);
+            listElement.appendChild(d);
         });
-        items = listItems;
-        render(items);
-    } catch(e) { console.error("Erro ao carregar lista."); }
-}
+    }
 
-function render(data){
-    const list = document.getElementById('list');
-    list.innerHTML='';
-    data.forEach((i) => {
-        const d = document.createElement('div');
-        d.className = 'item';
-        d.innerHTML = `<span>${i.title}</span>`;
-        d.onclick = () => play(i.url, i.title);
-        list.appendChild(d);
-    });
-}
+    // Filtro
+    document.getElementById('search').oninput = (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = allItems.filter(i => i.title.toLowerCase().includes(term));
+        render(filtered);
+    };
 
-// Botões
-document.getElementById('btnTV').onclick=()=>{
-    document.getElementById('btnTV').classList.add('active');
-    document.getElementById('btnKids').classList.remove('active');
-    loadList('tv');
-};
-document.getElementById('btnKids').onclick=()=>{
-    document.getElementById('btnKids').classList.add('active');
-    document.getElementById('btnTV').classList.remove('active');
-    loadList('kids');
-};
+    // Botões
+    document.getElementById('btnTV').onclick = (e) => {
+        setActive(e.target);
+        loadList('tv');
+    };
+    document.getElementById('btnKids').onclick = (e) => {
+        setActive(e.target);
+        loadList('kids');
+    };
 
-// Busca
-document.getElementById('search').oninput = (e) => {
-    const term = e.target.value.toLowerCase();
-    const filtered = items.filter(i => i.title.toLowerCase().includes(term));
-    render(filtered);
-};
+    function setActive(btn) {
+        document.querySelectorAll('#buttons button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
 
-window.onload=()=>loadList('tv');
-function updateClock(){ document.getElementById('clock').innerText=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
-setInterval(updateClock,1000); updateClock();
+    function updateClock() {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+    window.onload = () => loadList('tv');
 </script>
 </body>
 </html>
