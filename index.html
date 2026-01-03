@@ -13,7 +13,7 @@
     <style>
         :root { --primary: #e50914; --bg: #111; }
         body{margin:0;background:#000;color:#fff;font-family:'Poppins', sans-serif;display:flex;height:100vh;overflow:hidden}
-        * { scrollbar-width: none; -ms-overflow-style: none; box-sizing: border-box; }
+        * { scrollbar-width: none; box-sizing: border-box; }
         *::-webkit-scrollbar { display: none; }
 
         #side{width:340px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
@@ -54,7 +54,7 @@
         <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
         <div id="clock">00:00</div>
     </div>
-    <input id="search" placeholder="Pesquisar...">
+    <input id="search" placeholder="Pesquisar canal...">
   </div>
   <div id="now-playing-info"><b>ASSISTINDO:</b> <span id="current-title">Selecione um canal</span></div>
   <div id="buttons">
@@ -78,16 +78,16 @@ const currentTitleDisplay = document.getElementById('current-title');
 let hls = null;
 let items = [];
 
+// Função de Play Original
 function play(url, title){
     if(!url) return;
     currentTitleDisplay.innerText = title;
+    console.log("Tentando reproduzir:", url);
 
     if (hls) { hls.destroy(); hls = null; }
 
     if (Hls.isSupported()) {
-        hls = new Hls({
-            xhrSetup: function(xhr) { xhr.withCredentials = false; }
-        });
+        hls = new Hls();
         hls.loadSource(url);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
@@ -97,6 +97,7 @@ function play(url, title){
     }
 }
 
+// Carregar Listas (Canais e Kids)
 async function loadList(mode){
     let path = './data/canais.m3u';
     if(mode === 'kids') path = './data/kids_canais.m3u';
@@ -110,14 +111,14 @@ async function loadList(mode){
             else if(l.startsWith('http')) listItems.push({title:name.trim(), url:l.trim()});
         });
         items = listItems;
-        render();
+        render(items);
     } catch(e) { console.error("Erro ao carregar lista."); }
 }
 
-function render(){
+function render(data){
     const list = document.getElementById('list');
     list.innerHTML='';
-    items.forEach((i) => {
+    data.forEach((i) => {
         const d = document.createElement('div');
         d.className = 'item';
         d.innerHTML = `<span>${i.title}</span>`;
@@ -126,6 +127,7 @@ function render(){
     });
 }
 
+// Botões
 document.getElementById('btnTV').onclick=()=>{
     document.getElementById('btnTV').classList.add('active');
     document.getElementById('btnKids').classList.remove('active');
@@ -137,18 +139,11 @@ document.getElementById('btnKids').onclick=()=>{
     loadList('kids');
 };
 
+// Busca
 document.getElementById('search').oninput = (e) => {
     const term = e.target.value.toLowerCase();
     const filtered = items.filter(i => i.title.toLowerCase().includes(term));
-    const list = document.getElementById('list');
-    list.innerHTML='';
-    filtered.forEach(i => {
-        const d = document.createElement('div');
-        d.className = 'item';
-        d.innerHTML = `<span>${i.title}</span>`;
-        d.onclick = () => play(i.url, i.title);
-        list.appendChild(d);
-    });
+    render(filtered);
 };
 
 window.onload=()=>loadList('tv');
