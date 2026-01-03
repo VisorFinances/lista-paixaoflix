@@ -4,223 +4,156 @@
     <meta charset="utf-8">
     <title>PaixãoFlix – Web TV</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    
     <meta name="referrer" content="no-referrer">
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
     <style>
         :root { --primary: #e50914; --bg: #111; }
-        body { margin:0; background:#000; color:#fff; font-family:'Poppins', sans-serif; display:flex; height:100vh; overflow:hidden; }
-        * { scrollbar-width: none; box-sizing: border-box; }
+        body{margin:0;background:#000;color:#fff;font-family:'Poppins', sans-serif;display:flex;height:100vh;overflow:hidden}
+        * { scrollbar-width: none; -ms-overflow-style: none; box-sizing: border-box; }
         *::-webkit-scrollbar { display: none; }
 
-        /* Layout Lateral */
-        #side { width:340px; background:var(--bg); display:flex; flex-direction:column; z-index:10; border-right:1px solid #222; }
-        #top { padding:20px; }
-        #header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-        #logo { max-width:180px; max-height:80px; object-fit:contain; }
-        #clock { font-size:24px; font-weight:700; color: #fff; }
+        #side{width:340px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
+        #top{padding:20px;}
+        #header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+        #logo{max-width:180px;max-height:80px;object-fit:contain}
+        #clock{font-size:24px;font-weight:700;}
 
-        #search { width:100%; padding:12px; border-radius:8px; border:1px solid var(--primary); background:#000; color:#fff; outline:none; margin-bottom: 10px; }
-        
-        #now-playing-info { padding:10px 20px; background:rgba(255,255,255,0.05); border-bottom:1px solid #222; font-size:13px; }
-        #now-playing-info b { color:var(--primary); display:block; }
+        #search{width:100%;padding:12px;border-radius:8px;border:1px solid var(--primary);background:#000;color:#fff;outline:none;}
+        #now-playing-info{padding:10px 20px;background:rgba(255,255,255,0.05);border-bottom:1px solid #222;font-size:13px;}
+        #now-playing-info b{color:var(--primary);display:block;}
 
-        #buttons { display:grid; grid-template-columns: 1fr 1fr; gap:6px; padding:10px; }
-        #buttons button { padding:10px; border:0; border-radius:6px; background:#222; color:#fff; font-weight:700; cursor:pointer; font-size:11px; transition: 0.3s; }
-        #buttons button.active { background:var(--primary); }
+        #buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px}
+        #buttons button{padding:10px;border:0;border-radius:6px;background:#222;color:#fff;font-weight:700;cursor:pointer;font-size:11px;}
+        #buttons button.active{background:var(--primary)}
 
-        #list-container { flex:1; overflow:hidden; display:flex; flex-direction:column; }
-        #list { flex:1; overflow-y:auto; }
-        .item { padding:14px; border-bottom:1px solid #222; cursor:pointer; transition: 0.2s; border-left: 4px solid transparent; }
-        .item:hover { background: rgba(255,255,255,0.1); border-left-color: var(--primary); }
+        #list-container{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+        #list{flex:1;overflow-y:auto;}
+        .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+        .item:hover{background:rgba(255,255,255,0.05);}
 
-        /* Area do Player */
-        #player-area { flex:1; position:relative; background:#000; display:flex; align-items:center; justify-content:center; }
-        video { width:100%; height:100%; object-fit: contain; }
+        #player{flex:1;position:relative;background:#000;display:flex;align-items:center;justify-content:center;}
+        video{width:100%;height:100%;background:#000;}
 
-        /* Responsividade Mobile */
         @media (max-width: 768px) {
             body { flex-direction: column; }
-            #side { width: 100%; height: 50vh; border-right: none; }
-            #player-area { width: 100%; height: 40vh; order: -1; }
-            #buttons { display: flex; overflow-x: auto; white-space: nowrap; }
-            #buttons button { flex: 0 0 auto; }
+            #side { width: 100%; height: auto; border-right: none; }
+            #player { width: 100%; height: 230px; flex: none; order: -1; }
+            #list-container { height: auto; flex: 1; }
         }
     </style>
 </head>
-
 <body>
 
 <div id="side">
-    <div id="top">
-        <div id="header-row">
-            <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true" alt="PaixãoFlix">
-            <div id="clock">00:00</div>
-        </div>
-        <input type="text" id="search" placeholder="Pesquisar canal...">
+  <div id="top">
+    <div id="header-row">
+        <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
+        <div id="clock">00:00</div>
     </div>
-    
-    <div id="now-playing-info">
-        <b>ASSISTINDO AGORA:</b>
-        <span id="current-title">Selecione um canal</span>
-    </div>
-
-    <div id="buttons">
-        <button id="btnTV" class="active">TV AO VIVO</button>
-        <button id="btnKids" style="background: #0056b3;">KIDS</button>
-        <button id="btnFilmes">FILMES</button>
-        <button id="btnSeries">SÉRIES</button>
-        <button id="btnFav">FAVORITOS</button>
-        <button id="btnHist">HISTÓRICO</button>
-    </div>
-
-    <div id="list-container">
-        <div id="list"></div>
-    </div>
+    <input id="search" placeholder="Pesquisar...">
+  </div>
+  <div id="now-playing-info"><b>ASSISTINDO:</b> <span id="current-title">Selecione um canal</span></div>
+  <div id="buttons">
+    <button id="btnTV" class="active">TV</button>
+    <button id="btnFilmes">FILMES</button>
+    <button id="btnSeries">SÉRIES</button>
+    <button id="btnKids" style="background:#0056b3">KIDS</button>
+    <button id="btnFav">FAVORITOS</button>
+    <button id="btnHist">HISTÓRICO</button>
+  </div>
+  <div id="list-container"><div id="list"></div></div>
 </div>
 
-<div id="player-area">
-    <video id="video" controls autoplay playsinline></video>
+<div id="player">
+  <video id="video" autoplay playsinline controls></video>
 </div>
 
 <script>
-    const video = document.getElementById('video');
-    const currentTitleDisplay = document.getElementById('current-title');
-    const listElement = document.getElementById('list');
-    const searchInput = document.getElementById('search');
-    
-    let hls = null;
-    let allItems = [];
+const video = document.getElementById('video');
+const currentTitleDisplay = document.getElementById('current-title');
+let hls = null;
+let items = [];
 
-    // Função para dar Play no Canal
-    function playChannel(url, title) {
-        if (!url) return;
-        
-        currentTitleDisplay.innerText = title;
-        console.log("Iniciando:", url);
+function play(url, title){
+    if(!url) return;
+    currentTitleDisplay.innerText = title;
 
-        // Destruir instância anterior do HLS para não travar
-        if (hls) {
-            hls.destroy();
-        }
+    if (hls) { hls.destroy(); hls = null; }
 
-        if (Hls.isSupported()) {
-            hls = new Hls({
-                xhrSetup: function(xhr, url) {
-                    xhr.withCredentials = false; // Importante para alguns servidores IPTV
-                },
-                // Melhora o carregamento em conexões instáveis
-                manifestLoadingMaxRetry: 4,
-                levelLoadingMaxRetry: 4
-            });
-            hls.loadSource(url);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.play().catch(e => console.log("O navegador bloqueou o autoplay. Clique no play."));
-            });
-
-            // Tratamento de erro de segurança (Mixed Content)
-            hls.on(Hls.Events.ERROR, function (event, data) {
-                if (data.fatal) {
-                    console.error("Erro HLS:", data.details);
-                    if (data.details === "manifestLoadError") {
-                        alert("ERRO DE SEGURANÇA: Este canal é HTTP e seu site é HTTPS. Se estiver no Chrome, clique no ícone ao lado da URL e em 'Configurações do Site', permita 'Conteúdo Inseguro'.");
-                    }
-                }
-            });
-        } 
-        // Suporte nativo (Safari e Mobile)
-        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = url;
-            video.addEventListener('loadedmetadata', () => video.play());
-        }
-    }
-
-    // Carregar Lista M3U
-    async function loadList(type) {
-        const path = type === 'kids' ? './data/kids_canais.m3u' : './data/canais.m3u';
-        listElement.innerHTML = '<div style="padding:20px; text-align:center;">Carregando canais...</div>';
-        
-        try {
-            const response = await fetch(path);
-            const data = await response.text();
-            parseM3U(data);
-        } catch (error) {
-            listElement.innerHTML = '<div style="padding:20px; color:red;">Erro ao carregar lista. Verifique os arquivos na pasta /data/</div>';
-        }
-    }
-
-    // Processar o texto da lista
-    function parseM3U(content) {
-        const lines = content.split('\n');
-        allItems = [];
-        let currentItem = {};
-
-        lines.forEach(line => {
-            line = line.trim();
-            if (line.startsWith('#EXTINF:')) {
-                const info = line.split(',');
-                currentItem.title = info[info.length - 1];
-            } else if (line.startsWith('http')) {
-                currentItem.url = line;
-                allItems.push({ ...currentItem });
-                currentItem = {};
-            }
+    if (Hls.isSupported()) {
+        hls = new Hls({
+            xhrSetup: function(xhr) { xhr.withCredentials = false; }
         });
-
-        renderList(allItems);
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+    } else {
+        video.src = url;
+        video.play();
     }
+}
 
-    // Renderizar na tela
-    function renderList(items) {
-        listElement.innerHTML = '';
-        items.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'item';
-            div.innerHTML = `<span>${item.title}</span>`;
-            div.onclick = () => playChannel(item.url, item.title);
-            listElement.appendChild(div);
-        });
-    }
-
-    // Filtro de Busca
-    searchInput.oninput = () => {
-        const term = searchInput.value.toLowerCase();
-        const filtered = allItems.filter(i => i.title.toLowerCase().includes(term));
-        renderList(filtered);
-    };
-
-    // Botões de Categoria
-    document.getElementById('btnTV').onclick = () => {
-        document.getElementById('btnTV').classList.add('active');
-        document.getElementById('btnKids').classList.remove('active');
-        loadList('tv');
-    };
+async function loadList(mode){
+    let path = './data/canais.m3u';
+    if(mode === 'kids') path = './data/kids_canais.m3u';
     
-    document.getElementById('btnKids').onclick = () => {
-        document.getElementById('btnKids').classList.add('active');
-        document.getElementById('btnTV').classList.remove('active');
-        loadList('kids');
-    };
+    try {
+        const r = await fetch(path);
+        const txt = await r.text();
+        let name=''; let listItems=[];
+        txt.split('\n').forEach(l=>{
+            if(l.startsWith('#EXTINF')) name=l.split(',').pop();
+            else if(l.startsWith('http')) listItems.push({title:name.trim(), url:l.trim()});
+        });
+        items = listItems;
+        render();
+    } catch(e) { console.error("Erro ao carregar lista."); }
+}
 
-    // Relógio
-    function updateClock() {
-        const now = new Date();
-        document.getElementById('clock').innerText = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
+function render(){
+    const list = document.getElementById('list');
+    list.innerHTML='';
+    items.forEach((i) => {
+        const d = document.createElement('div');
+        d.className = 'item';
+        d.innerHTML = `<span>${i.title}</span>`;
+        d.onclick = () => play(i.url, i.title);
+        list.appendChild(d);
+    });
+}
 
-    // Início
-    window.onload = () => loadList('tv');
+document.getElementById('btnTV').onclick=()=>{
+    document.getElementById('btnTV').classList.add('active');
+    document.getElementById('btnKids').classList.remove('active');
+    loadList('tv');
+};
+document.getElementById('btnKids').onclick=()=>{
+    document.getElementById('btnKids').classList.add('active');
+    document.getElementById('btnTV').classList.remove('active');
+    loadList('kids');
+};
+
+document.getElementById('search').oninput = (e) => {
+    const term = e.target.value.toLowerCase();
+    const filtered = items.filter(i => i.title.toLowerCase().includes(term));
+    const list = document.getElementById('list');
+    list.innerHTML='';
+    filtered.forEach(i => {
+        const d = document.createElement('div');
+        d.className = 'item';
+        d.innerHTML = `<span>${i.title}</span>`;
+        d.onclick = () => play(i.url, i.title);
+        list.appendChild(d);
+    });
+};
+
+window.onload=()=>loadList('tv');
+function updateClock(){ document.getElementById('clock').innerText=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+setInterval(updateClock,1000); updateClock();
 </script>
-
 </body>
 </html>
