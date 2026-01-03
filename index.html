@@ -34,8 +34,8 @@
     .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;outline:none;}
     .item.focus{border-left-color:var(--primary); background:rgba(255,255,255,0.05); outline: none !important;}
     
-    .item.is-fav .fav-icon{color: var(--primary);}
-    .fav-icon{opacity:0.5; font-size:18px;}
+    .item.is-fav .fav-icon{color: var(--primary); opacity: 1;}
+    .fav-icon{opacity:0.3; font-size:18px;}
 
     #player{flex:1;position:relative;background:#000;}
     video{width:100%;height:100%;}
@@ -95,9 +95,12 @@
 const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta');
 let hls=null, items=[], mode='tv', focusIndex=0, zapTimer=null, currentSerieEpisodes=null;
 
-// FUNÇÃO INTELIGENTE DE BUSCA (TENTA MÚLTIPLOS CAMINHOS)
+// Normalizador para evitar 'undefined' nos Favoritos e Títulos
+const getName = (i) => i.nome || i.titulo || "Sem Nome";
+const getUrl = (i) => i.url || i.link || "";
+
 async function smartFetch(fileName) {
-    const paths = [`data/${fileName}`, `./data/${fileName}`, `https://visorfinances.github.io/lista-paixaoflix/data/${fileName}`];
+    const paths = [`data/${fileName}`, `./data/${fileName}`, `data/${fileName}?v=${Date.now()}`];
     for (let path of paths) {
         try {
             const r = await fetch(path);
@@ -119,14 +122,27 @@ const getFavs=()=>JSON.parse(localStorage.getItem('flix_favs')||'[]');
 
 function toggleFav(item){
     let favs = getFavs();
-    const name = item.nome || item.titulo;
-    const idx = favs.findIndex(f => (f.nome || f.titulo) === name);
-    if(idx > -1) favs.splice(idx, 1); else favs.push(item);
+    const itemName = getName(item);
+    const idx = favs.findIndex(f => getName(f) === itemName);
+    
+    if(idx > -1) {
+        favs.splice(idx, 1);
+    } else {
+        // Salva uma cópia limpa para evitar problemas de referência
+        favs.push({
+            nome: itemName,
+            url: getUrl(item),
+            poster: item.poster || '',
+            desc: item.desc || '',
+            type: item.type || 'tv'
+        });
+    }
     localStorage.setItem('flix_favs', JSON.stringify(favs));
     render();
 }
 
 function play(url, title, isZap=false){
+    if(!url) return;
     if(hls){hls.destroy(); hls=null;}
     if(url.endsWith('.m3u8') && Hls.isSupported()){
         hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
@@ -144,14 +160,14 @@ function play(url, title, isZap=false){
 async function loadKidsCanais(){
     mode='tv'; setActive('btnKidsCanais'); items=[];
     const res = await smartFetch('kids_canais.m3u');
-    if(!res) { list.innerHTML = '<div style="padding:20px;color:red">Erro: kids_canais.m3u não encontrado.</div>'; return; }
+    if(!res) return;
     const txt = await res.text();
     let name='';
     txt.split('\n').forEach(l=>{
         if(l.startsWith('#EXTINF')) name=l.split(',').pop();
         else if(l.startsWith('http')) items.push({nome:name.trim(), url:l.trim(), type:'tv'});
     });
-    render(); if(items.length>0) play(items[0].url, items[0].nome, true);
+    render();
 }
 
 async function loadKidsConteudo(){
@@ -160,20 +176,17 @@ async function loadKidsConteudo(){
     const fetchJson = async (fileName, type) => {
         const res = await smartFetch(fileName);
         if(!res) return [];
-        const data = await res.json();
-        return data.map(x => ({...x, type: type}));
+        try {
+            const data = await res.json();
+            return data.map(x => ({...x, type: type}));
+        } catch(e) { return []; }
     };
 
     const fList = await fetchJson('kids_filmes.json', 'movie');
     const sList = await fetchJson('kids_series.json', 'serie');
     
     items = [...fList, ...sList];
-    
-    if(items.length === 0) {
-        list.innerHTML = '<div style="padding:20px;color:yellow">Nenhum conteúdo kids carregado. Verifique os arquivos JSON.</div>';
-    } else {
-        render();
-    }
+    render();
 }
 
 async function loadTV(){
@@ -186,56 +199,78 @@ async function loadTV(){
         if(l.startsWith('#EXTINF')) name=l.split(',').pop();
         else if(l.startsWith('http')) items.push({nome:name.trim(), url:l.trim(), type:'tv'});
     });
-    render(); if(items.length>0) play(items[0].url, items[0].nome, true);
+    render();
 }
 
 async function loadJSON(m, file){
     mode=m; setActive('btn'+m.charAt(0).toUpperCase()+m.slice(1));
     const res = await smartFetch(file);
-    if(!res) { list.innerHTML = `<div style="padding:20px;color:red">Erro ao carregar ${file}</div>`; return; }
-    const data = await res.json();
-    items = data.map(x => ({...x, type: (m === 'filmes' ? 'movie' : 'serie')}));
-    render();
+    if(!res) return;
+    try {
+        const data = await res.json();
+        items = data.map(x => ({...x, type: (m === 'filmes' ? 'movie' : 'serie')}));
+        render();
+    } catch(e) {}
 }
 
 function render(customList=null){
     list.innerHTML='';
     const target = customList || items;
     const favs = getFavs();
+    
     if(currentSerieEpisodes){
         const b=document.createElement('div'); b.className='item'; b.innerHTML='<b>⬅ VOLTAR</b>';
         b.onclick=()=>{currentSerieEpisodes=null; render();}; list.appendChild(b);
     }
+
     target.forEach(i=>{
         const d=document.createElement('div');
-        const name = i.nome || i.titulo;
-        const isF=favs.some(f=>(f.nome || f.titulo) === name);
-        d.className=`item ${isF?'is-fav':''}`;
-        d.innerHTML=`<span>${name}</span><span class="fav-icon">★</span>`;
-        d.onclick=()=>{ 
-            if(i.type==='tv'||currentSerieEpisodes) {
-                play(i.url, name);
-            } else { showMeta(i); }
+        const itemName = getName(i);
+        const isF = favs.some(f => getName(f) === itemName);
+        
+        d.className = `item ${isF ? 'is-fav' : ''}`;
+        d.innerHTML = `<span>${itemName}</span><span class="fav-icon">★</span>`;
+        
+        d.onclick = () => { 
+            if(i.type === 'tv' || currentSerieEpisodes) {
+                play(getUrl(i), itemName);
+            } else { 
+                showMeta(i); 
+            }
         };
-        d.querySelector('.fav-icon').onclick=(e)=>{ e.stopPropagation(); toggleFav(i); };
+        
+        d.querySelector('.fav-icon').onclick = (e) => { 
+            e.stopPropagation(); 
+            toggleFav(i); 
+        };
         list.appendChild(d);
     });
     refreshFocus();
 }
 
 function showMeta(i){
-    document.getElementById('meta-title').innerText=i.nome||i.titulo;
-    document.getElementById('meta-desc').innerText=i.desc||"Sem descrição.";
-    document.getElementById('meta-rating').innerText=i.rating||"8.5";
-    document.getElementById('meta-year').innerText=i.year||"2024";
-    overlayMeta.style.backgroundImage=`url(${i.poster})`;
-    overlayMeta.style.display='flex';
-    document.getElementById('btn-start').onclick=async()=>{
+    const title = getName(i);
+    document.getElementById('meta-title').innerText = title;
+    document.getElementById('meta-desc').innerText = i.desc || "Sem descrição.";
+    document.getElementById('meta-rating').innerText = i.rating || "8.5";
+    document.getElementById('meta-year').innerText = i.year || "2024";
+    overlayMeta.style.backgroundImage = `url(${i.poster || ''})`;
+    overlayMeta.style.display = 'flex';
+    
+    document.getElementById('btn-start').onclick = async () => {
         if(i.type === 'serie' && i.identificador_archive){
-            const data=await fetch(`https://archive.org/metadata/${i.identificador_archive}`).then(r=>r.json());
-            currentSerieEpisodes=data.files.filter(f=>f.name.endsWith('.mp4')).map(v=>({nome:v.title||v.name, url:`https://archive.org/download/${i.identificador_archive}/${v.name}`}));
+            const data = await fetch(`https://archive.org/metadata/${i.identificador_archive}`).then(r=>r.json());
+            currentSerieEpisodes = data.files
+                .filter(f => f.name.endsWith('.mp4'))
+                .map(v => ({
+                    nome: v.title || v.name, 
+                    url: `https://archive.org/download/${i.identificador_archive}/${v.name}`,
+                    type: 'episode'
+                }));
             render();
-        } else { play(i.url, i.nome||i.titulo); }
+        } else { 
+            play(getUrl(i), title); 
+        }
     };
 }
 
@@ -249,18 +284,7 @@ function updateFocus(){
     const el = window.focusables[focusIndex];
     if(!el) return;
     el.scrollIntoView({block:'center'});
-
-    if(el.id==='search') {
-        el.focus();
-        el.click(); 
-    }
-
-    if(el.classList.contains('item') && !currentSerieEpisodes){
-        const idx = Array.from(document.querySelectorAll('#list .item')).indexOf(el);
-        const item = items[idx];
-        if(item && item.type !== 'tv') showMeta(item);
-        else overlayMeta.style.display='none';
-    }
+    if(el.id==='search') { el.focus(); }
 }
 
 document.addEventListener('keydown', e=>{
@@ -268,20 +292,15 @@ document.addEventListener('keydown', e=>{
     if(e.key==='ArrowDown') { focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); }
     if(e.key==='ArrowUp') { focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; e.preventDefault(); }
     if(e.key==='Enter') window.focusables[focusIndex].click();
-    
-    if(e.key==='ChannelUp' || e.key==='PageUp') { 
-        if(mode==='tv') { focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; window.focusables[focusIndex].click(); }
-    }
-    if(e.key==='ChannelDown' || e.key==='PageDown') {
-        if(mode==='tv') { focusIndex=(focusIndex+1)%window.focusables.length; window.focusables[focusIndex].click(); }
-    }
     updateFocus();
 });
 
 function setActive(id){
     document.querySelectorAll('#buttons button').forEach(b=>b.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    overlayMeta.style.display='none'; currentSerieEpisodes=null;
+    const btn = document.getElementById(id);
+    if(btn) btn.classList.add('active');
+    overlayMeta.style.display='none'; 
+    currentSerieEpisodes=null;
 }
 
 document.getElementById('btnTV').onclick=loadTV;
