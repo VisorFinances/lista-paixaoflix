@@ -32,6 +32,7 @@
     #list-container{flex:1;overflow:hidden;position:relative;}
     #list{height:100%;overflow-y:auto;}
     .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;outline:none;}
+    /* SELETOR: APENAS BORDA VERMELHA ESQUERDA */
     .item.focus{border-left-color:var(--primary); background:rgba(255,255,255,0.05); outline: none !important;}
     
     .item.is-fav .fav-icon{color: var(--primary);}
@@ -129,6 +130,7 @@ function play(url, title, isZap=false){
     }
 }
 
+// CAMINHO CORRIGIDO: pasta data/
 async function loadKidsCanais(){
     mode='tv'; setActive('btnKidsCanais'); items=[];
     const txt = await fetch('./data/kids_canais.m3u').then(r=>r.text()).catch(()=>"");
@@ -140,22 +142,28 @@ async function loadKidsCanais(){
     render(); if(items.length>0) play(items[0].url, items[0].nome, true);
 }
 
-// CORREÇÃO: LÊ kids_filmes.json E kids_series.json
+// CAMINHO CORRIGIDO: pasta data/ (Processa Filmes e Séries Kids)
 async function loadKidsConteudo(){
     mode='kids'; setActive('btnKidsConteudo'); items=[];
-    try {
-        const [filmes, series] = await Promise.all([
-            fetch('./data/kids_filmes.json').then(r=>r.json()).catch(()=>[]),
-            fetch('./data/kids_series.json').then(r=>r.json()).catch(()=>[])
-        ]);
-        
-        const fList = filmes.map(x => ({...x, type: 'movie'}));
-        const sList = series.map(x => ({...x, type: 'serie'}));
-        
-        items = [...fList, ...sList];
+    
+    const fetchJson = async (url, type) => {
+        try {
+            const r = await fetch(url);
+            if(!r.ok) return [];
+            const data = await r.json();
+            return data.map(x => ({...x, type: type}));
+        } catch(e) { return []; }
+    };
+
+    const fList = await fetchJson('./data/kids_filmes.json', 'movie');
+    const sList = await fetchJson('./data/kids_series.json', 'serie');
+    
+    items = [...fList, ...sList];
+    
+    if(items.length === 0) {
+        list.innerHTML = '<div style="padding:20px;color:#ff4444">Arquivos não encontrados na pasta /data/</div>';
+    } else {
         render();
-    } catch(e) {
-        console.error("Erro ao carregar conteúdo Kids:", e);
     }
 }
 
@@ -172,9 +180,13 @@ async function loadTV(){
 
 async function loadJSON(m, file){
     mode=m; setActive('btn'+m.charAt(0).toUpperCase()+m.slice(1));
-    const data = await fetch(file).then(r=>r.json()).catch(()=>[]);
-    items = data.map(x => ({...x, type: (m === 'filmes' ? 'movie' : 'serie')}));
-    render();
+    try {
+        const data = await fetch('./data/' + file).then(r=>r.json());
+        items = data.map(x => ({...x, type: (m === 'filmes' ? 'movie' : 'serie')}));
+        render();
+    } catch(e) { 
+        list.innerHTML = '<div style="padding:20px;color:#ff4444">Erro ao carregar /data/' + file + '</div>';
+    }
 }
 
 function render(customList=null){
@@ -264,8 +276,8 @@ function setActive(id){
 }
 
 document.getElementById('btnTV').onclick=loadTV;
-document.getElementById('btnFilmes').onclick=()=>loadJSON('filmes','./data/filmes.json');
-document.getElementById('btnSeries').onclick=()=>loadJSON('series','./data/series.json');
+document.getElementById('btnFilmes').onclick=()=>loadJSON('filmes','filmes.json');
+document.getElementById('btnSeries').onclick=()=>loadJSON('series','series.json');
 document.getElementById('btnKidsCanais').onclick=loadKidsCanais;
 document.getElementById('btnKidsConteudo').onclick=loadKidsConteudo;
 document.getElementById('btnFav').onclick=()=>{mode='fav'; items=getFavs(); render(); setActive('btnFav');};
