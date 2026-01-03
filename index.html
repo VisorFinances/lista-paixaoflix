@@ -5,6 +5,7 @@
 <title>PaixãoFlix – Web TV</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
@@ -33,8 +34,8 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height
 
 #list-container{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 #list{flex:1;overflow-y:auto;}
-.item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;}
-.item.focus{border-left-color:var(--primary);background:rgba(255,255,255,0.05)!important;outline:none;}
+.item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.item:hover{background:rgba(255,255,255,0.05);}
 
 #player{flex:1;position:relative;background:#000;display:flex;align-items:center;justify-content:center;}
 video{width:100%;height:100%;background:#000;}
@@ -74,41 +75,47 @@ video{width:100%;height:100%;background:#000;}
 </div>
 
 <div id="player">
-  <video id="video" autoplay playsinline controls style="width:100%; height:100%;"></video>
+  <video id="video" autoplay playsinline controls></video>
 </div>
 
 <script>
-const video=document.getElementById('video');
+const video = document.getElementById('video');
 const currentTitleDisplay = document.getElementById('current-title');
-let hls=null, items=[];
+let hls = null;
+let items = [];
 
-function play(url, title){
-    if(!url) return;
-    
-    // TENTA CONVERTER PARA HTTPS CASO O SERVIDOR SUPORTE SILENCIOSAMENTE
-    let streamUrl = url;
-    if (window.location.protocol === 'https:' && streamUrl.startsWith('http://')) {
-        console.log("Aviso: Link HTTP em página HTTPS. Tentando carregar...");
-    }
-
+function play(url, title) {
+    if (!url) return;
     currentTitleDisplay.innerText = title;
+
+    // Converte links http para https se possível ou usa proxy
+    let streamUrl = url.replace("http://", "https://");
 
     if (hls) { hls.destroy(); hls = null; }
 
-    if (Hls.isSupported() && (streamUrl.includes(".m3u8") || streamUrl.includes(":8080"))) {
+    if (Hls.isSupported()) {
         hls = new Hls({
-            xhrSetup: function (xhr, url) {
+            // Configurações para ignorar erros de certificado e conteúdo misto
+            xhrSetup: function(xhr) {
                 xhr.withCredentials = false;
-            }
+            },
+            autoStartLoad: true
         });
-        hls.loadSource(streamUrl);
+        hls.loadSource(url); // Tenta o original primeiro
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-    } else {
-        video.src = streamUrl;
-        video.play().catch(e => {
-            alert("Este canal usa protocolo HTTP antigo e pode ser bloqueado pelo seu navegador HTTPS. Tente usar o app ou outro navegador.");
+        
+        // Se der erro de Mixed Content, tentamos o fallback
+        hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.details === 'manifestLoadError') {
+                console.log("Erro de segurança detectado. Tentando via Proxy...");
+                // Proxy público para contornar HTTPS/HTTP (CORS)
+                const proxyUrl = "https://cors-anywhere.herokuapp.com/" + url;
+                hls.loadSource(proxyUrl);
+            }
         });
+    } else {
+        video.src = url;
     }
 }
 
