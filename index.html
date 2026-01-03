@@ -95,6 +95,18 @@
 const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta');
 let hls=null, items=[], mode='tv', focusIndex=0, zapTimer=null, currentSerieEpisodes=null;
 
+// FUNÇÃO INTELIGENTE DE BUSCA (TENTA MÚLTIPLOS CAMINHOS)
+async function smartFetch(fileName) {
+    const paths = [`data/${fileName}`, `./data/${fileName}`, `https://visorfinances.github.io/lista-paixaoflix/data/${fileName}`];
+    for (let path of paths) {
+        try {
+            const r = await fetch(path);
+            if (r.ok) return r;
+        } catch (e) {}
+    }
+    return null;
+}
+
 function updateClock(){
     const now=new Date();
     document.getElementById('clock').innerText=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
@@ -129,10 +141,11 @@ function play(url, title, isZap=false){
     }
 }
 
-// AJUSTE: CAMINHO SEM O PONTO INICIAL (MAIS COMPATÍVEL)
 async function loadKidsCanais(){
     mode='tv'; setActive('btnKidsCanais'); items=[];
-    const txt = await fetch('data/kids_canais.m3u').then(r=>r.text()).catch(()=>"");
+    const res = await smartFetch('kids_canais.m3u');
+    if(!res) { list.innerHTML = '<div style="padding:20px;color:red">Erro: kids_canais.m3u não encontrado.</div>'; return; }
+    const txt = await res.text();
     let name='';
     txt.split('\n').forEach(l=>{
         if(l.startsWith('#EXTINF')) name=l.split(',').pop();
@@ -144,23 +157,20 @@ async function loadKidsCanais(){
 async function loadKidsConteudo(){
     mode='kids'; setActive('btnKidsConteudo'); items=[];
     
-    const fetchJson = async (url, type) => {
-        try {
-            const r = await fetch(url);
-            if(!r.ok) throw new Error();
-            const data = await r.json();
-            return data.map(x => ({...x, type: type}));
-        } catch(e) { return []; }
+    const fetchJson = async (fileName, type) => {
+        const res = await smartFetch(fileName);
+        if(!res) return [];
+        const data = await res.json();
+        return data.map(x => ({...x, type: type}));
     };
 
-    // TENTA LER OS DOIS ARQUIVOS
-    const fList = await fetchJson('data/kids_filmes.json', 'movie');
-    const sList = await fetchJson('data/kids_series.json', 'serie');
+    const fList = await fetchJson('kids_filmes.json', 'movie');
+    const sList = await fetchJson('kids_series.json', 'serie');
     
     items = [...fList, ...sList];
     
     if(items.length === 0) {
-        list.innerHTML = '<div style="padding:20px;color:#ff4444">Erro: Verifique se os nomes dos arquivos estão corretos dentro da pasta data.</div>';
+        list.innerHTML = '<div style="padding:20px;color:yellow">Nenhum conteúdo kids carregado. Verifique os arquivos JSON.</div>';
     } else {
         render();
     }
@@ -168,7 +178,9 @@ async function loadKidsConteudo(){
 
 async function loadTV(){
     mode='tv'; setActive('btnTV');
-    const txt = await fetch('data/canais.m3u').then(r=>r.text()).catch(()=>"");
+    const res = await smartFetch('canais.m3u');
+    if(!res) return;
+    const txt = await res.text();
     items=[]; let name='';
     txt.split('\n').forEach(l=>{
         if(l.startsWith('#EXTINF')) name=l.split(',').pop();
@@ -179,13 +191,11 @@ async function loadTV(){
 
 async function loadJSON(m, file){
     mode=m; setActive('btn'+m.charAt(0).toUpperCase()+m.slice(1));
-    try {
-        const data = await fetch('data/' + file).then(r=>r.json());
-        items = data.map(x => ({...x, type: (m === 'filmes' ? 'movie' : 'serie')}));
-        render();
-    } catch(e) { 
-        list.innerHTML = '<div style="padding:20px;color:#ff4444">Não carregou: data/' + file + '</div>';
-    }
+    const res = await smartFetch(file);
+    if(!res) { list.innerHTML = `<div style="padding:20px;color:red">Erro ao carregar ${file}</div>`; return; }
+    const data = await res.json();
+    items = data.map(x => ({...x, type: (m === 'filmes' ? 'movie' : 'serie')}));
+    render();
 }
 
 function render(customList=null){
