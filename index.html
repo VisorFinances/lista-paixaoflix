@@ -95,7 +95,6 @@
 const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta');
 let hls=null, items=[], mode='tv', focusIndex=0, zapTimer=null, currentSerieEpisodes=null;
 
-// Normalizador para evitar 'undefined' nos Favoritos e Títulos
 const getName = (i) => i.nome || i.titulo || "Sem Nome";
 const getUrl = (i) => i.url || i.link || "";
 
@@ -124,19 +123,8 @@ function toggleFav(item){
     let favs = getFavs();
     const itemName = getName(item);
     const idx = favs.findIndex(f => getName(f) === itemName);
-    
-    if(idx > -1) {
-        favs.splice(idx, 1);
-    } else {
-        // Salva uma cópia limpa para evitar problemas de referência
-        favs.push({
-            nome: itemName,
-            url: getUrl(item),
-            poster: item.poster || '',
-            desc: item.desc || '',
-            type: item.type || 'tv'
-        });
-    }
+    if(idx > -1) favs.splice(idx, 1);
+    else favs.push({ nome: itemName, url: getUrl(item), poster: item.poster || '', desc: item.desc || '', type: item.type || 'tv' });
     localStorage.setItem('flix_favs', JSON.stringify(favs));
     render();
 }
@@ -144,7 +132,7 @@ function toggleFav(item){
 function play(url, title, isZap=false){
     if(!url) return;
     if(hls){hls.destroy(); hls=null;}
-    if(url.endsWith('.m3u8') && Hls.isSupported()){
+    if(url.indexOf('.m3u8') !== -1 && Hls.isSupported()){
         hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
     } else { video.src=url; }
     video.play().catch(()=>{});
@@ -168,23 +156,18 @@ async function loadKidsCanais(){
         else if(l.startsWith('http')) items.push({nome:name.trim(), url:l.trim(), type:'tv'});
     });
     render();
+    if(items.length > 0) play(items[0].url, items[0].nome, true); // Play Automático
 }
 
 async function loadKidsConteudo(){
     mode='kids'; setActive('btnKidsConteudo'); items=[];
-    
     const fetchJson = async (fileName, type) => {
         const res = await smartFetch(fileName);
         if(!res) return [];
-        try {
-            const data = await res.json();
-            return data.map(x => ({...x, type: type}));
-        } catch(e) { return []; }
+        try { const data = await res.json(); return data.map(x => ({...x, type: type})); } catch(e) { return []; }
     };
-
     const fList = await fetchJson('kids_filmes.json', 'movie');
     const sList = await fetchJson('kids_series.json', 'serie');
-    
     items = [...fList, ...sList];
     render();
 }
@@ -200,6 +183,7 @@ async function loadTV(){
         else if(l.startsWith('http')) items.push({nome:name.trim(), url:l.trim(), type:'tv'});
     });
     render();
+    if(items.length > 0) play(items[0].url, items[0].nome, true); // Play Automático
 }
 
 async function loadJSON(m, file){
@@ -217,32 +201,21 @@ function render(customList=null){
     list.innerHTML='';
     const target = customList || items;
     const favs = getFavs();
-    
     if(currentSerieEpisodes){
         const b=document.createElement('div'); b.className='item'; b.innerHTML='<b>⬅ VOLTAR</b>';
         b.onclick=()=>{currentSerieEpisodes=null; render();}; list.appendChild(b);
     }
-
     target.forEach(i=>{
         const d=document.createElement('div');
         const itemName = getName(i);
         const isF = favs.some(f => getName(f) === itemName);
-        
         d.className = `item ${isF ? 'is-fav' : ''}`;
         d.innerHTML = `<span>${itemName}</span><span class="fav-icon">★</span>`;
-        
         d.onclick = () => { 
-            if(i.type === 'tv' || currentSerieEpisodes) {
-                play(getUrl(i), itemName);
-            } else { 
-                showMeta(i); 
-            }
+            if(i.type === 'tv' || currentSerieEpisodes) play(getUrl(i), itemName);
+            else showMeta(i); 
         };
-        
-        d.querySelector('.fav-icon').onclick = (e) => { 
-            e.stopPropagation(); 
-            toggleFav(i); 
-        };
+        d.querySelector('.fav-icon').onclick = (e) => { e.stopPropagation(); toggleFav(i); };
         list.appendChild(d);
     });
     refreshFocus();
@@ -256,21 +229,14 @@ function showMeta(i){
     document.getElementById('meta-year').innerText = i.year || "2024";
     overlayMeta.style.backgroundImage = `url(${i.poster || ''})`;
     overlayMeta.style.display = 'flex';
-    
     document.getElementById('btn-start').onclick = async () => {
         if(i.type === 'serie' && i.identificador_archive){
             const data = await fetch(`https://archive.org/metadata/${i.identificador_archive}`).then(r=>r.json());
-            currentSerieEpisodes = data.files
-                .filter(f => f.name.endsWith('.mp4'))
-                .map(v => ({
-                    nome: v.title || v.name, 
-                    url: `https://archive.org/download/${i.identificador_archive}/${v.name}`,
-                    type: 'episode'
-                }));
+            currentSerieEpisodes = data.files.filter(f => f.name.endsWith('.mp4')).map(v => ({
+                nome: v.title || v.name, url: `https://archive.org/download/${i.identificador_archive}/${v.name}`, type: 'episode'
+            }));
             render();
-        } else { 
-            play(getUrl(i), title); 
-        }
+        } else { play(getUrl(i), title); }
     };
 }
 
@@ -284,7 +250,15 @@ function updateFocus(){
     const el = window.focusables[focusIndex];
     if(!el) return;
     el.scrollIntoView({block:'center'});
-    if(el.id==='search') { el.focus(); }
+
+    // RESTAURADO: Visualização (Meta) Automática ao navegar pela lista
+    if(el.classList.contains('item') && !currentSerieEpisodes){
+        const listItems = Array.from(document.querySelectorAll('#list .item'));
+        const idx = listItems.indexOf(el);
+        const item = items[idx];
+        if(item && item.type !== 'tv') showMeta(item);
+        else if(!item || item.type === 'tv') overlayMeta.style.display='none';
+    }
 }
 
 document.addEventListener('keydown', e=>{
@@ -297,10 +271,8 @@ document.addEventListener('keydown', e=>{
 
 function setActive(id){
     document.querySelectorAll('#buttons button').forEach(b=>b.classList.remove('active'));
-    const btn = document.getElementById(id);
-    if(btn) btn.classList.add('active');
-    overlayMeta.style.display='none'; 
-    currentSerieEpisodes=null;
+    if(document.getElementById(id)) document.getElementById(id).classList.add('active');
+    overlayMeta.style.display='none'; currentSerieEpisodes=null;
 }
 
 document.getElementById('btnTV').onclick=loadTV;
