@@ -11,7 +11,7 @@
 :root { --primary: #e50914; --bg: #111; }
 body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
 
-/* Esconder barra de rolagem em tudo */
+/* Esconder barra de rolagem */
 * { scrollbar-width: none; -ms-overflow-style: none; }
 *::-webkit-scrollbar { display: none; }
 
@@ -38,7 +38,7 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height
 #list{flex:1;overflow-y:auto;}
 .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;}
 .item.focus{border-left-color:var(--primary);background:rgba(255,255,255,0.05)!important;outline:none;}
-.item .fav-icon{color: #444; font-size: 18px; transition: 0.2s;}
+.item .fav-icon{color: #444; font-size: 18px;}
 .item.is-fav .fav-icon{color: var(--primary);}
 
 #clear-hist{padding:15px;background:#222;color:var(--primary);border:0;cursor:pointer;font-weight:700;display:none;width:100%;}
@@ -126,7 +126,7 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-// --- LÓGICA DE FAVORITOS ---
+// --- GESTÃO DE DADOS ---
 function getFavs() { return JSON.parse(localStorage.getItem('flix_favs') || '[]'); }
 
 function toggleFav(item) {
@@ -135,6 +135,11 @@ function toggleFav(item) {
     if (index > -1) favs.splice(index, 1);
     else favs.push(item);
     localStorage.setItem('flix_favs', JSON.stringify(favs));
+    
+    // Se estivermos na aba de favoritos, atualizamos a lista de exibição
+    if(mode === 'fav') {
+        items = favs;
+    }
     render();
 }
 
@@ -164,6 +169,7 @@ function saveToHistory(title, url){
     localStorage.setItem('flix_hist', JSON.stringify(hist));
 }
 
+// --- CARREGAMENTO ---
 async function loadTV(){
     mode='tv'; currentSerie=null; clearHistBtn.style.display='none';
     const txt = await fetch('./data/canais.m3u').then(r=>r.text()).catch(()=>"");
@@ -193,7 +199,7 @@ function render(customList = null){
         list.appendChild(back);
     }
 
-    target.forEach((i, idx) => {
+    target.forEach((i) => {
         const isFav = favs.some(f => f.url === i.url);
         const d = document.createElement('div');
         d.className = `item ${isFav ? 'is-fav' : ''}`;
@@ -206,7 +212,7 @@ function render(customList = null){
             }
             else showMeta(i);
         };
-        // Clique na estrela para favoritar
+        // Botão estrela
         d.querySelector('.fav-icon').onclick = (e) => { e.stopPropagation(); toggleFav(i); };
         list.appendChild(d);
     });
@@ -220,12 +226,7 @@ function showMeta(i){
     document.getElementById('btn-start').onclick = () => play(i.url, i.title || i.nome);
 }
 
-searchInput.oninput = () => {
-    const val = searchInput.value.toLowerCase();
-    const filtered = allItems.filter(x => (x.title || x.nome || "").toLowerCase().includes(val));
-    render(filtered);
-};
-
+// --- NAVEGAÇÃO E CONTROLE ---
 let focusables=[];
 function refreshFocusables(){
     focusables = [searchInput, ...document.querySelectorAll('#buttons button'), ...document.querySelectorAll('#list .item'), clearHistBtn, document.getElementById('btn-start'), document.getElementById('btn-close')].filter(el => el.offsetParent !== null);
@@ -237,9 +238,12 @@ function updateFocus(){
     if(el){
         el.classList.add('focus'); el.scrollIntoView({block:'center'});
         if(el === searchInput) el.focus(); else searchInput.blur();
+        
+        // Auto-show meta ao navegar
         if(el.classList.contains('item') && mode !== 'tv' && !currentSerie){
-             const idx = Array.from(document.querySelectorAll('#list .item')).indexOf(el);
-             const item = (currentSerie) ? currentSerie[idx-1] : items[idx];
+             const listItems = Array.from(document.querySelectorAll('#list .item'));
+             const idx = listItems.indexOf(el);
+             const item = items[idx];
              if(item) showMeta(item);
         }
     }
@@ -256,14 +260,24 @@ document.addEventListener('keydown', e => {
     updateFocus();
 });
 
+// --- BOTÕES DE MENU ---
 document.getElementById('btnTV').onclick=()=>{ setActive('btnTV'); loadTV(); };
 document.getElementById('btnFilmes').onclick=()=>{ setActive('btnFilmes'); loadJSON('filmes','./data/filmes.json'); };
 document.getElementById('btnSeries').onclick=()=>{ setActive('btnSeries'); loadJSON('series','./data/series.json'); };
 document.getElementById('btnKids').onclick=()=>{ setActive('btnKids'); loadJSON('kids','./data/kids_filmes.json'); };
-document.getElementById('btnFav').onclick=()=>{ setActive('btnFav'); mode='fav'; items=getFavs(); render(); };
-document.getElementById('btnHist').onclick=()=>{ setActive('btnHist'); mode='hist'; items=JSON.parse(localStorage.getItem('flix_hist')||'[]'); render(); clearHistBtn.style.display='block'; };
-clearHistBtn.onclick = () => { localStorage.setItem('flix_hist', '[]'); items=[]; render(); };
-document.getElementById('btn-close').onclick=()=>overlayMeta.style.display='none';
+document.getElementById('btnFav').onclick=()=>{ 
+    setActive('btnFav'); 
+    mode='fav'; 
+    items = getFavs(); // Carrega os favoritos na lista principal
+    render(); 
+};
+document.getElementById('btnHist').onclick=()=>{ 
+    setActive('btnHist'); 
+    mode='hist'; 
+    items = JSON.parse(localStorage.getItem('flix_hist')||'[]'); 
+    render(); 
+    clearHistBtn.style.display='block'; 
+};
 
 function setActive(id){
     document.querySelectorAll('#buttons button').forEach(b => b.classList.remove('active'));
