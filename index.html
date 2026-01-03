@@ -10,9 +10,8 @@
 <style>
     :root { --primary: #e50914; --bg: #111; }
     body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
-    * { scrollbar-width: none; -ms-overflow-style: none; }
-    *::-webkit-scrollbar { display: none; }
-
+    * { scrollbar-width: none; -ms-overflow-style: none; outline: none !important; }
+    
     #side{width:340px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
     #top{padding:20px 20px 10px 20px;}
     #header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
@@ -21,32 +20,22 @@
     #clock{font-size:22px;font-weight:700;line-height:1;}
     #date{font-size:12px;opacity:0.8;margin-top:4px;}
 
-    #search{width:100%;box-sizing:border-box;padding:12px;border-radius:8px;border:1px solid var(--primary);background:#000;color:#fff;outline:none;}
-    #search.focus { outline: 3px solid #fff !important; }
+    #search{width:100%;box-sizing:border-box;padding:12px;border-radius:8px;border:1px solid var(--primary);background:#000;color:#fff;}
+    #search.focus { background: #222; border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.3); }
 
-    /* STATUS ASSISTINDO AGORA - ABAIXO DA PESQUISA */
-    #now-playing-bar {
-        padding: 10px 20px;
-        font-size: 13px;
-        color: #aaa;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: transparent;
-    }
+    #now-playing-bar { padding: 10px 20px; font-size: 13px; color: #aaa; display: flex; align-items: center; gap: 8px; }
     #now-playing-bar b { color: #fff; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .play-icon-small { width: 12px; height: 12px; fill: var(--primary); }
 
     #buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px}
-    #buttons button{padding:10px;border:0;border-radius:6px;background:#222;color:#fff;font-weight:700;cursor:pointer;font-size:11px;outline:none;}
+    #buttons button{padding:10px;border:0;border-radius:6px;background:#222;color:#fff;font-weight:700;cursor:pointer;font-size:11px;}
     #buttons button.active{background:var(--primary)}
-    #buttons button.focus { outline: 3px solid #fff !important; }
+    #buttons button.focus { background: #fff; color: #000; }
 
     #list-container{flex:1;overflow:hidden;position:relative;}
     #list{height:100%;overflow-y:auto;}
-    .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;outline:none;}
-    .item.focus{border-left-color:var(--primary); background:rgba(255,255,255,0.05); outline: none !important;}
-    
+    .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;}
+    .item.focus{border-left-color:var(--primary); background:rgba(255,255,255,0.1); }
     .item.is-fav .fav-icon{color: var(--primary); opacity: 1;}
     .fav-icon{opacity:0.3; font-size:18px;}
 
@@ -63,10 +52,10 @@
     .meta-extra{color:var(--primary); font-weight:bold; font-size:20px; margin: 10px 0;}
     #overlay-meta p{font-size:18px;max-width:550px;color:#ccc;line-height:1.4;}
 
-    .btn-meta{padding:12px 25px; font-weight:bold; border-radius:6px; border:none; cursor:pointer; font-size:14px; outline:none;}
+    .btn-meta{padding:12px 25px; font-weight:bold; border-radius:6px; border:none; cursor:pointer; font-size:14px; margin-top:20px;}
     .btn-play{background:var(--primary); color:#fff;}
     .btn-back{background:#333; color:#fff; margin-left:10px;}
-    .btn-meta.focus { outline: 3px solid #fff !important; }
+    .btn-meta.focus { background: #fff; color: #000; scale: 1.1; }
 </style>
 </head>
 <body>
@@ -77,21 +66,21 @@
             <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
             <div id="clock-container"><div id="clock">00:00</div><div id="date">00/00/00</div></div>
         </div>
-        <input id="search" placeholder="Pesquisar...">
+        <input id="search" placeholder="Pesquisar..." readonly>
     </div>
     
     <div id="now-playing-bar">
         <svg class="play-icon-small" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        <span>Assistindo agora: <b id="current-title">Nenhum conteúdo</b></span>
+        <span>Assistindo: <b id="current-title">Nenhum conteúdo</b></span>
     </div>
 
     <div id="buttons">
-        <button id="btnTV">TV</button>
-        <button id="btnFilmes">FILMES</button>
-        <button id="btnSeries">SÉRIES</button>
-        <button id="btnKidsCanais" style="background:#0056b3">CANAIS KIDS</button>
-        <button id="btnKidsConteudo" style="background:#0056b3">FILMES/SÉRIES KIDS</button>
-        <button id="btnFav">FAVORITOS</button>
+        <button id="btnTV" class="nav-btn">TV</button>
+        <button id="btnFilmes" class="nav-btn">FILMES</button>
+        <button id="btnSeries" class="nav-btn">SÉRIES</button>
+        <button id="btnKidsCanais" class="nav-btn" style="background:#0056b3">CANAIS KIDS</button>
+        <button id="btnKidsConteudo" class="nav-btn" style="background:#0056b3">FILMES KIDS</button>
+        <button id="btnFav" class="nav-btn">FAVORITOS</button>
     </div>
     <div id="list-container"><div id="list"></div></div>
 </div>
@@ -103,8 +92,8 @@
         <h1 id="meta-title"></h1>
         <div class="meta-extra">★ <span id="meta-rating">--</span> | <span id="meta-year">----</span></div>
         <p id="meta-desc"></p>
-        <div style="display:flex;margin-top:20px;">
-            <button class="btn-meta btn-play" id="btn-start">ASSISTIR AGORA</button>
+        <div style="display:flex;">
+            <button class="btn-meta btn-play" id="btn-start">ASSISTIR</button>
             <button class="btn-meta btn-back" id="btn-close">VOLTAR</button>
         </div>
     </div>
@@ -121,10 +110,7 @@ const getUrl = (i) => i.url || i.link || "";
 async function smartFetch(fileName) {
     const paths = [`data/${fileName}`, `./data/${fileName}`, `data/${fileName}?v=${Date.now()}`];
     for (let path of paths) {
-        try {
-            const r = await fetch(path);
-            if (r.ok) return r;
-        } catch (e) {}
+        try { const r = await fetch(path); if (r.ok) return r; } catch (e) {}
     }
     return null;
 }
@@ -137,23 +123,11 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-const getFavs=()=>JSON.parse(localStorage.getItem('flix_favs')||'[]');
-
-function toggleFav(item){
-    let favs = getFavs();
-    const itemName = getName(item);
-    const idx = favs.findIndex(f => getName(f) === itemName);
-    if(idx > -1) favs.splice(idx, 1);
-    else favs.push({ nome: itemName, url: getUrl(item), poster: item.poster || '', desc: item.desc || '', type: item.type || 'tv' });
-    localStorage.setItem('flix_favs', JSON.stringify(favs));
-    render();
-}
-
 function play(url, title, isZap=false){
     if(!url) return;
-    currentTitleEl.innerText = title; // Atualiza o "Assistindo Agora"
+    currentTitleEl.innerText = title;
     if(hls){hls.destroy(); hls=null;}
-    if(url.indexOf('.m3u8') !== -1 && Hls.isSupported()){
+    if(url.includes('.m3u8') && Hls.isSupported()){
         hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
     } else { video.src=url; }
     video.play().catch(()=>{});
@@ -166,9 +140,11 @@ function play(url, title, isZap=false){
     }
 }
 
-async function loadKidsCanais(){
-    mode='tv'; setActive('btnKidsCanais'); items=[];
-    const res = await smartFetch('kids_canais.m3u');
+async function loadTV(isKids=false){
+    mode='tv'; items=[];
+    const file = isKids ? 'kids_canais.m3u' : 'canais.m3u';
+    setActive(isKids ? 'btnKidsCanais' : 'btnTV');
+    const res = await smartFetch(file);
     if(!res) return;
     const txt = await res.text();
     let name='';
@@ -182,72 +158,46 @@ async function loadKidsCanais(){
 
 async function loadKidsConteudo(){
     mode='kids'; setActive('btnKidsConteudo'); items=[];
-    const fetchJson = async (fileName, type) => {
-        const res = await smartFetch(fileName);
-        if(!res) return [];
-        try { const data = await res.json(); return data.map(x => ({...x, type: type})); } catch(e) { return []; }
-    };
-    const fList = await fetchJson('kids_filmes.json', 'movie');
-    const sList = await fetchJson('kids_series.json', 'serie');
-    items = [...fList, ...sList];
+    const fRes = await smartFetch('kids_filmes.json');
+    const sRes = await smartFetch('kids_series.json');
+    if(fRes){ const d = await fRes.json(); items.push(...d.map(x=>({...x, type:'movie'}))); }
+    if(sRes){ const d = await sRes.json(); items.push(...d.map(x=>({...x, type:'serie'}))); }
     render();
-}
-
-async function loadTV(){
-    mode='tv'; setActive('btnTV');
-    const res = await smartFetch('canais.m3u');
-    if(!res) return;
-    const txt = await res.text();
-    items=[]; let name='';
-    txt.split('\n').forEach(l=>{
-        if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-        else if(l.startsWith('http')) items.push({nome:name.trim(), url:l.trim(), type:'tv'});
-    });
-    render();
-    if(items.length > 0) play(items[0].url, items[0].nome, true);
 }
 
 async function loadJSON(m, file){
     mode=m; setActive('btn'+m.charAt(0).toUpperCase()+m.slice(1));
     const res = await smartFetch(file);
     if(!res) return;
-    try {
-        const data = await res.json();
-        items = data.map(x => ({...x, type: (m === 'filmes' ? 'movie' : 'serie')}));
-        render();
-    } catch(e) {}
+    const data = await res.json();
+    items = data.map(x => ({...x, type: (m === 'filmes' ? 'movie' : 'serie')}));
+    render();
 }
 
-function render(customList=null){
+function render(){
     list.innerHTML='';
-    const target = customList || items;
-    const favs = getFavs();
+    const target = items;
     if(currentSerieEpisodes){
         const b=document.createElement('div'); b.className='item'; b.innerHTML='<b>⬅ VOLTAR</b>';
         b.onclick=()=>{currentSerieEpisodes=null; render();}; list.appendChild(b);
     }
-    target.forEach(i=>{
+    target.forEach((i, idx)=>{
         const d=document.createElement('div');
-        const itemName = getName(i);
-        const isF = favs.some(f => getName(f) === itemName);
-        d.className = `item ${isF ? 'is-fav' : ''}`;
-        d.innerHTML = `<span>${itemName}</span><span class="fav-icon">★</span>`;
+        d.className = 'item';
+        d.innerHTML = `<span>${getName(i)}</span><span class="fav-icon">★</span>`;
         d.onclick = () => { 
-            if(i.type === 'tv' || currentSerieEpisodes) play(getUrl(i), itemName);
+            if(i.type === 'tv' || currentSerieEpisodes) play(getUrl(i), getName(i));
             else showMeta(i); 
         };
-        d.querySelector('.fav-icon').onclick = (e) => { e.stopPropagation(); toggleFav(i); };
         list.appendChild(d);
     });
+    focusIndex = 0;
     refreshFocus();
 }
 
 function showMeta(i){
-    const title = getName(i);
-    document.getElementById('meta-title').innerText = title;
+    document.getElementById('meta-title').innerText = getName(i);
     document.getElementById('meta-desc').innerText = i.desc || "Sem descrição.";
-    document.getElementById('meta-rating').innerText = i.rating || "8.5";
-    document.getElementById('meta-year').innerText = i.year || "2024";
     overlayMeta.style.backgroundImage = `url(${i.poster || ''})`;
     overlayMeta.style.display = 'flex';
     document.getElementById('btn-start').onclick = async () => {
@@ -257,55 +207,78 @@ function showMeta(i){
                 nome: v.title || v.name, url: `https://archive.org/download/${i.identificador_archive}/${v.name}`, type: 'episode'
             }));
             render();
-        } else { play(getUrl(i), title); }
+        } else { play(getUrl(i), getName(i)); }
     };
 }
 
 function refreshFocus(){
-    const els=[document.getElementById('search'), ...document.querySelectorAll('#buttons button'), ...document.querySelectorAll('#list .item'), document.getElementById('btn-start'), document.getElementById('btn-close')];
+    const els=[document.getElementById('search'), ...document.querySelectorAll('#buttons button'), ...document.querySelectorAll('#list .item'), ...document.querySelectorAll('.btn-meta')];
     window.focusables=els.filter(e=>e.offsetParent !== null);
+    updateFocusStyle();
 }
 
-function updateFocus(){
+function updateFocusStyle(){
     window.focusables.forEach((f,i)=>f.classList.toggle('focus', i===focusIndex));
     const el = window.focusables[focusIndex];
-    if(!el) return;
-    el.scrollIntoView({block:'center'});
-
-    if(el.classList.contains('item') && !currentSerieEpisodes){
-        const listItems = Array.from(document.querySelectorAll('#list .item'));
-        const idx = listItems.indexOf(el);
-        const item = items[idx];
-        if(item && (item.type === 'movie' || item.type === 'serie' || item.type === 'kids')) {
-            showMeta(item);
-        } else {
-            overlayMeta.style.display='none';
+    if(el) {
+        el.scrollIntoView({block:'center'});
+        // Preview automático ao navegar na lista
+        if(el.classList.contains('item') && mode !== 'tv' && !currentSerieEpisodes){
+            const idx = Array.from(document.querySelectorAll('#list .item')).indexOf(el);
+            if(items[idx]) showMeta(items[idx]);
         }
     }
 }
 
+// LOGICA DE TECLADO E CONTROLE REMOTO
 document.addEventListener('keydown', e=>{
-    refreshFocus();
-    if(e.key==='ArrowDown') { focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); updateFocus(); }
-    if(e.key==='ArrowUp') { focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; e.preventDefault(); updateFocus(); }
-    if(e.key==='Enter') { window.focusables[focusIndex].click(); }
+    const key = e.keyCode || e.which;
+    
+    // Setas Cima/Baixo
+    if(key === 38) { focusIndex = Math.max(0, focusIndex - 1); e.preventDefault(); }
+    if(key === 40) { focusIndex = Math.min(window.focusables.length - 1, focusIndex + 1); e.preventDefault(); }
+    
+    // Setas Esquerda/Direita (Mudar entre colunas se necessário ou botões meta)
+    if(key === 37 || key === 39) { e.preventDefault(); }
+
+    // ENTER ou OK (Mapeamento completo)
+    if(key === 13 || key === 10009 || key === 167) { 
+        window.focusables[focusIndex].click();
+    }
+
+    // TECLAS CANAL CH+ / CH- (Mudar canal direto)
+    if(key === 427 || key === 33) { // Channel Up / PageUp
+        if(mode === 'tv') { 
+            focusIndex = Math.max(0, focusIndex - 1); 
+            const el = window.focusables[focusIndex];
+            if(el && el.classList.contains('item')) el.click();
+        }
+    }
+    if(key === 428 || key === 34) { // Channel Down / PageDown
+        if(mode === 'tv') { 
+            focusIndex = Math.min(window.focusables.length - 1, focusIndex + 1); 
+            const el = window.focusables[focusIndex];
+            if(el && el.classList.contains('item')) el.click();
+        }
+    }
+
+    updateFocusStyle();
 });
 
 function setActive(id){
     document.querySelectorAll('#buttons button').forEach(b=>b.classList.remove('active'));
-    if(document.getElementById(id)) document.getElementById(id).classList.add('active');
+    document.getElementById(id).classList.add('active');
     overlayMeta.style.display='none'; currentSerieEpisodes=null;
 }
 
-document.getElementById('btnTV').onclick=loadTV;
+document.getElementById('btnTV').onclick=()=>loadTV(false);
 document.getElementById('btnFilmes').onclick=()=>loadJSON('filmes','filmes.json');
 document.getElementById('btnSeries').onclick=()=>loadJSON('series','series.json');
-document.getElementById('btnKidsCanais').onclick=loadKidsCanais;
+document.getElementById('btnKidsCanais').onclick=()=>loadTV(true);
 document.getElementById('btnKidsConteudo').onclick=loadKidsConteudo;
-document.getElementById('btnFav').onclick=()=>{mode='fav'; items=getFavs(); render(); setActive('btnFav');};
 document.getElementById('btn-close').onclick=()=>overlayMeta.style.display='none';
 
-window.onload=loadTV;
+window.onload=()=>loadTV(false);
 </script>
 </body>
 </html>
