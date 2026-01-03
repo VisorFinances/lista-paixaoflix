@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -7,245 +8,344 @@
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
-
 <style>
-:root { --primary:#e50914; --bg:#111; }
-body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
-*{scrollbar-width:none}
-*::-webkit-scrollbar{display:none}
+    :root { --primary: #e50914; --bg: #111; }
+    body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
+    * { scrollbar-width: none; -ms-overflow-style: none; }
+    *::-webkit-scrollbar { display: none; }
 
-#side{width:340px;background:var(--bg);display:flex;flex-direction:column;border-right:1px solid #222}
-#top{padding:20px 20px 10px}
-#header-row{display:flex;justify-content:space-between;align-items:center}
-#logo{max-width:150px}
-#clock{font-size:22px;font-weight:700}
-#date{font-size:12px;opacity:.8}
+    #side{width:340px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
+    #top{padding:20px 20px 10px 20px;}
+    #header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    #logo{max-width:150px;max-height:60px;object-fit:contain}
+    #clock-container{text-align:right;}
+    #clock{font-size:22px;font-weight:700;line-height:1;}
+    #date{font-size:12px;opacity:0.8;margin-top:4px;}
 
-#search{
-  width:100%;
-  padding:16px;
-  font-size:16px;
-  border-radius:8px;
-  border:1px solid var(--primary);
-  background:#000;
-  color:#fff;
-}
-#search.focus{outline:3px solid #fff}
+    #search{width:100%;box-sizing:border-box;padding:12px;border-radius:8px;border:1px solid var(--primary);background:#000;color:#fff;outline:none;}
+    #search.focus { outline: 3px solid #fff !important; }
 
-#now-playing-bar{padding:10px 20px;font-size:13px;color:#aaa;display:flex;gap:8px}
-.play-icon-small{width:12px;height:12px;fill:var(--primary)}
+    /* STATUS ASSISTINDO AGORA - ABAIXO DA PESQUISA */
+    #now-playing-bar {
+        padding: 10px 20px;
+        font-size: 13px;
+        color: #aaa;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: transparent;
+    }
+    #now-playing-bar b { color: #fff; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .play-icon-small { width: 12px; height: 12px; fill: var(--primary); }
 
-#buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px}
-#buttons button{
-  padding:10px;
-  border-radius:6px;
-  background:#222;
-  color:#fff;
-  font-weight:700;
-  font-size:11px;
-  border:0;
-}
-#buttons button.active{background:var(--primary)}
-#buttons button.focus{outline:3px solid #fff}
+    #buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px}
+    #buttons button{padding:10px;border:0;border-radius:6px;background:#222;color:#fff;font-weight:700;cursor:pointer;font-size:11px;outline:none;}
+    #buttons button.active{background:var(--primary)}
+    #buttons button.focus { outline: 3px solid #fff !important; }
 
-#list{flex:1;overflow-y:auto}
-.item{
-  padding:14px;
-  border-bottom:1px solid #222;
-  cursor:pointer;
-  border-left:5px solid transparent;
-}
-.item.focus{
-  border-left-color:var(--primary);
-  background:rgba(255,255,255,.05);
-}
+    #list-container{flex:1;overflow:hidden;position:relative;}
+    #list{height:100%;overflow-y:auto;}
+    .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;outline:none;}
+    .item.focus{border-left-color:var(--primary); background:rgba(255,255,255,0.05); outline: none !important;}
+    
+    .item.is-fav .fav-icon{color: var(--primary); opacity: 1;}
+    .fav-icon{opacity:0.3; font-size:18px;}
 
-#player{flex:1;position:relative}
-video{width:100%;height:100%;background:#000}
+    #player{flex:1;position:relative;background:#000;}
+    video{width:100%;height:100%;}
 
-#overlay-zap{
-  position:absolute;
-  bottom:60px;
-  left:40px;
-  background:rgba(0,0,0,.8);
-  padding:15px 30px;
-  border-left:8px solid var(--primary);
-  display:none;
-}
-#zap-title{font-size:28px;font-weight:700}
+    #overlay-zap{position:absolute;bottom:60px;left:40px;background:rgba(0,0,0,0.8);padding:15px 30px;display:none;border-left:8px solid var(--primary);z-index:100;}
+    #zap-title{font-size:28px;font-weight:700;margin:0;}
+
+    #overlay-meta{position:absolute;top:0;left:0;width:100%;height:100%;background-color:#000;background-size:cover;background-position:center right;display:none;flex-direction:column;justify-content:center;padding:60px;box-sizing:border-box;}
+    #overlay-meta::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg, #000 45%, transparent 100%);z-index:1;}
+    #overlay-meta * {z-index:2; position:relative;}
+    #overlay-meta h1{font-size:50px;margin:0;max-width:600px;}
+    .meta-extra{color:var(--primary); font-weight:bold; font-size:20px; margin: 10px 0;}
+    #overlay-meta p{font-size:18px;max-width:550px;color:#ccc;line-height:1.4;}
+
+    .btn-meta{padding:12px 25px; font-weight:bold; border-radius:6px; border:none; cursor:pointer; font-size:14px; outline:none;}
+    .btn-play{background:var(--primary); color:#fff;}
+    .btn-back{background:#333; color:#fff; margin-left:10px;}
+    .btn-meta.focus { outline: 3px solid #fff !important; }
 </style>
 </head>
-
 <body>
 
 <div id="side">
-  <div id="top">
-    <div id="header-row">
-      <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
-      <div>
-        <div id="clock"></div>
-        <div id="date"></div>
-      </div>
+    <div id="top">
+        <div id="header-row">
+            <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
+            <div id="clock-container"><div id="clock">00:00</div><div id="date">00/00/00</div></div>
+        </div>
+        <input id="search" placeholder="Pesquisar...">
     </div>
-    <input id="search" placeholder="Pesquisar..." tabindex="0">
-  </div>
+    
+    <div id="now-playing-bar">
+        <svg class="play-icon-small" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span>Assistindo agora: <b id="current-title">Nenhum conteúdo</b></span>
+    </div>
 
-  <div id="now-playing-bar">
-    <svg class="play-icon-small" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-    <span>Assistindo agora: <b id="current-title">Nenhum conteúdo</b></span>
-  </div>
-
-  <div id="buttons">
-    <button id="btnTV">TV</button>
-    <button id="btnFilmes">FILMES</button>
-    <button id="btnSeries">SÉRIES</button>
-    <button id="btnKidsCanais" style="background:#0056b3">CANAIS KIDS</button>
-    <button id="btnKidsConteudo" style="background:#0056b3">FILMES/SÉRIES KIDS</button>
-    <button id="btnFav">FAVORITOS</button>
-  </div>
-
-  <div id="list"></div>
+    <div id="buttons">
+        <button id="btnTV">TV</button>
+        <button id="btnFilmes">FILMES</button>
+        <button id="btnSeries">SÉRIES</button>
+        <button id="btnKidsCanais" style="background:#0056b3">CANAIS KIDS</button>
+        <button id="btnKidsConteudo" style="background:#0056b3">FILMES/SÉRIES KIDS</button>
+        <button id="btnFav">FAVORITOS</button>
+    </div>
+    <div id="list-container"><div id="list"></div></div>
 </div>
 
 <div id="player">
-  <video id="video" autoplay playsinline></video>
-  <div id="overlay-zap"><div id="zap-title"></div></div>
+    <video id="video" autoplay></video>
+    <div id="overlay-zap"><div id="zap-title">Canal</div></div>
+    <div id="overlay-meta">
+        <h1 id="meta-title"></h1>
+        <div class="meta-extra">★ <span id="meta-rating">--</span> | <span id="meta-year">----</span></div>
+        <p id="meta-desc"></p>
+        <div style="display:flex;margin-top:20px;">
+            <button class="btn-meta btn-play" id="btn-start">ASSISTIR AGORA</button>
+            <button class="btn-meta btn-back" id="btn-close">VOLTAR</button>
+        </div>
+    </div>
 </div>
 
 <script>
-const video=document.getElementById('video');
-const list=document.getElementById('list');
-const search=document.getElementById('search');
-const currentTitle=document.getElementById('current-title');
-const clockEl=document.getElementById('clock');
-const dateEl=document.getElementById('date');
+const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta');
+const currentTitleEl = document.getElementById('current-title');
+let hls=null, items=[], mode='tv', focusIndex=0, zapTimer=null, currentSerieEpisodes=null;
 
-let items=[],focusables=[],focusIndex=0,mode='tv',hls=null,zapTimer=null;
+// DADOS DO FILME AVATAR INTEGRADOS CONFORME SOLICITADO
+const AVATAR_DATA = {
+    titulo: "Avatar: Fogo e Cinzas",
+    identificador_archive: "avatar-fogo-e-cinzas",
+    year: "17-12-2025 (BR)",
+    rating: "8.5",
+    desc: "Após a devastadora guerra contra a RDA e a perda do seu filho mais velho, Jake Sully e Neytiri enfrentam uma nova ameaça em Pandora: o Povo das Cinzas, uma tribo Na'vi violenta e sedenta de poder liderada pelo implacável Varang. A família de Jake deve lutar pela sua sobrevivência e pelo futuro de Pandora num conflito que os leva ao limite emocional e físico.",
+    poster: "https://image.tmdb.org/t/p/w600_and_h900_face/ywSmtzjp3ueZeGsrzXJsUDnMcqE.jpg",
+    type: "movie"
+};
 
-/* ⏰ DATA E HORA REAL */
+const getName = (i) => i.nome || i.titulo || "Sem Nome";
+const getUrl = (i) => i.url || i.link || "";
+
+async function smartFetch(fileName) {
+    const paths = [`data/${fileName}`, `./data/${fileName}`, `data/${fileName}?v=${Date.now()}`];
+    for (let path of paths) {
+        try {
+            const r = await fetch(path);
+            if (r.ok) return r;
+        } catch (e) {}
+    }
+    return null;
+}
+
 function updateClock(){
-  const d=new Date();
-  clockEl.innerText=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  dateEl.innerText=d.toLocaleDateString('pt-BR');
+    const now=new Date();
+    document.getElementById('clock').innerText=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const d=now.getDate().toString().padStart(2,'0'), m=(now.getMonth()+1).toString().padStart(2,'0'), y=now.getFullYear().toString().slice(-2);
+    document.getElementById('date').innerText=`${d}/${m}/${y}`;
 }
-setInterval(updateClock,1000);updateClock();
+setInterval(updateClock,1000); updateClock();
 
-/* ▶️ PLAYER */
-function playItem(item,zap=false){
-  currentTitle.innerText=item.nome;
-  if(hls){hls.destroy();hls=null}
+const getFavs=()=>JSON.parse(localStorage.getItem('flix_favs')||'[]');
 
-  if(item.url.includes('.m3u8') && Hls.isSupported()){
-    hls=new Hls({enableWorker:false});
-    hls.loadSource(item.url);
-    hls.attachMedia(video);
-  }else{
-    video.src=item.url;
-  }
-  video.play().catch(()=>{});
-
-  if(zap){
-    document.getElementById('zap-title').innerText=item.nome;
-    document.getElementById('overlay-zap').style.display='block';
-    clearTimeout(zapTimer);
-    zapTimer=setTimeout(()=>overlay-zap.style.display='none',2000);
-  }
+function toggleFav(item){
+    let favs = getFavs();
+    const itemName = getName(item);
+    const idx = favs.findIndex(f => getName(f) === itemName);
+    if(idx > -1) favs.splice(idx, 1);
+    else favs.push({ nome: itemName, url: getUrl(item), poster: item.poster || '', desc: item.desc || '', type: item.type || 'tv' });
+    localStorage.setItem('flix_favs', JSON.stringify(favs));
+    render();
 }
 
-/* 📋 RENDER */
-function render(){
-  list.innerHTML='';
-  items.forEach(i=>{
-    const d=document.createElement('div');
-    d.className='item';
-    d.tabIndex=0;
-    d.innerText=i.nome;
-    d.onclick=()=>playItem(i,true);
-    list.appendChild(d);
-  });
-  rebuildFocus();
+function play(url, title, isZap=false){
+    if(!url) return;
+    currentTitleEl.innerText = title; 
+    if(hls){hls.destroy(); hls=null;}
+    if(url.indexOf('.m3u8') !== -1 && Hls.isSupported()){
+        hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
+    } else { video.src=url; }
+    video.play().catch(()=>{});
+    overlayMeta.style.display='none';
+    if(isZap){
+        document.getElementById('zap-title').innerText=title;
+        document.getElementById('overlay-zap').style.display='block';
+        clearTimeout(zapTimer);
+        zapTimer=setTimeout(()=>document.getElementById('overlay-zap').style.display='none',2500);
+    }
 }
 
-/* 🎯 FOCO */
-function rebuildFocus(){
-  focusables=[
-    search,
-    ...document.querySelectorAll('#buttons button'),
-    ...document.querySelectorAll('.item')
-  ];
-  if(focusIndex>=focusables.length) focusIndex=0;
-  updateFocus();
+// LOGICA PARA BUSCAR VIDEO NO ARCHIVE.ORG PELO IDENTIFICADOR
+async function playFromArchive(identifier, title) {
+    try {
+        const res = await fetch(`https://archive.org/metadata/${identifier}`);
+        const data = await res.json();
+        const videoFile = data.files.find(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv') || f.name.endsWith('.m4v'));
+        if (videoFile) {
+            const videoUrl = `https://archive.org/download/${identifier}/${videoFile.name}`;
+            play(videoUrl, title);
+        } else {
+            alert("Arquivo de vídeo não encontrado no Archive.");
+        }
+    } catch (e) {
+        console.error("Erro ao acessar Archive:", e);
+    }
+}
+
+async function loadKidsCanais(){
+    mode='tv'; setActive('btnKidsCanais'); items=[];
+    const res = await smartFetch('kids_canais.m3u');
+    if(!res) return;
+    const txt = await res.text();
+    let name='';
+    txt.split('\n').forEach(l=>{
+        if(l.startsWith('#EXTINF')) name=l.split(',').pop();
+        else if(l.startsWith('http')) items.push({nome:name.trim(), url:l.trim(), type:'tv'});
+    });
+    render();
+    if(items.length > 0) play(items[0].url, items[0].nome, true);
+}
+
+async function loadKidsConteudo(){
+    mode='kids'; setActive('btnKidsConteudo'); items=[];
+    const fetchJson = async (fileName, type) => {
+        const res = await smartFetch(fileName);
+        if(!res) return [];
+        try { const data = await res.json(); return data.map(x => ({...x, type: type})); } catch(e) { return []; }
+    };
+    const fList = await fetchJson('kids_filmes.json', 'movie');
+    const sList = await fetchJson('kids_series.json', 'serie');
+    items = [...fList, ...sList];
+    render();
+}
+
+async function loadTV(){
+    mode='tv'; setActive('btnTV');
+    const res = await smartFetch('canais.m3u');
+    if(!res) return;
+    const txt = await res.text();
+    items=[]; let name='';
+    txt.split('\n').forEach(l=>{
+        if(l.startsWith('#EXTINF')) name=l.split(',').pop();
+        else if(l.startsWith('http')) items.push({nome:name.trim(), url:l.trim(), type:'tv'});
+    });
+    render();
+    if(items.length > 0) play(items[0].url, items[0].nome, true);
+}
+
+async function loadJSON(m, file){
+    mode=m; setActive('btn'+m.charAt(0).toUpperCase()+m.slice(1));
+    const res = await smartFetch(file);
+    let data = [];
+    if(res) {
+        try { data = await res.json(); } catch(e) {}
+    }
+    
+    // INTEGRAR AVATAR SE FOR CATEGORIA FILMES
+    if(m === 'filmes') {
+        const exists = data.some(x => x.identificador_archive === AVATAR_DATA.identificador_archive);
+        if(!exists) data.unshift(AVATAR_DATA);
+    }
+
+    items = data.map(x => ({...x, type: (m === 'filmes' ? 'movie' : 'serie')}));
+    render();
+}
+
+function render(customList=null){
+    list.innerHTML='';
+    const target = customList || items;
+    const favs = getFavs();
+    if(currentSerieEpisodes){
+        const b=document.createElement('div'); b.className='item focusable'; b.innerHTML='<b>⬅ VOLTAR</b>';
+        b.onclick=()=>{currentSerieEpisodes=null; render();}; list.appendChild(b);
+    }
+    target.forEach(i=>{
+        const d=document.createElement('div');
+        const itemName = getName(i);
+        const isF = favs.some(f => getName(f) === itemName);
+        d.className = `item focusable ${isF ? 'is-fav' : ''}`;
+        d.innerHTML = `<span>${itemName}</span><span class="fav-icon">★</span>`;
+        d.onclick = () => { 
+            if(i.type === 'tv' || currentSerieEpisodes) play(getUrl(i), itemName);
+            else showMeta(i); 
+        };
+        d.querySelector('.fav-icon').onclick = (e) => { e.stopPropagation(); toggleFav(i); };
+        list.appendChild(d);
+    });
+    refreshFocus();
+}
+
+function showMeta(i){
+    const title = getName(i);
+    document.getElementById('meta-title').innerText = title;
+    document.getElementById('meta-desc').innerText = i.desc || "Sem descrição.";
+    document.getElementById('meta-rating').innerText = i.rating || "8.5";
+    document.getElementById('meta-year').innerText = i.year || "2024";
+    overlayMeta.style.backgroundImage = `url(${i.poster || ''})`;
+    overlayMeta.style.display = 'flex';
+    document.getElementById('btn-start').onclick = async () => {
+        if(i.type === 'serie' && i.identificador_archive){
+            const data = await fetch(`https://archive.org/metadata/${i.identificador_archive}`).then(r=>r.json());
+            currentSerieEpisodes = data.files.filter(f => f.name.endsWith('.mp4')).map(v => ({
+                nome: v.title || v.name, url: `https://archive.org/download/${i.identificador_archive}/${v.name}`, type: 'episode'
+            }));
+            render();
+        } else if (i.identificador_archive) {
+            playFromArchive(i.identificador_archive, title);
+        } else { 
+            play(getUrl(i), title); 
+        }
+    };
+}
+
+function refreshFocus(){
+    const els=[document.getElementById('search'), ...document.querySelectorAll('#buttons button'), ...document.querySelectorAll('#list .item'), document.getElementById('btn-start'), document.getElementById('btn-close')];
+    window.focusables=els.filter(e=>e.offsetParent !== null);
 }
 
 function updateFocus(){
-  focusables.forEach((e,i)=>e.classList.toggle('focus',i===focusIndex));
-  focusables[focusIndex]?.focus();
+    window.focusables.forEach((f,i)=>f.classList.toggle('focus', i===focusIndex));
+    const el = window.focusables[focusIndex];
+    if(!el) return;
+    el.scrollIntoView({block:'center'});
+
+    if(el.classList.contains('item') && !currentSerieEpisodes){
+        const listItems = Array.from(document.querySelectorAll('#list .item'));
+        const idx = listItems.indexOf(el);
+        const item = items[idx];
+        if(item && (item.type === 'movie' || item.type === 'serie' || item.type === 'kids')) {
+            showMeta(item);
+        } else {
+            overlayMeta.style.display='none';
+        }
+    }
 }
 
-/* 🎮 TECLAS (LG WEBOS / SAMSUNG / ANDROID) */
-document.addEventListener('keydown',e=>{
-  const k=e.keyCode;
-
-  if(document.activeElement===search) return;
-
-  if(k===38) focusIndex--;        // UP
-  if(k===40) focusIndex++;        // DOWN
-  if(k===37) focusIndex--;        // LEFT
-  if(k===39) focusIndex++;        // RIGHT
-
-  if(k===13){                     // OK
-    focusables[focusIndex]?.click();
-  }
-
-  if(k===427) zap(1);             // CH+
-  if(k===428) zap(-1);            // CH-
-
-  focusIndex=(focusIndex+focusables.length)%focusables.length;
-  updateFocus();
+document.addEventListener('keydown', e=>{
+    refreshFocus();
+    if(e.key==='ArrowDown') { focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); updateFocus(); }
+    if(e.key==='ArrowUp') { focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; e.preventDefault(); updateFocus(); }
+    if(e.key==='Enter') { window.focusables[focusIndex].click(); }
 });
 
-/* 🔀 ZAP */
-function zap(dir){
-  if(!items.length) return;
-  focusIndex+=dir;
-  const item=items[(focusIndex+items.length)%items.length];
-  playItem(item,true);
+function setActive(id){
+    document.querySelectorAll('#buttons button').forEach(b=>b.classList.remove('active'));
+    if(document.getElementById(id)) document.getElementById(id).classList.add('active');
+    overlayMeta.style.display='none'; currentSerieEpisodes=null;
 }
 
-/* 🔍 PESQUISA */
-search.addEventListener('input',()=>{
-  const q=search.value.toLowerCase();
-  const filtered=items.filter(i=>i.nome.toLowerCase().includes(q));
-  list.innerHTML='';
-  filtered.forEach(i=>{
-    const d=document.createElement('div');
-    d.className='item';
-    d.innerText=i.nome;
-    d.onclick=()=>playItem(i,true);
-    list.appendChild(d);
-  });
-  rebuildFocus();
-});
+document.getElementById('btnTV').onclick=loadTV;
+document.getElementById('btnFilmes').onclick=()=>loadJSON('filmes','filmes.json');
+document.getElementById('btnSeries').onclick=()=>loadJSON('series','series.json');
+document.getElementById('btnKidsCanais').onclick=loadKidsCanais;
+document.getElementById('btnKidsConteudo').onclick=loadKidsConteudo;
+document.getElementById('btnFav').onclick=()=>{mode='fav'; items=getFavs(); render(); setActive('btnFav');};
+document.getElementById('btn-close').onclick=()=>overlayMeta.style.display='none';
 
-/* 📺 TV (AUTOPLAY PRIMEIRO CANAL) */
-function loadTV(){
-  mode='tv';
-  fetch('canais.m3u')
-    .then(r=>r.text())
-    .then(txt=>{
-      items=[];
-      let name='';
-      txt.split('\n').forEach(l=>{
-        if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-        if(l.startsWith('http')) items.push({nome:name.trim(),url:l.trim()});
-      });
-      render();
-      if(items.length) playItem(items[0],true);
-    });
-}
-
-loadTV();
+window.onload=loadTV;
 </script>
-
 </body>
 </html>
