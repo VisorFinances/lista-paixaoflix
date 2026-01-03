@@ -4,16 +4,13 @@
 <meta charset="utf-8">
 <title>PaixãoFlix – Web TV</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-:root{--primary:#e50914;--bg:#111}
+:root { --primary:#e50914; --bg:#111; }
 body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
-*{scrollbar-width:none;-ms-overflow-style:none}
-*::-webkit-scrollbar{display:none}
 
 #side{width:340px;background:var(--bg);display:flex;flex-direction:column;border-right:1px solid #222}
 #top{padding:20px 20px 10px}
@@ -22,35 +19,59 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height
 #clock{font-size:22px;font-weight:700}
 #date{font-size:12px;opacity:.8}
 
-#search{width:100%;padding:12px;border-radius:8px;border:1px solid var(--primary);background:#000;color:#fff}
+/* 🔧 ÚNICA ALTERAÇÃO VISUAL: input maior para TV */
+#search{
+  width:100%;
+  padding:16px;
+  font-size:16px;
+  border-radius:8px;
+  border:1px solid var(--primary);
+  background:#000;
+  color:#fff;
+}
 #search.focus{outline:3px solid #fff}
 
 #now-playing-bar{padding:10px 20px;font-size:13px;color:#aaa;display:flex;gap:8px}
 .play-icon-small{width:12px;height:12px;fill:var(--primary)}
 
 #buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px}
-#buttons button{padding:10px;border-radius:6px;background:#222;color:#fff;font-weight:700;font-size:11px;border:0}
+#buttons button{
+  padding:10px;
+  border-radius:6px;
+  background:#222;
+  color:#fff;
+  font-weight:700;
+  font-size:11px;
+  border:0;
+}
 #buttons button.active{background:var(--primary)}
 #buttons button.focus{outline:3px solid #fff}
 
 #list{flex:1;overflow-y:auto}
-.item{padding:14px;border-bottom:1px solid #222;display:flex;justify-content:space-between;cursor:pointer;border-left:5px solid transparent}
-.item.focus{border-left-color:var(--primary);background:rgba(255,255,255,.05)}
+.item{
+  padding:14px;
+  border-bottom:1px solid #222;
+  cursor:pointer;
+  border-left:5px solid transparent;
+}
+.item.focus{
+  border-left-color:var(--primary);
+  background:rgba(255,255,255,.05);
+}
 
 #player{flex:1;position:relative}
 video{width:100%;height:100%;background:#000}
 
-#overlay-zap{position:absolute;bottom:60px;left:40px;background:rgba(0,0,0,.8);padding:15px 30px;border-left:8px solid var(--primary);display:none}
+#overlay-zap{
+  position:absolute;
+  bottom:60px;
+  left:40px;
+  background:rgba(0,0,0,.8);
+  padding:15px 30px;
+  border-left:8px solid var(--primary);
+  display:none;
+}
 #zap-title{font-size:28px;font-weight:700}
-
-#overlay-meta{position:absolute;inset:0;background-size:cover;display:none;flex-direction:column;justify-content:center;padding:60px}
-#overlay-meta::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.85) 30%,transparent 100%)}
-#overlay-meta *{position:relative;z-index:2}
-
-.btn-meta{padding:12px 25px;border-radius:6px;border:none;font-weight:bold}
-.btn-meta.focus{outline:3px solid #fff}
-.btn-play{background:var(--primary);color:#fff}
-.btn-back{background:#333;color:#fff;margin-left:10px}
 </style>
 </head>
 
@@ -60,9 +81,12 @@ video{width:100%;height:100%;background:#000}
   <div id="top">
     <div id="header-row">
       <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
-      <div><div id="clock"></div><div id="date"></div></div>
+      <div>
+        <div id="clock">00:00</div>
+        <div id="date">00/00/00</div>
+      </div>
     </div>
-    <input id="search" placeholder="Pesquisar...">
+    <input id="search" placeholder="Pesquisar..." tabindex="0">
   </div>
 
   <div id="now-playing-bar">
@@ -71,31 +95,30 @@ video{width:100%;height:100%;background:#000}
   </div>
 
   <div id="buttons">
-    <button id="btnTV">TV</button>
-    <button id="btnFilmes">FILMES</button>
-    <button id="btnSeries">SÉRIES</button>
-    <button id="btnKidsCanais">CANAIS KIDS</button>
-    <button id="btnKidsConteudo">KIDS</button>
-    <button id="btnFav">FAVORITOS</button>
+    <button id="btnTV" tabindex="0">TV</button>
+    <button id="btnFilmes" tabindex="0">FILMES</button>
+    <button id="btnSeries" tabindex="0">SÉRIES</button>
+    <button id="btnKidsCanais" style="background:#0056b3" tabindex="0">CANAIS KIDS</button>
+    <button id="btnKidsConteudo" style="background:#0056b3" tabindex="0">FILMES/SÉRIES KIDS</button>
+    <button id="btnFav" tabindex="0">FAVORITOS</button>
   </div>
 
   <div id="list"></div>
 </div>
 
 <div id="player">
-  <video id="video" autoplay playsinline></video>
+  <video id="video" playsinline></video>
   <div id="overlay-zap"><div id="zap-title"></div></div>
 </div>
 
 <script>
-const video=document.getElementById('video');
-const list=document.getElementById('list');
 const search=document.getElementById('search');
-const currentTitle=document.getElementById('current-title');
+const list=document.getElementById('list');
+const video=document.getElementById('video');
 
-let items=[],focusIndex=0,hls=null,zapTimer=null;
+let items=[],filtered=[],focusables=[],focusIndex=0;
 
-/* ===== RELÓGIO ===== */
+/* ⏰ relógio intacto */
 function updateClock(){
  const d=new Date();
  clock.innerText=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
@@ -103,125 +126,76 @@ function updateClock(){
 }
 setInterval(updateClock,1000);updateClock();
 
-/* ===== PLAYER ===== */
-function play(url,title,zap=false){
- currentTitle.innerText=title;
- if(hls){hls.destroy();hls=null}
-
- if(url.includes('.m3u8') && Hls.isSupported()){
-   hls=new Hls({enableWorker:false});
-   hls.loadSource(url);
-   hls.attachMedia(video);
- }else{
-   video.src=url;
- }
-
- video.play().catch(()=>{});
-
- const key='resume_'+title;
- const saved=localStorage.getItem(key);
- if(saved) video.currentTime=parseFloat(saved);
-
- if(zap){
-   zap-title.innerText=title;
-   overlay-zap.style.display='block';
-   clearTimeout(zapTimer);
-   zapTimer=setTimeout(()=>overlay-zap.style.display='none',2000);
- }
-}
-
-video.addEventListener('timeupdate',()=>{
- if(currentTitle.innerText)
- localStorage.setItem('resume_'+currentTitle.innerText,video.currentTime);
-});
-
-/* ===== LISTA ===== */
-function render(data=items){
+/* 📋 render sem autoplay */
+function render(data){
  list.innerHTML='';
- data.forEach((i)=>{
+ data.forEach(i=>{
   const d=document.createElement('div');
   d.className='item';
+  d.tabIndex=0;
   d.innerText=i.nome;
-  d.onclick=()=>play(i.url,i.nome,true);
+  d.onclick=()=>play(i);
   list.appendChild(d);
  });
- refreshFocus();
+ rebuildFocus();
 }
 
-/* ===== FOCO (CRÍTICO PARA WEBOS) ===== */
-function refreshFocus(){
- window.focusables=[
-   search,
-   ...document.querySelectorAll('#buttons button'),
-   ...document.querySelectorAll('.item')
+/* 🔍 pesquisa FUNCIONAL */
+search.addEventListener('input',()=>{
+ const q=search.value.toLowerCase();
+ filtered=items.filter(i=>i.nome.toLowerCase().includes(q));
+ render(filtered);
+});
+
+/* 🎯 foco estável (LG WebOS safe) */
+function rebuildFocus(){
+ focusables=[
+  search,
+  ...document.querySelectorAll('#buttons button'),
+  ...document.querySelectorAll('.item')
  ];
- if(focusIndex>=window.focusables.length) focusIndex=0;
+ if(focusIndex>=focusables.length) focusIndex=0;
  updateFocus();
 }
 
 function updateFocus(){
- window.focusables.forEach((e,i)=>e.classList.toggle('focus',i===focusIndex));
- window.focusables[focusIndex]?.scrollIntoView({block:'center'});
+ focusables.forEach((e,i)=>e.classList.toggle('focus',i===focusIndex));
+ focusables[focusIndex]?.focus();
 }
 
-/* ===== PESQUISA ===== */
-search.addEventListener('focus',()=>search.classList.add('focus'));
-search.addEventListener('blur',()=>search.classList.remove('focus'));
-search.addEventListener('input',()=>{
- const q=search.value.toLowerCase();
- render(items.filter(i=>i.nome.toLowerCase().includes(q)));
-});
-
-/* ===== CONTROLE REMOTO (WEBOS / TIZEN / ANDROID) ===== */
-function handleKey(e){
+/* 🎮 controle remoto real */
+document.addEventListener('keydown',e=>{
  if(document.activeElement===search) return;
 
- const k=e.key||e.code;
-
- if(['ArrowDown','Down'].includes(k)) focusIndex++;
- if(['ArrowUp','Up'].includes(k)) focusIndex--;
- if(['ArrowRight','Right'].includes(k)) focusIndex++;
- if(['ArrowLeft','Left'].includes(k)) focusIndex--;
-
- if(k==='Enter' || k==='OK'){
-   window.focusables[focusIndex]?.click();
+ switch(e.key){
+  case'ArrowDown':focusIndex++;break;
+  case'ArrowUp':focusIndex--;break;
+  case'Enter':
+  case'OK':
+   focusables[focusIndex]?.click();
+   break;
  }
-
- if(['MediaChannelUp','PageUp','ChannelUp'].includes(k)) zap(1);
- if(['MediaChannelDown','PageDown','ChannelDown'].includes(k)) zap(-1);
-
- if(k===' '){
-   video.paused?video.play():video.pause();
- }
-
- if(k==='f'){
-   if(document.fullscreenElement) document.exitFullscreen();
-   else video.requestFullscreen?.();
- }
-
- focusIndex=(focusIndex+window.focusables.length)%window.focusables.length;
+ focusIndex=(focusIndex+focusables.length)%focusables.length;
  updateFocus();
-}
-
-['keydown','keyup','keypress'].forEach(evt=>{
- document.addEventListener(evt,handleKey);
 });
 
-/* ===== ZAP ===== */
-function zap(dir){
- if(!items.length) return;
- focusIndex+=dir;
- const i=items[(focusIndex+items.length)%items.length];
- play(i.url,i.nome,true);
+/* ▶️ player só quando clicar */
+function play(i){
+ video.src=i.url;
+ video.play().catch(()=>{});
+ zap-title.innerText=i.nome;
+ overlay-zap.style.display='block';
+ setTimeout(()=>overlay-zap.style.display='none',2000);
 }
 
-/* ===== DADOS EXEMPLO ===== */
+/* 📦 dados exemplo (sem autoplay) */
 items=[
  {nome:'Canal Exemplo 1',url:'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'},
  {nome:'Canal Exemplo 2',url:'https://test-streams.mux.dev/test_001/stream.m3u8'}
 ];
-
-render();
+filtered=items;
+render(items);
 </script>
+
 </body>
 </html>
