@@ -13,7 +13,7 @@
     * { scrollbar-width: none; -ms-overflow-style: none; outline: none !important; }
     
     #side{width:340px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
-    #top{padding:20px 20px 10px 20px;}
+    #top{padding:20px 20px 5px 20px;}
     #header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
     #logo{max-width:150px;max-height:60px;object-fit:contain}
     #clock-container{text-align:right;}
@@ -21,9 +21,9 @@
     #date{font-size:12px;opacity:0.8;margin-top:4px;}
 
     #search{width:100%;box-sizing:border-box;padding:12px;border-radius:8px;border:1px solid var(--primary);background:#000;color:#fff;}
-    #search.focus { background: #222; border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+    #search.focus { background: #222; border-color: #fff; }
 
-    #now-playing-bar { padding: 10px 20px; font-size: 13px; color: #aaa; display: flex; align-items: center; gap: 8px; }
+    #now-playing-bar { padding: 5px 20px; font-size: 13px; color: #aaa; display: flex; align-items: center; gap: 8px; min-height: 25px;}
     #now-playing-bar b { color: #fff; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .play-icon-small { width: 12px; height: 12px; fill: var(--primary); }
 
@@ -36,7 +36,6 @@
     #list{height:100%;overflow-y:auto;}
     .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;}
     .item.focus{border-left-color:var(--primary); background:rgba(255,255,255,0.1); }
-    .item.is-fav .fav-icon{color: var(--primary); opacity: 1;}
     .fav-icon{opacity:0.3; font-size:18px;}
 
     #player{flex:1;position:relative;background:#000;}
@@ -52,10 +51,10 @@
     .meta-extra{color:var(--primary); font-weight:bold; font-size:20px; margin: 10px 0;}
     #overlay-meta p{font-size:18px;max-width:550px;color:#ccc;line-height:1.4;}
 
-    .btn-meta{padding:12px 25px; font-weight:bold; border-radius:6px; border:none; cursor:pointer; font-size:14px; margin-top:20px;}
+    .btn-meta{padding:15px 30px; font-weight:bold; border-radius:6px; border:none; cursor:pointer; font-size:14px; margin-top:20px;}
     .btn-play{background:var(--primary); color:#fff;}
     .btn-back{background:#333; color:#fff; margin-left:10px;}
-    .btn-meta.focus { background: #fff; color: #000; scale: 1.1; }
+    .btn-meta.focus { background: #fff; color: #000; transform: scale(1.05); }
 </style>
 </head>
 <body>
@@ -71,16 +70,16 @@
     
     <div id="now-playing-bar">
         <svg class="play-icon-small" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        <span>Assistindo: <b id="current-title">Nenhum conteúdo</b></span>
+        <span>Assistindo agora: <b id="current-title">Nenhum</b></span>
     </div>
 
     <div id="buttons">
-        <button id="btnTV" class="nav-btn">TV</button>
-        <button id="btnFilmes" class="nav-btn">FILMES</button>
-        <button id="btnSeries" class="nav-btn">SÉRIES</button>
-        <button id="btnKidsCanais" class="nav-btn" style="background:#0056b3">CANAIS KIDS</button>
-        <button id="btnKidsConteudo" class="nav-btn" style="background:#0056b3">FILMES KIDS</button>
-        <button id="btnFav" class="nav-btn">FAVORITOS</button>
+        <button id="btnTV">TV</button>
+        <button id="btnFilmes">FILMES</button>
+        <button id="btnSeries">SÉRIES</button>
+        <button id="btnKidsCanais" style="background:#0056b3">CANAIS KIDS</button>
+        <button id="btnKidsConteudo" style="background:#0056b3">FILMES/SÉRIES KIDS</button>
+        <button id="btnFav">FAVORITOS</button>
     </div>
     <div id="list-container"><div id="list"></div></div>
 </div>
@@ -93,7 +92,7 @@
         <div class="meta-extra">★ <span id="meta-rating">--</span> | <span id="meta-year">----</span></div>
         <p id="meta-desc"></p>
         <div style="display:flex;">
-            <button class="btn-meta btn-play" id="btn-start">ASSISTIR</button>
+            <button class="btn-meta btn-play" id="btn-start">ASSISTIR AGORA</button>
             <button class="btn-meta btn-back" id="btn-close">VOLTAR</button>
         </div>
     </div>
@@ -141,10 +140,8 @@ function play(url, title, isZap=false){
 }
 
 async function loadTV(isKids=false){
-    mode='tv'; items=[];
-    const file = isKids ? 'kids_canais.m3u' : 'canais.m3u';
-    setActive(isKids ? 'btnKidsCanais' : 'btnTV');
-    const res = await smartFetch(file);
+    mode='tv'; items=[]; setActive(isKids ? 'btnKidsCanais' : 'btnTV');
+    const res = await smartFetch(isKids ? 'kids_canais.m3u' : 'canais.m3u');
     if(!res) return;
     const txt = await res.text();
     let name='';
@@ -160,8 +157,8 @@ async function loadKidsConteudo(){
     mode='kids'; setActive('btnKidsConteudo'); items=[];
     const fRes = await smartFetch('kids_filmes.json');
     const sRes = await smartFetch('kids_series.json');
-    if(fRes){ const d = await fRes.json(); items.push(...d.map(x=>({...x, type:'movie'}))); }
-    if(sRes){ const d = await sRes.json(); items.push(...d.map(x=>({...x, type:'serie'}))); }
+    if(fRes){ try{const d=await fRes.json(); items.push(...d.map(x=>({...x, type:'movie'})));}catch(e){} }
+    if(sRes){ try{const d=await sRes.json(); items.push(...d.map(x=>({...x, type:'serie'})));}catch(e){} }
     render();
 }
 
@@ -169,9 +166,11 @@ async function loadJSON(m, file){
     mode=m; setActive('btn'+m.charAt(0).toUpperCase()+m.slice(1));
     const res = await smartFetch(file);
     if(!res) return;
-    const data = await res.json();
-    items = data.map(x => ({...x, type: (m === 'filmes' ? 'movie' : 'serie')}));
-    render();
+    try {
+        const data = await res.json();
+        items = data.map(x => ({...x, type: (m === 'filmes' ? 'movie' : 'serie')}));
+        render();
+    } catch(e){}
 }
 
 function render(){
@@ -181,7 +180,7 @@ function render(){
         const b=document.createElement('div'); b.className='item'; b.innerHTML='<b>⬅ VOLTAR</b>';
         b.onclick=()=>{currentSerieEpisodes=null; render();}; list.appendChild(b);
     }
-    target.forEach((i, idx)=>{
+    target.forEach((i)=>{
         const d=document.createElement('div');
         d.className = 'item';
         d.innerHTML = `<span>${getName(i)}</span><span class="fav-icon">★</span>`;
@@ -191,13 +190,14 @@ function render(){
         };
         list.appendChild(d);
     });
-    focusIndex = 0;
     refreshFocus();
 }
 
 function showMeta(i){
     document.getElementById('meta-title').innerText = getName(i);
     document.getElementById('meta-desc').innerText = i.desc || "Sem descrição.";
+    document.getElementById('meta-rating').innerText = i.rating || "8.5";
+    document.getElementById('meta-year').innerText = i.year || "----";
     overlayMeta.style.backgroundImage = `url(${i.poster || ''})`;
     overlayMeta.style.display = 'flex';
     document.getElementById('btn-start').onclick = async () => {
@@ -212,8 +212,8 @@ function showMeta(i){
 }
 
 function refreshFocus(){
-    const els=[document.getElementById('search'), ...document.querySelectorAll('#buttons button'), ...document.querySelectorAll('#list .item'), ...document.querySelectorAll('.btn-meta')];
-    window.focusables=els.filter(e=>e.offsetParent !== null);
+    const els=[document.getElementById('search'), ...document.querySelectorAll('#buttons button'), ...document.querySelectorAll('#list .item'), document.getElementById('btn-start'), document.getElementById('btn-close')];
+    window.focusables = els.filter(e => e.offsetParent !== null);
     updateFocusStyle();
 }
 
@@ -222,46 +222,38 @@ function updateFocusStyle(){
     const el = window.focusables[focusIndex];
     if(el) {
         el.scrollIntoView({block:'center'});
-        // Preview automático ao navegar na lista
-        if(el.classList.contains('item') && mode !== 'tv' && !currentSerieEpisodes){
+        if(el.classList.contains('item') && (mode !== 'tv') && !currentSerieEpisodes){
             const idx = Array.from(document.querySelectorAll('#list .item')).indexOf(el);
             if(items[idx]) showMeta(items[idx]);
         }
     }
 }
 
-// LOGICA DE TECLADO E CONTROLE REMOTO
 document.addEventListener('keydown', e=>{
-    const key = e.keyCode || e.which;
+    const key = e.keyCode;
+    // Cima (38), Baixo (40)
+    if(key === 38) { focusIndex = (focusIndex > 0) ? focusIndex - 1 : 0; e.preventDefault(); }
+    if(key === 40) { focusIndex = (focusIndex < window.focusables.length - 1) ? focusIndex + 1 : focusIndex; e.preventDefault(); }
     
-    // Setas Cima/Baixo
-    if(key === 38) { focusIndex = Math.max(0, focusIndex - 1); e.preventDefault(); }
-    if(key === 40) { focusIndex = Math.min(window.focusables.length - 1, focusIndex + 1); e.preventDefault(); }
-    
-    // Setas Esquerda/Direita (Mudar entre colunas se necessário ou botões meta)
-    if(key === 37 || key === 39) { e.preventDefault(); }
+    // Esquerda (37) e Direita (39) para navegar entre botões da sinopse quando aberta
+    if(overlayMeta.style.display === 'flex'){
+        if(key === 37) focusIndex = window.focusables.length - 2; // Botão ASSISTIR
+        if(key === 39) focusIndex = window.focusables.length - 1; // Botão VOLTAR
+    }
 
-    // ENTER ou OK (Mapeamento completo)
+    // OK / Enter (13, 10009, 167)
     if(key === 13 || key === 10009 || key === 167) { 
-        window.focusables[focusIndex].click();
+        window.focusables[focusIndex].click(); 
+        e.preventDefault();
     }
 
-    // TECLAS CANAL CH+ / CH- (Mudar canal direto)
-    if(key === 427 || key === 33) { // Channel Up / PageUp
-        if(mode === 'tv') { 
-            focusIndex = Math.max(0, focusIndex - 1); 
-            const el = window.focusables[focusIndex];
-            if(el && el.classList.contains('item')) el.click();
-        }
+    // Canal CH+ (427/33) e CH- (428/34)
+    if(key === 427 || key === 33) {
+        if(mode === 'tv'){ focusIndex = Math.max(0, focusIndex - 1); window.focusables[focusIndex].click(); }
     }
-    if(key === 428 || key === 34) { // Channel Down / PageDown
-        if(mode === 'tv') { 
-            focusIndex = Math.min(window.focusables.length - 1, focusIndex + 1); 
-            const el = window.focusables[focusIndex];
-            if(el && el.classList.contains('item')) el.click();
-        }
+    if(key === 428 || key === 34) {
+        if(mode === 'tv'){ focusIndex = Math.min(window.focusables.length - 1, focusIndex + 1); window.focusables[focusIndex].click(); }
     }
-
     updateFocusStyle();
 });
 
@@ -276,7 +268,7 @@ document.getElementById('btnFilmes').onclick=()=>loadJSON('filmes','filmes.json'
 document.getElementById('btnSeries').onclick=()=>loadJSON('series','series.json');
 document.getElementById('btnKidsCanais').onclick=()=>loadTV(true);
 document.getElementById('btnKidsConteudo').onclick=loadKidsConteudo;
-document.getElementById('btn-close').onclick=()=>overlayMeta.style.display='none';
+document.getElementById('btn-close').onclick=()=> { overlayMeta.style.display='none'; refreshFocus(); };
 
 window.onload=()=>loadTV(false);
 </script>
