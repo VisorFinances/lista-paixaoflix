@@ -15,12 +15,16 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height
 
 #side{width:340px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
 #top{padding:20px;}
-#logo{max-width:180px;max-height:80px;object-fit:contain;margin-bottom:10px}
-#clock-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-#clock{font-size:24px;font-weight:700;}
 
-#download-area{text-align:center;font-size:10px;margin-bottom:10px;display:flex;justify-content:space-around;opacity:0.7}
-#download-area a{color:#fff;text-decoration:none;display:flex;flex-direction:column;align-items:center}
+/* RELÓGIO VOLTANDO PARA O LUGAR CORRETO */
+#header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+#logo{max-width:180px;max-height:80px;object-fit:contain}
+#clock-container{text-align:right;}
+#clock{font-size:24px;font-weight:700;line-height:1;}
+#date{font-size:14px;opacity:0.8;margin-top:4px;}
+
+#download-area{text-align:center;font-size:10px;margin-bottom:15px;display:flex;justify-content:space-around;opacity:0.8}
+#download-area a{color:#888;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:3px;}
 
 #search{width:100%;box-sizing:border-box;padding:12px;border-radius:8px;border:1px solid var(--primary);background:#000;color:#fff;outline:none;}
 #now-playing-info{padding:10px 20px;background:rgba(255,255,255,0.05);border-bottom:1px solid #222;font-size:13px;}
@@ -34,8 +38,6 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height
 #list{flex:1;overflow-y:auto;}
 .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;}
 .item.focus{border-left-color:var(--primary);background:rgba(255,255,255,0.05)!important;outline:none;}
-.item .fav-icon{color: #444; font-size: 18px;}
-.item.is-fav .fav-icon{color: var(--primary);}
 
 #player{flex:1;position:relative;background:#000;}
 video{width:100%;height:100%;}
@@ -50,7 +52,7 @@ video{width:100%;height:100%;}
 .btn-play{background:var(--primary); color:#fff;}
 .btn-back{background:#333; color:#fff; margin-left:10px;}
 
-.focus-btn {outline:2px solid #fff;background:#444!important;}
+#buttons button.focus, #search.focus, .btn-play.focus, .btn-back.focus {outline:2px solid #fff;background:#444;}
 </style>
 </head>
 
@@ -58,22 +60,24 @@ video{width:100%;height:100%;}
 
 <div id="side">
   <div id="top">
-    <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
-    <div id="clock-row"><div id="clock">00:00</div><div id="date">01/01/2026</div></div>
+    <div id="header-row">
+        <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
+        <div id="clock-container"><div id="clock">00:00</div><div id="date">01/01/2026</div></div>
+    </div>
     <div id="download-area">
-        <a href="#"><img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo192.png?raw=true" width="18">Download Mobile</a>
-        <a href="#"><img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true" width="18">Download TV</a>
+        <a href="#"><img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo192.png?raw=true" width="16">Fazer download - Mobile</a>
+        <a href="#"><img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true" width="16">Fazer download - Tv/Tv Box</a>
     </div>
     <input id="search" placeholder="Pesquisar...">
   </div>
 
-  <div id="now-playing-info"><b>ASSISTINDO AGORA:</b><span id="current-title">Carregando...</span></div>
+  <div id="now-playing-info"><b>ASSISTINDO AGORA:</b> <span id="current-title">Carregando...</span></div>
 
   <div id="buttons">
     <button id="btnTV" class="active">TV</button>
     <button id="btnFilmes">FILMES</button>
     <button id="btnSeries">SÉRIES</button>
-    <button id="btnKids">KIDS</button>
+    <button id="btnKids" style="background:#0056b3">KIDS</button>
     <button id="btnFav">FAVORITOS</button>
     <button id="btnHist">HISTÓRICO</button>
   </div>
@@ -100,7 +104,7 @@ const video=document.getElementById('video'), list=document.getElementById('list
 const overlayZap=document.getElementById('overlay-zap'), overlayMeta=document.getElementById('overlay-meta');
 const currentTitleDisplay = document.getElementById('current-title');
 
-let hls=null, items=[], allItems=[], mode='tv', focusIndex=0, zappingTimer=null, currentSerie=null;
+let hls=null, items=[], allItems=[], mode='tv', focusIndex=0, zapTimer=null;
 
 function updateClock(){
     const now=new Date();
@@ -117,53 +121,37 @@ function play(url, title, isZap=false){
     } else { video.src=url; }
     video.play().catch(()=>{});
     currentTitleDisplay.innerText = title;
-    
     if(isZap){
         document.getElementById('zap-title').innerText = title;
         overlayZap.style.display='block';
-        setTimeout(()=>overlayZap.style.display='none', 3000);
+        clearTimeout(window.hideZap);
+        window.hideZap = setTimeout(()=>overlayZap.style.display='none', 3000);
     }
 }
 
-// CARREGAR CANAIS (TV e KIDS)
-async function loadM3U(url, isKids=false){
+async function loadTV(isKids=false){
     mode = isKids ? 'kids' : 'tv';
-    currentSerie = null;
-    const txt = await fetch(url).then(r=>r.text()).catch(()=>"");
+    const path = isKids ? './data/kids_canais.m3u' : './data/canais.m3u';
+    const txt = await fetch(path).then(r=>r.text()).catch(()=>"");
     let name=''; allItems=[];
     txt.split('\n').forEach(l=>{
         if(l.startsWith('#EXTINF')) name=l.split(',').pop();
         else if(l.startsWith('http')) allItems.push({title:name.trim(), url:l.trim()});
     });
     items=[...allItems]; render();
-    if(items.length > 0) { 
-        focusIndex = 7; // Foca no primeiro item da lista
-        updateFocus();
-        play(items[0].url, items[0].title, true); 
-    }
-}
-
-// CARREGAR JSON (FILMES)
-async function loadJSON(m, file, dataObj = null){
-    mode=m; currentSerie=null;
-    if(dataObj) { allItems = dataObj; } 
-    else { allItems = await fetch(file).then(r=>r.json()).catch(()=>[]); }
-    items=[...allItems]; render();
+    if(items.length > 0 && !isKids) play(items[0].url, items[0].title, true);
 }
 
 function render(customList = null){
     list.innerHTML='';
     const target = customList || items;
-    target.forEach((i, idx) => {
+    target.forEach(i => {
         const d = document.createElement('div');
         d.className = 'item';
-        d.innerHTML = `<span>${i.titulo || i.title || i.nome}</span><span class="fav-icon">★</span>`;
+        d.innerHTML = `<span>${i.titulo || i.title || i.nome}</span>`;
         d.onclick = () => {
             if(mode==='tv' || mode==='kids') play(i.url, i.title, true);
-            else if(i.episodios) { 
-                currentSerie = i.episodios.map(e => ({...e, title: `${i.nome} - ${e.titulo}`, description: i.description}));
-                render(currentSerie);
-            } else showMeta(i);
+            else showMeta(i);
         };
         list.appendChild(d);
     });
@@ -183,45 +171,30 @@ function refreshFocusables(){
 }
 
 function updateFocus(){
-    focusables.forEach(f => f.classList.remove('focus', 'focus-btn'));
+    focusables.forEach(f => f.classList.remove('focus'));
     const el = focusables[focusIndex];
     if(!el) return;
-
-    if(el.tagName === 'BUTTON' || el.tagName === 'INPUT') el.classList.add('focus-btn');
-    else el.classList.add('focus');
-
+    el.classList.add('focus');
     el.scrollIntoView({block:'center', behavior:'smooth'});
     if(el === searchInput) el.focus(); else searchInput.blur();
 
-    // ZAPPING AUTOMÁTICO (CH+ / CH-) AO ROLAR
-    const listItems = Array.from(document.querySelectorAll('#list .item'));
-    const idxInList = listItems.indexOf(el);
-    
-    if(idxInList !== -1 && (mode === 'tv' || mode === 'kids')){
-        clearTimeout(zappingTimer);
-        zappingTimer = setTimeout(() => {
-            const item = items[idxInList];
-            if(item) play(item.url, item.title, true);
-        }, 1000); // 1 segundo parado no item = troca o canal
+    // ZAPPING AUTOMÁTICO AO ROLAR
+    if(el.classList.contains('item') && (mode==='tv' || mode==='kids')){
+        const idx = Array.from(document.querySelectorAll('#list .item')).indexOf(el);
+        clearTimeout(zapTimer);
+        zapTimer = setTimeout(() => play(items[idx].url, items[idx].title, true), 1000);
     }
-
-    // MOSTRAR META PARA FILMES/SÉRIES
-    if(idxInList !== -1 && (mode === 'filmes' || mode === 'series') && !currentSerie){
-        const item = items[idxInList];
-        if(item) showMeta(item);
+    // DADOS FILMES/SÉRIES AO ROLAR
+    if(el.classList.contains('item') && (mode==='filmes' || mode==='series')){
+        const idx = Array.from(document.querySelectorAll('#list .item')).indexOf(el);
+        if(items[idx]) showMeta(items[idx]);
     }
 }
 
 document.addEventListener('keydown', e => {
     refreshFocusables();
-    if(e.key==='ArrowDown' || e.key==='ChannelDown' || e.key==='PageDown') {
-        focusIndex = Math.min(focusIndex+1, focusables.length-1);
-        e.preventDefault();
-    }
-    if(e.key==='ArrowUp' || e.key==='ChannelUp' || e.key==='PageUp') {
-        focusIndex = Math.max(focusIndex-1, 0);
-        e.preventDefault();
-    }
+    if(e.key==='ArrowDown' || e.key==='ChannelDown' || e.key==='PageDown') { focusIndex = Math.min(focusIndex+1, focusables.length-1); e.preventDefault(); }
+    if(e.key==='ArrowUp' || e.key==='ChannelUp' || e.key==='PageUp') { focusIndex = Math.max(focusIndex-1, 0); e.preventDefault(); }
     if(e.key==='ArrowLeft' || e.key==='ArrowRight'){
         if(focusIndex >= 1 && focusIndex <= 6) focusIndex = (e.key==='ArrowRight') ? Math.min(focusIndex+1, 6) : Math.max(focusIndex-1, 1);
     }
@@ -229,29 +202,27 @@ document.addEventListener('keydown', e => {
     updateFocus();
 });
 
-// EVENTOS DE MENU
-document.getElementById('btnTV').onclick=()=>{ setActive('btnTV'); loadM3U('./data/canais.m3u'); };
+document.getElementById('btnTV').onclick=()=>{ setActive('btnTV'); loadTV(); };
 document.getElementById('btnFilmes').onclick=()=>{ 
     setActive('btnFilmes'); 
-    loadJSON('filmes', null, [
+    items = [
       {"titulo": "AS TARTARUGAS NINJA - O RETORNO", "url": "https://drive.google.com/uc?id=1TvjBxNNdrCppgBmPOpOgfyQWDDZdF_CC&export=view", "descricao": "As Tartarugas Ninja retornam."},
       {"titulo": "Filme Exemplo 2", "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", "descricao": "Filme de teste."}
-    ]); 
+    ]; 
+    render(); 
 };
-document.getElementById('btnSeries').onclick=()=>{ setActive('btnSeries'); loadJSON('series','./data/series.json'); };
-document.getElementById('btnKids').onclick=()=>{ setActive('btnKids'); loadM3U('./data/kids_canais.m3u'); };
+document.getElementById('btnSeries').onclick=()=>{ setActive('btnSeries'); /* load series */ };
+document.getElementById('btnKids').onclick=()=>{ setActive('btnKids'); loadTV(true); };
 document.getElementById('btn-close').onclick=()=>overlayMeta.style.display='none';
 
 function setActive(id){
     document.querySelectorAll('#buttons button').forEach(b => b.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     overlayMeta.style.display='none';
+    focusIndex = 7; updateFocus();
 }
 
-window.onload=()=>{ 
-    // Inicia na TV com o primeiro canal
-    loadM3U('./data/canais.m3u');
-};
+window.onload=()=>loadTV();
 </script>
 </body>
 </html>
