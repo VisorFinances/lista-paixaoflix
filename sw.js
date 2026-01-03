@@ -1,4 +1,4 @@
-const CACHE_NAME = 'paixaoflix-v2'; // Mudamos para v2 para forçar o update
+const CACHE_NAME = 'paixaoflix-v3'; // Mudamos para v2 para forçar o update
 
 self.addEventListener('install', (event) => {
   self.skipWaiting(); // Força o novo Service Worker a assumir o controle na hora
