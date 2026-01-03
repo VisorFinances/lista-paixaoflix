@@ -2,98 +2,181 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>PaixãoFlix WebTV</title>
+<title>PaixãoFlix</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
-#side{width:320px;background:#111;display:flex;flex-direction:column}
-#header{padding:20px}
-#logo{max-width:150px}
+:root{--red:#e50914;--bg:#111;--kids:#0056b3}
+*{box-sizing:border-box}
+body{margin:0;background:#000;color:#fff;font-family:Poppins;height:100vh;display:flex;overflow:hidden}
+
+/* ===== SIDEBAR ===== */
+#side{width:360px;background:var(--bg);display:flex;flex-direction:column}
+#top{padding:20px}
+#topbar{display:flex;justify-content:space-between;align-items:center}
+#logo{width:60px}
+#clock{font-weight:700}
+#date{font-size:12px;opacity:.7}
+#search{width:100%;margin-top:15px;padding:14px;border-radius:8px;border:2px solid var(--red);background:#000;color:#fff}
+
+/* ===== CATEGORIES ===== */
+#cats{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:8px;padding:10px}
+.cat{padding:10px;border-radius:6px;background:#222;text-align:center;font-size:12px;font-weight:700}
+.cat.active{background:var(--red)}
+.cat.kids{background:var(--kids)}
+
+/* ===== LIST ===== */
 #list{flex:1;overflow-y:auto}
-.item{padding:14px;border-bottom:1px solid #222;cursor:pointer}
-.item.focus{background:#222;border-left:5px solid #e50914}
-#player{flex:1;background:#000}
+.item{padding:14px;border-bottom:1px solid #222}
+.item.focus{background:#222;border-left:5px solid var(--red)}
+
+/* ===== PLAYER ===== */
+#player{flex:1;position:relative}
 video{width:100%;height:100%}
+
+/* ===== OVERLAY ===== */
+#overlay{position:absolute;bottom:50px;left:50px;background:rgba(0,0,0,.8);padding:15px 30px;display:none;border-left:8px solid var(--red)}
+#meta{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;justify-content:center;padding:60px;background:linear-gradient(90deg,#000 40%,transparent)}
 </style>
 </head>
 
 <body>
 
 <div id="side">
-<div id="header">
-<img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
+<div id="top">
+<div id="topbar">
+<img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
+<div>
+<div id="clock"></div>
+<div id="date"></div>
 </div>
+</div>
+<input id="search" placeholder="Pesquisar...">
+</div>
+
+<div id="cats">
+<div class="cat active" data-mode="tv">TV</div>
+<div class="cat" data-mode="filmes">FILMES</div>
+<div class="cat" data-mode="series">SÉRIES</div>
+<div class="cat kids" data-mode="kids_tv">CANAL KIDS</div>
+<div class="cat kids" data-mode="kids_media">FILMES/SÉRIES KIDS</div>
+<div class="cat" data-mode="fav">FAVORITOS</div>
+</div>
+
 <div id="list"></div>
 </div>
 
 <div id="player">
-<video id="video" autoplay controls></video>
+<video id="video" autoplay></video>
+<div id="overlay"></div>
+<div id="meta"></div>
 </div>
 
 <script>
-const list = document.getElementById('list');
-const video = document.getElementById('video');
-let hls = null;
-let items = [];
-let focus = 0;
+/* ===== CLOCK ===== */
+function clock(){
+const n=new Date()
+clockEl.innerText=n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+dateEl.innerText=n.toLocaleDateString('pt-BR')
+}
+setInterval(clock,1000)
+const clockEl=document.getElementById('clock')
+const dateEl=document.getElementById('date')
+clock()
 
-/* ================= LOAD M3U ================= */
-fetch('canais.m3u')
-.then(r => r.text())
-.then(txt => {
-let name = '';
-txt.split('\n').forEach(l => {
-if(l.startsWith('#EXTINF')) name = l.split(',').pop();
-else if(l.startsWith('http')) items.push({nome:name,url:l});
-});
-render();
-if(items[0]) play(items[0].url);
-});
+/* ===== STATE ===== */
+let items=[],mode='tv',focus=0,hls=null
 
-/* ================= RENDER ================= */
+/* ===== LOADERS ===== */
+async function loadM3U(file){
+const t=await fetch('data/'+file).then(r=>r.text())
+let name=''
+items=[]
+t.split('\n').forEach(l=>{
+if(l.startsWith('#EXTINF')) name=l.split(',').pop()
+if(l.startsWith('http')) items.push({nome:name,url:l,type:'tv'})
+})
+render()
+play(items[0])
+}
+
+async function loadJSON(file,type){
+items=await fetch('data/'+file).then(r=>r.json())
+items=items.map(i=>({...i,type}))
+render()
+}
+
+/* ===== RENDER ===== */
 function render(){
-list.innerHTML='';
+list.innerHTML=''
 items.forEach((i,idx)=>{
-const d=document.createElement('div');
-d.className='item';
-d.innerText=i.nome;
-d.onclick=()=>play(i.url);
-list.appendChild(d);
-});
-updateFocus();
+const d=document.createElement('div')
+d.className='item'
+d.innerText=i.nome||i.titulo
+d.onclick=()=>select(i)
+list.appendChild(d)
+})
+focus=0
+updateFocus()
 }
 
-/* ================= PLAY ================= */
-function play(url){
-if(hls){hls.destroy();hls=null;}
-if(url.includes('.m3u8') && Hls.isSupported()){
-hls=new Hls();
-hls.loadSource(url);
-hls.attachMedia(video);
-}else{
-video.src=url;
-}
-video.play().catch(()=>{});
+/* ===== PLAYER ===== */
+function play(i){
+if(!i||!i.url)return
+if(hls){hls.destroy();hls=null}
+if(i.url.includes('.m3u8')&&Hls.isSupported()){
+hls=new Hls()
+hls.loadSource(i.url)
+hls.attachMedia(video)
+}else video.src=i.url
+video.play().catch(()=>{})
+showOverlay(i.nome||i.titulo)
 }
 
-/* ================= FOCUS ================= */
+/* ===== SELECT ===== */
+function select(i){
+if(i.type==='tv') play(i)
+else showMeta(i)
+}
+
+/* ===== OVERLAY ===== */
+function showOverlay(t){
+overlay.innerText=t
+overlay.style.display='block'
+setTimeout(()=>overlay.style.display='none',2000)
+}
+
+/* ===== META ===== */
+function showMeta(i){
+meta.style.display='flex'
+meta.innerHTML=`
+<h1>${i.titulo}</h1>
+<p>${i.desc||''}</p>
+<p>${i.year||''} • ⭐ ${i.rating||''}</p>
+`
+}
+
+/* ===== FOCUS ===== */
 function updateFocus(){
-const els=document.querySelectorAll('.item');
-els.forEach((e,i)=>e.classList.toggle('focus',i===focus));
-els[focus]?.scrollIntoView({block:'center'});
+[...document.querySelectorAll('.item')].forEach((e,i)=>e.classList.toggle('focus',i===focus))
 }
 
-/* ================= KEYS ================= */
+/* ===== KEYS ===== */
 document.addEventListener('keydown',e=>{
-if(e.key==='ArrowDown' && focus<items.length-1) focus++;
-if(e.key==='ArrowUp' && focus>0) focus--;
-if(e.key==='Enter') document.querySelectorAll('.item')[focus]?.click();
-updateFocus();
-});
+const k=e.keyCode||e.which
+if(k===40&&focus<items.length-1)focus++
+if(k===38&&focus>0)focus--
+if(k===13)select(items[focus])
+if(k===427)focus++
+if(k===428)focus--
+updateFocus()
+})
+
+/* ===== INIT ===== */
+loadM3U('canais.m3u')
 </script>
 
 </body>
