@@ -129,7 +129,6 @@ function play(url, title, isZap=false){
     }
 }
 
-// CANAIS KIDS (M3U)
 async function loadKidsCanais(){
     mode='tv'; setActive('btnKidsCanais'); items=[];
     const txt = await fetch('./data/kids_canais.m3u').then(r=>r.text()).catch(()=>"");
@@ -141,15 +140,23 @@ async function loadKidsCanais(){
     render(); if(items.length>0) play(items[0].url, items[0].nome, true);
 }
 
-// FILMES E SÉRIES KIDS (JSON)
+// CORREÇÃO: LÊ kids_filmes.json E kids_series.json
 async function loadKidsConteudo(){
     mode='kids'; setActive('btnKidsConteudo'); items=[];
-    const [f, s] = await Promise.all([
-        fetch('./data/kids_filmes.json').then(r=>r.json()).catch(()=>[]),
-        fetch('./data/kids_series.json').then(r=>r.json()).catch(()=>[])
-    ]);
-    items = [...f.map(x=>({...x, type:'movie'})), ...s.map(x=>({...x, type:'serie'}))];
-    render();
+    try {
+        const [filmes, series] = await Promise.all([
+            fetch('./data/kids_filmes.json').then(r=>r.json()).catch(()=>[]),
+            fetch('./data/kids_series.json').then(r=>r.json()).catch(()=>[])
+        ]);
+        
+        const fList = filmes.map(x => ({...x, type: 'movie'}));
+        const sList = series.map(x => ({...x, type: 'serie'}));
+        
+        items = [...fList, ...sList];
+        render();
+    } catch(e) {
+        console.error("Erro ao carregar conteúdo Kids:", e);
+    }
 }
 
 async function loadTV(){
@@ -165,7 +172,8 @@ async function loadTV(){
 
 async function loadJSON(m, file){
     mode=m; setActive('btn'+m.charAt(0).toUpperCase()+m.slice(1));
-    items = await fetch(file).then(r=>r.json()).catch(()=>[]);
+    const data = await fetch(file).then(r=>r.json()).catch(()=>[]);
+    items = data.map(x => ({...x, type: (m === 'filmes' ? 'movie' : 'serie')}));
     render();
 }
 
@@ -202,7 +210,7 @@ function showMeta(i){
     overlayMeta.style.backgroundImage=`url(${i.poster})`;
     overlayMeta.style.display='flex';
     document.getElementById('btn-start').onclick=async()=>{
-        if(i.identificador_archive){
+        if(i.type === 'serie' && i.identificador_archive){
             const data=await fetch(`https://archive.org/metadata/${i.identificador_archive}`).then(r=>r.json());
             currentSerieEpisodes=data.files.filter(f=>f.name.endsWith('.mp4')).map(v=>({nome:v.title||v.name, url:`https://archive.org/download/${i.identificador_archive}/${v.name}`}));
             render();
