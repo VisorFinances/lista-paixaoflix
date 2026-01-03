@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>PaixãoFlix – Web TV</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
@@ -12,9 +12,10 @@
 <style>
 :root { --primary: #e50914; --bg: #111; }
 body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
-* { scrollbar-width: none; -ms-overflow-style: none; }
+* { scrollbar-width: none; -ms-overflow-style: none; box-sizing: border-box; }
 *::-webkit-scrollbar { display: none; }
 
+/* ESTRUTURA BASE (DESKTOP/TV) */
 #side{width:340px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
 #top{padding:20px;}
 #header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
@@ -43,8 +44,9 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height
 .item.back-item{color: var(--primary); font-weight: bold;}
 
 #player{flex:1;position:relative;background:#000;}
-video{width:100%;height:100%;}
+video{width:100%;height:100%;object-fit: contain;}
 
+/* OVERLAYS */
 #overlay-zap{position:absolute;bottom:60px;left:40px;background:rgba(15,15,15,0.9);padding:20px 40px;display:none;border-left:8px solid var(--primary);border-radius:4px;z-index:100;}
 #zap-title{font-size:32px;font-weight:700;margin:0;}
 
@@ -57,6 +59,35 @@ video{width:100%;height:100%;}
 .btn-play{background:var(--primary); color:#fff;}
 .btn-back{background:#333; color:#fff; margin-left:10px;}
 
+/* AJUSTES PARA MOBILE (O LOOK DO APP) */
+@media (max-width: 768px) {
+    body { flex-direction: column; overflow: auto; }
+    #side { width: 100%; height: auto; border-right: none; border-bottom: 1px solid #222; }
+    #header-row { padding: 10px; }
+    #clock-container { display: none; } /* Esconde relógio no mobile pra ganhar espaço */
+    #download-area { display: none; } /* Esconde links de download dentro do app */
+    
+    #buttons { 
+        display: flex; 
+        overflow-x: auto; 
+        padding: 10px; 
+        gap: 8px; 
+        background: #111;
+    }
+    #buttons button { 
+        flex: 0 0 auto; 
+        padding: 8px 20px; 
+        white-space: nowrap; 
+    }
+
+    #player { width: 100%; height: 250px; flex: none; order: -1; } /* Vídeo fica fixo no topo no mobile */
+    #list-container { height: calc(100vh - 450px); }
+    
+    #overlay-meta { padding: 20px; background: rgba(0,0,0,0.95); }
+    #overlay-meta h1 { font-size: 28px; }
+    #overlay-meta p { font-size: 14px; }
+}
+
 #buttons button.focus, #search.focus, .btn-play.focus, .btn-back.focus {outline:2px solid #fff;background:#444;}
 </style>
 </head>
@@ -68,10 +99,6 @@ video{width:100%;height:100%;}
     <div id="header-row">
         <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
         <div id="clock-container"><div id="clock">00:00</div><div id="date">01/01/2026</div></div>
-    </div>
-    <div id="download-area">
-        <a href="#"><img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo192.png?raw=true" width="16">Fazer download - Mobile</a>
-        <a href="#"><img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true" width="16">Fazer download - Tv/Tv Box</a>
     </div>
     <input id="search" placeholder="Pesquisar...">
   </div>
@@ -91,7 +118,7 @@ video{width:100%;height:100%;}
 </div>
 
 <div id="player">
-  <video id="video" autoplay></video>
+  <video id="video" autoplay playsinline crossorigin="anonymous"></video>
   <div id="overlay-zap">
     <div id="zap-title">Canal</div>
   </div>
@@ -99,7 +126,7 @@ video{width:100%;height:100%;}
       <h1 id="meta-title">Título</h1>
       <div class="meta-details">★ <span id="meta-rating">--</span> | <span id="meta-year">----</span></div>
       <p id="meta-desc">Descrição...</p>
-      <div style="display:flex;margin-top:30px;">
+      <div style="display:flex;margin-top:20px;">
         <button class="btn-play" id="btn-start">ASSISTIR AGORA</button>
         <button class="btn-back" id="btn-close">VOLTAR</button>
       </div>
@@ -111,9 +138,9 @@ video{width:100%;height:100%;}
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').then(reg => {
-      console.log('PWA carregado com sucesso!', reg);
+      console.log('PWA carregado!');
     }).catch(err => {
-      console.log('Erro ao carregar PWA:', err);
+      console.log('Erro PWA:', err);
     });
   });
 }
@@ -126,8 +153,10 @@ let hls=null, items=[], allItems=[], mode='tv', focusIndex=0, zapTimer=null, cur
 
 function updateClock(){
     const now=new Date();
-    document.getElementById('clock').innerText=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    document.getElementById('date').innerText=now.toLocaleDateString('pt-BR');
+    const elClock = document.getElementById('clock');
+    const elDate = document.getElementById('date');
+    if(elClock) elClock.innerText=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    if(elDate) elDate.innerText=now.toLocaleDateString('pt-BR');
 }
 setInterval(updateClock,1000); updateClock();
 
@@ -146,7 +175,7 @@ function toggleFav(item) {
 function play(url, title, isZap=false){
     if(!url) return;
     if(hls){hls.destroy(); hls=null;}
-    if(url.endsWith('.m3u8') && Hls.isSupported()){
+    if(url.indexOf('.m3u8') !== -1 && Hls.isSupported()){
         hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
     } else { video.src=url; }
     video.play().catch(()=>{});
@@ -186,7 +215,6 @@ async function loadTV(isKids=false){
         else if(l.startsWith('http')) allItems.push({title:name.trim(), url:l.trim()});
     });
     items=[...allItems]; render();
-    if(items.length > 0 && !isKids) play(items[0].url, items[0].title, true);
 }
 
 async function loadJSON(m, file){
@@ -254,33 +282,13 @@ function updateFocus(){
     const el = focusables[focusIndex];
     if(!el) return;
     el.classList.add('focus');
-    el.scrollIntoView({block:'center', behavior:'smooth'});
     if(el === searchInput) el.focus(); else searchInput.blur();
-
-    const idx = Array.from(document.querySelectorAll('#list .item')).indexOf(el);
-    if(idx !== -1){
-        const listTarget = currentSerieEpisodes || items;
-        const realIdx = currentSerieEpisodes ? idx - 1 : idx;
-        const item = listTarget[realIdx];
-
-        if(item){
-            if(mode==='tv' || mode==='kids'){
-                clearTimeout(zapTimer);
-                zapTimer = setTimeout(() => play(item.url, item.title, true), 1000);
-            } else if((mode==='filmes' || mode==='series') && !currentSerieEpisodes) {
-                showMeta(item);
-            }
-        }
-    }
 }
 
 document.addEventListener('keydown', e => {
     refreshFocusables();
-    if(e.key==='ArrowDown' || e.key==='ChannelDown' || e.key==='PageDown') { focusIndex = Math.min(focusIndex+1, focusables.length-1); e.preventDefault(); }
-    if(e.key==='ArrowUp' || e.key==='ChannelUp' || e.key==='PageUp') { focusIndex = Math.max(focusIndex-1, 0); e.preventDefault(); }
-    if(e.key==='ArrowLeft' || e.key==='ArrowRight'){
-        if(focusIndex >= 1 && focusIndex <= 6) focusIndex = (e.key==='ArrowRight') ? Math.min(focusIndex+1, 6) : Math.max(focusIndex-1, 1);
-    }
+    if(e.key==='ArrowDown') { focusIndex = Math.min(focusIndex+1, focusables.length-1); e.preventDefault(); }
+    if(e.key==='ArrowUp') { focusIndex = Math.max(focusIndex-1, 0); e.preventDefault(); }
     if(e.key==='Enter') focusables[focusIndex].click();
     updateFocus();
 });
