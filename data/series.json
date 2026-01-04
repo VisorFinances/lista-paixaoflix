@@ -2,10 +2,12 @@
   {
     "nome": "Eu, a Patroa e as Crianças",
     "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/huMehRjXBkFkO9BWPly1635y0J0.jpg",
-    "desc": "Michael Kyle é um pai de família que governa sua casa com um estilo único de paternidade. Ele ensina lições de vida aos seus três filhos com muito humor e ironia.",
+    "desc": "Michael Kyle é um pai de família que governa sua casa com um estilo único de paternidade.",
     "identificador_archive": "eu-a-patroa-e-as-criancas",
     "rating": "9.0",
-    "year": "2001"
+    "year": "2001",
+    "github_repo": "usuario/nome-do-repositorio/pasta_serie",
+    "episodios": [] 
   },
   {
     "nome": "Dark",
@@ -14,22 +16,7 @@
     "episodios": [
       {
         "titulo": "S01E01 - Segredos",
-        "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
-      },
-      {
-        "titulo": "S01E02 - Mentiras",
-        "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
-      }
-    ]
-  },
-  {
-    "nome": "Série Exemplo",
-    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/u3BwqS7mSAsSyBI6j9X6qI00Kp5.jpg",
-    "desc": "Série de exemplo para validação do sistema.",
-    "episodios": [
-      {
-        "titulo": "Episódio 1",
-        "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+        "url": "https://raw.githubusercontent.com/usuario/repo/main/dark/s01e01.mp4"
       }
     ]
   }
