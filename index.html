@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>PaixãoFlix VIP</title>
+<title>PaixãoFlix VIP - 3TB</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
@@ -11,18 +11,19 @@
     :root { --primary: #e50914; --bg: #0a0a0a; --focus: #fff; }
     body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
     
+    /* Menu Lateral */
     #side{width:320px;background:var(--bg);display:flex;flex-direction:column;z-index:20;border-right:1px solid #222;}
-    #header-container { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #222; }
+    #header-container { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid #222; }
     #logo{max-width:110px; height: auto;}
-    #clock { font-size: 16px; font-weight: 700; }
+    #clock { font-size: 16px; font-weight: 700; color: var(--primary); }
 
     #search-box { padding: 10px 15px; }
     #search{width:100%; height:32px; box-sizing:border-box; padding:0 10px; border-radius:4px; border:1px solid #333; background:#111; color:#fff; outline:none; font-size: 13px;}
     #search.focus { border-color: var(--primary); outline: 2px solid var(--focus); }
 
-    /* Assistindo Agora - Reduzido em 20px */
-    #now-playing-box { padding: 5px 15px; background: #000; border-bottom: 1px solid #222; font-size: 10px; min-height: 35px;}
-    #now-playing-title { color: var(--primary); font-weight: 700; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* Info Bar - Reduzida */
+    #now-playing-box { padding: 5px 15px; background: #000; border-bottom: 1px solid #222; font-size: 10px; min-height: 30px;}
+    #now-playing-title { color: #fff; font-weight: 700; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     #menu-container{flex:1; overflow-y:auto; padding:0 10px; scrollbar-width: none;}
     .main-btn { width: 100%; padding: 10px; text-align: left; background: #1a1a1a; border: none; color: #fff; font-weight: 700; cursor: pointer; border-radius: 4px; margin-bottom:4px; font-size: 14px; outline:none;}
@@ -32,6 +33,7 @@
     .sub-btn { width: 100%; padding: 8px 15px; text-align: left; background: transparent; border: none; color: #888; cursor: pointer; font-size: 13px; outline: none; }
     .sub-btn.focus { color: #fff; background: #222; }
 
+    /* Lista de Conteúdo */
     #list-container{width: 280px; background: #050505; border-left: 1px solid #222; overflow: hidden; transition: 0.3s;}
     #list{height:100%; overflow-y:auto; scrollbar-width: none;}
     .item{padding:12px 15px; border-bottom:1px solid #111; cursor:pointer; font-size:13px; outline:none;}
@@ -42,7 +44,16 @@
     #player-container{flex:1; position:relative; background:#000;}
     video{width:100%; height:100%;}
     
-    #overlay-meta { position:absolute; inset:0; background:rgba(0,0,0,0.9); display:none; flex-direction:column; justify-content:center; padding:50px; z-index:100; }
+    /* Barra de Volume */
+    #volume-card {
+        position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.8);
+        padding: 15px; border-radius: 10px; display: none; align-items: center; gap: 10px;
+        border: 1px solid #333; z-index: 1000;
+    }
+    #vol-bar-bg { width: 150px; height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
+    #vol-bar-fill { width: 50%; height: 100%; background: var(--primary); transition: 0.1s; }
+
+    #overlay-meta { position:absolute; inset:0; background:rgba(0,0,0,0.95); display:none; flex-direction:column; justify-content:center; padding:50px; z-index:100; }
     .btn-meta { padding:12px 30px; font-weight:700; border-radius:4px; border:none; cursor:pointer; margin-right:10px; font-size: 14px; }
     .btn-meta.focus { background: var(--primary); color: #fff; outline: 2px solid #fff; }
 </style>
@@ -54,21 +65,34 @@
         <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
         <div id="clock">00:00</div>
     </div>
-    <div id="search-box"><input id="search" placeholder="Buscar..."></div>
-    <div id="now-playing-box">AGORA: <span id="now-playing-title">Iniciando...</span></div>
+    <div id="search-box"><input id="search" placeholder="Pesquisar..."></div>
+    <div id="now-playing-box">ASSISTINDO: <span id="now-playing-title">Nenhum</span></div>
     
     <div id="menu-container">
         <button class="main-btn" onfocus="toggleMenu('sub-tv', loadTV)">CANAIS TV</button>
         <div id="sub-tv" class="submenu"></div>
 
-        <button class="main-btn" onfocus="toggleMenu('sub-filmes')">CINEMA</button>
-        <div id="sub-filmes" class="submenu">
-            <button class="sub-btn" onfocus="loadJSON('filmes.json')">Todos os Filmes</button>
-            <button class="sub-btn" onfocus="filtrar('Ação')">Ação</button>
-            <button class="sub-btn" onfocus="filtrar('Aventura')">Aventura</button>
-            <button class="sub-btn" onfocus="filtrar('Comédia')">Comédia</button>
-            <button class="sub-btn" onfocus="filtrar('Terror')">Terror</button>
-            <button class="sub-btn" onfocus="filtrar('Adulto')">Adulto</button>
+        <button class="main-btn" onfocus="toggleMenu('sub-cinema')">CINEMA</button>
+        <div id="sub-cinema" class="submenu">
+            <button class="sub-btn" onfocus="loadJSON('filmes.json')">TODOS OS FILMES</button>
+            <button class="sub-btn" onfocus="filtrar('Adulto')">ADULTO</button>
+            <button class="sub-btn" onfocus="filtrar('Anime')">ANIME</button>
+            <button class="sub-btn" onfocus="filtrar('Animação')">ANIMAÇÃO</button>
+            <button class="sub-btn" onfocus="filtrar('Aventura')">AVENTURA</button>
+            <button class="sub-btn" onfocus="filtrar('Ação')">AÇÃO</button>
+            <button class="sub-btn" onfocus="filtrar('Clássicos')">CLÁSSICOS</button>
+            <button class="sub-btn" onfocus="filtrar('Comédia')">COMÉDIA</button>
+            <button class="sub-btn" onfocus="filtrar('Documentários')">DOCUMENTÁRIOS</button>
+            <button class="sub-btn" onfocus="filtrar('Dorama')">DORAMA</button>
+            <button class="sub-btn" onfocus="filtrar('Drama')">DRAMA</button>
+            <button class="sub-btn" onfocus="filtrar('Faroeste')">FAROESTE</button>
+            <button class="sub-btn" onfocus="filtrar('Ficção')">FICÇÃO</button>
+            <button class="sub-btn" onfocus="filtrar('Nacional')">NACIONAL</button>
+            <button class="sub-btn" onfocus="filtrar('Policial')">POLICIAL</button>
+            <button class="sub-btn" onfocus="filtrar('Religioso')">RELIGIOSO</button>
+            <button class="sub-btn" onfocus="filtrar('Romance')">ROMANCE</button>
+            <button class="sub-btn" onfocus="filtrar('Suspense')">SUSPENSE</button>
+            <button class="sub-btn" onfocus="filtrar('Terror')">TERROR</button>
         </div>
 
         <button class="main-btn" onfocus="toggleMenu('sub-series', () => loadJSON('series.json'))">SÉRIES</button>
@@ -76,8 +100,8 @@
 
         <button class="main-btn" style="background:#0044cc" onfocus="toggleMenu('sub-kids')">ÁREA KIDS</button>
         <div id="sub-kids" class="submenu">
-            <button class="sub-btn" onfocus="loadM3U('kids_canais.m3u')">Canal Kids</button>
-            <button class="sub-btn" onfocus="loadKidsAll()">Filmes e Séries Kids</button>
+            <button class="sub-btn" onfocus="loadM3U('kids_canais.m3u')">CANAIS KIDS</button>
+            <button class="sub-btn" onfocus="loadKidsAll()">FILMES/SÉRIES KIDS</button>
         </div>
     </div>
 </div>
@@ -86,37 +110,46 @@
 
 <div id="player-container">
     <video id="video" autoplay></video>
+    
+    <div id="volume-card">
+        <span style="font-size:12px; font-weight:700;">VOL</span>
+        <div id="vol-bar-bg"><div id="vol-bar-fill"></div></div>
+    </div>
+
     <div id="overlay-meta">
-        <h1 id="meta-title" style="color:var(--primary)"></h1>
-        <p id="meta-desc" style="font-size:14px; line-height:1.6;"></p>
+        <h1 id="meta-title" style="color:var(--primary); margin:0;"></h1>
+        <p id="meta-desc" style="max-width:600px; font-size:16px;"></p>
         <div style="margin-top:20px;">
-            <button class="btn-meta" id="btn-start">ASSISTIR AGORA</button>
+            <button class="btn-meta" id="btn-start">VER AGORA</button>
             <button class="btn-meta" style="background:#333; color:#fff;" id="btn-close">VOLTAR</button>
         </div>
     </div>
 </div>
 
 <script>
-const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta'), searchInput=document.getElementById('search'), npTitle=document.getElementById('now-playing-title');
-let hls=null, items=[], focusIndex=0, currentCategoryData=[];
+const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta'), searchInput=document.getElementById('search'), npTitle=document.getElementById('now-playing-title'), volCard=document.getElementById('volume-card'), volFill=document.getElementById('vol-bar-fill');
+let hls=null, items=[], focusIndex=0, allData=[];
 
 function updateClock(){
     document.getElementById('clock').innerText=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 }
 setInterval(updateClock,1000); updateClock();
 
-// Função centralizada para carregar conteúdos
-async function fetchData(file) {
-    try {
-        const r = await fetch(`data/${file}`);
-        return r.ok ? await r.json() : [];
-    } catch(e) { return []; }
-}
+// Pesquisa Global
+searchInput.oninput = () => {
+    const t = searchInput.value.toLowerCase();
+    if(t.length < 2) return;
+    const filtered = allData.filter(i => (i.titulo || i.nome || "").toLowerCase().includes(t));
+    render(filtered);
+};
 
 async function loadJSON(file) {
-    const data = await fetchData(file);
-    items = data;
-    render();
+    try {
+        const r = await fetch(`data/${file}`);
+        items = await r.json();
+        if(allData.length < 50) allData.push(...items); // Popula banco de pesquisa
+        render();
+    } catch(e) { list.innerHTML = '<div class="item">Erro ao carregar lista</div>'; }
 }
 
 async function loadM3U(file) {
@@ -129,6 +162,7 @@ async function loadM3U(file) {
                 if(l.startsWith('#EXTINF')) n = l.split(',').pop().trim();
                 else if(l.trim().startsWith('http')) items.push({titulo: n, url: l.trim(), tipo:'tv'});
             });
+            if(allData.length < 50) allData.push(...items);
             render();
         }
     } catch(e){}
@@ -137,13 +171,17 @@ async function loadM3U(file) {
 async function loadTV() { await loadM3U('canais.m3u'); }
 
 async function loadKidsAll() {
-    const [f, s] = await Promise.all([fetchData('kids_filmes.json'), fetchData('kids_series.json')]);
-    items = [...f, ...s];
-    render();
+    try {
+        const [f, s] = await Promise.all([fetch('data/kids_filmes.json'), fetch('data/kids_series.json')]);
+        const d1 = await f.json(); const d2 = await s.json();
+        items = [...d1, ...d2];
+        render();
+    } catch(e){}
 }
 
 async function filtrar(gen){
-    const data = await fetchData('filmes.json');
+    const r = await fetch('data/filmes.json');
+    const data = await r.json();
     items = data.filter(f => f.genero === gen);
     render();
 }
@@ -153,21 +191,16 @@ function render(custom){
     const target = custom || items;
     target.forEach((i)=>{
         const d=document.createElement('div');
-        d.className='item focusable'; 
-        d.innerHTML=`<span>${i.titulo || i.nome}</span>`;
-        d.onclick=()=> handleSelect(i);
+        d.className='item focusable'; d.innerHTML=`<span>${i.titulo || i.nome}</span>`;
+        d.onclick=()=> {
+            if(i.tipo === 'tv' || i.url?.includes('m3u8') || i.url?.includes('.mp4')) {
+                play(i.url || i.link, i.titulo || i.nome);
+                document.body.classList.add('list-hidden');
+            } else showMeta(i);
+        };
         list.appendChild(d);
     });
     refreshFocus();
-}
-
-function handleSelect(i) {
-    if(i.tipo === 'tv' || i.url?.includes('m3u8') || i.url?.includes('.mp4')) {
-        play(i.url || i.link, i.titulo || i.nome);
-        document.body.classList.add('list-hidden');
-    } else {
-        showMeta(i);
-    }
 }
 
 function play(url, title){
@@ -183,7 +216,7 @@ function play(url, title){
 
 function showMeta(i){
     document.getElementById('meta-title').innerText = i.titulo || i.nome;
-    document.getElementById('meta-desc').innerText = i.desc || "Sem descrição.";
+    document.getElementById('meta-desc').innerText = i.desc || "Sem sinopse.";
     overlayMeta.style.display='flex';
     refreshFocus();
     focusIndex = window.focusables.indexOf(document.getElementById('btn-start'));
@@ -208,21 +241,26 @@ function updateFocus(){
     if(el) el.scrollIntoView({block:'center', behavior:'smooth'});
 }
 
-// ZAPPING CH+ CH-
-function zap(dir) {
-    const listItems = document.querySelectorAll('.item');
-    if(listItems.length === 0) return;
-    let currentIdx = items.findIndex(i => i.titulo === npTitle.innerText);
-    let nextIdx = (currentIdx + dir + items.length) % items.length;
-    play(items[nextIdx].url || items[nextIdx].link, items[nextIdx].titulo || items[nextIdx].nome);
+// Volume e Canais
+let volTimeout;
+function changeVol(dir) {
+    let v = video.volume + (dir * 0.1);
+    if(v > 1) v = 1; if(v < 0) v = 0;
+    video.volume = v;
+    volFill.style.width = (v * 100) + '%';
+    volCard.style.display = 'flex';
+    clearTimeout(volTimeout);
+    volTimeout = setTimeout(()=> volCard.style.display='none', 2000);
 }
 
 document.addEventListener('keydown', e=>{
     if(e.key==='Backspace') { document.body.classList.remove('list-hidden'); e.preventDefault(); }
     
-    // Suporte a CH+ / CH-
-    if(e.key==='ChannelUp' || e.keyCode===427) zap(1);
-    if(e.key==='ChannelDown' || e.keyCode===428) zap(-1);
+    // Setas laterais no player para Volume
+    if(document.body.classList.contains('list-hidden')) {
+        if(e.key==='ArrowRight') { changeVol(1); e.preventDefault(); }
+        if(e.key==='ArrowLeft') { changeVol(-1); e.preventDefault(); }
+    }
 
     refreshFocus();
     let cur = window.focusables[focusIndex];
@@ -235,14 +273,18 @@ document.addEventListener('keydown', e=>{
     if(e.key==='ArrowLeft' && cur.classList.contains('item')){
         focusIndex = window.focusables.indexOf(document.querySelector('.main-btn.focus') || document.querySelector('.main-btn'));
     }
-    if(e.key==='Enter'){ cur.click(); }
+    if(e.key==='Enter' || e.keyCode===13){ cur.click(); }
     updateFocus();
 });
 
-// AUTO-START NO CANAL 1
 window.onload=async()=>{ 
     await loadTV();
     if(items.length > 0) play(items[0].url, items[0].titulo);
+    // Build inicial do banco de pesquisa
+    ['filmes.json', 'series.json', 'kids_filmes.json'].forEach(async f => {
+        const r = await fetch(`data/${f}`).catch(()=>{});
+        if(r && r.ok) { const d = await r.json(); allData.push(...d); }
+    });
 };
 </script>
 </body>
