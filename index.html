@@ -2,52 +2,55 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>PaixãoFlix – Interface VIP</title>
+<title>PaixãoFlix VIP</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 <style>
-    :root { --primary: #e50914; --bg: #111; --focus: #fff; --kids: #0056b3; }
+    :root { --primary: #e50914; --bg: #111; --focus: #fff; }
     body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
     
     /* Layout Lateral */
-    #side{width:340px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
-    #top{padding:20px;}
-    #logo{max-width:140px; margin-bottom: 10px;}
-    #clock-box{text-align:right; margin-bottom: 10px;}
-    #clock{font-size:22px;font-weight:700;}
-    #date{font-size:12px;opacity:0.6;}
+    #side{width:300px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
+    #top{padding:15px;}
+    #logo{max-width:120px; margin-bottom: 5px;}
+    #clock-box{text-align:right; margin-bottom: 5px;}
+    #clock{font-size:20px;font-weight:700;}
+    #date{font-size:11px;opacity:0.6;}
 
-    #search{width:100%;padding:12px;border-radius:8px;border:1px solid #333;background:#000;color:#fff;outline:none;margin-bottom:15px;}
+    /* Caixa de Pesquisa Reduzida */
+    #search{width:100%; height:35px; box-sizing:border-box; padding:0 10px; border-radius:6px; border:1px solid #333; background:#000; color:#fff; outline:none; margin-bottom:10px; font-size: 14px;}
     #search.focus { border-color: var(--primary); outline: 2px solid var(--focus); }
 
     /* Menu Suspenso (Accordion) */
-    #menu-container{flex:1; overflow-y:auto; padding:0 10px;}
-    .menu-group { margin-bottom: 5px; }
-    .main-btn { width: 100%; padding: 15px; text-align: left; background: #222; border: none; color: #fff; font-weight: 700; cursor: pointer; border-radius: 6px; display: flex; justify-content: space-between; outline: none; }
+    #menu-container{flex:1; overflow-y:auto; padding:0 10px; scrollbar-width: none;}
+    #menu-container::-webkit-scrollbar { display: none; }
+    .main-btn { width: 100%; padding: 12px; text-align: left; background: #222; border: none; color: #fff; font-weight: 700; cursor: pointer; border-radius: 6px; display: flex; justify-content: space-between; outline: none; margin-bottom:5px; font-size: 16px; }
     .main-btn.focus { background: var(--primary); outline: 3px solid var(--focus); }
     
-    .submenu { display: none; background: #181818; flex-direction: column; padding: 5px 0; border-radius: 0 0 6px 6px; }
-    .sub-btn { width: 100%; padding: 12px 30px; text-align: left; background: transparent; border: none; color: #aaa; cursor: pointer; font-size: 13px; outline: none; }
+    .submenu { display: none; background: #181818; flex-direction: column; padding: 2px 0; border-radius: 0 0 6px 6px; }
+    .sub-btn { width: 100%; padding: 10px 20px; text-align: left; background: transparent; border: none; color: #aaa; cursor: pointer; font-size: 16px; outline: none; }
     .sub-btn.focus { color: #fff; background: rgba(255,255,255,0.1); border-left: 4px solid var(--primary); }
 
-    /* Lista de Conteúdo */
-    #list-container{flex:1.5; background: #080808; border-left: 1px solid #222;}
-    #list{height:100%; overflow-y:auto;}
-    .item{padding:15px; border-bottom:1px solid #111; cursor:pointer; outline:none; font-size:14px; display: flex; justify-content: space-between;}
-    .item.focus{ background: var(--primary); color: #fff; }
+    /* Lista de Conteúdo Reduzida na Largura */
+    #list-container{width: 280px; background: #080808; border-left: 1px solid #222; overflow: hidden;}
+    #list{height:100%; overflow-y:auto; scrollbar-width: none;}
+    #list::-webkit-scrollbar { display: none; }
+    .item{padding:15px; border-bottom:1px solid #111; cursor:pointer; outline:none; font-size:15px; display: flex; align-items: center;}
+    /* Seletor de conteúdo */
+    .item.focus{ background: var(--primary); color: #fff; border-left: 5px solid #fff; font-weight: bold;}
 
     /* Player */
-    #player-container{flex:2; position:relative; background:#000;}
+    #player-container{flex:1; position:relative; background:#000;}
     video{width:100%; height:100%;}
     #progress-container { position: absolute; bottom: 0; width: 100%; height: 5px; background: #333; }
     #progress-bar { width: 0%; height: 100%; background: var(--primary); }
 
     /* Overlays */
     #overlay-meta, #overlay-resume{position:absolute; inset:0; background:rgba(0,0,0,0.95); display:none; flex-direction:column; justify-content:center; padding:60px; z-index:100;}
-    .btn-meta{padding:15px 30px; font-weight:700; border-radius:6px; border:none; cursor:pointer; margin-right:10px; outline:none;}
-    .btn-meta.focus { outline: 4px solid var(--focus); }
+    .btn-meta{padding:15px 30px; font-weight:700; border-radius:6px; border:none; cursor:pointer; margin-right:10px; outline:none; font-size: 16px;}
+    .btn-meta.focus { outline: 4px solid var(--focus); background: var(--primary); color: #fff; }
 </style>
 </head>
 <body>
@@ -60,36 +63,25 @@
     </div>
     
     <div id="menu-container">
-        <div class="menu-group">
-            <button class="main-btn" onclick="toggleMenu('sub-tv', loadTV)">CANAIS TV <span>▼</span></button>
-            <div id="sub-tv" class="submenu"></div>
+        <button class="main-btn" onclick="toggleMenu('sub-tv', loadTV)">CANAIS TV</button>
+        <div id="sub-tv" class="submenu"></div>
+
+        <button class="main-btn" onclick="toggleMenu('sub-filmes')">FILMES</button>
+        <div id="sub-filmes" class="submenu">
+            <button class="sub-btn" onclick="loadJSON('filmes','filmes.json')">Todos os Filmes</button>
+            <button class="sub-btn" onclick="filtrar('Ação')">Ação</button>
+            <button class="sub-btn" onclick="filtrar('Comédia')">Comédia</button>
+            <button class="sub-btn" onclick="filtrar('Drama')">Drama</button>
+            <button class="sub-btn" onclick="filtrar('Terror')">Terror</button>
         </div>
 
-        <div class="menu-group">
-            <button class="main-btn" onclick="toggleMenu('sub-filmes')">FILMES <span>▼</span></button>
-            <div id="sub-filmes" class="submenu">
-                <button class="sub-btn" onclick="loadJSON('filmes','filmes.json')">Todos os Filmes</button>
-                <button class="sub-btn" onclick="filtrar('Ação')">Ação</button>
-                <button class="sub-btn" onclick="filtrar('Aventura')">Aventura</button>
-                <button class="sub-btn" onclick="filtrar('Comédia')">Comédia</button>
-                <button class="sub-btn" onclick="filtrar('Drama')">Drama</button>
-                <button class="sub-btn" onclick="filtrar('Ficção')">Ficção</button>
-                <button class="sub-btn" onclick="filtrar('Terror')">Terror</button>
-                <button class="sub-btn" onclick="filtrar('Adulto')">Adulto</button>
-            </div>
-        </div>
+        <button class="main-btn" onclick="toggleMenu('sub-series', () => loadJSON('series','series.json'))">SÉRIES</button>
+        <div id="sub-series" class="submenu"></div>
 
-        <div class="menu-group">
-            <button class="main-btn" onclick="toggleMenu('sub-series', () => loadJSON('series','series.json'))">SÉRIES <span>▼</span></button>
-            <div id="sub-series" class="submenu"></div>
-        </div>
-
-        <div class="menu-group">
-            <button class="main-btn" style="background:var(--kids)" onclick="toggleMenu('sub-kids')">KIDS <span>▼</span></button>
-            <div id="sub-kids" class="submenu">
-                <button class="sub-btn" onclick="loadJSON('kids','kids_canais.m3u')">Canais Kids</button>
-                <button class="sub-btn" onclick="loadKidsConteudo()">Filmes e Desenhos</button>
-            </div>
+        <button class="main-btn" style="color:#00a2ff" onclick="toggleMenu('sub-kids')">KIDS</button>
+        <div id="sub-kids" class="submenu">
+            <button class="sub-btn" onclick="loadJSON('kids','kids_canais.m3u')">Canais Kids</button>
+            <button class="sub-btn" onclick="loadKidsConteudo()">Desenhos/Filmes</button>
         </div>
     </div>
 </div>
@@ -103,17 +95,17 @@
     <div id="overlay-resume">
         <h1>Continuar assistindo?</h1>
         <div style="margin-top:20px;">
-            <button class="btn-meta" style="background:var(--primary);color:#fff" id="res-continue">CONTINUAR</button>
-            <button class="btn-meta" style="background:#444;color:#fff" id="res-restart">REINICIAR</button>
+            <button class="btn-meta" id="res-continue">CONTINUAR</button>
+            <button class="btn-meta" id="res-restart">REINICIAR</button>
         </div>
     </div>
 
     <div id="overlay-meta">
         <h1 id="meta-title"></h1>
-        <p id="meta-desc" style="max-width:600px;"></p>
+        <p id="meta-desc"></p>
         <div style="margin-top:20px;">
-            <button class="btn-meta" style="background:var(--primary);color:#fff" id="btn-start">ASSISTIR AGORA</button>
-            <button class="btn-meta" style="background:#444;color:#fff" id="btn-close">VOLTAR</button>
+            <button class="btn-meta" id="btn-start">ASSISTIR AGORA</button>
+            <button class="btn-meta" id="btn-close">VOLTAR PARA LISTA</button>
         </div>
     </div>
 </div>
@@ -122,7 +114,6 @@
 const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta'), overlayResume=document.getElementById('overlay-resume'), pBar=document.getElementById('progress-bar'), searchInput=document.getElementById('search');
 let hls=null, items=[], focusIndex=0, currentSerieEpisodes=null, lastTitle="", allContent=[];
 
-// DATA E HORA
 function updateClock(){
     const now=new Date();
     document.getElementById('clock').innerText=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
@@ -130,7 +121,6 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-// ACORDEÃO LOGIC
 function toggleMenu(id, callback) {
     const el = document.getElementById(id);
     const isOpen = el.style.display === 'flex';
@@ -140,35 +130,9 @@ function toggleMenu(id, callback) {
     refreshFocus();
 }
 
-// PESQUISA GLOBAL
-async function buildSearch() {
-    const files = ['canais.m3u','filmes.json','series.json','kids_filmes.json','kids_series.json'];
-    allContent = [];
-    for(let f of files){
-        const r = await fetch(`data/${f}`).catch(()=>{});
-        if(r && r.ok){
-            if(f.endsWith('json')){
-                const d = await r.json();
-                allContent.push(...d.map(x=>({...x, type: f.includes('series')?'serie':'movie'})));
-            }
-        }
-    }
-}
-searchInput.oninput = () => {
-    const term = searchInput.value.toLowerCase();
-    render(allContent.filter(i => (i.titulo || i.nome || "").toLowerCase().includes(term)));
-};
-
-// CARREGAMENTO
 async function loadJSON(mode, file){
     const r = await fetch(`data/${file}`);
     if(r.ok) items = await r.json();
-    render();
-}
-
-async function loadKidsConteudo(){
-    const [f, s] = await Promise.all([fetch('data/kids_filmes.json'), fetch('data/kids_series.json')]);
-    items = [...(await f.json()), ...(await s.json())];
     render();
 }
 
@@ -191,7 +155,6 @@ async function filtrar(gen){
     render();
 }
 
-// RENDERIZAÇÃO
 function render(custom){
     list.innerHTML='';
     const target = custom || items;
@@ -217,23 +180,15 @@ function showMeta(i){
     document.getElementById('meta-title').innerText = name;
     document.getElementById('meta-desc').innerText = i.desc || "";
     overlayMeta.style.display='flex';
-    document.getElementById('btn-start').onclick=async()=>{
-        if(i.type==='serie'){
-            const r = await fetch(`https://archive.org/metadata/${i.identificador_archive}`);
-            const d = await r.json();
-            currentSerieEpisodes = d.files.filter(f=>f.name.endsWith('.mp4')).map(v=>({
-                titulo: v.title || v.name, url: `https://archive.org/download/${i.identificador_archive}/${v.name}`
-            }));
-            overlayMeta.style.display='none'; render();
-        } else checkResume(i.url, name);
-    };
-}
+    refreshFocus();
+    
+    // Foca automaticamente no botão "Assistir Agora"
+    focusIndex = window.focusables.indexOf(document.getElementById('btn-start'));
+    updateFocus();
 
-// PLAYER E RESUME
-video.ontimeupdate=()=>{ 
-    pBar.style.width=(video.currentTime/video.duration)*100+"%";
-    if(video.currentTime>10 && lastTitle) localStorage.setItem('res_'+lastTitle, video.currentTime);
-};
+    document.getElementById('btn-start').onclick = () => checkResume(i.url || i.link, name);
+    document.getElementById('btn-close').onclick = () => { overlayMeta.style.display='none'; refreshFocus(); };
+}
 
 function play(url, title, time=0){
     lastTitle=title; if(hls) hls.destroy(); video.pause();
@@ -242,21 +197,25 @@ function play(url, title, time=0){
         hls.on(Hls.Events.MANIFEST_PARSED, ()=> {if(time) video.currentTime=time; video.play();});
     } else { video.src=url; video.oncanplay=()=>{if(time){video.currentTime=time;video.oncanplay=null;} video.play();};}
     overlayMeta.style.display=overlayResume.style.display='none';
+    refreshFocus();
 }
 
 function checkResume(url, title){
     const s = localStorage.getItem('res_'+title);
     if(s){
         overlayResume.style.display='flex'; refreshFocus();
+        focusIndex = window.focusables.indexOf(document.getElementById('res-continue'));
+        updateFocus();
         document.getElementById('res-continue').onclick=()=>play(url,title,parseFloat(s));
         document.getElementById('res-restart').onclick=()=>{localStorage.removeItem('res_'+title); play(url,title);};
     } else play(url,title);
 }
 
-// NAVEGAÇÃO
+// NAVEGAÇÃO 4 DIREÇÕES
 function refreshFocus(){
     window.focusables = [searchInput, ...document.querySelectorAll('.main-btn, .sub-btn, .item, .btn-meta')].filter(e => e.offsetParent !== null);
 }
+
 function updateFocus(){
     window.focusables.forEach((f,i)=>f.classList.toggle('focus', i===focusIndex));
     const el = window.focusables[focusIndex];
@@ -264,15 +223,36 @@ function updateFocus(){
 }
 
 document.addEventListener('keydown', e=>{
+    refreshFocus();
+    let currentEl = window.focusables[focusIndex];
+    
     if(e.key==='ArrowDown'){ focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); }
     if(e.key==='ArrowUp'){ focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; e.preventDefault(); }
-    if(e.key==='ArrowLeft'){ document.querySelectorAll('.submenu').forEach(s=>s.style.display='none'); refreshFocus(); focusIndex=0; }
-    if(e.key==='Enter' || e.keyCode===13){ window.focusables[focusIndex].click(); }
+    
+    // Lógica Direita (Pular para Lista)
+    if(e.key==='ArrowRight'){
+        if(currentEl.classList.contains('main-btn') || currentEl.classList.contains('sub-btn') || currentEl.id === 'search'){
+            const firstItem = document.querySelector('.item');
+            if(firstItem) focusIndex = window.focusables.indexOf(firstItem);
+        }
+    }
+    
+    // Lógica Esquerda (Voltar para Menu)
+    if(e.key==='ArrowLeft'){
+        if(currentEl.classList.contains('item')){
+            const firstMenu = document.querySelector('.main-btn');
+            if(firstMenu) focusIndex = window.focusables.indexOf(firstMenu);
+        } else {
+            document.querySelectorAll('.submenu').forEach(s=>s.style.display='none');
+            refreshFocus();
+        }
+    }
+
+    if(e.key==='Enter' || e.keyCode===13){ currentEl.click(); }
     updateFocus();
 });
 
-document.getElementById('btn-close').onclick=()=>overlayMeta.style.display='none';
-window.onload=()=>{ loadTV(); buildSearch(); };
+window.onload=()=>{ loadTV(); };
 </script>
 </body>
 </html>
