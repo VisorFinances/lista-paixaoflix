@@ -11,69 +11,108 @@
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Poppins;background:#000;color:#fff;overflow:hidden}
+body{
+margin:0;
+font-family:Poppins;
+background:#000;
+color:#fff;
+overflow:hidden
+}
 
 /* ===== LAYOUT ===== */
 #app{display:flex;height:100vh}
 #sidebar{
-width:420px;background:#111;
-display:flex;flex-direction:column
+width:420px;
+background:#111;
+display:flex;
+flex-direction:column;
+border-right:1px solid #222
 }
-#player{
-flex:1;background:#000
-}
+#player{flex:1;background:#000}
 video{width:100%;height:100%}
 
 /* ===== HEADER ===== */
 header{
-padding:12px;border-bottom:1px solid #222
+padding:16px;
+border-bottom:1px solid #222
 }
-header img{width:48px}
-#clock{margin-top:6px;font-weight:600}
-#now{margin-top:6px;font-size:14px;color:#e50914}
+header img{
+width:80px;
+display:block
+}
+#clock{
+margin-top:8px;
+font-size:16px;
+font-weight:600
+}
 
 /* ===== SEARCH ===== */
 #search{
-width:100%;margin-top:10px;
-padding:10px;font-size:18px;
-background:#000;color:#fff;
-border:2px solid #e50914;border-radius:6px
+width:100%;
+margin-top:12px;
+padding:10px;
+font-size:18px;
+background:#000;
+color:#fff;
+border:2px solid #e50914;
+border-radius:6px
+}
+
+/* ===== ASSISTINDO AGORA ===== */
+#now{
+margin-top:8px;
+font-size:14px;
+color:#e50914
 }
 
 /* ===== MENU ===== */
 #menu{
 display:grid;
 grid-template-columns:repeat(3,1fr);
-gap:6px;margin-top:10px
+gap:6px;
+margin-top:12px
 }
 .btn{
-padding:6px;font-size:18px;
-font-weight:700;text-align:center;
-background:#222;border-radius:6px
+padding:6px;
+font-size:18px;
+font-weight:700;
+text-align:center;
+background:#222;
+border-radius:6px;
+cursor:pointer
 }
 .btn.active{background:#e50914}
 .btn.kids{background:#0056b3}
 
 /* ===== LIST ===== */
 #list{
-flex:1;overflow-y:auto;margin-top:10px
+flex:1;
+overflow-y:auto;
+margin-top:10px
 }
 .item{
-padding:12px;font-size:18px;
+padding:12px;
+font-size:18px;
 border-bottom:1px solid #222;
-display:flex;justify-content:space-between
+display:flex;
+justify-content:space-between
 }
 .item.focus{
-background:#222;border-left:6px solid #e50914
+background:#222;
+border-left:6px solid #e50914
 }
 
 /* ===== OVERLAY ===== */
 #overlay{
-position:fixed;bottom:30px;left:450px;
+position:fixed;
+bottom:30px;
+left:460px;
 background:rgba(0,0,0,.85);
-padding:12px 22px;font-size:20px;
+padding:12px 22px;
+font-size:20px;
 border-left:6px solid #e50914;
-display:none
+display:none;
+z-index:99
 }
 </style>
 </head>
@@ -82,31 +121,29 @@ display:none
 
 <div id="app">
 
-<!-- ===== SIDEBAR ===== -->
 <div id="sidebar">
-
 <header>
 <img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
+
 <div id="clock"></div>
-<div id="now">Assistindo agora: —</div>
 
 <input id="search" placeholder="Pesquisar...">
+
+<div id="now">Assistindo agora: —</div>
 
 <div id="menu">
 <div class="btn active" data-mode="tv">TV</div>
 <div class="btn" data-mode="filmes">Filmes</div>
 <div class="btn" data-mode="series">Séries</div>
-<div class="btn kids" data-mode="kids">Kids</div>
+<div class="btn kids" data-mode="kids">Canal Kids</div>
+<div class="btn kids" data-mode="kidsconteudo">Filmes/Séries Kids</div>
 <div class="btn" data-mode="fav">Favoritos</div>
-<div class="btn">Config</div>
 </div>
 </header>
 
 <div id="list"></div>
-
 </div>
 
-<!-- ===== PLAYER ===== -->
 <div id="player">
 <video id="video" autoplay></video>
 </div>
@@ -119,17 +156,18 @@ display:none
 /* ===== CLOCK ===== */
 setInterval(()=>{
 const d=new Date()
-clock.innerText=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+
-' • '+d.toLocaleDateString('pt-BR')
+clock.innerText =
+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
++' • '+d.toLocaleDateString('pt-BR')
 },1000)
 
 /* ===== STATE ===== */
 let items=[],focus=0,mode='tv',hls=null
-const fav=JSON.parse(localStorage.getItem('fav')||'[]')
+const favs=JSON.parse(localStorage.getItem('favs')||'[]')
 
-/* ===== LOAD TV ===== */
-async function loadTV(){
-const t=await fetch('data/canais.m3u').then(r=>r.text())
+/* ===== LOAD M3U ===== */
+async function loadM3U(path){
+const t=await fetch(path).then(r=>r.text())
 items=[]
 let name=''
 t.split('\n').forEach(l=>{
@@ -140,17 +178,24 @@ render()
 autoPlay(0)
 }
 
+/* ===== LOAD JSON ===== */
+async function loadJSON(path){
+items=await fetch(path).then(r=>r.json())
+render()
+}
+
 /* ===== RENDER ===== */
 function render(){
 list.innerHTML=''
 items.forEach((i,idx)=>{
 const d=document.createElement('div')
 d.className='item'
-d.innerHTML=`<span>${i.nome}</span><span>${fav.includes(i.url)?'⭐':''}</span>`
+d.innerHTML=`<span>${i.nome||i.titulo}</span><span>${favs.includes(i.url)?'⭐':''}</span>`
 d.onclick=()=>play(idx)
 list.appendChild(d)
 })
-focus=0;updateFocus()
+focus=0
+updateFocus()
 }
 
 /* ===== PLAYER ===== */
@@ -158,14 +203,15 @@ function play(i){
 const item=items[i]
 if(!item)return
 if(hls){hls.destroy();hls=null}
-if(item.url.includes('.m3u8')&&Hls.isSupported()){
+const url=item.url||item.link
+if(url?.includes('.m3u8') && Hls.isSupported()){
 hls=new Hls({lowLatencyMode:true})
-hls.loadSource(item.url)
+hls.loadSource(url)
 hls.attachMedia(video)
-}else video.src=item.url
+}else video.src=url
 video.play().catch(()=>{})
-now.innerText='Assistindo agora: '+item.nome
-showOverlay(item.nome)
+now.innerText='Assistindo agora: '+(item.nome||item.titulo)
+showOverlay(item.nome||item.titulo)
 }
 
 /* ===== AUTO PLAY ===== */
@@ -189,15 +235,11 @@ els.forEach((e,i)=>e.classList.toggle('focus',i===focus))
 els[focus]?.scrollIntoView({block:'center'})
 }
 
-/* ===== KEYS (LG / ANDROID / SAMSUNG) ===== */
+/* ===== KEYS (LG / TV) ===== */
 document.addEventListener('keydown',e=>{
 const k=e.keyCode||e.which
-if(k===40||k===427){ // down
-focus++;autoPlay(focus)
-}
-if(k===38||k===428){ // up
-focus--;autoPlay(focus)
-}
+if(k===40||k===427){focus++;autoPlay(focus)}
+if(k===38||k===428){focus--;autoPlay(focus)}
 if(k===13)play(focus)
 focus=Math.max(0,Math.min(focus,items.length-1))
 updateFocus()
@@ -217,12 +259,17 @@ b.onclick=()=>{
 document.querySelector('.btn.active')?.classList.remove('active')
 b.classList.add('active')
 mode=b.dataset.mode
-if(mode==='tv')loadTV()
+if(mode==='tv')loadM3U('data/canais.m3u')
+if(mode==='filmes')loadJSON('data/filmes.json')
+if(mode==='series')loadJSON('data/series.json')
+if(mode==='kids')loadM3U('data/kids_canais.m3u')
+if(mode==='kidsconteudo')loadJSON('data/kids_conteudo.json')
+if(mode==='fav'){items=favs;render()}
 }
 })
 
 /* ===== INIT ===== */
-loadTV()
+loadM3U('data/canais.m3u')
 </script>
 
 </body>
