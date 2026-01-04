@@ -7,242 +7,253 @@
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
+
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Poppins;background:#000;color:#fff;overflow:hidden;height:100vh}
-::-webkit-scrollbar{display:none}
-#app{display:flex;height:100%}
-/* SIDEBAR */
-#side{width:420px;background:#111;display:flex;flex-direction:column;border-right:1px solid #222}
+*{box-sizing:border-box;outline:none;margin:0;padding:0;}
+body{font-family:Poppins;background:#000;color:#fff;overflow:hidden;height:100vh;display:flex;}
+#app{display:flex;flex:1;}
+
+/* ===== SIDEBAR ===== */
+#side{width:420px;background:#111;display:flex;flex-direction:column;border-right:1px solid #222;position:relative;}
+
 /* HEADER */
-#header{padding:16px;display:flex;align-items:center;justify-content:space-between}
-#header img{width:160px}
-#timebox{display:flex;flex-direction:column;align-items:flex-end}
-#clock{font-size:20px;color:#fff}
-#date{font-size:12px;color:#fff;opacity:.9}
+#header{padding:16px;display:flex;align-items:center;justify-content:space-between;}
+#header img{width:160px;}
+#timebox{display:flex;flex-direction:column;align-items:flex-end;}
+#clock{font-size:20px;color:#fff;}
+#date{font-size:12px;color:#fff;opacity:0.9;}
+
 /* SEARCH */
-#search{margin:10px 16px;padding:10px;font-size:16px;background:#000;color:#fff;border:2px solid #e50914;border-radius:6px;outline:none}
+#search{margin:10px 16px;padding:10px;font-size:16px;background:#000;color:#fff;border:2px solid #e50914;border-radius:6px;}
+
 /* NOW PLAYING */
-#now{margin:0 16px;font-size:13px;color:#fff;margin-bottom:8px}
-#now span{font-size:14px;color:#fff;font-weight:400}
+#now{margin:0 16px;font-size:13px;color:#fff;}
+#now span{font-size:14px;color:#fff;}
+
 /* MENU */
-#menu{margin:10px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.btn{padding:6px;font-size:14px;background:#222;border-radius:6px;text-align:center;cursor:pointer;outline:none}
-.btn.active{background:#e50914}
-.btn.kids{background:#0056b3}
+#menu{margin:10px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.btn{padding:6px;font-size:14px;background:#222;border-radius:6px;text-align:center;cursor:pointer;}
+.btn.active{background:#e50914;}
+.btn.kids{background:#0056b3;}
+
 /* LIST */
-#list{flex:1;overflow-y:auto}
-.item{padding:12px;border-bottom:1px solid #222;display:flex;justify-content:space-between;font-size:16px;cursor:pointer}
-.item.focus{background:#222;border-left:6px solid #e50914}
+#list{flex:1;overflow-y:auto;margin:10px 0;}
+.item{padding:12px;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:center;font-size:16px;cursor:pointer;}
+.item.focus{background:#222;border-left:6px solid #e50914;box-shadow:0 0 10px #e50914;}
+.item .fav-icon{opacity:0.3;margin-left:8px;}
+.item.is-fav .fav-icon{opacity:1;color:#e50914;}
+
 /* PLAYER */
-#player{flex:1;position:relative}
-video{width:100%;height:100%}
+#player{flex:1;position:relative;}
+video{width:100%;height:100%;background:#000;}
+
 /* OVERLAY */
-#zap{position:absolute;bottom:40px;left:40px;background:rgba(0,0,0,.8);padding:10px 20px;font-size:20px;border-left:6px solid #e50914;display:none}
-/* META CARD */
-#overlay-meta{position:absolute;top:0;right:0;width:40%;height:100%;background:#111;color:#fff;display:none;flex-direction:column;padding:20px;overflow:auto}
-#overlay-meta h1{font-size:22px;margin-bottom:10px}
-#overlay-meta p{font-size:14px;margin-bottom:10px}
-#overlay-meta .meta-extra{font-size:14px;margin-bottom:10px}
-.btn-meta{padding:10px 16px;font-size:16px;border:none;border-radius:6px;margin-right:10px;cursor:pointer;outline:none}
-.btn-play{background:#e50914;color:#fff}
-.btn-back{background:#555;color:#fff}
-.focus-outline{box-shadow:0 0 0 3px #fff}
+#zap{position:absolute;bottom:40px;left:40px;background:rgba(0,0,0,.8);padding:10px 20px;font-size:20px;border-left:6px solid #e50914;display:none;}
+#overlay-meta{position:absolute;top:0;left:0;width:100%;height:100%;background:#000;background-size:cover;background-position:center right;display:none;flex-direction:column;justify-content:center;padding:60px;box-sizing:border-box;}
+#overlay-meta::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,#000 45%,transparent 100%);z-index:1;}
+#overlay-meta *{position:relative;z-index:2;color:#fff;}
+#overlay-meta h1{font-size:50px;margin:0;}
+.meta-extra{color:#e50914;font-weight:bold;font-size:20px;margin:10px 0;}
+#overlay-meta p{font-size:18px;max-width:550px;color:#ccc;line-height:1.4;}
+.btn-meta{padding:16px 20px;font-weight:bold;border-radius:6px;border:none;cursor:pointer;font-size:16px;}
+.btn-play{background:#e50914;color:#fff;}
+.btn-back{background:#333;color:#fff;margin-left:10px;}
+.btn-meta.focus{outline:3px solid #fff !important;}
 </style>
 </head>
 <body>
+
 <div id="app">
+
+<!-- SIDEBAR -->
 <div id="side">
-<div id="header">
-<img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
-<div id="timebox">
-<div id="clock">00:00</div>
-<div id="date">00/00/00</div>
+  <div id="header">
+    <img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
+    <div id="timebox">
+      <div id="clock"></div>
+      <div id="date"></div>
+    </div>
+  </div>
+
+  <input id="search" placeholder="Pesquisar...">
+  <div id="now">Assistindo agora: <span>—</span></div>
+
+  <div id="menu">
+    <div class="btn active" data-type="tv">TV</div>
+    <div class="btn" data-type="filmes">Filmes</div>
+    <div class="btn" data-type="series">Séries</div>
+    <div class="btn kids" data-type="kids">Canal Kids</div>
+    <div class="btn kids" data-type="kidsconteudo">Filmes/Séries Kids</div>
+    <div class="btn" data-type="fav">Favoritos</div>
+  </div>
+
+  <div id="list"></div>
 </div>
-</div>
-<input id="search" placeholder="Pesquisar...">
-<div id="now">Assistindo agora: <span>—</span></div>
-<div id="menu">
-<div class="btn active" data-tv>TV</div>
-<div class="btn" data-filmes>Filmes</div>
-<div class="btn" data-series>Séries</div>
-<div class="btn kids" data-kids>Canal Kids</div>
-<div class="btn kids" data-kidsconteudo>Filmes/Séries Kids</div>
-<div class="btn" data-fav>Favoritos</div>
-</div>
-<div id="list"></div>
-</div>
+
+<!-- PLAYER -->
 <div id="player">
-<video id="video" autoplay></video>
-<div id="zap"></div>
-<div id="overlay-meta">
-<h1 id="meta-title"></h1>
-<div class="meta-extra" id="meta-rating">★ -- | <span id="meta-year">----</span></div>
-<p id="meta-desc"></p>
-<div style="margin-top:10px;">
-<button class="btn-meta btn-play" id="btn-start">ASSISTIR AGORA</button>
-<button class="btn-meta btn-back" id="btn-close">VOLTAR</button>
+  <video id="video" autoplay></video>
+  <div id="zap"></div>
+  <div id="overlay-meta">
+    <h1 id="meta-title"></h1>
+    <div class="meta-extra">★ <span id="meta-rating">--</span> | <span id="meta-year">----</span></div>
+    <p id="meta-desc"></p>
+    <div style="display:flex;margin-top:20px;">
+      <button class="btn-meta btn-play" id="btn-start">ASSISTIR AGORA</button>
+      <button class="btn-meta btn-back" id="btn-close">VOLTAR</button>
+    </div>
+  </div>
 </div>
-</div>
-</div>
+
 </div>
 
 <script>
 const video=document.getElementById('video');
 const list=document.getElementById('list');
-const zap=document.getElementById('zap');
+const nowEl=document.querySelector('#now span');
+const zapEl=document.getElementById('zap');
 const overlayMeta=document.getElementById('overlay-meta');
-const currentTitleEl = document.querySelector('#now span');
+const metaTitle=document.getElementById('meta-title');
+const metaDesc=document.getElementById('meta-desc');
+const metaRating=document.getElementById('meta-rating');
+const metaYear=document.getElementById('meta-year');
+const btnStart=document.getElementById('btn-start');
+const btnClose=document.getElementById('btn-close');
+let hls=null, items=[], view=[], focusIndex=0, currentMode='tv', favs=[], currentSerieEpisodes=null;
 
-let items=[],view=[],idx=0,hls=null,favs=[],focusables=[],focusIndex=0,currentSerie=null;
-
-// CLOCK
+// ===== CLOCK =====
 function updateClock(){
-    const d=new Date();
-    document.getElementById('clock').innerText=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    document.getElementById('date').innerText=d.toLocaleDateString('pt-BR');
+  const d=new Date();
+  document.getElementById('clock').innerText=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('date').innerText=d.toLocaleDateString('pt-BR');
 }
 setInterval(updateClock,1000); updateClock();
 
-// FETCH
-async function smartFetch(file){
-    try{const r=await fetch(file);if(r.ok)return r.text();}catch(e){}
-    return '';
+// ===== LOCAL STORAGE FAVORITOS =====
+function loadFavs(){return JSON.parse(localStorage.getItem('flix_favs')||'[]');}
+function toggleFav(item){
+  favs=loadFavs();
+  const name=item.nome||item.titulo;
+  const idx=favs.findIndex(f=>f.nome===name);
+  if(idx>-1) favs.splice(idx,1);
+  else favs.push({...item});
+  localStorage.setItem('flix_favs',JSON.stringify(favs));
+  render();
 }
 
-// LOAD FUNCTIONS
-async function loadTV(){
-    const t=await smartFetch('canais.m3u');
-    items=[]; let name='';
-    t.split('\n').forEach(l=>{
-        if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-        else if(l.startsWith('http')) items.push({nome:name,url:l,type:'tv'});
-    });
-    view=[...items]; render(); play(0);
+// ===== FETCH JSON/M3U =====
+async function fetchList(file,type){
+  let data=[];
+  try{
+    if(file.endsWith('.m3u')){
+      const txt=await (await fetch('data/'+file)).text();
+      let n=''; txt.split('\n').forEach(l=>{
+        if(l.startsWith('#EXTINF')) n=l.split(',').pop();
+        else if(l.startsWith('http')) data.push({nome:n,url:l,type:'tv'});
+      });
+    } else {
+      const json=await (await fetch('data/'+file)).json();
+      data=json.map(x=>({...x,type}));
+    }
+  }catch(e){console.error(e);}
+  return data;
 }
 
-async function loadFilmes(){
-    const t=await smartFetch('filmes.json');
-    let data=[]; try{data=JSON.parse(t)}catch(e){}
-    items=data.map(x=>({...x,type:'movie'})); view=[...items]; render();
+// ===== LOAD CONTENT =====
+async function loadContent(mode){
+  currentMode=mode;
+  switch(mode){
+    case 'tv': items=await fetchList('canais.m3u','tv'); break;
+    case 'filmes': items=await fetchList('filmes.json','movie'); break;
+    case 'series': items=await fetchList('series.json','serie'); break;
+    case 'kids': items=await fetchList('kids_canais.m3u','tv'); break;
+    case 'kidsconteudo':
+      items=await fetchList('kids_filmes.json','movie');
+      items.push(...await fetchList('kids_series.json','serie'));
+      break;
+    case 'fav': items=loadFavs(); break;
+  }
+  view=[...items];
+  focusIndex=0;
+  render();
+  play(0);
 }
 
-async function loadSeries(){
-    const t=await smartFetch('series.json');
-    let data=[]; try{data=JSON.parse(t)}catch(e){}
-    items=data.map(x=>{
-        if(x.archive) x.episodes=x.archive; // integra os episódios do Archive
-        return {...x,type:'serie'}
-    });
-    view=[...items]; render();
-}
-
-async function loadKids(){
-    const t=await smartFetch('kids_canais.m3u');
-    items=[]; let name='';
-    t.split('\n').forEach(l=>{
-        if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-        else if(l.startsWith('http')) items.push({nome:name,url:l,type:'tv'});
-    });
-    view=[...items]; render(); play(0);
-}
-
-async function loadKidsConteudo(){
-    const filmes = await smartFetch('kids_filmes.json');
-    const series = await smartFetch('kids_series.json');
-    let data=[]; try{data=[...JSON.parse(filmes),...JSON.parse(series)]}catch(e){}
-    items=data.map(x=>({...x,type:x.type||'kids'})); view=[...items]; render();
-}
-
-async function loadFav(){
-    const t=await smartFetch('favoritos.json');
-    let data=[]; try{data=JSON.parse(t)}catch(e){}
-    items=data.map(x=>({...x,type:x.type||'fav'})); view=[...items]; render();
-}
-
-// RENDER LIST
+// ===== RENDER LIST =====
 function render(){
-    list.innerHTML='';
-    view.forEach((i,n)=>{
-        const d=document.createElement('div');
-        const fav = i.fav?'★':'☆';
-        d.className='item';
-        d.innerHTML=`<span>${i.nome||i.titulo}</span><span>${fav}</span>`;
-        d.onclick=()=>{openMeta(i);}
-        d.querySelector('span:last-child').onclick=(e)=>{e.stopPropagation(); i.fav=!i.fav; render();}
-        list.appendChild(d);
-    });
-    updateFocusables();
-    focusIndex=0; updateFocus();
+  list.innerHTML='';
+  const favItems=loadFavs();
+  view.forEach((i,n)=>{
+    const d=document.createElement('div');
+    d.className='item';
+    if(favItems.some(f=>f.nome===i.nome)) d.classList.add('is-fav');
+    d.innerHTML=`<span>${i.nome||i.titulo}</span><span class="fav-icon">☆</span>`;
+    d.onclick=()=>{ if(i.type==='tv') play(n); else showMeta(i); }
+    d.querySelector('.fav-icon').onclick=e=>{ e.stopPropagation(); toggleFav(i); }
+    list.appendChild(d);
+  });
+  updateFocus();
 }
 
-// OPEN META
-function openMeta(i){
-    overlayMeta.style.display='flex';
-    document.getElementById('meta-title').innerText=i.nome||i.titulo;
-    document.getElementById('meta-desc').innerText=i.desc||'Sem descrição';
-    document.getElementById('meta-rating').innerText=`★ ${i.rating||'--'} | ${i.year||'----'}`;
-    overlayMeta.style.backgroundImage=i.poster?`url(${i.poster})`:'none';
-    document.getElementById('btn-start').onclick=()=>{playItem(i);}
-    document.getElementById('btn-close').onclick=()=>{overlayMeta.style.display='none';}
-}
-
-// PLAY
+// ===== PLAY =====
 function play(i){
-    const it=view[i];
-    if(!it)return;
-    if(hls){hls.destroy(); hls=null;}
-    if(it.url?.includes('.m3u8')&&Hls.isSupported()){hls=new Hls();hls.loadSource(it.url);hls.attachMedia(video);}
-    else video.src=it.url;
-    video.play().catch(()=>{});
-    currentTitleEl.innerText=it.nome||it.titulo;
-    zap.innerText=it.nome||it.titulo; zap.style.display='block';
-    setTimeout(()=>zap.style.display='none',1200);
+  const it=view[i]; if(!it) return;
+  if(hls){hls.destroy();hls=null;}
+  if(it.url?.includes('.m3u8') && Hls.isSupported()){ hls=new Hls(); hls.loadSource(it.url); hls.attachMedia(video); }
+  else video.src=it.url;
+  video.play().catch(()=>{});
+  nowEl.innerText=it.nome||it.titulo;
+  zapEl.innerText=it.nome||it.titulo;
+  zapEl.style.display='block';
+  setTimeout(()=>zapEl.style.display='none',1200);
+  focusIndex=i+document.querySelectorAll('#menu .btn').length+1; // skip menu
+  updateFocus();
 }
-function playItem(i){if(i.url)play(view.indexOf(i)); overlayMeta.style.display='none';}
 
-// FOCUSABLES
-function updateFocusables(){
-    focusables=[document.getElementById('search'),...document.querySelectorAll('#menu .btn'),...document.querySelectorAll('#list .item'),document.getElementById('btn-start'),document.getElementById('btn-close')];
+// ===== META OVERLAY =====
+function showMeta(i){
+  metaTitle.innerText=i.nome||i.titulo;
+  metaDesc.innerText=i.desc||'Sem descrição.';
+  metaRating.innerText=i.rating||'--';
+  metaYear.innerText=i.year||'----';
+  overlayMeta.style.backgroundImage=`url(${i.poster||''})`;
+  overlayMeta.style.display='flex';
+  btnStart.onclick=()=>{ if(i.type==='serie'){ /* aqui você pode integrar Archive.org */ } else play(view.indexOf(i)); overlayMeta.style.display='none'; }
 }
+btnClose.onclick=()=>overlayMeta.style.display='none';
+
+// ===== MENU BOTÕES =====
+document.querySelectorAll('#menu .btn').forEach((b,n)=>{
+  b.onclick=()=>{ document.querySelectorAll('#menu .btn').forEach(bb=>bb.classList.remove('active')); b.classList.add('active'); loadContent(b.dataset.type); }
+});
+
+// ===== FOCUS/KEYBOARD =====
 function updateFocus(){
-    focusables.forEach((f,i)=>f.classList.toggle('focus-outline',i===focusIndex));
-    focusables[focusIndex]?.scrollIntoView({block:'center'});
+  const focusables=[document.getElementById('search'), ...document.querySelectorAll('#menu .btn'), ...document.querySelectorAll('#list .item'), btnStart, btnClose];
+  focusables.forEach((f,i)=>f.classList.toggle('focus',i===focusIndex));
+  const el=focusables[focusIndex]; if(el) el.scrollIntoView({block:'center'});
 }
 
-// NAVIGATION
 document.addEventListener('keydown',e=>{
-    if(e.key==='ArrowDown'){focusIndex=Math.min(focusIndex+1,focusables.length-1);updateFocus();}
-    if(e.key==='ArrowUp'){focusIndex=Math.max(focusIndex-1,0);updateFocus();}
-    if(e.key==='ArrowRight'){updateFocus();} 
-    if(e.key==='ArrowLeft'){updateFocus();}
-    if(e.key==='Enter'){focusables[focusIndex]?.click();}
+  const focusables=[document.getElementById('search'), ...document.querySelectorAll('#menu .btn'), ...document.querySelectorAll('#list .item'), btnStart, btnClose];
+  if(e.key==='ArrowDown'){ focusIndex=Math.min(focusIndex+1,focusables.length-1); updateFocus(); e.preventDefault(); }
+  if(e.key==='ArrowUp'){ focusIndex=Math.max(focusIndex-1,0); updateFocus(); e.preventDefault(); }
+  if(e.key==='ArrowRight'){ e.preventDefault(); if(focusables[focusIndex]===document.getElementById('search')){ focusIndex++; } else if(focusables[focusIndex].classList.contains('item')){ /* lateral direito para overlay/meta */ focusIndex=focusables.indexOf(btnStart); } updateFocus(); }
+  if(e.key==='ArrowLeft'){ e.preventDefault(); if(focusables[focusIndex]===btnStart){ focusIndex=document.querySelectorAll('#list .item').length+document.querySelectorAll('#menu .btn').length-1; } updateFocus(); }
+  if(e.key==='Enter'){ focusables[focusIndex].click(); }
 });
 
-// MENU BUTTONS
-document.querySelectorAll('#menu .btn').forEach(b=>{
-    b.onclick = async ()=>{
-        document.querySelectorAll('#menu .btn').forEach(bb=>bb.classList.remove('active'));
-        b.classList.add('active');
-        if(b.dataset.tv!==undefined) await loadTV();
-        else if(b.dataset.filmes!==undefined) await loadFilmes();
-        else if(b.dataset.series!==undefined) await loadSeries();
-        else if(b.dataset.kids!==undefined) await loadKids();
-        else if(b.dataset.kidsconteudo!==undefined) await loadKidsConteudo();
-        else if(b.dataset.fav!==undefined) await loadFav();
-        focusIndex=2; updateFocus();
-    };
-});
-
-// SEARCH
+// ===== SEARCH REAL TIME =====
 document.getElementById('search').addEventListener('input',()=>{
-    const q=document.getElementById('search').value.toLowerCase();
-    view=items.filter(i=>(i.nome||i.titulo).toLowerCase().includes(q));
-    render();
+  const q=document.getElementById('search').value.toLowerCase();
+  view=items.filter(i=>(i.nome||i.titulo).toLowerCase().includes(q));
+  focusIndex=document.querySelectorAll('#menu .btn').length+1;
+  render();
 });
 
-// INIT
-loadTV();
+// ===== INIT =====
+loadContent('tv');
 </script>
+
 </body>
 </html>
