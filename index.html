@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>PaixãoFlix</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
@@ -38,9 +39,12 @@ align-items:center;
 gap:16px
 }
 #header img{width:160px}
+
 #timebox{
+margin-left:auto;
 display:flex;
-flex-direction:column
+flex-direction:column;
+align-items:flex-end
 }
 #clock{font-size:16px;color:#fff}
 #date{font-size:14px;color:#fff;opacity:.9}
@@ -82,7 +86,10 @@ border-radius:6px;
 text-align:center;
 white-space:nowrap
 }
-.btn.active,.btn.focus{background:#e50914}
+.btn.active{background:#e50914}
+.btn.focus{
+box-shadow:0 0 0 3px rgba(229,9,20,.8)
+}
 .btn.kids{background:#0056b3}
 
 /* LIST */
@@ -134,17 +141,17 @@ display:none
 </div>
 </div>
 
-<input id="search" placeholder="Pesquisar..." tabindex="0">
+<input id="search" placeholder="Pesquisar...">
 
 <div id="now">Assistindo agora: <span>—</span></div>
 
 <div id="menu">
-<div class="btn active" tabindex="0" data="tv">TV</div>
-<div class="btn" tabindex="0" data="filmes">Filmes</div>
-<div class="btn" tabindex="0" data="series">Séries</div>
-<div class="btn kids" tabindex="0" data="kids">Canal Kids</div>
-<div class="btn kids" tabindex="0" data="kidsconteudo">Filmes/Séries Kids</div>
-<div class="btn" tabindex="0" data="fav">Favoritos</div>
+<div class="btn active focus" data-section="tv">TV</div>
+<div class="btn" data-section="filmes">Filmes</div>
+<div class="btn" data-section="series">Séries</div>
+<div class="btn kids" data-section="kids">Canal Kids</div>
+<div class="btn kids" data-section="kidsconteudo">Filmes/Séries Kids</div>
+<div class="btn" data-section="fav">Favoritos</div>
 </div>
 
 <div id="list"></div>
@@ -166,7 +173,7 @@ date.innerText=d.toLocaleDateString('pt-BR')
 },1000)
 
 /* ===== STATE ===== */
-let items=[],view=[],idx=0,focusArea='list',menuIdx=0,hls=null
+let items=[],view=[],idx=0,menuIdx=0,focusArea='menu',hls=null
 
 /* ===== LOAD TV ===== */
 async function loadTV(){
@@ -179,24 +186,24 @@ else if(l.startsWith('http'))items.push({nome:n,url:l})
 })
 view=[...items]
 render()
-play(0)
+selectItem(0)
 }
 
 /* ===== RENDER ===== */
 function render(){
 list.innerHTML=''
-view.forEach((i,n)=>{
+view.forEach((i)=>{
 const d=document.createElement('div')
 d.className='item'
 d.innerHTML=`<span>${i.nome}</span><span>☆</span>`
 list.appendChild(d)
 })
 idx=0
-focusList()
+updateListFocus()
 }
 
 /* ===== FOCUS ===== */
-function focusList(){
+function updateListFocus(){
 document.querySelectorAll('.item').forEach((e,i)=>{
 e.classList.toggle('focus',i===idx)
 })
@@ -204,11 +211,13 @@ document.querySelectorAll('.item')[idx]?.scrollIntoView({block:'center'})
 }
 
 /* ===== PLAY ===== */
-function play(i){
+function selectItem(i){
 const it=view[i]
 if(!it)return
+idx=i
+updateListFocus()
 if(hls){hls.destroy();hls=null}
-if(it.url.includes('.m3u8')&&Hls.isSupported()){
+if(it.url.includes('.m3u8') && Hls.isSupported()){
 hls=new Hls()
 hls.loadSource(it.url)
 hls.attachMedia(video)
@@ -221,7 +230,7 @@ setTimeout(()=>zap.style.display='none',1200)
 }
 
 /* ===== MENU FOCUS ===== */
-function focusMenu(){
+function updateMenuFocus(){
 document.querySelectorAll('.btn').forEach((b,i)=>{
 b.classList.toggle('focus',i===menuIdx)
 })
@@ -229,37 +238,44 @@ b.classList.toggle('focus',i===menuIdx)
 
 /* ===== KEYS ===== */
 document.addEventListener('keydown',e=>{
-if(e.key==='ArrowDown'){
-if(focusArea==='menu'){focusArea='list'}
-else if(focusArea==='list'){idx=Math.min(idx+1,view.length-1);play(idx);focusList()}
-}
-if(e.key==='ArrowUp'){
-if(focusArea==='list' && idx===0){focusArea='menu'}
-else if(focusArea==='list'){idx--;play(idx);focusList()}
-}
 if(e.key==='ArrowRight' && focusArea==='menu'){
-menuIdx=Math.min(menuIdx+1,5);focusMenu()
+menuIdx=Math.min(menuIdx+1,5)
+updateMenuFocus()
 }
 if(e.key==='ArrowLeft' && focusArea==='menu'){
-menuIdx=Math.max(menuIdx-1,0);focusMenu()
+menuIdx=Math.max(menuIdx-1,0)
+updateMenuFocus()
+}
+if(e.key==='ArrowDown'){
+if(focusArea==='menu')focusArea='list'
+else if(focusArea==='list'){
+idx=Math.min(idx+1,view.length-1)
+updateListFocus()
+}
+}
+if(e.key==='ArrowUp'){
+if(focusArea==='list' && idx===0)focusArea='menu'
+else if(focusArea==='list'){
+idx=Math.max(idx-1,0)
+updateListFocus()
+}
 }
 if(e.key==='Enter'){
 if(focusArea==='menu'){
-document.querySelectorAll('.btn')[menuIdx].click()
+const section=document.querySelectorAll('.btn')[menuIdx].dataset.section
+alert('Sessão: '+section)
+}
+if(focusArea==='list'){
+selectItem(idx)
 }
 }
 })
 
-/* ===== SEARCH ===== */
+/* SEARCH */
 search.addEventListener('input',()=>{
 const q=search.value.toLowerCase()
 view=items.filter(i=>i.nome.toLowerCase().includes(q))
 render()
-})
-
-/* MENU CLICK */
-document.querySelectorAll('.btn').forEach(b=>{
-b.onclick=()=>alert('Sessão: '+b.dataset)
 })
 
 /* INIT */
