@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
@@ -18,10 +18,12 @@ background:#000;
 color:#fff;
 overflow:hidden
 }
+::-webkit-scrollbar{display:none}
+
 #app{display:flex;height:100vh}
 
 /* ===== SIDEBAR ===== */
-#sidebar{
+#side{
 width:420px;
 background:#111;
 display:flex;
@@ -29,41 +31,42 @@ flex-direction:column;
 border-right:1px solid #222
 }
 
-/* ===== HEADER ===== */
-header{padding:16px}
-header img{width:120px}
-#clock{
-margin-top:6px;
-font-size:14px;
-opacity:.9
+/* HEADER */
+#header{
+padding:16px;
+display:flex;
+align-items:center;
+gap:12px
 }
+#header img{width:120px}
+#timebox{
+display:flex;
+flex-direction:column
+}
+#clock{font-size:15px}
+#date{font-size:13px;opacity:.9}
 
-/* ===== SEARCH ===== */
+/* SEARCH */
 #search{
-margin-top:12px;
-width:100%;
+margin:10px 16px;
 padding:10px;
 font-size:16px;
-border-radius:6px;
-border:2px solid #e50914;
 background:#000;
-color:#fff
+color:#fff;
+border:2px solid #e50914;
+border-radius:6px
 }
 
-/* ===== NOW PLAYING ===== */
+/* NOW PLAYING */
 #now{
-margin-top:6px;
-font-size:13px;
-color:#fff
+margin:0 16px;
+font-size:13px
 }
-#now span{
-font-size:14px;
-color:#fff
-}
+#now span{font-size:14px}
 
-/* ===== MENU ===== */
+/* MENU */
 #menu{
-margin-top:12px;
+margin:10px 16px;
 display:grid;
 grid-template-columns:repeat(3,1fr);
 gap:6px
@@ -71,48 +74,44 @@ gap:6px
 .btn{
 padding:6px;
 font-size:14px;
-text-align:center;
-border-radius:6px;
 background:#222;
-cursor:pointer;
-white-space:nowrap
+border-radius:6px;
+text-align:center
 }
 .btn.active{background:#e50914}
 .btn.kids{background:#0056b3}
 
-/* ===== LIST ===== */
+/* LIST */
 #list{
 flex:1;
-overflow-y:auto;
-margin-top:10px
+overflow-y:auto
 }
 .item{
 padding:12px;
 border-bottom:1px solid #222;
-font-size:16px;
 display:flex;
-justify-content:space-between
+justify-content:space-between;
+font-size:16px
 }
 .item.focus{
 background:#222;
 border-left:6px solid #e50914
 }
 
-/* ===== PLAYER ===== */
-#player{flex:1;background:#000}
+/* PLAYER */
+#player{flex:1;position:relative}
 video{width:100%;height:100%}
 
-/* ===== OVERLAY ===== */
-#overlay{
-position:fixed;
-bottom:30px;
-left:460px;
-background:rgba(0,0,0,.85);
+/* OVERLAY */
+#zap{
+position:absolute;
+bottom:40px;
+left:40px;
+background:rgba(0,0,0,.8);
 padding:10px 20px;
-font-size:18px;
+font-size:20px;
 border-left:6px solid #e50914;
-display:none;
-z-index:99
+display:none
 }
 </style>
 </head>
@@ -121,152 +120,120 @@ z-index:99
 
 <div id="app">
 
-<div id="sidebar">
-<header>
+<div id="side">
+
+<div id="header">
 <img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
+<div id="timebox">
 <div id="clock"></div>
+<div id="date"></div>
+</div>
+</div>
 
 <input id="search" placeholder="Pesquisar...">
 
 <div id="now">Assistindo agora: <span>—</span></div>
 
 <div id="menu">
-<div class="btn active" data-mode="tv">TV</div>
-<div class="btn" data-mode="filmes">Filmes</div>
-<div class="btn" data-mode="series">Séries</div>
-<div class="btn kids" data-mode="kids">Canal Kids</div>
-<div class="btn kids" data-mode="kidsconteudo">Filmes/Séries Kids</div>
-<div class="btn" data-mode="fav">Favoritos</div>
+<div class="btn active" data="tv">TV</div>
+<div class="btn" data="filmes">Filmes</div>
+<div class="btn" data="series">Séries</div>
+<div class="btn kids" data="kids">Canal Kids</div>
+<div class="btn kids" data="kidsconteudo">Filmes/Séries Kids</div>
+<div class="btn" data="fav">Favoritos</div>
 </div>
-</header>
 
 <div id="list"></div>
 </div>
 
 <div id="player">
 <video id="video" autoplay></video>
+<div id="zap"></div>
 </div>
 
 </div>
-
-<div id="overlay"></div>
 
 <script>
 /* ===== CLOCK ===== */
 setInterval(()=>{
 const d=new Date()
-clock.innerText =
-d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
-+' • '+d.toLocaleDateString('pt-BR')
+clock.innerText=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+date.innerText=d.toLocaleDateString('pt-BR')
 },1000)
 
 /* ===== STATE ===== */
-let items=[],filtered=[],focus=0,mode='tv',hls=null
+let items=[],view=[],idx=0,hls=null,favs=[]
 
-/* ===== LOAD M3U ===== */
-async function loadM3U(path){
-const t=await fetch(path).then(r=>r.text())
+/* ===== LOAD TV ===== */
+async function loadTV(){
+const t=await fetch('data/canais.m3u').then(r=>r.text())
 items=[]
-let name=''
+let n=''
 t.split('\n').forEach(l=>{
-if(l.startsWith('#EXTINF')) name=l.split(',').pop()
-else if(l.startsWith('http')) items.push({nome:name,url:l})
+if(l.startsWith('#EXTINF'))n=l.split(',').pop()
+else if(l.startsWith('http'))items.push({nome:n,url:l,type:'tv'})
 })
-filtered=[...items]
+view=[...items]
 render()
-autoPlay(0)
-}
-
-/* ===== LOAD JSON ===== */
-async function loadJSON(path){
-items=await fetch(path).then(r=>r.json())
-filtered=[...items]
-render()
+play(0)
 }
 
 /* ===== RENDER ===== */
 function render(){
 list.innerHTML=''
-filtered.forEach((i,idx)=>{
+view.forEach((i,n)=>{
 const d=document.createElement('div')
 d.className='item'
 d.innerHTML=`<span>${i.nome||i.titulo}</span><span>☆</span>`
-d.onclick=()=>play(idx)
 list.appendChild(d)
 })
-focus=0
-updateFocus()
-}
-
-/* ===== PLAYER ===== */
-function play(i){
-const item=filtered[i]
-if(!item)return
-if(hls){hls.destroy();hls=null}
-const url=item.url||item.link
-if(url?.includes('.m3u8') && Hls.isSupported()){
-hls=new Hls()
-hls.loadSource(url)
-hls.attachMedia(video)
-}else video.src=url
-video.play().catch(()=>{})
-document.querySelector('#now span').innerText=item.nome||item.titulo
-showOverlay(item.nome||item.titulo)
-}
-
-/* ===== AUTOPLAY ===== */
-function autoPlay(i){
-focus=i
-updateFocus()
-play(i)
-}
-
-/* ===== OVERLAY ===== */
-function showOverlay(t){
-overlay.innerText=t
-overlay.style.display='block'
-setTimeout(()=>overlay.style.display='none',1200)
+idx=0
+focus()
 }
 
 /* ===== FOCUS ===== */
-function updateFocus(){
-const els=[...document.querySelectorAll('.item')]
-els.forEach((e,i)=>e.classList.toggle('focus',i===focus))
-els[focus]?.scrollIntoView({block:'center'})
+function focus(){
+[...document.querySelectorAll('.item')].forEach((e,i)=>{
+e.classList.toggle('focus',i===idx)
+})
+document.querySelectorAll('.item')[idx]?.scrollIntoView({block:'center'})
+}
+
+/* ===== PLAY ===== */
+function play(i){
+const it=view[i]
+if(!it)return
+if(hls){hls.destroy();hls=null}
+if(it.url?.includes('.m3u8')&&Hls.isSupported()){
+hls=new Hls()
+hls.loadSource(it.url)
+hls.attachMedia(video)
+}else video.src=it.url
+video.play().catch(()=>{})
+now.querySelector('span').innerText=it.nome||it.titulo
+zap.innerText=it.nome||it.titulo
+zap.style.display='block'
+setTimeout(()=>zap.style.display='none',1200)
 }
 
 /* ===== KEYS ===== */
 document.addEventListener('keydown',e=>{
-const k=e.keyCode
-if(k===40){focus=Math.min(focus+1,filtered.length-1);autoPlay(focus)}
-if(k===38){focus=Math.max(focus-1,0);autoPlay(focus)}
-if(k===13)play(focus)
-updateFocus()
+if(e.keyCode===40){idx=Math.min(idx+1,view.length-1);play(idx)}
+if(e.keyCode===38){idx=Math.max(idx-1,0);play(idx)}
+if(e.keyCode===33){idx=Math.max(idx-5,0);play(idx)}
+if(e.keyCode===34){idx=Math.min(idx+5,view.length-1);play(idx)}
+focus()
 })
 
-/* ===== SEARCH REALTIME ===== */
+/* ===== SEARCH ===== */
 search.addEventListener('input',()=>{
 const q=search.value.toLowerCase()
-filtered=items.filter(i=>(i.nome||i.titulo).toLowerCase().includes(q))
+view=items.filter(i=>(i.nome||i.titulo).toLowerCase().includes(q))
 render()
 })
 
-/* ===== MENU ===== */
-document.querySelectorAll('.btn').forEach(b=>{
-b.onclick=()=>{
-document.querySelector('.btn.active')?.classList.remove('active')
-b.classList.add('active')
-mode=b.dataset.mode
-if(mode==='tv')loadM3U('data/canais.m3u')
-if(mode==='filmes')loadJSON('data/filmes.json')
-if(mode==='series')loadJSON('data/series.json')
-if(mode==='kids')loadM3U('data/kids_canais.m3u')
-if(mode==='kidsconteudo')loadJSON('data/kids_conteudo.json')
-}
-})
-
-/* ===== INIT ===== */
-loadM3U('data/canais.m3u')
+/* INIT */
+loadTV()
 </script>
 
 </body>
