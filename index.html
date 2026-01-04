@@ -88,7 +88,7 @@
             <button class="sub-btn" onclick="filtrar('Religiosos')">Religiosos</button>
             <button class="sub-btn" onclick="filtrar('Suspense')">Suspense</button>
             <button class="sub-btn" onclick="filtrar('Terror')">Terror</button>
-            <button class="sub-btn" onclick="filtrar('Adulto')">Policial</button>
+            <button class="sub-btn" onclick="filtrar('Policial')">Policial</button>
             <button class="sub-btn" onclick="filtrar('Adulto')">Adulto</button>
         </div>
 
@@ -131,7 +131,6 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-// BANCO DE DADOS PARA PESQUISA
 async function initDatabase() {
     const files = ['canais.m3u', 'filmes.json', 'series.json', 'kids_filmes.json', 'kids_series.json', 'kids_canais.m3u'];
     for(let f of files) {
@@ -152,7 +151,6 @@ async function initDatabase() {
     }
 }
 
-// PESQUISA EM TEMPO REAL
 searchInput.oninput = () => {
     const term = searchInput.value.toLowerCase();
     if(term.length < 2) return;
@@ -168,7 +166,6 @@ function toggleMenu(id, callback) {
     refreshFocus();
 }
 
-// CARREGADORES
 async function loadContent(file) {
     const r = await fetch(`data/${file}`);
     if(r.ok) { items = await r.json(); render(); }
@@ -203,20 +200,26 @@ function parseM3U(txt) {
 
 async function filtrar(gen){
     const r = await fetch('data/filmes.json');
-    if(r.ok) { const d = await r.json(); items = d.filter(f => f.genero && f.genero.toLowerCase() === gen.toLowerCase()); render(); }
+    if(r.ok) { 
+        const d = await r.json(); 
+        items = d.filter(f => f.genero && f.genero.toLowerCase() === gen.toLowerCase()); 
+        render(); 
+    }
 }
 
 function render(custom){
     list.innerHTML='';
     const target = custom || items;
-    target.forEach((i)=>{
+    target.forEach((i, idx)=>{
         const d=document.createElement('div');
         d.className='item focusable'; d.innerHTML=`<span>${i.titulo || i.nome}</span>`;
         d.onclick=()=>{
-            if(i.tipo === 'tv' || i.url?.includes('m3u8')) {
+            if(i.tipo === 'tv' || (i.url && i.url.includes('m3u8'))) {
                 play(i.url, i.titulo || i.nome);
                 document.body.classList.add('list-hidden');
-            } else showMeta(i);
+            } else {
+                showMeta(i);
+            }
         };
         list.appendChild(d);
     });
@@ -236,20 +239,31 @@ function showMeta(i){
     document.getElementById('meta-desc').innerText = i.desc || "";
     overlayMeta.style.display='flex'; previewCard.style.display='none';
     refreshFocus();
-    focusIndex = window.focusables.indexOf(document.getElementById('btn-start'));
+    const btnStart = document.getElementById('btn-start');
+    focusIndex = window.focusables.indexOf(btnStart);
     updateFocus();
-    document.getElementById('btn-start').onclick = () => { play(i.url || i.link, i.titulo || i.nome); document.body.classList.add('list-hidden'); };
+    btnStart.onclick = () => { 
+        play(i.url || i.link, i.titulo || i.nome); 
+        document.body.classList.add('list-hidden'); 
+    };
     document.getElementById('btn-close').onclick = () => { overlayMeta.style.display='none'; refreshFocus(); };
 }
 
 function play(url, title){
     if(!url) return;
-    if(hls) hls.destroy();
+    if(hls) { hls.destroy(); hls = null; }
     npTitle.innerText = title || "Carregando...";
     if(url.includes('m3u8')){
-        hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, ()=> video.play());
-    } else { video.src=url; video.play(); }
+        if (Hls.isSupported()) {
+            hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, ()=> video.play());
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = url; video.play();
+        }
+    } else { 
+        video.src=url; 
+        video.play().catch(e => console.log("Erro ao reproduzir:", e)); 
+    }
     overlayMeta.style.display = 'none';
 }
 
@@ -263,38 +277,35 @@ function updateFocus(){
     if(el) {
         el.scrollIntoView({block:'center', behavior:'smooth'});
         if(el.classList.contains('item')) {
-            const idx = Array.from(document.querySelectorAll('.item')).indexOf(el);
+            const allItems = Array.from(document.querySelectorAll('.item'));
+            const idx = allItems.indexOf(el);
             if(items[idx]) showPreview(items[idx]);
         }
     }
 }
 
 document.addEventListener('keydown', e=>{
-    // Tecla Voltar: 1º volta a lista, 2º volta o menu se estiver em tela cheia
     if(e.key === 'Backspace' || e.key === 'Escape') {
         if(document.body.classList.contains('full-screen')) { document.body.classList.remove('full-screen'); e.preventDefault(); return; }
         if(document.body.classList.contains('list-hidden')) { document.body.classList.remove('list-hidden'); e.preventDefault(); return; }
     }
-
-    // Tecla Especial: Amarelo ou F2 para Tela Cheia Total
     if(e.key === 'f' || e.key === 'F2') { document.body.classList.toggle('full-screen'); }
 
     refreshFocus();
     let cur = window.focusables[focusIndex];
     if(e.key==='ArrowDown'){ focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); }
     if(e.key==='ArrowUp'){ focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; e.preventDefault(); }
-    if(e.key==='ArrowRight' && !cur.classList.contains('item')){
+    if(e.key==='ArrowRight' && cur && !cur.classList.contains('item') && !cur.classList.contains('btn-meta')){
         const first = document.querySelector('.item');
         if(first) focusIndex = window.focusables.indexOf(first);
     }
-    if(e.key==='ArrowLeft' && cur.classList.contains('item')){
+    if(e.key==='ArrowLeft' && cur && cur.classList.contains('item')){
         focusIndex = window.focusables.indexOf(document.querySelector('.main-btn.focus') || document.querySelector('.main-btn'));
     }
-    if(e.key==='Enter'){ cur.click(); }
+    if(e.key==='Enter' && cur){ cur.click(); }
     updateFocus();
 });
 
-// AUTO-START: Primeiro canal ao abrir
 window.onload=async()=>{ 
     await initDatabase();
     const r = await fetch('data/canais.m3u');
