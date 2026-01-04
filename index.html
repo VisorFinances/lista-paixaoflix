@@ -262,7 +262,7 @@ function render(customList=null){
         const b=document.createElement('div'); b.className='item focusable'; b.innerHTML='<b>⬅ VOLTAR</b>';
         b.onclick=()=>{currentSerieEpisodes=null; render();}; list.appendChild(b);
     }
-    target.forEach(i=>{
+    target.forEach((i, idx)=>{
         const d=document.createElement('div');
         const itemName = getName(i);
         const isF = favs.some(f => getName(f) === itemName);
@@ -286,13 +286,21 @@ function showMeta(i){
     document.getElementById('meta-year').innerText = i.year || "2024";
     overlayMeta.style.backgroundImage = `url(${i.poster || ''})`;
     overlayMeta.style.display = 'flex';
+    
+    // Atualiza o foco após abrir o meta para garantir que o Enter pegue o botão
+    setTimeout(refreshFocus, 50);
+
     document.getElementById('btn-start').onclick = async () => {
         if(i.type === 'serie' && i.identificador_archive){
-            const data = await fetch(`https://archive.org/metadata/${i.identificador_archive}`).then(r=>r.json());
-            currentSerieEpisodes = data.files.filter(f => f.name.endsWith('.mp4')).map(v => ({
-                nome: v.title || v.name, url: `https://archive.org/download/${i.identificador_archive}/${v.name}`, type: 'episode'
-            }));
-            render();
+            try {
+                const res = await fetch(`https://archive.org/metadata/${i.identificador_archive}`);
+                const data = await res.json();
+                currentSerieEpisodes = data.files.filter(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv')).map(v => ({
+                    nome: v.title || v.name, url: `https://archive.org/download/${i.identificador_archive}/${v.name}`, type: 'episode'
+                }));
+                overlayMeta.style.display = 'none';
+                render();
+            } catch(e) { console.error(e); }
         } else if (i.identificador_archive) {
             playFromArchive(i.identificador_archive, title);
         } else { 
@@ -302,17 +310,24 @@ function showMeta(i){
 }
 
 function refreshFocus(){
-    const els=[document.getElementById('search'), ...document.querySelectorAll('#buttons button'), ...document.querySelectorAll('#list .item'), document.getElementById('btn-start'), document.getElementById('btn-close')];
-    window.focusables=els.filter(e=>e.offsetParent !== null);
+    const els=[
+        document.getElementById('search'), 
+        ...document.querySelectorAll('#buttons button'), 
+        ...document.querySelectorAll('#list .item'), 
+        document.getElementById('btn-start'), 
+        document.getElementById('btn-close')
+    ];
+    window.focusables = els.filter(e => e && e.offsetParent !== null);
 }
 
 function updateFocus(){
     window.focusables.forEach((f,i)=>f.classList.toggle('focus', i===focusIndex));
     const el = window.focusables[focusIndex];
     if(!el) return;
-    el.scrollIntoView({block:'center'});
+    el.scrollIntoView({block:'center', behavior: 'smooth'});
 
-    if(el.classList.contains('item') && !currentSerieEpisodes){
+    // Somente mostra o meta ao navegar se o overlay já não estiver aberto
+    if(el.classList.contains('item') && !currentSerieEpisodes && overlayMeta.style.display !== 'flex'){
         const listItems = Array.from(document.querySelectorAll('#list .item'));
         const idx = listItems.indexOf(el);
         const item = items[idx];
@@ -322,15 +337,29 @@ function updateFocus(){
 
 document.addEventListener('keydown', e=>{
     refreshFocus();
-    if(e.key==='ArrowDown') { focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); updateFocus(); }
-    if(e.key==='ArrowUp') { focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; e.preventDefault(); updateFocus(); }
-    if(e.key==='Enter') { window.focusables[focusIndex].click(); }
+    if(e.key==='ArrowDown') { 
+        focusIndex=(focusIndex+1)%window.focusables.length; 
+        e.preventDefault(); 
+        updateFocus(); 
+    }
+    if(e.key==='ArrowUp') { 
+        focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; 
+        e.preventDefault(); 
+        updateFocus(); 
+    }
+    if(e.key==='Enter' || e.key==='OK') { 
+        if(window.focusables[focusIndex]) {
+            window.focusables[focusIndex].click();
+            e.preventDefault();
+        }
+    }
 });
 
 function setActive(id){
     document.querySelectorAll('#buttons button').forEach(b=>b.classList.remove('active'));
     if(document.getElementById(id)) document.getElementById(id).classList.add('active');
-    overlayMeta.style.display='none'; currentSerieEpisodes=null;
+    overlayMeta.style.display='none'; 
+    currentSerieEpisodes=null;
 }
 
 document.getElementById('btnTV').onclick=loadTV;
@@ -339,7 +368,10 @@ document.getElementById('btnSeries').onclick=()=>loadJSON('series','series.json'
 document.getElementById('btnKidsCanais').onclick=loadKidsCanais;
 document.getElementById('btnKidsConteudo').onclick=loadKidsConteudo;
 document.getElementById('btnFav').onclick=()=>{mode='fav'; items=getFavs(); render(); setActive('btnFav');};
-document.getElementById('btn-close').onclick=()=>overlayMeta.style.display='none';
+document.getElementById('btn-close').onclick=()=> {
+    overlayMeta.style.display='none';
+    refreshFocus();
+};
 
 window.onload=loadTV;
 </script>
