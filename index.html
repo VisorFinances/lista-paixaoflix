@@ -8,56 +8,43 @@
 <style>
     :root { --primary: #e50914; --bg: #0a0a0a; }
     body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
-    
     #side{width:320px;background:var(--bg);display:flex;flex-direction:column;z-index:20;border-right:1px solid #222;}
     #header-container { display: flex; align-items: center; justify-content: space-between; padding: 20px; border-bottom: 1px solid #222; }
     #logo{max-width:120px;}
     #time-info { text-align: right; }
     #clock { font-size: 18px; font-weight: 700; }
     #date { font-size: 10px; opacity: 0.7; text-transform: uppercase; }
-
     #search-box { padding: 15px; }
     #search{width:100%; height:35px; box-sizing:border-box; padding:0 12px; border-radius:6px; border:1px solid #333; background:#111; color:#fff; outline:none;}
     #search.focus { border: 2px solid var(--primary); }
-
     #menu-container{flex:1; overflow-y:auto; padding:0 15px; scrollbar-width: none;}
     .main-btn { width: 100%; padding: 12px; text-align: left; background: #1a1a1a; border: none; color: #fff; font-weight: 700; cursor: pointer; border-radius: 6px; margin-bottom:5px; font-size: 15px; outline:none;}
     .main-btn.focus { background: var(--primary); }
-    
     .submenu { display: none; background: #111; flex-direction: column; margin-bottom: 10px; border-left: 3px solid var(--primary); }
     .sub-btn { width: 100%; padding: 10px 20px; text-align: left; background: transparent; border: none; color: #aaa; cursor: pointer; outline: none; font-size: 14px;}
     .sub-btn.focus { color: #fff; background: #222; }
-
     #list-container{width: 350px; background: #050505; border-left: 1px solid #222; overflow: hidden;}
     #list{height:100%; overflow-y:auto; scrollbar-width: none;}
     .item{padding:15px; border-bottom:1px solid #111; cursor:pointer; font-size:14px; outline:none; color: #888;}
     .item.focus{ background: var(--primary); color: #fff; font-weight: bold; }
-
     #player-container{flex:1; position:relative; background:#000;}
     video{width:100%; height:100%;}
-    
-    #preview-card {
-        position: absolute; bottom: 0; left: 0; right: 0;
-        background: linear-gradient(transparent, rgba(0,0,0,1) 40%); padding: 50px;
-        display: none; align-items: flex-end; gap: 30px; z-index: 5;
-    }
+    #preview-card { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,1) 40%); padding: 50px; display: none; align-items: flex-end; gap: 30px; z-index: 5; }
     #preview-poster { width: 160px; height: 230px; border-radius: 8px; border: 1px solid #555; object-fit: cover; }
 </style>
 </head>
 <body>
-
 <div id="side">
     <div id="header-container">
         <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
         <div id="time-info"><div id="clock">00:00</div><div id="date">-- ---</div></div>
     </div>
     <div id="search-box"><input id="search" placeholder="Pesquisar..."></div>
-    
     <div id="menu-container">
-        <button class="main-btn" onfocus="handleMenuFocus('sub-tv', loadTV)" onclick="toggleSubmenu('sub-tv')">CANAIS TV</button>
+        <button class="main-btn" onfocus="handleCategoryFocus('sub-tv', loadTV)">CANAIS TV</button>
         <div id="sub-tv" class="submenu"></div>
 
-        <button class="main-btn" onfocus="handleMenuFocus('sub-cinema')" onclick="toggleSubmenu('sub-cinema')">CINEMA</button>
+        <button class="main-btn" id="cinema-btn">CINEMA</button>
         <div id="sub-cinema" class="submenu">
             <button class="sub-btn" onfocus="loadJSON('filmes.json')">TODOS OS FILMES</button>
             <button class="sub-btn" onfocus="filtrar('Adulto')">ADULTO</button>
@@ -80,30 +67,22 @@
             <button class="sub-btn" onfocus="filtrar('Terror')">TERROR</button>
         </div>
 
-        <button class="main-btn" onfocus="handleMenuFocus('sub-series')" onclick="toggleSubmenu('sub-series')">SÉRIES</button>
+        <button class="main-btn" id="series-btn">SÉRIES</button>
         <div id="sub-series" class="submenu">
              <button class="sub-btn" onfocus="loadJSON('series.json')">TODAS AS SÉRIES</button>
         </div>
 
-        <button class="main-btn" style="background:#0044cc" onclick="toggleSubmenu('sub-kids')">ÁREA KIDS</button>
+        <button class="main-btn" id="kids-btn" style="background:#0044cc">ÁREA KIDS</button>
         <div id="sub-kids" class="submenu">
-            <button class="sub-btn" onclick="loadM3U('kids_canais.m3u')">CANAIS KIDS</button>
-            <button class="sub-btn" onclick="loadKidsAll()">FILMES E SÉRIES KIDS</button>
+            <button class="sub-btn" onfocus="loadM3U('kids_canais.m3u')">CANAIS KIDS</button>
+            <button class="sub-btn" onfocus="loadKidsAll()">FILMES E SÉRIES KIDS</button>
         </div>
     </div>
 </div>
-
 <div id="list-container"><div id="list"></div></div>
-
 <div id="player-container">
     <video id="video" autoplay></video>
-    <div id="preview-card">
-        <img id="preview-poster" src="">
-        <div id="pre-info">
-            <h2 id="pre-title" style="margin:0; font-size:38px; color:var(--primary);"></h2>
-            <p id="pre-desc" style="font-size:18px; color:#fff; max-width: 800px; margin-top:10px;"></p>
-        </div>
-    </div>
+    <div id="preview-card"><img id="preview-poster" src=""><div id="pre-info"><h2 id="pre-title" style="margin:0; font-size:38px; color:var(--primary);"></h2><p id="pre-desc" style="font-size:18px; color:#fff; max-width: 800px; margin-top:10px;"></p></div></div>
 </div>
 
 <script>
@@ -117,14 +96,13 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-function handleMenuFocus(id, callback) {
-    // Limpa a lista de conteúdos imediatamente ao trocar de menu lateral
-    list.innerHTML = ''; items = []; previewCard.style.display = 'none';
+function handleCategoryFocus(id, callback) {
+    list.innerHTML = ''; previewCard.style.display = 'none';
     if(callback) callback();
     refreshFocus();
 }
 
-function toggleSubmenu(id) {
+function toggleMenu(id) {
     const menu = document.getElementById(id);
     const isVisible = menu.style.display === 'flex';
     document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
@@ -226,13 +204,21 @@ document.addEventListener('keydown', e=>{
         if(first) focusIndex = window.focusables.indexOf(first);
     }
     if(e.key==='ArrowLeft' && window.focusables[focusIndex].classList.contains('item')){
-        focusIndex = window.focusables.indexOf(document.querySelector('.main-btn.focus') || document.querySelector('.sub-btn.focus') || document.querySelector('.main-btn'));
+        const sub = document.querySelector('.sub-btn.focus') || document.querySelector('.main-btn.focus');
+        if(sub) focusIndex = window.focusables.indexOf(sub);
     }
-    if(e.key==='Enter' || e.keyCode === 13){ window.focusables[focusIndex].click(); }
+    if(e.key==='Enter' || e.keyCode === 13){
+        const el = window.focusables[focusIndex];
+        if(el.id === 'cinema-btn') toggleMenu('sub-cinema');
+        else if(el.id === 'series-btn') toggleMenu('sub-series');
+        else if(el.id === 'kids-btn') toggleMenu('sub-kids');
+        else el.click();
+    }
     updateFocus();
 });
 
 window.onload=async()=>{ 
+    await loadTV();
     refreshFocus();
     focusIndex = window.focusables.indexOf(document.querySelector('.main-btn'));
     updateFocus();
