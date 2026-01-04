@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>PaixãoFlix</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
@@ -53,13 +54,12 @@ border:2px solid #e50914;
 border-radius:6px;
 outline:none
 }
-#search:focus{box-shadow:0 0 0 2px #e50914}
+#search.focus{box-shadow:0 0 0 2px #fff}
 
-/* NOW PLAYING */
+/* NOW */
 #now{
 margin:4px 14px;
-font-size:13px;
-color:#fff
+font-size:13px
 }
 #now span{font-size:14px}
 
@@ -123,6 +123,7 @@ display:none
 <div id="app">
 
 <div id="side">
+
 <div id="header">
 <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
 <div id="timebox">
@@ -163,24 +164,26 @@ date.textContent=d.toLocaleDateString('pt-BR')
 },1000)
 
 /* STATE */
-let items=[],view=[],idx=0,focusArea='list',hls=null,favs=[]
+let items=[],view=[],idx=0,menuIdx=0
+let focusArea='list'
+let hls=null
 const buttons=[...document.querySelectorAll('.btn')]
 
 /* LOADERS */
-async function loadM3U(file,type){
+async function loadM3U(file){
 const t=await fetch('data/'+file).then(r=>r.text())
 items=[]
 let n=''
 t.split('\n').forEach(l=>{
-if(l.startsWith('#EXTINF'))n=l.split(',').pop()
-else if(l.startsWith('http'))items.push({nome:n,url:l,type})
+if(l.startsWith('#EXTINF')) n=l.split(',').pop()
+else if(l.startsWith('http')) items.push({nome:n,url:l})
 })
 view=[...items]
 render()
 play(0)
 }
 
-async function loadJSON(file,type){
+async function loadJSON(file){
 items=await fetch('data/'+file).then(r=>r.json())
 view=[...items]
 render()
@@ -196,12 +199,19 @@ d.innerHTML=`<span>${i.nome||i.titulo}</span><span>☆</span>`
 list.appendChild(d)
 })
 idx=0
-focusItem()
+focusList()
 }
 
 /* FOCUS */
-function focusItem(){
-[...document.querySelectorAll('.item')].forEach((e,i)=>{
+function focusMenu(){
+focusArea='menu'
+buttons.forEach((b,i)=>b.classList.toggle('focus',i===menuIdx))
+}
+
+function focusList(){
+focusArea='list'
+buttons.forEach(b=>b.classList.remove('focus'))
+document.querySelectorAll('.item').forEach((e,i)=>{
 e.classList.toggle('focus',i===idx)
 })
 document.querySelectorAll('.item')[idx]?.scrollIntoView({block:'center'})
@@ -224,20 +234,19 @@ zap.style.display='block'
 setTimeout(()=>zap.style.display='none',1200)
 }
 
-/* MENU CLICK */
-buttons.forEach(b=>{
-b.onclick=()=>{
-buttons.forEach(x=>x.classList.remove('active'))
+/* ACTIVATE MENU */
+function activateMenu(){
+buttons.forEach(b=>b.classList.remove('active'))
+const b=buttons[menuIdx]
 b.classList.add('active')
 const s=b.dataset.session
-if(s==='tv')loadM3U('canais.m3u','tv')
-if(s==='kids')loadM3U('kids_canais.m3u','tv')
-if(s==='filmes')loadJSON('filmes.json','filme')
-if(s==='series')loadJSON('series.json','serie')
-if(s==='kidsconteudo')loadJSON('kids_filmes.json','kids')
-if(s==='fav')loadJSON('favoritos.json','fav')
+if(s==='tv') loadM3U('canais.m3u')
+if(s==='kids') loadM3U('kids_canais.m3u')
+if(s==='filmes') loadJSON('filmes.json')
+if(s==='series') loadJSON('series.json')
+if(s==='kidsconteudo') loadJSON('kids_filmes.json')
+if(s==='fav') loadJSON('favoritos.json')
 }
-})
 
 /* SEARCH */
 search.oninput=()=>{
@@ -248,17 +257,38 @@ render()
 
 /* KEYS */
 document.addEventListener('keydown',e=>{
-if(focusArea==='list'){
-if(e.keyCode===40){idx=Math.min(idx+1,view.length-1);play(idx)}
-if(e.keyCode===38){idx=Math.max(idx-1,0);play(idx)}
-if(e.keyCode===33||e.keyCode===427){idx=Math.max(idx-1,0);play(idx)}
-if(e.keyCode===34||e.keyCode===428){idx=Math.min(idx+1,view.length-1);play(idx)}
-focusItem()
+switch(e.keyCode){
+case 38: // UP
+if(focusArea==='list') focusMenu()
+break
+case 40: // DOWN
+if(focusArea==='menu') focusList()
+else{
+idx=Math.min(idx+1,view.length-1)
+play(idx)
+focusList()
+}
+break
+case 37: // LEFT
+if(focusArea==='menu'){menuIdx=Math.max(menuIdx-1,0);focusMenu()}
+break
+case 39: // RIGHT
+if(focusArea==='menu'){menuIdx=Math.min(menuIdx+1,buttons.length-1);focusMenu()}
+break
+case 13: // OK
+if(focusArea==='menu'){activateMenu();focusList()}
+break
+case 427: // CH+
+idx=Math.max(idx-1,0);play(idx);focusList()
+break
+case 428: // CH-
+idx=Math.min(idx+1,view.length-1);play(idx);focusList()
+break
 }
 })
 
 /* INIT */
-loadM3U('canais.m3u','tv')
+loadM3U('canais.m3u')
 </script>
 
 </body>
