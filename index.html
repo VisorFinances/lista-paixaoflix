@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <title>PaixãoFlix</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
@@ -39,11 +38,9 @@ align-items:center;
 justify-content:space-between
 }
 #logo{width:160px}
-#timebox{
-text-align:right
-}
-#clock{font-size:20px;color:#fff}
-#date{font-size:12px;color:#fff}
+#timebox{text-align:right}
+#clock{font-size:20px}
+#date{font-size:12px}
 
 /* SEARCH */
 #search{
@@ -57,11 +54,10 @@ border-radius:6px
 }
 #search.focus{outline:2px solid #fff}
 
-/* NOW PLAYING */
+/* NOW */
 #now{
 margin:4px 16px;
-font-size:13px;
-color:#fff
+font-size:13px
 }
 #now span{font-size:14px}
 
@@ -80,9 +76,7 @@ border-radius:6px;
 text-align:center;
 white-space:nowrap
 }
-.btn.focus{
-box-shadow:0 0 0 2px #fff inset
-}
+.btn.focus{box-shadow:0 0 0 2px #fff inset}
 .btn.active{background:#e50914}
 .btn.kids{background:#0056b3}
 
@@ -94,14 +88,38 @@ overflow-y:auto
 .item{
 padding:12px;
 border-bottom:1px solid #222;
-display:flex;
-justify-content:space-between;
 font-size:16px
 }
 .item.focus{
 background:#222;
 border-left:6px solid #e50914
 }
+
+/* DETAILS */
+#details{
+position:absolute;
+top:0;
+right:0;
+width:420px;
+height:100%;
+background:#111;
+border-left:1px solid #222;
+display:none;
+flex-direction:column;
+padding:20px
+}
+#details h3{margin:0 0 10px 0}
+#details p{font-size:13px;opacity:.9;flex:1}
+.action{
+padding:10px;
+margin-top:10px;
+font-size:16px;
+text-align:center;
+border-radius:6px
+}
+.action.play{background:#e50914}
+.action.back{background:#555}
+.action.focus{box-shadow:0 0 0 2px #fff inset}
 
 /* PLAYER */
 #player{flex:1;position:relative}
@@ -125,7 +143,6 @@ display:none
 <div id="app">
 
 <div id="side">
-
 <div id="header">
 <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
 <div id="timebox">
@@ -139,12 +156,12 @@ display:none
 <div id="now">Assistindo agora: <span>—</span></div>
 
 <div id="menu">
-<div class="btn active" data-section="tv">TV</div>
-<div class="btn" data-section="filmes">Filmes</div>
-<div class="btn" data-section="series">Séries</div>
-<div class="btn kids" data-section="kids">Canal Kids</div>
-<div class="btn kids" data-section="kidsconteudo">Filmes/Séries Kids</div>
-<div class="btn" data-section="fav">Favoritos</div>
+<div class="btn active" data="tv">TV</div>
+<div class="btn" data="filmes">Filmes</div>
+<div class="btn" data="series">Séries</div>
+<div class="btn kids" data="kids">Canal Kids</div>
+<div class="btn kids" data="kidsconteudo">Filmes/Séries Kids</div>
+<div class="btn" data="fav">Favoritos</div>
 </div>
 
 <div id="list"></div>
@@ -153,6 +170,12 @@ display:none
 <div id="player">
 <video id="video" autoplay></video>
 <div id="zap"></div>
+<div id="details">
+<h3 id="dtitle"></h3>
+<p id="dsinopse"></p>
+<div class="action play" data-act="play">Assistir agora</div>
+<div class="action back" data-act="back">Voltar</div>
+</div>
 </div>
 
 </div>
@@ -166,59 +189,63 @@ date.textContent=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',yea
 },1000)
 
 /* STATE */
-let items=[],view=[],idx=0,menuIdx=0,focusArea='list',section='tv',hls=null
+let items=[],view=[],episodes=[]
+let idx=0,menuIdx=0,epIdx=0,actIdx=0
+let section='tv',focus='list'
+let hls=null
 
 const menuBtns=[...document.querySelectorAll('.btn')]
+const actions=[...document.querySelectorAll('.action')]
 
 /* LOADERS */
-async function loadM3U(path,type){
+async function loadM3U(path){
 const t=await fetch(path).then(r=>r.text())
 items=[]
 let name=''
 t.split('\n').forEach(l=>{
 if(l.startsWith('#EXTINF'))name=l.split(',').pop()
-else if(l.startsWith('http'))items.push({title:name,url:l,type})
+else if(l.startsWith('http'))items.push({title:name,url:l})
 })
 }
-
-async function loadJSON(path,type){
+async function loadJSON(path){
 items=await fetch(path).then(r=>r.json())
-items.forEach(i=>i.type=type)
 }
 
-/* SECTION SWITCH */
+/* SECTION */
 async function loadSection(s){
 section=s
-menuBtns.forEach(b=>b.classList.toggle('active',b.dataset.section===s))
-if(s==='tv') await loadM3U('data/canais.m3u','tv')
-if(s==='kids') await loadM3U('data/kids_canais.m3u','tv')
-if(s==='filmes') await loadJSON('data/filmes.json','filme')
-if(s==='series') await loadJSON('data/series.json','serie')
+menuBtns.forEach(b=>b.classList.toggle('active',b.dataset===s))
+details.style.display='none'
+if(s==='tv') await loadM3U('data/canais.m3u')
+if(s==='kids') await loadM3U('data/kids_canais.m3u')
+if(s==='filmes') await loadJSON('data/filmes.json')
+if(s==='series') await loadJSON('data/series.json')
 if(s==='kidsconteudo'){
 const a=await fetch('data/kids_filmes.json').then(r=>r.json())
 const b=await fetch('data/kids_series.json').then(r=>r.json())
-items=[...a.map(i=>({...i,type:'filme'})),...b.map(i=>({...i,type:'serie'}))]
+items=[...a,...b]
 }
-if(s==='fav') await loadJSON('data/favoritos.json','fav')
+if(s==='fav') await loadJSON('data/favoritos.json')
 view=[...items]
-render()
+renderList()
 idx=0
-focusList()
+focus='list'
 if(section==='tv') play(0)
+updateFocus()
 }
 
 /* RENDER */
-function render(){
+function renderList(){
 list.innerHTML=''
-view.forEach(i=>{
+view.forEach(v=>{
 const d=document.createElement('div')
 d.className='item'
-d.innerHTML=`<span>${i.nome||i.titulo||i.title}</span><span>☆</span>`
+d.textContent=v.nome||v.titulo||v.title
 list.appendChild(d)
 })
 }
 
-/* PLAY */
+/* PLAYER */
 function play(i){
 const it=view[i]
 if(!it||!it.url)return
@@ -235,69 +262,73 @@ zap.style.display='block'
 setTimeout(()=>zap.style.display='none',1200)
 }
 
+/* DETAILS */
+function openDetails(item){
+details.style.display='flex'
+dtitle.textContent=item.titulo||item.title
+dsinopse.textContent=item.sinopse||''
+actIdx=0
+focus='actions'
+updateFocus()
+}
+
 /* FOCUS */
-function focusList(){
-focusArea='list'
-document.querySelectorAll('.item').forEach((e,i)=>e.classList.toggle('focus',i===idx))
-document.querySelectorAll('.item')[idx]?.scrollIntoView({block:'center'})
-}
-function focusMenu(){
-focusArea='menu'
-menuBtns.forEach((b,i)=>b.classList.toggle('focus',i===menuIdx))
-}
-function focusSearch(){
-focusArea='search'
-search.classList.add('focus')
+function updateFocus(){
+document.querySelectorAll('.item').forEach((e,i)=>e.classList.toggle('focus',focus==='list'&&i===idx))
+menuBtns.forEach((b,i)=>b.classList.toggle('focus',focus==='menu'&&i===menuIdx))
+actions.forEach((a,i)=>a.classList.toggle('focus',focus==='actions'&&i===actIdx))
+if(focus==='list') document.querySelectorAll('.item')[idx]?.scrollIntoView({block:'center'})
 }
 
 /* KEYS */
 document.addEventListener('keydown',e=>{
 if(e.key==='ArrowDown'){
-if(focusArea==='search'){focusMenu();search.classList.remove('focus')}
-else if(focusArea==='menu'){focusList()}
-else if(focusArea==='list'){
+if(focus==='list'){
 idx=Math.min(idx+1,view.length-1)
 if(section==='tv') play(idx)
-focusList()
 }
+if(focus==='menu'){focus='list'}
 }
 if(e.key==='ArrowUp'){
-if(focusArea==='list'){focusMenu()}
-else if(focusArea==='menu'){focusSearch()}
+if(focus==='list'){
+if(idx>0) idx--
+else focus='menu'
 }
-if(e.key==='ArrowRight'&&focusArea==='menu'){
-menuIdx=Math.min(menuIdx+1,menuBtns.length-1)
-focusMenu()
 }
-if(e.key==='ArrowLeft'&&focusArea==='menu'){
-menuIdx=Math.max(menuIdx-1,0)
-focusMenu()
+if(e.key==='ArrowRight'){
+if(focus==='list'&&(section==='filmes'||section==='series')){
+openDetails(view[idx])
+}
+if(focus==='actions'){actIdx=Math.min(actIdx+1,actions.length-1)}
+}
+if(e.key==='ArrowLeft'){
+if(focus==='actions'){
+if(actIdx>0) actIdx--
+else{details.style.display='none';focus='list'}
+}
 }
 if(e.key==='Enter'){
-if(focusArea==='menu'){
-loadSection(menuBtns[menuIdx].dataset.section)
-}
-if(focusArea==='list'&&section!=='tv'){
-play(idx)
-}
-if(focusArea==='search'){
-search.focus()
+if(focus==='menu') loadSection(menuBtns[menuIdx].dataset)
+if(focus==='list'&&section==='tv') play(idx)
+if(focus==='actions'){
+if(actions[actIdx].dataset.act==='play') play(idx)
+if(actions[actIdx].dataset.act==='back'){details.style.display='none';focus='list'}
 }
 }
+updateFocus()
 })
 
 /* SEARCH */
 search.addEventListener('input',()=>{
 const q=search.value.toLowerCase()
-view=items.filter(i=>(i.nome||i.titulo||i.title).toLowerCase().includes(q))
-render()
+view=items.filter(i=>(i.titulo||i.title||'').toLowerCase().includes(q))
 idx=0
-focusList()
+renderList()
+updateFocus()
 })
 
 /* INIT */
 loadSection('tv')
-focusList()
 </script>
 
 </body>
