@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>PaixãoFlix VIP - Modo Automação Total</title>
+<title>PaixãoFlix VIP - Final</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 <style>
@@ -41,7 +41,7 @@
         background: linear-gradient(transparent, rgba(0,0,0,1) 40%); padding: 50px;
         display: none; align-items: flex-end; gap: 30px; z-index: 5;
     }
-    #preview-poster { width: 160px; height: 230px; border-radius: 8px; border: 1px solid #555; }
+    #preview-poster { width: 160px; height: 230px; border-radius: 8px; border: 1px solid #555; object-fit: cover; }
 
     #overlay-meta { position:absolute; inset:0; background:rgba(0,0,0,0.98); display:none; flex-direction:column; justify-content:center; padding:60px; z-index:100; }
     .btn-meta { padding:15px 40px; font-weight:700; border-radius:8px; border:none; cursor:pointer; margin-right:15px; font-size: 18px; outline:none; color:#fff; background:#222;}
@@ -64,10 +64,24 @@
         <button class="main-btn" onfocus="toggleMenu('sub-cinema')">CINEMA</button>
         <div id="sub-cinema" class="submenu">
             <button class="sub-btn" onfocus="loadJSON('filmes.json')">TODOS OS FILMES</button>
-            <button class="sub-btn" onfocus="filtrar('Ação')">AÇÃO</button>
-            <button class="sub-btn" onfocus="filtrar('Comédia')">COMÉDIA</button>
-            <button class="sub-btn" onfocus="filtrar('Terror')">TERROR</button>
             <button class="sub-btn" onfocus="filtrar('Adulto')">ADULTO</button>
+            <button class="sub-btn" onfocus="filtrar('Anime')">ANIME</button>
+            <button class="sub-btn" onfocus="filtrar('Animação')">ANIMAÇÃO</button>
+            <button class="sub-btn" onfocus="filtrar('Aventura')">AVENTURA</button>
+            <button class="sub-btn" onfocus="filtrar('Ação')">AÇÃO</button>
+            <button class="sub-btn" onfocus="filtrar('Clássicos')">CLÁSSICOS</button>
+            <button class="sub-btn" onfocus="filtrar('Comédia')">COMÉDIA</button>
+            <button class="sub-btn" onfocus="filtrar('Documentários')">DOCUMENTÁRIOS</button>
+            <button class="sub-btn" onfocus="filtrar('Dorama')">DORAMA</button>
+            <button class="sub-btn" onfocus="filtrar('Drama')">DRAMA</button>
+            <button class="sub-btn" onfocus="filtrar('Faroeste')">FAROESTE</button>
+            <button class="sub-btn" onfocus="filtrar('Ficção')">FICÇÃO</button>
+            <button class="sub-btn" onfocus="filtrar('Nacional')">NACIONAL</button>
+            <button class="sub-btn" onfocus="filtrar('Policial')">POLICIAL</button>
+            <button class="sub-btn" onfocus="filtrar('Religioso')">RELIGIOSO</button>
+            <button class="sub-btn" onfocus="filtrar('Romance')">ROMANCE</button>
+            <button class="sub-btn" onfocus="filtrar('Suspense')">SUSPENSE</button>
+            <button class="sub-btn" onfocus="filtrar('Terror')">TERROR</button>
         </div>
 
         <button class="main-btn" onfocus="toggleMenu('sub-series', () => loadJSON('series.json'))">SÉRIES</button>
@@ -95,7 +109,7 @@
     <div id="overlay-meta">
         <h1 id="meta-title" style="color:var(--primary); font-size: 50px; margin:0;"></h1>
         <p id="meta-desc" style="font-size: 20px; line-height: 1.6;"></p>
-        <div id="episodes-container" style="margin-top:20px; display:flex; gap:10px; overflow-x:auto;"></div>
+        <div id="episodes-box" style="margin-top:20px; display:flex; gap:10px; overflow-x:auto; padding:10px 0;"></div>
         <div style="margin-top:30px;">
             <button class="btn-meta" id="btn-play-action">ASSISTIR AGORA</button>
             <button class="btn-meta" style="background:#444;" onclick="closeMeta()">VOLTAR</button>
@@ -114,7 +128,7 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-// Pesquisa com OK para Play
+// Pesquisa
 searchInput.oninput = () => {
     const t = searchInput.value.toLowerCase();
     if(t.length < 2) return;
@@ -124,7 +138,8 @@ searchInput.oninput = () => {
 
 function toggleMenu(id, callback) {
     document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
-    document.getElementById(id).style.display = 'flex';
+    const target = document.getElementById(id);
+    target.style.display = 'flex';
     if(callback) callback();
     refreshFocus();
 }
@@ -170,8 +185,6 @@ function render(custom, isSearch = false){
     target.forEach((i, idx)=>{
         const d=document.createElement('div');
         d.className='item focusable'; d.innerHTML=`<span>${i.titulo || i.nome}</span>`;
-        
-        // Ação do OK: Play se for canal ou pesquisa, Meta se for filme/série
         d.onclick=()=> {
             if(isSearch || i.type === 'tv' || i.url?.includes('m3u8')) {
                 play(i.url || i.link, i.titulo || i.nome);
@@ -187,11 +200,10 @@ function render(custom, isSearch = false){
 function showPreview(i) {
     if(!i) return;
     document.getElementById('pre-title').innerText = i.titulo || i.nome;
-    document.getElementById('pre-desc').innerText = (i.desc || "").substring(0, 250) + "...";
+    document.getElementById('pre-desc').innerText = (i.desc || "").substring(0, 300) + "...";
     document.getElementById('preview-poster').src = i.poster || "";
     previewCard.style.display = 'flex';
-
-    // Zapping Automático para TV (800ms de foco = Play)
+    
     clearTimeout(zappingTimer);
     if(i.type === 'tv' || i.url?.includes('m3u8')) {
         zappingTimer = setTimeout(() => play(i.url, i.titulo || i.nome), 800);
@@ -204,16 +216,15 @@ function showMeta(i){
     overlayMeta.style.display='flex';
     previewCard.style.display = 'none';
     
-    // Gerar episódios/capítulos se existirem
-    const epCont = document.getElementById('episodes-container');
-    epCont.innerHTML = '';
+    const epBox = document.getElementById('episodes-box');
+    epBox.innerHTML = '';
     if(i.episodios) {
         i.episodios.forEach(ep => {
-            const btn = document.createElement('button');
-            btn.className = 'btn-meta focusable';
-            btn.innerText = ep.titulo;
-            btn.onclick = () => { play(ep.url, ep.titulo); closeMeta(); };
-            epCont.appendChild(btn);
+            const b = document.createElement('button');
+            b.className = 'btn-meta focusable';
+            b.innerText = ep.titulo;
+            b.onclick = () => { play(ep.url, ep.titulo); closeMeta(); };
+            epBox.appendChild(b);
         });
     }
 
@@ -221,7 +232,7 @@ function showMeta(i){
     playBtn.onclick = () => { play(i.url || i.link, i.titulo || i.nome); closeMeta(); };
     
     refreshFocus();
-    focusIndex = window.focusables.indexOf(i.episodios ? epCont.firstChild : playBtn);
+    focusIndex = window.focusables.indexOf(i.episodios ? epBox.firstChild : playBtn);
     updateFocus();
 }
 
@@ -273,8 +284,7 @@ window.onload=async()=>{
     refreshFocus();
     focusIndex = window.focusables.indexOf(document.getElementById('default-focus'));
     updateFocus();
-    // Cache total para pesquisa rápida
-    ['filmes.json', 'series.json'].forEach(f => fetch(`data/${f}`).then(r => r.json()).then(d => allData.push(...d)).catch(()=>{}));
+    ['filmes.json', 'series.json', 'kids_filmes.json', 'kids_series.json'].forEach(f => fetch(`data/${f}`).then(r => r.json()).then(d => allData.push(...d)).catch(()=>{}));
 };
 </script>
 </body>
