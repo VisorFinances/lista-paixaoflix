@@ -87,7 +87,7 @@
 
 <script>
 const video=document.getElementById('video'), list=document.getElementById('list'), previewCard=document.getElementById('preview-card'), searchInput=document.getElementById('search');
-let hls=null, items=[], focusIndex=0, zappingTimer=null;
+let hls=null, items=[], focusIndex=0, zappingTimer=null, allData=[];
 
 function updateClock(){
     const now=new Date();
@@ -95,6 +95,16 @@ function updateClock(){
     document.getElementById('date').innerText=now.toLocaleDateString('pt-BR',{day:'2-digit', month:'short'}).toUpperCase();
 }
 setInterval(updateClock,1000); updateClock();
+
+// PESQUISA GLOBAL EM TEMPO REAL
+searchInput.oninput = () => {
+    const t = searchInput.value.toLowerCase().trim();
+    if(t.length === 0) { loadTV(); return; }
+    if(t.length >= 1) {
+        items = allData.filter(i => (i.titulo || i.nome || "").toLowerCase().includes(t));
+        render();
+    }
+};
 
 function handleCategoryFocus(id, callback) {
     list.innerHTML = ''; previewCard.style.display = 'none';
@@ -219,6 +229,17 @@ document.addEventListener('keydown', e=>{
 
 window.onload=async()=>{ 
     await loadTV();
+    // CARGA GLOBAL PARA PESQUISA
+    ['filmes.json', 'series.json', 'kids_filmes.json', 'kids_series.json', 'canais.m3u'].forEach(file => {
+        fetch(`data/${file}`).then(r => file.endsWith('.json') ? r.json() : r.text().then(txt => {
+            let mItems = []; let n = '';
+            txt.split('\n').forEach(l => {
+                if(l.startsWith('#EXTINF')) n = l.split(',').pop().trim();
+                else if(l.trim().startsWith('http')) mItems.push({titulo: n, url: l.trim(), type:'tv'});
+            });
+            return mItems;
+        })).then(d => allData.push(...d)).catch(()=>{});
+    });
     refreshFocus();
     focusIndex = window.focusables.indexOf(document.querySelector('.main-btn'));
     updateFocus();
