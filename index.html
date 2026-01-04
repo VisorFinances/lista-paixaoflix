@@ -2,17 +2,13 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>PaixãoFlix VIP</title>
+<title>PaixãoFlix VIP - Modo Automação Total</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 <style>
     :root { --primary: #e50914; --bg: #0a0a0a; }
     body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
     
-    #splash { position:fixed; inset:0; background:#000; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: 0.5s; }
-    #splash img { width: 300px; }
-
-    /* Barra Lateral Esquerda Fixa */
     #side{width:320px;background:var(--bg);display:flex;flex-direction:column;z-index:20;border-right:1px solid #222;}
     #header-container { display: flex; align-items: center; justify-content: space-between; padding: 20px; border-bottom: 1px solid #222; }
     #logo{max-width:120px;}
@@ -22,84 +18,56 @@
 
     #search-box { padding: 15px; }
     #search{width:100%; height:35px; box-sizing:border-box; padding:0 12px; border-radius:6px; border:1px solid #333; background:#111; color:#fff; outline:none;}
-    #search.focus { border: 2px solid #fff; background: #222; }
-
-    #now-playing-box { padding: 5px 15px; background: #000; border-bottom: 1px solid #222; font-size: 10px; min-height: 25px;}
-    #now-playing-title { color: var(--primary); font-weight: 700; }
+    #search.focus { border: 2px solid var(--primary); }
 
     #menu-container{flex:1; overflow-y:auto; padding:0 15px; scrollbar-width: none;}
     .main-btn { width: 100%; padding: 12px; text-align: left; background: #1a1a1a; border: none; color: #fff; font-weight: 700; cursor: pointer; border-radius: 6px; margin-bottom:5px; font-size: 15px; outline:none;}
-    .main-btn.focus { background: var(--primary); transform: scale(1.02); }
+    .main-btn.focus { background: var(--primary); }
     
     .submenu { display: none; background: #111; flex-direction: column; margin-bottom: 10px; border-left: 3px solid var(--primary); }
     .sub-btn { width: 100%; padding: 10px 20px; text-align: left; background: transparent; border: none; color: #aaa; cursor: pointer; outline: none; font-size: 14px;}
-    .sub-btn.focus { color: #fff; background: #222; font-weight: bold; }
+    .sub-btn.focus { color: #fff; background: #222; }
 
-    /* Barra de Conteúdos Central */
-    #list-container{width: 320px; background: #050505; border-left: 1px solid #222; overflow: hidden; transition: 0.3s;}
+    #list-container{width: 350px; background: #050505; border-left: 1px solid #222; overflow: hidden;}
     #list{height:100%; overflow-y:auto; scrollbar-width: none;}
     .item{padding:15px; border-bottom:1px solid #111; cursor:pointer; font-size:14px; outline:none; color: #888;}
     .item.focus{ background: var(--primary); color: #fff; font-weight: bold; }
 
-    /* Ocultar barra central ao dar play */
-    body.list-hidden #list-container { width: 0; border: none; }
-
     #player-container{flex:1; position:relative; background:#000;}
     video{width:100%; height:100%;}
     
-    /* Card Inferior Total */
     #preview-card {
         position: absolute; bottom: 0; left: 0; right: 0;
-        background: linear-gradient(transparent, rgba(0,0,0,0.95) 40%); padding: 50px;
+        background: linear-gradient(transparent, rgba(0,0,0,1) 40%); padding: 50px;
         display: none; align-items: flex-end; gap: 30px; z-index: 5;
     }
-    #preview-poster { width: 150px; height: 220px; border-radius: 8px; border: 1px solid #444; object-fit: cover; }
+    #preview-poster { width: 160px; height: 230px; border-radius: 8px; border: 1px solid #555; }
 
     #overlay-meta { position:absolute; inset:0; background:rgba(0,0,0,0.98); display:none; flex-direction:column; justify-content:center; padding:60px; z-index:100; }
     .btn-meta { padding:15px 40px; font-weight:700; border-radius:8px; border:none; cursor:pointer; margin-right:15px; font-size: 18px; outline:none; color:#fff; background:#222;}
     .btn-meta.focus { background: var(--primary); box-shadow: 0 0 15px var(--primary); }
 </style>
 </head>
-<body class="list-visible">
-
-<div id="splash">
-    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-    <p style="margin-top:20px; font-size:12px; opacity:0.5">PRESSIONE QUALQUER TECLA PARA INICIAR</p>
-</div>
+<body>
 
 <div id="side">
     <div id="header-container">
         <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
         <div id="time-info"><div id="clock">00:00</div><div id="date">-- ---</div></div>
     </div>
-    <div id="search-box"><input id="search" placeholder="Buscar filmes, canais..."></div>
-    <div id="now-playing-box">AGORA: <span id="now-playing-title">-</span></div>
+    <div id="search-box"><input id="search" placeholder="Pesquisar..."></div>
     
     <div id="menu-container">
-        <button id="first-focus" class="main-btn" onfocus="toggleMenu('sub-tv', loadTV)">CANAIS TV</button>
+        <button id="default-focus" class="main-btn" onfocus="toggleMenu('sub-tv', loadTV)">CANAIS TV</button>
         <div id="sub-tv" class="submenu"></div>
 
         <button class="main-btn" onfocus="toggleMenu('sub-cinema')">CINEMA</button>
         <div id="sub-cinema" class="submenu">
             <button class="sub-btn" onfocus="loadJSON('filmes.json')">TODOS OS FILMES</button>
-            <button class="sub-btn" onfocus="filtrar('Adulto')">ADULTO</button>
-            <button class="sub-btn" onfocus="filtrar('Anime')">ANIME</button>
-            <button class="sub-btn" onfocus="filtrar('Animação')">ANIMAÇÃO</button>
-            <button class="sub-btn" onfocus="filtrar('Aventura')">AVENTURA</button>
             <button class="sub-btn" onfocus="filtrar('Ação')">AÇÃO</button>
-            <button class="sub-btn" onfocus="filtrar('Clássicos')">CLÁSSICOS</button>
             <button class="sub-btn" onfocus="filtrar('Comédia')">COMÉDIA</button>
-            <button class="sub-btn" onfocus="filtrar('Documentários')">DOCUMENTÁRIOS</button>
-            <button class="sub-btn" onfocus="filtrar('Dorama')">DORAMA</button>
-            <button class="sub-btn" onfocus="filtrar('Drama')">DRAMA</button>
-            <button class="sub-btn" onfocus="filtrar('Faroeste')">FAROESTE</button>
-            <button class="sub-btn" onfocus="filtrar('Ficção')">FICÇÃO</button>
-            <button class="sub-btn" onfocus="filtrar('Nacional')">NACIONAL</button>
-            <button class="sub-btn" onfocus="filtrar('Policial')">POLICIAL</button>
-            <button class="sub-btn" onfocus="filtrar('Religioso')">RELIGIOSO</button>
-            <button class="sub-btn" onfocus="filtrar('Romance')">ROMANCE</button>
-            <button class="sub-btn" onfocus="filtrar('Suspense')">SUSPENSE</button>
             <button class="sub-btn" onfocus="filtrar('Terror')">TERROR</button>
+            <button class="sub-btn" onfocus="filtrar('Adulto')">ADULTO</button>
         </div>
 
         <button class="main-btn" onfocus="toggleMenu('sub-series', () => loadJSON('series.json'))">SÉRIES</button>
@@ -116,27 +84,28 @@
 <div id="list-container"><div id="list"></div></div>
 
 <div id="player-container">
-    <video id="video" autoplay muted></video>
+    <video id="video" autoplay></video>
     <div id="preview-card">
         <img id="preview-poster" src="">
         <div id="pre-info">
-            <h2 id="pre-title" style="margin:0; font-size:36px; color:var(--primary);"></h2>
-            <p id="pre-desc" style="font-size:18px; color:#ddd; max-width: 750px; margin-top:10px;"></p>
+            <h2 id="pre-title" style="margin:0; font-size:38px; color:var(--primary);"></h2>
+            <p id="pre-desc" style="font-size:18px; color:#fff; max-width: 800px; margin-top:10px;"></p>
         </div>
     </div>
     <div id="overlay-meta">
-        <h1 id="meta-title" style="color:var(--primary); font-size: 50px;"></h1>
+        <h1 id="meta-title" style="color:var(--primary); font-size: 50px; margin:0;"></h1>
         <p id="meta-desc" style="font-size: 20px; line-height: 1.6;"></p>
+        <div id="episodes-container" style="margin-top:20px; display:flex; gap:10px; overflow-x:auto;"></div>
         <div style="margin-top:30px;">
-            <button class="btn-meta" id="btn-play-confirm">ASSISTIR AGORA</button>
+            <button class="btn-meta" id="btn-play-action">ASSISTIR AGORA</button>
             <button class="btn-meta" style="background:#444;" onclick="closeMeta()">VOLTAR</button>
         </div>
     </div>
 </div>
 
 <script>
-const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta'), previewCard=document.getElementById('preview-card'), npTitle=document.getElementById('now-playing-title'), searchInput=document.getElementById('search');
-let hls=null, items=[], focusIndex=0, allData=[];
+const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta'), previewCard=document.getElementById('preview-card'), searchInput=document.getElementById('search');
+let hls=null, items=[], focusIndex=0, zappingTimer=null, allData=[];
 
 function updateClock(){
     const now=new Date();
@@ -145,12 +114,12 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-// Pesquisa
+// Pesquisa com OK para Play
 searchInput.oninput = () => {
     const t = searchInput.value.toLowerCase();
     if(t.length < 2) return;
     const res = allData.filter(i => (i.titulo || i.nome || "").toLowerCase().includes(t));
-    render(res);
+    render(res, true); 
 };
 
 function toggleMenu(id, callback) {
@@ -161,25 +130,21 @@ function toggleMenu(id, callback) {
 }
 
 async function loadJSON(file) {
-    try {
-        const r = await fetch(`data/${file}`);
-        items = await r.json();
-        render();
-    } catch(e){}
+    const r = await fetch(`data/${file}`);
+    items = await r.json();
+    render();
 }
 
 async function loadM3U(file) {
-    try {
-        const r = await fetch(`data/${file}`);
-        if(r.ok) {
-            const txt = await r.text(); items = []; let n='';
-            txt.split('\n').forEach(l => {
-                if(l.startsWith('#EXTINF')) n = l.split(',').pop().trim();
-                else if(l.trim().startsWith('http')) items.push({titulo: n, url: l.trim(), type:'tv'});
-            });
-            render();
-        }
-    } catch(e){}
+    const r = await fetch(`data/${file}`);
+    if(r.ok) {
+        const txt = await r.text(); items = []; let n='';
+        txt.split('\n').forEach(l => {
+            if(l.startsWith('#EXTINF')) n = l.split(',').pop().trim();
+            else if(l.trim().startsWith('http')) items.push({titulo: n, url: l.trim(), type:'tv'});
+        });
+        render();
+    }
 }
 
 async function loadTV() { await loadM3U('canais.m3u'); }
@@ -199,17 +164,20 @@ async function filtrar(gen){
     render();
 }
 
-function render(custom){
+function render(custom, isSearch = false){
     list.innerHTML='';
     const target = custom || items;
     target.forEach((i, idx)=>{
         const d=document.createElement('div');
         d.className='item focusable'; d.innerHTML=`<span>${i.titulo || i.nome}</span>`;
+        
+        // Ação do OK: Play se for canal ou pesquisa, Meta se for filme/série
         d.onclick=()=> {
-            if(i.type === 'tv' || (i.url && i.url.includes('m3u8'))) {
-                play(i.url, i.titulo || i.nome);
-                document.body.classList.add('list-hidden');
-            } else showMeta(i);
+            if(isSearch || i.type === 'tv' || i.url?.includes('m3u8')) {
+                play(i.url || i.link, i.titulo || i.nome);
+            } else {
+                showMeta(i);
+            }
         };
         list.appendChild(d);
     });
@@ -217,11 +185,17 @@ function render(custom){
 }
 
 function showPreview(i) {
-    if(!i || (!i.poster && !i.desc)) { previewCard.style.display='none'; return; }
+    if(!i) return;
     document.getElementById('pre-title').innerText = i.titulo || i.nome;
     document.getElementById('pre-desc').innerText = (i.desc || "").substring(0, 250) + "...";
     document.getElementById('preview-poster').src = i.poster || "";
     previewCard.style.display = 'flex';
+
+    // Zapping Automático para TV (800ms de foco = Play)
+    clearTimeout(zappingTimer);
+    if(i.type === 'tv' || i.url?.includes('m3u8')) {
+        zappingTimer = setTimeout(() => play(i.url, i.titulo || i.nome), 800);
+    }
 }
 
 function showMeta(i){
@@ -229,10 +203,25 @@ function showMeta(i){
     document.getElementById('meta-desc').innerText = i.desc || "";
     overlayMeta.style.display='flex';
     previewCard.style.display = 'none';
-    const btn = document.getElementById('btn-play-confirm');
-    btn.onclick = () => { play(i.url || i.link, i.titulo || i.nome); document.body.classList.add('list-hidden'); closeMeta(); };
+    
+    // Gerar episódios/capítulos se existirem
+    const epCont = document.getElementById('episodes-container');
+    epCont.innerHTML = '';
+    if(i.episodios) {
+        i.episodios.forEach(ep => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-meta focusable';
+            btn.innerText = ep.titulo;
+            btn.onclick = () => { play(ep.url, ep.titulo); closeMeta(); };
+            epCont.appendChild(btn);
+        });
+    }
+
+    const playBtn = document.getElementById('btn-play-action');
+    playBtn.onclick = () => { play(i.url || i.link, i.titulo || i.nome); closeMeta(); };
+    
     refreshFocus();
-    focusIndex = window.focusables.indexOf(btn);
+    focusIndex = window.focusables.indexOf(i.episodios ? epCont.firstChild : playBtn);
     updateFocus();
 }
 
@@ -241,8 +230,6 @@ function closeMeta() { overlayMeta.style.display='none'; refreshFocus(); }
 function play(url, title){
     if(!url) return;
     if(hls) hls.destroy();
-    npTitle.innerText = title;
-    video.muted = false;
     if(url.includes('m3u8')){
         hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, ()=> video.play());
@@ -266,15 +253,6 @@ function updateFocus(){
 }
 
 document.addEventListener('keydown', e=>{
-    // Remove splash se houver interação
-    if(document.getElementById('splash')) {
-        document.getElementById('splash').style.opacity='0';
-        setTimeout(()=>document.getElementById('splash').remove(), 500);
-        return;
-    }
-
-    if(e.key==='Backspace') { document.body.classList.remove('list-hidden'); e.preventDefault(); }
-    
     refreshFocus();
     if(e.key==='ArrowDown'){ focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); }
     if(e.key==='ArrowUp'){ focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; e.preventDefault(); }
@@ -286,22 +264,16 @@ document.addEventListener('keydown', e=>{
         focusIndex = window.focusables.indexOf(document.querySelector('.main-btn.focus') || document.querySelector('.main-btn'));
     }
     if(e.key==='Enter' || e.keyCode === 13){ window.focusables[focusIndex].click(); }
+    if(e.key==='Backspace'){ closeMeta(); e.preventDefault(); }
     updateFocus();
 });
 
 window.onload=async()=>{ 
     await loadTV();
-    // Inicia mudo para garantir o autoplay em navegadores modernos
-    if(items.length > 0) play(items[0].url, items[0].titulo);
-    
-    // FOCO AUTOMÁTICO: Força o seletor no menu lateral assim que abre
-    setTimeout(() => {
-        refreshFocus();
-        focusIndex = window.focusables.indexOf(document.getElementById('first-focus'));
-        updateFocus();
-    }, 500);
-
-    // Cache pesquisa
+    refreshFocus();
+    focusIndex = window.focusables.indexOf(document.getElementById('default-focus'));
+    updateFocus();
+    // Cache total para pesquisa rápida
     ['filmes.json', 'series.json'].forEach(f => fetch(`data/${f}`).then(r => r.json()).then(d => allData.push(...d)).catch(()=>{}));
 };
 </script>
