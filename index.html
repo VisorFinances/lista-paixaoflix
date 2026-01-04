@@ -54,10 +54,10 @@
     <div id="search-box"><input id="search" placeholder="Pesquisar..."></div>
     
     <div id="menu-container">
-        <button id="btn-tv" class="main-btn" onfocus="toggleMenuFocus('sub-tv', loadTV)" onclick="toggleMenuClick('sub-tv')">CANAIS TV</button>
+        <button class="main-btn" onfocus="handleMenuFocus('sub-tv', loadTV)" onclick="toggleSubmenu('sub-tv')">CANAIS TV</button>
         <div id="sub-tv" class="submenu"></div>
 
-        <button id="btn-cinema" class="main-btn" onfocus="toggleMenuFocus('sub-cinema')" onclick="toggleMenuClick('sub-cinema')">CINEMA</button>
+        <button class="main-btn" onfocus="handleMenuFocus('sub-cinema')" onclick="toggleSubmenu('sub-cinema')">CINEMA</button>
         <div id="sub-cinema" class="submenu">
             <button class="sub-btn" onfocus="loadJSON('filmes.json')">TODOS OS FILMES</button>
             <button class="sub-btn" onfocus="filtrar('Adulto')">ADULTO</button>
@@ -80,13 +80,15 @@
             <button class="sub-btn" onfocus="filtrar('Terror')">TERROR</button>
         </div>
 
-        <button id="btn-series" class="main-btn" onfocus="toggleMenuFocus('sub-series', () => loadJSON('series.json'))" onclick="toggleMenuClick('sub-series')">SÉRIES</button>
-        <div id="sub-series" class="submenu"></div>
+        <button class="main-btn" onfocus="handleMenuFocus('sub-series')" onclick="toggleSubmenu('sub-series')">SÉRIES</button>
+        <div id="sub-series" class="submenu">
+             <button class="sub-btn" onfocus="loadJSON('series.json')">TODAS AS SÉRIES</button>
+        </div>
 
-        <button id="btn-kids" class="main-btn" style="background:#0044cc" onfocus="toggleMenuFocus('sub-kids')" onclick="toggleMenuClick('sub-kids')">ÁREA KIDS</button>
+        <button class="main-btn" style="background:#0044cc" onclick="toggleSubmenu('sub-kids')">ÁREA KIDS</button>
         <div id="sub-kids" class="submenu">
-            <button class="sub-btn" onfocus="loadM3U('kids_canais.m3u')">CANAIS KIDS</button>
-            <button class="sub-btn" onfocus="loadKidsAll()">FILMES E SÉRIES KIDS</button>
+            <button class="sub-btn" onclick="loadM3U('kids_canais.m3u')">CANAIS KIDS</button>
+            <button class="sub-btn" onclick="loadKidsAll()">FILMES E SÉRIES KIDS</button>
         </div>
     </div>
 </div>
@@ -106,7 +108,7 @@
 
 <script>
 const video=document.getElementById('video'), list=document.getElementById('list'), previewCard=document.getElementById('preview-card'), searchInput=document.getElementById('search');
-let hls=null, items=[], focusIndex=0, zappingTimer=null, allData=[];
+let hls=null, items=[], focusIndex=0, zappingTimer=null;
 
 function updateClock(){
     const now=new Date();
@@ -115,16 +117,14 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-function toggleMenuFocus(id, callback) {
-    list.innerHTML = ''; previewCard.style.display = 'none';
-    const menu = document.getElementById(id);
-    if (menu.style.display === 'flex') {
-        if(callback) callback();
-    }
+function handleMenuFocus(id, callback) {
+    // Limpa a lista de conteúdos imediatamente ao trocar de menu lateral
+    list.innerHTML = ''; items = []; previewCard.style.display = 'none';
+    if(callback) callback();
     refreshFocus();
 }
 
-function toggleMenuClick(id) {
+function toggleSubmenu(id) {
     const menu = document.getElementById(id);
     const isVisible = menu.style.display === 'flex';
     document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
@@ -167,10 +167,9 @@ async function filtrar(gen){
     render();
 }
 
-function render(custom){
+function render(){
     list.innerHTML='';
-    const target = custom || items;
-    target.forEach((i)=>{
+    items.forEach((i)=>{
         const d=document.createElement('div');
         d.className='item focusable'; d.innerHTML=`<span>${i.titulo || i.nome}</span>`;
         d.onclick=()=> play(i.url || i.link, i.titulo || i.nome);
@@ -227,22 +226,16 @@ document.addEventListener('keydown', e=>{
         if(first) focusIndex = window.focusables.indexOf(first);
     }
     if(e.key==='ArrowLeft' && window.focusables[focusIndex].classList.contains('item')){
-        const currentMenu = document.querySelector('.submenu[style*="display: flex"]');
-        if(currentMenu){
-            const btns = currentMenu.querySelectorAll('.sub-btn');
-            focusIndex = window.focusables.indexOf(btns[0]);
-        }
+        focusIndex = window.focusables.indexOf(document.querySelector('.main-btn.focus') || document.querySelector('.sub-btn.focus') || document.querySelector('.main-btn'));
     }
     if(e.key==='Enter' || e.keyCode === 13){ window.focusables[focusIndex].click(); }
     updateFocus();
 });
 
 window.onload=async()=>{ 
-    await loadTV();
     refreshFocus();
-    focusIndex = window.focusables.indexOf(document.getElementById('btn-tv'));
+    focusIndex = window.focusables.indexOf(document.querySelector('.main-btn'));
     updateFocus();
-    ['filmes.json', 'series.json', 'kids_filmes.json', 'kids_series.json'].forEach(f => fetch(`data/${f}`).then(r => r.json()).then(d => allData.push(...d)).catch(()=>{}));
 };
 </script>
 </body>
