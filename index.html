@@ -36,16 +36,13 @@
     #player-container{flex:1; position:relative; background:#000;}
     video{width:100%; height:100%;}
     
+    /* Card Inferior para Filmes e Séries */
     #preview-card {
         position: absolute; bottom: 0; left: 0; right: 0;
         background: linear-gradient(transparent, rgba(0,0,0,1) 40%); padding: 50px;
         display: none; align-items: flex-end; gap: 30px; z-index: 5;
     }
     #preview-poster { width: 160px; height: 230px; border-radius: 8px; border: 1px solid #555; object-fit: cover; }
-
-    #overlay-meta { position:absolute; inset:0; background:rgba(0,0,0,0.98); display:none; flex-direction:column; justify-content:center; padding:60px; z-index:100; }
-    .btn-meta { padding:15px 40px; font-weight:700; border-radius:8px; border:none; cursor:pointer; margin-right:15px; font-size: 18px; outline:none; color:#fff; background:#222;}
-    .btn-meta.focus { background: var(--primary); box-shadow: 0 0 15px var(--primary); }
 </style>
 </head>
 <body>
@@ -106,19 +103,10 @@
             <p id="pre-desc" style="font-size:18px; color:#fff; max-width: 800px; margin-top:10px;"></p>
         </div>
     </div>
-    <div id="overlay-meta">
-        <h1 id="meta-title" style="color:var(--primary); font-size: 50px; margin:0;"></h1>
-        <p id="meta-desc" style="font-size: 20px; line-height: 1.6;"></p>
-        <div id="episodes-box" style="margin-top:20px; display:flex; gap:10px; overflow-x:auto; padding:10px 0;"></div>
-        <div style="margin-top:30px;">
-            <button class="btn-meta" id="btn-play-action">ASSISTIR AGORA</button>
-            <button class="btn-meta" style="background:#444;" onclick="closeMeta()">VOLTAR</button>
-        </div>
-    </div>
 </div>
 
 <script>
-const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta'), previewCard=document.getElementById('preview-card'), searchInput=document.getElementById('search');
+const video=document.getElementById('video'), list=document.getElementById('list'), previewCard=document.getElementById('preview-card'), searchInput=document.getElementById('search');
 let hls=null, items=[], focusIndex=0, zappingTimer=null, allData=[];
 
 function updateClock(){
@@ -183,58 +171,29 @@ function render(custom, isSearch = false){
     target.forEach((i, idx)=>{
         const d=document.createElement('div');
         d.className='item focusable'; d.innerHTML=`<span>${i.titulo || i.nome}</span>`;
-        d.onclick=()=> {
-            if(isSearch || i.type === 'tv' || i.url?.includes('m3u8')) {
-                play(i.url || i.link, i.titulo || i.nome);
-            } else {
-                showMeta(i);
-            }
-        };
+        d.onclick=()=> { play(i.url || i.link, i.titulo || i.nome); };
         list.appendChild(d);
     });
     refreshFocus();
 }
 
-function showPreview(i) {
+function handleSelection(i) {
     if(!i) return;
-    document.getElementById('pre-title').innerText = i.titulo || i.nome;
-    document.getElementById('pre-desc').innerText = (i.desc || "").substring(0, 300) + "...";
-    document.getElementById('preview-poster').src = i.poster || "";
-    previewCard.style.display = 'flex';
-    
     clearTimeout(zappingTimer);
+
+    // Se for TV: Play Automático e SEM Card
     if(i.type === 'tv' || i.url?.includes('m3u8')) {
-        zappingTimer = setTimeout(() => play(i.url, i.titulo || i.nome), 800);
+        previewCard.style.display = 'none';
+        zappingTimer = setTimeout(() => play(i.url, i.titulo || i.nome), 600);
+    } 
+    // Se for Filme/Série: Mostra o Card e NÃO dá play automático
+    else {
+        document.getElementById('pre-title').innerText = i.titulo || i.nome;
+        document.getElementById('pre-desc').innerText = (i.desc || "").substring(0, 300) + "...";
+        document.getElementById('preview-poster').src = i.poster || "";
+        previewCard.style.display = 'flex';
     }
 }
-
-function showMeta(i){
-    document.getElementById('meta-title').innerText = i.titulo || i.nome;
-    document.getElementById('meta-desc').innerText = i.desc || "";
-    overlayMeta.style.display='flex';
-    previewCard.style.display = 'none';
-    
-    const epBox = document.getElementById('episodes-box');
-    epBox.innerHTML = '';
-    if(i.episodios) {
-        i.episodios.forEach(ep => {
-            const b = document.createElement('button');
-            b.className = 'btn-meta focusable';
-            b.innerText = ep.titulo;
-            b.onclick = () => { play(ep.url, ep.titulo); closeMeta(); };
-            epBox.appendChild(b);
-        });
-    }
-
-    const playBtn = document.getElementById('btn-play-action');
-    playBtn.onclick = () => { play(i.url || i.link, i.titulo || i.nome); closeMeta(); };
-    
-    refreshFocus();
-    focusIndex = window.focusables.indexOf(i.episodios ? epBox.firstChild : playBtn);
-    updateFocus();
-}
-
-function closeMeta() { overlayMeta.style.display='none'; refreshFocus(); }
 
 function play(url, title){
     if(!url) return;
@@ -246,7 +205,7 @@ function play(url, title){
 }
 
 function refreshFocus(){
-    window.focusables = [searchInput, ...document.querySelectorAll('.main-btn, .sub-btn, .item, .btn-meta')].filter(e => e.offsetParent !== null);
+    window.focusables = [searchInput, ...document.querySelectorAll('.main-btn, .sub-btn, .item')].filter(e => e.offsetParent !== null);
 }
 
 function updateFocus(){
@@ -256,7 +215,7 @@ function updateFocus(){
         el.scrollIntoView({block:'center', behavior:'smooth'});
         if(el.classList.contains('item')) {
             const idx = Array.from(document.querySelectorAll('.item')).indexOf(el);
-            showPreview(items[idx]);
+            handleSelection(items[idx]);
         }
     }
 }
@@ -273,7 +232,6 @@ document.addEventListener('keydown', e=>{
         focusIndex = window.focusables.indexOf(document.querySelector('.main-btn.focus') || document.querySelector('.main-btn'));
     }
     if(e.key==='Enter' || e.keyCode === 13){ window.focusables[focusIndex].click(); }
-    if(e.key==='Backspace'){ closeMeta(); e.preventDefault(); }
     updateFocus();
 });
 
