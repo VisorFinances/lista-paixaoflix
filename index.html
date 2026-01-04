@@ -4,112 +4,108 @@
 <meta charset="utf-8">
 <title>PaixãoFlix VIP</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 <style>
     :root { --primary: #e50914; --bg: #0a0a0a; --focus: #fff; }
     body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
     
-    /* Splash Screen - Abertura */
-    #splash { position:fixed; inset:0; background:#000; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.8s ease; }
-    #splash img { width: 250px; animation: pulse 2s infinite ease-in-out; }
-    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } }
+    /* Splash Screen */
+    #splash { position:fixed; inset:0; background:#000; z-index:9999; display:flex; align-items:center; justify-content:center; transition: 0.8s; }
+    #splash img { width: 250px; }
 
-    /* Indicador de Carregamento (Spinner) */
-    #loader { position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); display:none; z-index:50; }
-    .spinner { width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-    /* Layout Estrutural */
+    /* Header Original */
     #side{width:320px;background:var(--bg);display:flex;flex-direction:column;z-index:20;border-right:1px solid #222;}
-    #header-container { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid #222; }
-    #logo{max-width:110px; height: auto;}
-    #clock { font-size: 16px; font-weight: 700; color: var(--primary); }
+    #header-container { display: flex; align-items: center; justify-content: space-between; padding: 20px; border-bottom: 1px solid #222; }
+    #logo{max-width:120px; height: auto;}
+    #time-info { text-align: right; line-height: 1.1; }
+    #clock { font-size: 18px; font-weight: 700; color: #fff; }
+    #date { font-size: 10px; opacity: 0.7; color: #fff; text-transform: uppercase; }
 
-    #search-box { padding: 10px 15px; }
-    #search{width:100%; height:32px; box-sizing:border-box; padding:0 10px; border-radius:4px; border:1px solid #333; background:#111; color:#fff; outline:none; font-size: 13px;}
+    #search-box { padding: 15px; }
+    #search{width:100%; height:35px; box-sizing:border-box; padding:0 12px; border-radius:6px; border:1px solid #333; background:#111; color:#fff; outline:none;}
     #search.focus { border-color: var(--primary); outline: 2px solid var(--focus); }
 
-    #now-playing-box { padding: 5px 15px; background: #000; border-bottom: 1px solid #222; font-size: 10px; min-height: 30px;}
-    #now-playing-title { color: #fff; font-weight: 700; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #now-playing-box { padding: 5px 15px; background: #111; border-bottom: 1px solid #222; font-size: 10px; min-height: 25px;}
+    #now-playing-title { color: var(--primary); font-weight: 700; }
 
-    #menu-container{flex:1; overflow-y:auto; padding:0 10px; scrollbar-width: none;}
-    .main-btn { width: 100%; padding: 10px; text-align: left; background: #1a1a1a; border: none; color: #fff; font-weight: 700; cursor: pointer; border-radius: 4px; margin-bottom:4px; font-size: 14px; outline:none;}
+    #menu-container{flex:1; overflow-y:auto; padding:0 15px; scrollbar-width: none;}
+    .main-btn { width: 100%; padding: 12px; text-align: left; background: #1a1a1a; border: none; color: #fff; font-weight: 700; cursor: pointer; border-radius: 6px; margin-bottom:5px; font-size: 15px; outline:none;}
     .main-btn.focus { background: var(--primary); }
     
-    .submenu { display: none; background: #111; flex-direction: column; margin-bottom: 8px; border-left: 2px solid var(--primary); }
-    .sub-btn { width: 100%; padding: 8px 15px; text-align: left; background: transparent; border: none; color: #888; cursor: pointer; font-size: 13px; outline: none; }
+    .submenu { display: none; background: #111; flex-direction: column; margin-bottom: 10px; border-left: 2px solid var(--primary); }
+    .sub-btn { width: 100%; padding: 10px 20px; text-align: left; background: transparent; border: none; color: #aaa; cursor: pointer; outline: none; }
     .sub-btn.focus { color: #fff; background: #222; }
 
     #list-container{width: 280px; background: #050505; border-left: 1px solid #222; overflow: hidden; transition: 0.3s;}
     #list{height:100%; overflow-y:auto; scrollbar-width: none;}
-    .item{padding:12px 15px; border-bottom:1px solid #111; cursor:pointer; font-size:13px; outline:none;}
+    .item{padding:15px; border-bottom:1px solid #111; cursor:pointer; font-size:14px; outline:none;}
     .item.focus{ background: var(--primary); color: #fff; font-weight: bold; }
 
     body.list-hidden #list-container { width: 0; border: none; }
 
+    /* Player e Card Inferior */
     #player-container{flex:1; position:relative; background:#000;}
     video{width:100%; height:100%;}
     
-    #volume-card { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; display: none; align-items: center; gap: 10px; border: 1px solid #333; z-index: 1000; }
-    #vol-bar-bg { width: 150px; height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
-    #vol-bar-fill { width: 50%; height: 100%; background: var(--primary); transition: 0.1s; }
+    #preview-card {
+        position: absolute; bottom: 30px; left: 30px; right: 30px;
+        background: rgba(0,0,0,0.9); padding: 20px; border-radius: 12px;
+        display: none; border: 1px solid #444; align-items: center; gap: 20px; z-index: 5;
+    }
+    #preview-poster { width: 100px; height: 150px; border-radius: 6px; object-fit: cover; }
 
-    #overlay-meta { position:absolute; inset:0; background:rgba(0,0,0,0.95); display:none; flex-direction:column; justify-content:center; padding:50px; z-index:100; }
-    .btn-meta { padding:12px 30px; font-weight:700; border-radius:4px; border:none; cursor:pointer; margin-right:10px; font-size: 14px; }
-    .btn-meta.focus { background: var(--primary); color: #fff; outline: 2px solid #fff; }
+    #overlay-meta { position:absolute; inset:0; background:rgba(0,0,0,0.97); display:none; flex-direction:column; justify-content:center; padding:60px; z-index:100; }
+    .btn-meta { padding:15px 35px; font-weight:700; border-radius:8px; border:none; cursor:pointer; margin-right:15px; font-size: 16px; outline:none; }
+    .btn-meta.focus { background: var(--primary); color: #fff; outline: 3px solid #fff; }
 </style>
 </head>
 <body>
 
-<div id="splash">
-    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" alt="PaixãoFlix Logo">
-    <p style="margin-top:20px; letter-spacing: 2px; font-size: 12px; opacity: 0.6;">CARREGANDO SISTEMA...</p>
-</div>
+<div id="splash"><img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png"></div>
 
 <div id="side">
     <div id="header-container">
         <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
-        <div id="clock">00:00</div>
+        <div id="time-info"><div id="clock">00:00</div><div id="date">04 JAN</div></div>
     </div>
-    <div id="search-box"><input id="search" placeholder="Pesquisar em tudo..."></div>
-    <div id="now-playing-box">ASSISTINDO: <span id="now-playing-title">Nenhum conteúdo</span></div>
+    <div id="search-box"><input id="search" placeholder="Pesquisar..."></div>
+    <div id="now-playing-box">AGORA: <span id="now-playing-title">-</span></div>
     
     <div id="menu-container">
-        <button class="main-btn" onfocus="toggleMenu('sub-tv', loadTV)">CANAIS TV</button>
+        <button class="main-btn" onclick="toggleMenu('sub-tv', loadTV)">CANAIS TV</button>
         <div id="sub-tv" class="submenu"></div>
 
-        <button class="main-btn" onfocus="toggleMenu('sub-cinema')">CINEMA</button>
+        <button class="main-btn" onclick="toggleMenu('sub-cinema')">CINEMA</button>
         <div id="sub-cinema" class="submenu">
-            <button class="sub-btn" onfocus="loadJSON('filmes.json')">TODOS OS FILMES</button>
-            <button class="sub-btn" onfocus="filtrar('Adulto')">ADULTO</button>
-            <button class="sub-btn" onfocus="filtrar('Anime')">ANIME</button>
-            <button class="sub-btn" onfocus="filtrar('Animação')">ANIMAÇÃO</button>
-            <button class="sub-btn" onfocus="filtrar('Aventura')">AVENTURA</button>
-            <button class="sub-btn" onfocus="filtrar('Ação')">AÇÃO</button>
-            <button class="sub-btn" onfocus="filtrar('Clássicos')">CLÁSSICOS</button>
-            <button class="sub-btn" onfocus="filtrar('Comédia')">COMÉDIA</button>
-            <button class="sub-btn" onfocus="filtrar('Documentários')">DOCUMENTÁRIOS</button>
-            <button class="sub-btn" onfocus="filtrar('Dorama')">DORAMA</button>
-            <button class="sub-btn" onfocus="filtrar('Drama')">DRAMA</button>
-            <button class="sub-btn" onfocus="filtrar('Faroeste')">FAROESTE</button>
-            <button class="sub-btn" onfocus="filtrar('Ficção')">FICÇÃO</button>
-            <button class="sub-btn" onfocus="filtrar('Nacional')">NACIONAL</button>
-            <button class="sub-btn" onfocus="filtrar('Policial')">POLICIAL</button>
-            <button class="sub-btn" onfocus="filtrar('Religioso')">RELIGIOSO</button>
-            <button class="sub-btn" onfocus="filtrar('Romance')">ROMANCE</button>
-            <button class="sub-btn" onfocus="filtrar('Suspense')">SUSPENSE</button>
-            <button class="sub-btn" onfocus="filtrar('Terror')">TERROR</button>
+            <button class="sub-btn" onclick="loadJSON('filmes.json')">TODOS OS FILMES</button>
+            <button class="sub-btn" onclick="filtrar('Adulto')">ADULTO</button>
+            <button class="sub-btn" onclick="filtrar('Anime')">ANIME</button>
+            <button class="sub-btn" onclick="filtrar('Animação')">ANIMAÇÃO</button>
+            <button class="sub-btn" onclick="filtrar('Aventura')">AVENTURA</button>
+            <button class="sub-btn" onclick="filtrar('Ação')">AÇÃO</button>
+            <button class="sub-btn" onclick="filtrar('Clássicos')">CLÁSSICOS</button>
+            <button class="sub-btn" onclick="filtrar('Comédia')">COMÉDIA</button>
+            <button class="sub-btn" onclick="filtrar('Documentários')">DOCUMENTÁRIOS</button>
+            <button class="sub-btn" onclick="filtrar('Dorama')">DORAMA</button>
+            <button class="sub-btn" onclick="filtrar('Drama')">DRAMA</button>
+            <button class="sub-btn" onclick="filtrar('Faroeste')">FAROESTE</button>
+            <button class="sub-btn" onclick="filtrar('Ficção')">FICÇÃO</button>
+            <button class="sub-btn" onclick="filtrar('Nacional')">NACIONAL</button>
+            <button class="sub-btn" onclick="filtrar('Policial')">POLICIAL</button>
+            <button class="sub-btn" onclick="filtrar('Religioso')">RELIGIOSO</button>
+            <button class="sub-btn" onclick="filtrar('Romance')">ROMANCE</button>
+            <button class="sub-btn" onclick="filtrar('Suspense')">SUSPENSE</button>
+            <button class="sub-btn" onclick="filtrar('Terror')">TERROR</button>
         </div>
 
-        <button class="main-btn" onfocus="toggleMenu('sub-series', () => loadJSON('series.json'))">SÉRIES</button>
+        <button class="main-btn" onclick="toggleMenu('sub-series', () => loadJSON('series.json'))">SÉRIES</button>
         <div id="sub-series" class="submenu"></div>
 
-        <button class="main-btn" style="background:#0044cc" onfocus="toggleMenu('sub-kids')">ÁREA KIDS</button>
+        <button class="main-btn" style="background:#0044cc" onclick="toggleMenu('sub-kids')">ÁREA KIDS</button>
         <div id="sub-kids" class="submenu">
-            <button class="sub-btn" onfocus="loadM3U('kids_canais.m3u')">CANAIS KIDS</button>
-            <button class="sub-btn" onfocus="loadKidsAll()">FILMES/SÉRIES KIDS</button>
+            <button class="sub-btn" onclick="loadM3U('kids_canais.m3u')">CANAIS KIDS</button>
+            <button class="sub-btn" onclick="loadKidsAll()">FILMES/SÉRIES KIDS</button>
         </div>
     </div>
 </div>
@@ -117,87 +113,87 @@
 <div id="list-container"><div id="list"></div></div>
 
 <div id="player-container">
-    <div id="loader"><div class="spinner"></div></div>
     <video id="video" autoplay></video>
     
-    <div id="volume-card">
-        <span style="font-size:12px; font-weight:700;">VOL</span>
-        <div id="vol-bar-bg"><div id="vol-bar-fill"></div></div>
+    <div id="preview-card">
+        <img id="preview-poster" src="">
+        <div><h2 id="pre-title" style="margin:0; font-size:22px; color:var(--primary);"></h2><p id="pre-desc" style="font-size:14px; color:#ccc;"></p></div>
     </div>
 
     <div id="overlay-meta">
-        <h1 id="meta-title" style="color:var(--primary); margin:0;"></h1>
-        <p id="meta-desc" style="max-width:600px; font-size:16px;"></p>
+        <h1 id="meta-title" style="color:var(--primary);"></h1>
+        <p id="meta-desc"></p>
         <div style="margin-top:20px;">
-            <button class="btn-meta" id="btn-start">ASSISTIR AGORA</button>
-            <button class="btn-meta" style="background:#333; color:#fff;" id="btn-close">VOLTAR</button>
+            <button class="btn-meta" id="btn-play-now">ASSISTIR AGORA</button>
+            <button class="btn-meta" style="background:#444;" onclick="closeMeta()">VOLTAR</button>
         </div>
     </div>
 </div>
 
 <script>
-const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta'), searchInput=document.getElementById('search'), npTitle=document.getElementById('now-playing-title'), volCard=document.getElementById('volume-card'), volFill=document.getElementById('vol-bar-fill'), loader=document.getElementById('loader');
-let hls=null, items=[], focusIndex=0, allData=[];
+const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta'), previewCard=document.getElementById('preview-card'), npTitle=document.getElementById('now-playing-title');
+let hls=null, items=[], focusIndex=0;
 
 function updateClock(){
-    document.getElementById('clock').innerText=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const now=new Date();
+    document.getElementById('clock').innerText=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('date').innerText=now.toLocaleDateString('pt-BR',{day:'2-digit', month:'short'}).toUpperCase();
 }
 setInterval(updateClock,1000); updateClock();
 
-// Eventos do Vídeo para o Spinner
-video.addEventListener('waiting', () => loader.style.display = 'block');
-video.addEventListener('playing', () => loader.style.display = 'none');
-video.addEventListener('canplay', () => loader.style.display = 'none');
+// Toggle Menu corrigido: Abre e Fecha
+function toggleMenu(id, callback) {
+    const el = document.getElementById(id);
+    const isVisible = el.style.display === 'flex';
+    document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
+    el.style.display = isVisible ? 'none' : 'flex';
+    if(!isVisible && callback) callback();
+    refreshFocus();
+}
 
 async function loadJSON(file) {
-    try {
-        const r = await fetch(`data/${file}`);
-        items = await r.json();
-        render();
-    } catch(e) {}
+    const r = await fetch(`data/${file}`);
+    items = await r.json();
+    render();
 }
 
 async function loadM3U(file) {
-    try {
-        const r = await fetch(`data/${file}`);
-        if(r.ok) {
-            const txt = await r.text();
-            items = []; let n='';
-            txt.split('\n').forEach(l => {
-                if(l.startsWith('#EXTINF')) n = l.split(',').pop().trim();
-                else if(l.trim().startsWith('http')) items.push({titulo: n, url: l.trim(), tipo:'tv'});
-            });
-            render();
-        }
-    } catch(e){}
+    const r = await fetch(`data/${file}`);
+    if(r.ok) {
+        const txt = await r.text(); items = []; let n='';
+        txt.split('\n').forEach(l => {
+            if(l.startsWith('#EXTINF')) n = l.split(',').pop().trim();
+            else if(l.trim().startsWith('http')) items.push({titulo: n, url: l.trim(), type:'tv'});
+        });
+        render();
+    }
 }
 
 async function loadTV() { await loadM3U('canais.m3u'); }
 
 async function loadKidsAll() {
-    try {
-        const [f, s] = await Promise.all([fetch('data/kids_filmes.json'), fetch('data/kids_series.json')]);
-        const d1 = await f.json(); const d2 = await s.json();
-        items = [...d1, ...d2]; render();
-    } catch(e){}
+    const [f, s] = await Promise.all([fetch('data/kids_filmes.json'), fetch('data/kids_series.json')]);
+    items = [];
+    if(f.ok) { const d = await f.json(); items.push(...d); }
+    if(s.ok) { const d = await s.json(); items.push(...d); }
+    render();
 }
 
 async function filtrar(gen){
     const r = await fetch('data/filmes.json');
-    const data = await r.json();
-    items = data.filter(f => f.genero === gen);
+    const d = await r.json();
+    items = d.filter(f => f.genero === gen);
     render();
 }
 
-function render(custom){
+function render(){
     list.innerHTML='';
-    const target = custom || items;
-    target.forEach((i)=>{
+    items.forEach((i, idx)=>{
         const d=document.createElement('div');
         d.className='item focusable'; d.innerHTML=`<span>${i.titulo || i.nome}</span>`;
         d.onclick=()=> {
-            if(i.tipo === 'tv' || i.url?.includes('m3u8') || i.url?.includes('.mp4')) {
-                play(i.url || i.link, i.titulo || i.nome);
+            if(i.type === 'tv' || (i.url && i.url.includes('m3u8'))) {
+                play(i.url, i.titulo || i.nome);
                 document.body.classList.add('list-hidden');
             } else showMeta(i);
         };
@@ -206,87 +202,76 @@ function render(custom){
     refreshFocus();
 }
 
+function showPreview(i) {
+    if(!i.poster) { previewCard.style.display='none'; return; }
+    document.getElementById('pre-title').innerText = i.titulo || i.nome;
+    document.getElementById('pre-desc').innerText = (i.desc || "").substring(0, 100) + "...";
+    document.getElementById('preview-poster').src = i.poster;
+    previewCard.style.display = 'flex';
+}
+
+function showMeta(i){
+    document.getElementById('meta-title').innerText = i.titulo || i.nome;
+    document.getElementById('meta-desc').innerText = i.desc || "";
+    overlayMeta.style.display='flex';
+    document.getElementById('btn-play-now').onclick = () => {
+        play(i.url || i.link, i.titulo || i.nome);
+        document.body.classList.add('list-hidden');
+        closeMeta();
+    };
+    refreshFocus();
+    focusIndex = window.focusables.indexOf(document.getElementById('btn-play-now'));
+    updateFocus();
+}
+
+function closeMeta() { overlayMeta.style.display='none'; refreshFocus(); }
+
 function play(url, title){
     if(!url) return;
-    loader.style.display = 'block';
     if(hls) hls.destroy();
     npTitle.innerText = title;
     if(url.includes('m3u8')){
         hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, ()=> video.play());
     } else { video.src=url; video.play(); }
-    overlayMeta.style.display = 'none';
-}
-
-function showMeta(i){
-    document.getElementById('meta-title').innerText = i.titulo || i.nome;
-    document.getElementById('meta-desc').innerText = i.desc || "Sem sinopse disponível.";
-    overlayMeta.style.display='flex';
-    refreshFocus();
-    focusIndex = window.focusables.indexOf(document.getElementById('btn-start'));
-    updateFocus();
-    document.getElementById('btn-start').onclick = () => { play(i.url || i.link, i.titulo || i.nome); document.body.classList.add('list-hidden'); };
-    document.getElementById('btn-close').onclick = () => { overlayMeta.style.display='none'; refreshFocus(); };
-}
-
-function toggleMenu(id, callback) {
-    document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
-    document.getElementById(id).style.display = 'flex';
-    if(callback) callback();
 }
 
 function refreshFocus(){
-    window.focusables = [searchInput, ...document.querySelectorAll('.main-btn, .sub-btn, .item, .btn-meta')].filter(e => e.offsetParent !== null);
+    window.focusables = [...document.querySelectorAll('.main-btn, .sub-btn, .item, .btn-meta')].filter(e => e.offsetParent !== null);
 }
 
 function updateFocus(){
     window.focusables.forEach((f,i)=>f.classList.toggle('focus', i===focusIndex));
     const el = window.focusables[focusIndex];
-    if(el) el.scrollIntoView({block:'center', behavior:'smooth'});
-}
-
-let volTimeout;
-function changeVol(dir) {
-    let v = video.volume + (dir * 0.1);
-    if(v > 1) v = 1; if(v < 0) v = 0;
-    video.volume = v;
-    volFill.style.width = (v * 100) + '%';
-    volCard.style.display = 'flex';
-    clearTimeout(volTimeout);
-    volTimeout = setTimeout(()=> volCard.style.display='none', 2000);
+    if(el) {
+        el.scrollIntoView({block:'center', behavior:'smooth'});
+        if(el.classList.contains('item')) {
+            const idx = Array.from(document.querySelectorAll('.item')).indexOf(el);
+            showPreview(items[idx]);
+        }
+    }
 }
 
 document.addEventListener('keydown', e=>{
     if(e.key==='Backspace') { document.body.classList.remove('list-hidden'); e.preventDefault(); }
-    if(document.body.classList.contains('list-hidden')) {
-        if(e.key==='ArrowRight') { changeVol(1); e.preventDefault(); }
-        if(e.key==='ArrowLeft') { changeVol(-1); e.preventDefault(); }
-    }
     refreshFocus();
-    let cur = window.focusables[focusIndex];
     if(e.key==='ArrowDown'){ focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); }
     if(e.key==='ArrowUp'){ focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; e.preventDefault(); }
-    if(e.key==='ArrowRight' && !cur.classList.contains('item')){
+    if(e.key==='ArrowRight' && !window.focusables[focusIndex].classList.contains('item')){
         const first = document.querySelector('.item');
         if(first) focusIndex = window.focusables.indexOf(first);
     }
-    if(e.key==='ArrowLeft' && cur.classList.contains('item')){
+    if(e.key==='ArrowLeft' && window.focusables[focusIndex].classList.contains('item')){
         focusIndex = window.focusables.indexOf(document.querySelector('.main-btn.focus') || document.querySelector('.main-btn'));
     }
-    if(e.key==='Enter'){ cur.click(); }
+    if(e.key==='Enter'){ window.focusables[focusIndex].click(); }
     updateFocus();
 });
 
 window.onload=async()=>{ 
     await loadTV();
     if(items.length > 0) play(items[0].url, items[0].titulo);
-    
-    // Esconde o Splash após o carregamento inicial (3 segundos para impacto visual)
-    setTimeout(() => {
-        const splash = document.getElementById('splash');
-        splash.style.opacity = '0';
-        setTimeout(() => splash.style.display = 'none', 800);
-    }, 3000);
+    setTimeout(() => { document.getElementById('splash').style.opacity='0'; setTimeout(()=>document.getElementById('splash').remove(), 800); }, 3000);
 };
 </script>
 </body>
