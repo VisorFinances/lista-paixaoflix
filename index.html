@@ -38,12 +38,11 @@
     .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;outline:none;}
     .item.focus{border-left-color:var(--primary); background:rgba(255,255,255,0.05);}
     .fav-icon{opacity:0.3; font-size:18px;}
-    .is-fav .fav-icon{color: var(--primary); opacity: 1;}
 
     #player{flex:1;position:relative;background:#000;}
     video{width:100%;height:100%;}
 
-    #overlay-meta{position:absolute;top:0;left:0;width:100%;height:100%;background-color:#000;background-size:cover;background-position:center right;display:none;flex-direction:column;justify-content:center;padding:60px;box-sizing:border-box;z-index:50;}
+    #overlay-meta{position:absolute;top:0;left:0;width:100%;height:100%;background-color:#000;background-size:cover;background-position:center right;display:none;flex-direction:column;justify-content:center;padding:60px;box-sizing:border-box;}
     #overlay-meta::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg, #000 45%, transparent 100%);z-index:1;}
     #overlay-meta * {z-index:2; position:relative;}
     #overlay-meta h1{font-size:50px;margin:0;max-width:600px;}
@@ -66,12 +65,9 @@
         </div>
         <input id="search" placeholder="Pesquisar...">
     </div>
-    
     <div id="now-playing-bar">
-        <svg class="play-icon-small" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        <span>Assistindo: <b id="current-title">Nenhum</b></span>
+        <span>Assistindo agora: <b id="current-title">Nenhum conteúdo</b></span>
     </div>
-
     <div id="buttons">
         <button id="btnTV">TV</button>
         <button id="btnFilmes">FILMES</button>
@@ -82,13 +78,13 @@
 </div>
 
 <div id="player">
-    <video id="video" controls autoplay></video>
+    <video id="video" autoplay></video>
     <div id="overlay-meta">
         <h1 id="meta-title"></h1>
         <div class="meta-extra">★ <span id="meta-rating">--</span> | <span id="meta-year">----</span></div>
         <p id="meta-desc"></p>
         <div style="display:flex;margin-top:20px;">
-            <button class="btn-meta btn-play" id="btn-start">ASSISTIR</button>
+            <button class="btn-meta btn-play" id="btn-start">ASSISTIR AGORA</button>
             <button class="btn-meta btn-back" id="btn-close">VOLTAR</button>
         </div>
     </div>
@@ -97,7 +93,7 @@
 <script>
 const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta');
 const currentTitleEl = document.getElementById('current-title');
-let hls=null, items=[], mode='tv', focusIndex=0, currentSerieEpisodes=null;
+let hls=null, items=[], mode='tv', focusIndex=0;
 
 function updateClock(){
     const now=new Date();
@@ -109,48 +105,35 @@ setInterval(updateClock,1000); updateClock();
 function play(url, title){
     if(!url) return;
     currentTitleEl.innerText = title; 
+    if(hls){hls.destroy(); hls=null;}
     
-    if(hls){ hls.destroy(); hls=null; }
-    video.pause();
-    video.removeAttribute('src');
-    video.load();
-
-    if(url.includes('.m3u8')){
-        if(Hls.isSupported()){
-            hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
-        } else { video.src = url; }
+    // Suporte HLS e MP4
+    if(url.includes('.m3u8') && Hls.isSupported()){
+        hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
     } else {
-        video.src = url;
+        video.src=url;
     }
     video.play().catch(()=>{});
     overlayMeta.style.display='none';
 }
 
 async function loadJSON(m, file){
-    mode=m; currentSerieEpisodes=null;
-    setActive('btn'+m.charAt(0).toUpperCase()+m.slice(1));
+    mode=m;
     try {
-        const res = await fetch(file + '?v=' + Date.now());
+        const res = await fetch(file);
         items = await res.json();
         render();
-    } catch(e) { items=[]; render(); }
+    } catch(e){ console.error("Erro ao carregar", file); }
 }
 
 function render(){
     list.innerHTML='';
-    const displayList = currentSerieEpisodes || items;
-    
-    if(currentSerieEpisodes){
-        const b=document.createElement('div'); b.className='item focusable'; b.innerHTML='<b>⬅ VOLTAR</b>';
-        b.onclick=()=>{currentSerieEpisodes=null; render();}; list.appendChild(b);
-    }
-
-    displayList.forEach((i, idx)=>{
+    items.forEach((i, idx)=>{
         const d=document.createElement('div');
         d.className = 'item focusable';
-        d.innerHTML = `<span>${i.nome || i.titulo}</span>`;
+        d.innerHTML = `<span>${i.nome}</span>`;
         d.onclick = () => {
-            if(currentSerieEpisodes || mode==='tv') play(i.url, i.nome || i.titulo);
+            if(mode === 'tv') play(i.url, i.nome);
             else showMeta(i);
         };
         list.appendChild(d);
@@ -160,20 +143,16 @@ function render(){
 
 function showMeta(i){
     document.getElementById('meta-title').innerText = i.nome;
-    document.getElementById('meta-desc').innerText = i.desc || "";
+    document.getElementById('meta-desc').innerText = i.desc;
     document.getElementById('meta-rating').innerText = i.rating || "8.5";
     document.getElementById('meta-year').innerText = i.year || "2024";
-    overlayMeta.style.backgroundImage = `url(${i.poster || ''})`;
+    overlayMeta.style.backgroundImage = `url(${i.poster})`;
     overlayMeta.style.display = 'flex';
     
     document.getElementById('btn-start').onclick = () => {
-        if(i.episodios && i.episodios.length > 0){
-            currentSerieEpisodes = i.episodios;
-            overlayMeta.style.display='none';
-            render();
-        } else if(i.url) {
-            play(i.url, i.nome);
-        }
+        // Se for série, toca o primeiro episódio ou o link direto se for filme
+        const videoUrl = (i.episodios && i.episodios.length > 0) ? i.episodios[0].url : i.url;
+        play(videoUrl, i.nome);
     };
 }
 
@@ -183,19 +162,14 @@ function refreshFocus(){
 
 document.addEventListener('keydown', e=>{
     refreshFocus();
-    if(e.key==='ArrowDown') { focusIndex=(focusIndex+1)%window.focusables.length; updateFocus(); e.preventDefault(); }
-    if(e.key==='ArrowUp') { focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; updateFocus(); e.preventDefault(); }
+    if(e.key==='ArrowDown') { focusIndex=(focusIndex+1)%window.focusables.length; updateFocus(); }
+    if(e.key==='ArrowUp') { focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; updateFocus(); }
     if(e.key==='Enter') { window.focusables[focusIndex].click(); }
 });
 
 function updateFocus(){
     window.focusables.forEach((f,i)=>f.classList.toggle('focus', i===focusIndex));
     window.focusables[focusIndex]?.scrollIntoView({block:'center'});
-}
-
-function setActive(id){
-    document.querySelectorAll('#buttons button').forEach(b=>b.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
 }
 
 document.getElementById('btnTV').onclick=()=>loadJSON('tv','canais.json');
