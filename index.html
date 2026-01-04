@@ -92,6 +92,7 @@ setInterval(updateClock,1000); updateClock();
 
 function clearList() { items = []; list.innerHTML = ''; previewCard.style.display = 'none'; }
 
+// Quando digita na pesquisa, a lista renderiza e o card de preview foca no primeiro resultado
 searchInput.oninput = () => {
     const t = searchInput.value.toLowerCase().trim();
     if(t.length === 0) { isTVMode=true; loadTV(); return; }
@@ -99,6 +100,7 @@ searchInput.oninput = () => {
         isTVMode=false;
         items = allData.filter(i => (i.titulo || i.nome || "").toLowerCase().includes(t));
         render();
+        if(items.length > 0) handleSelection(items[0]); // Preview imediato do 1º resultado
     }
 };
 
@@ -155,8 +157,8 @@ function render(){
             } else {
                 play(i.url || i.link, i.titulo || i.nome);
                 if(isFromSearch) {
-                    searchInput.value = ''; // Limpa a busca
-                    isTVMode = true; // Volta para o modo TV padrão após limpar
+                    searchInput.value = '';
+                    isTVMode = true;
                 }
             }
         };
@@ -165,15 +167,19 @@ function render(){
     refreshFocus();
 }
 
+// Lógica de Preview (Capa + Info)
 function handleSelection(i) {
     if(!i) return;
     clearTimeout(zappingTimer);
+    
+    // Mostra o card de preview para qualquer item que não seja canal de TV puro
     if(i.type !== 'tv' && !i.url?.includes('m3u8')) {
         document.getElementById('pre-title').innerText = i.titulo || i.nome;
-        document.getElementById('pre-desc').innerText = i.desc ? i.desc.substring(0, 250) + "..." : "Descrição não disponível.";
+        document.getElementById('pre-desc').innerText = i.desc ? i.desc.substring(0, 250) + "..." : "Descrição disponível em breve.";
         document.getElementById('preview-poster').src = i.poster || "";
         previewCard.style.display = 'flex';
     } else {
+        // Se for canal de TV, oculta o card e ativa o zapping automático
         previewCard.style.display = 'none';
         zappingTimer = setTimeout(() => play(i.url, i.titulo || i.nome), 600);
     }
@@ -198,7 +204,7 @@ function updateFocus(){
         if(el.classList.contains('item')) {
             el.scrollIntoView({block:'center', behavior:'smooth'});
             const idx = Array.from(document.querySelectorAll('.item')).indexOf(el);
-            handleSelection(items[idx]);
+            handleSelection(items[idx]); // ESSENCIAL: Atualiza o preview ao navegar na lista de pesquisa
         }
     }
 }
