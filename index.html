@@ -44,7 +44,7 @@
         <button class="main-btn" id="btn-tv" onfocus="handleCategoryFocus('sub-tv', loadTV)">CANAIS TV</button>
         <div id="sub-tv" class="submenu"></div>
 
-        <button class="main-btn" id="cinema-btn">CINEMA</button>
+        <button class="main-btn" id="cinema-btn" onfocus="clearList()">CINEMA</button>
         <div id="sub-cinema" class="submenu">
             <button class="sub-btn" onfocus="loadJSON('filmes.json')">TODOS OS FILMES</button>
             <button class="sub-btn" onfocus="filtrar('Adulto')">ADULTO</button>
@@ -67,12 +67,12 @@
             <button class="sub-btn" onfocus="filtrar('Terror')">TERROR</button>
         </div>
 
-        <button class="main-btn" id="series-btn">SÉRIES</button>
+        <button class="main-btn" id="series-btn" onfocus="clearList()">SÉRIES</button>
         <div id="sub-series" class="submenu">
              <button class="sub-btn" onfocus="loadJSON('series.json')">TODAS AS SÉRIES</button>
         </div>
 
-        <button class="main-btn" id="kids-btn" style="background:#0044cc">ÁREA KIDS</button>
+        <button class="main-btn" id="kids-btn" style="background:#0044cc" onfocus="clearList()">ÁREA KIDS</button>
         <div id="sub-kids" class="submenu">
             <button class="sub-btn" onfocus="loadM3U('kids_canais.m3u')">CANAIS KIDS</button>
             <button class="sub-btn" onfocus="loadKidsAll()">FILMES E SÉRIES KIDS</button>
@@ -96,6 +96,12 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
+function clearList() {
+    items = [];
+    list.innerHTML = '';
+    previewCard.style.display = 'none';
+}
+
 searchInput.oninput = () => {
     const t = searchInput.value.toLowerCase().trim();
     if(t.length === 0) { isTVMode=true; loadTV(); return; }
@@ -107,7 +113,7 @@ searchInput.oninput = () => {
 };
 
 function handleCategoryFocus(id, callback) {
-    list.innerHTML = ''; previewCard.style.display = 'none';
+    clearList();
     isTVMode = (id === 'sub-tv');
     if(callback) callback();
     refreshFocus();
@@ -116,8 +122,11 @@ function handleCategoryFocus(id, callback) {
 function toggleMenu(id) {
     const menu = document.getElementById(id);
     const isVisible = menu.style.display === 'flex';
-    document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.submenu').forEach(s => {
+        if(s.id !== id) s.style.display = 'none';
+    });
     menu.style.display = isVisible ? 'none' : 'flex';
+    if(menu.style.display === 'none') clearList();
     refreshFocus();
 }
 
@@ -212,19 +221,13 @@ function updateFocus(){
 document.addEventListener('keydown', e=>{
     refreshFocus();
     
-    // ZAPPING DIRETO CH+ / CH- (SÓ FUNCIONA EM MODO TV)
     if((e.key==='PageUp' || e.key==='ChannelUp' || e.key==='PageDown' || e.key==='ChannelDown') && isTVMode){
         e.preventDefault();
         let currentItemIndex = -1;
         const currentEl = window.focusables[focusIndex];
-        
-        // Se já estivermos na lista, pegamos o index atual dos itens
         if(currentEl && currentEl.classList.contains('item')){
             currentItemIndex = Array.from(document.querySelectorAll('.item')).indexOf(currentEl);
-        } else {
-            // Se não estivermos na lista, começamos do primeiro
-            currentItemIndex = 0;
-        }
+        } else { currentItemIndex = 0; }
 
         if(e.key==='PageUp' || e.key==='ChannelUp') {
             currentItemIndex = (currentItemIndex - 1 + items.length) % items.length;
@@ -232,7 +235,6 @@ document.addEventListener('keydown', e=>{
             currentItemIndex = (currentItemIndex + 1) % items.length;
         }
 
-        // Move o foco para o item e dá o play imediato (Zapping)
         const allItems = document.querySelectorAll('.item');
         focusIndex = window.focusables.indexOf(allItems[currentItemIndex]);
         updateFocus();
