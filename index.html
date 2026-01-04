@@ -178,4 +178,68 @@ function toggleFav(item){
 // PLAY VIDEO
 function playItem(i){
   const it=view[i]
+  if(!it) return
+  nowEl.innerText=it.nome||it.titulo
+  zapEl.innerText=it.nome||it.titulo
+  zapEl.style.display='block'
+  setTimeout(()=>zapEl.style.display='none',1500)
+  if(hls){hls.destroy();hls=null}
+  if(it.url?.includes('.m3u8')&&Hls.isSupported()){
+    hls=new Hls()
+    hls.loadSource(it.url)
+    hls.attachMedia(video)
+  } else video.src=it.url
+  video.play().catch(()=>{})
+}
 
+// SHOW META CARD
+function showMeta(item){
+  metaTitle.innerText=item.nome||item.titulo
+  metaDesc.innerText=item.desc||'Sem descrição'
+  metaRatingYear.innerText=`★ ${item.rating||'--'} | ${item.year||'----'}`
+  overlayMeta.style.display='flex'
+  btnStart.onclick=()=>{playItem(view.indexOf(item))}
+  btnClose.onclick=()=>overlayMeta.style.display='none'
+}
+
+// LOAD SESSIONS
+async function loadSession(session){
+  currentSession=session
+  items=[]
+  if(session==='tv'){view=[]; const t=await fetchM3U('canais.m3u');let name='';t.split('\n').forEach(l=>{if(l.startsWith('#EXTINF'))name=l.split(',').pop(); else if(l.startsWith('http'))view.push({nome:name,url:l,type:'tv'})})}
+  else if(session==='filmes'){items=await fetchJSON('filmes.json');view=[...items]}
+  else if(session==='series'){items=await fetchJSON('series.json');view=[...items]}
+  else if(session==='kids'){const t=await fetchM3U('kids_canais.m3u');let name='';t.split('\n').forEach(l=>{if(l.startsWith('#EXTINF'))name=l.split(',').pop(); else if(l.startsWith('http'))view.push({nome:name,url:l,type:'tv'})})}
+  else if(session==='kidsconteudo'){const f=await fetchJSON('kids_filmes.json');const s=await fetchJSON('kids_series.json');view=[...f,...s]}
+  else if(session==='fav'){view=[...favs]}
+  else{view=[]}
+  renderList()
+  if(view[0]) playItem(0)
+}
+
+// MENU BUTTONS
+menuButtons.forEach(b=>{
+  b.onclick=()=>{menuButtons.forEach(m=>m.classList.remove('active'));b.classList.add('active');loadSession(b.dataset.session)}
+})
+
+// SEARCH
+searchEl.addEventListener('input',()=>{
+  const q=searchEl.value.toLowerCase()
+  view=items.filter(i=>(i.nome||i.titulo).toLowerCase().includes(q))
+  renderList()
+})
+
+// KEYS NAVIGATION
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){focusIndex=Math.min(focusIndex+1,focusables.length-1);updateFocus()}
+  if(e.key==='ArrowUp'){focusIndex=Math.max(focusIndex-1,0);updateFocus()}
+  if(e.key==='ArrowLeft'){if(focusables[focusIndex]===btnStart) focusIndex=focusables.indexOf(listEl.querySelector('.item.focus')); else focusIndex=Math.max(focusIndex-1,0);updateFocus()}
+  if(e.key==='ArrowRight'){if(focusables[focusIndex]===listEl.querySelector('.item.focus')) focusIndex=btnStart?focusables.indexOf(btnStart):focusIndex; else focusIndex=Math.min(focusIndex+1,focusables.length-1);updateFocus()}
+  if(e.key==='Enter'){focusables[focusIndex]?.click()}
+})
+
+// INIT
+loadSession('tv')
+</script>
+</body>
+</html>
