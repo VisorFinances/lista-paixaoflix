@@ -96,22 +96,35 @@ body {
 </div>
 
 <script>
-let currentChannel = 0;
+/* ------------------- DADOS ------------------- */
 let channels = [
-    {name: "Band", url: "https://example.com/band.m3u8"},
-    {name: "Globo", url: "https://example.com/globo.m3u8"},
-    {name: "Record", url: "https://example.com/record.m3u8"}
+    {name: "Band", url:"https://example.com/band.m3u8"},
+    {name: "Globo", url:"https://example.com/globo.m3u8"},
+    {name: "Record", url:"https://example.com/record.m3u8"}
 ];
 
 let filmes = [
-    {titulo:"Ação", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de ação."},
-    {titulo:"Aventura", ano:2022, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de aventura."},
-    {titulo:"Comédia", ano:2021, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de comédia."},
-    {titulo:"Drama", ano:2020, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de drama."},
-    {titulo:"Ficção", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de ficção."},
-    {titulo:"Adulto", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Conteúdo adulto."}
+    {titulo:"AÇÃO", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de ação."},
+    {titulo:"ANIMAÇÃO", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de animação."},
+    {titulo:"ANIME", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de anime."},
+    {titulo:"AVENTURA", ano:2022, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de aventura."},
+    {titulo:"CLAŚSICOS", ano:2021, capa:"https://via.placeholder.com/300x150", sinopse:"Filme clássico."},
+    {titulo:"COMÉDIA", ano:2022, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de comédia."},
+    {titulo:"DORAMA", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme dorama."},
+    {titulo:"DOCUMENTÁRIOS", ano:2021, capa:"https://via.placeholder.com/300x150", sinopse:"Documentário."},
+    {titulo:"DRAMA", ano:2022, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de drama."},
+    {titulo:"FAROESTE", ano:2020, capa:"https://via.placeholder.com/300x150", sinopse:"Filme faroeste."},
+    {titulo:"FICÇÃO", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de ficção."},
+    {titulo:"NACIONAL", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme nacional."},
+    {titulo:"POLICIAL", ano:2022, capa:"https://via.placeholder.com/300x150", sinopse:"Filme policial."},
+    {titulo:"RELIGIOSO", ano:2021, capa:"https://via.placeholder.com/300x150", sinopse:"Filme religioso."},
+    {titulo:"ROMANCE", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme romance."},
+    {titulo:"SUSPENSE", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme suspense."},
+    {titulo:"TERROR", ano:2022, capa:"https://via.placeholder.com/300x150", sinopse:"Filme terror."},
+    {titulo:"ADULTO", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Conteúdo adulto."}
 ];
 
+/* ------------------- ELEMENTOS ------------------- */
 let player = document.getElementById("player");
 let card = document.getElementById("card");
 let cardImg = document.getElementById("card-img");
@@ -119,96 +132,116 @@ let cardTitle = document.getElementById("card-title");
 let cardInfo = document.getElementById("card-info");
 let cardSinopse = document.getElementById("card-sinopse");
 
-function toggleMenu(id, callback) {
+/* ------------------- MENU ------------------- */
+function toggleMenu(id, callback){
     let menu = document.getElementById(id);
-    let isVisible = menu.style.display === 'flex';
-    document.querySelectorAll('.submenu').forEach(m => m.style.display='none');
-    if (!isVisible) {
+    let visible = menu.style.display === 'flex';
+    document.querySelectorAll('.submenu').forEach(m=>m.style.display='none');
+    if(!visible) {
         menu.style.display = 'flex';
         if(callback) callback();
     }
 }
 
-// CARREGAR TV AUTOMATICAMENTE
-function loadTV() {
-    playChannel(currentChannel);
+/* ------------------- TV ------------------- */
+let currentChannel = 0;
+function loadTV(){
     let sub = document.getElementById("sub-tv");
     sub.innerHTML = "";
-    channels.forEach((ch, i) => {
+    channels.forEach((ch,i)=>{
         let btn = document.createElement("button");
         btn.className = "sub-btn";
         btn.textContent = ch.name;
         btn.onclick = ()=>playChannel(i);
         sub.appendChild(btn);
     });
+    playChannel(currentChannel); // autoplay primeiro canal
 }
 
-function playChannel(index) {
+function playChannel(index){
     currentChannel = index;
-    if(Hls.isSupported()) {
+    if(Hls.isSupported()){
         let hls = new Hls();
         hls.loadSource(channels[index].url);
         hls.attachMedia(player);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-            player.play();
-        });
+        hls.on(Hls.Events.MANIFEST_PARSED,()=>player.play());
     } else {
         player.src = channels[index].url;
         player.play();
     }
 }
 
-// FUNÇÕES CINEMA
-function loadFilmesMenu() {
+/* ------------------- FILMES ------------------- */
+function loadFilmesMenu(){
     const categorias = ["AÇÃO","ANIMAÇÃO","ANIME","AVENTURA","CLAŚSICOS","COMÉDIA","DORAMA","DOCUMENTÁRIOS","DRAMA","FAROESTE","FICÇÃO","NACIONAL","POLICIAL","RELIGIOSO","ROMANCE","SUSPENSE","TERROR","ADULTO"];
-    const sub = document.getElementById("sub-filmes");
+    let sub = document.getElementById("sub-filmes");
     sub.innerHTML = "";
-    categorias.forEach(cat => {
+    categorias.forEach(cat=>{
         let btn = document.createElement("button");
         btn.className = "sub-btn";
         btn.textContent = cat;
-        btn.onclick = ()=>loadFilmes(cat);
+        btn.onclick = ()=>showFilme(cat);
         sub.appendChild(btn);
     });
 }
 
-function loadFilmes(categoria) {
-    // FILTRAR POR CATEGORIA
-    let lista = filmes.filter(f => f.titulo === categoria || categoria === "Todos");
-    showCard(lista[0]); // mostra primeiro
-    player.src = lista[0].url || "";
-    player.play();
+function showFilme(categoria){
+    let item = filmes.find(f=>f.titulo===categoria);
+    if(item){
+        cardImg.src = item.capa;
+        cardTitle.textContent = item.titulo;
+        cardInfo.textContent = "Ano: "+item.ano;
+        cardSinopse.textContent = item.sinopse;
+        card.style.display = "block";
+        // iniciar player (simula filme)
+        player.src = item.url || ""; 
+        player.play();
+    }
 }
 
-function showCard(item) {
-    card.style.display = "block";
-    cardImg.src = item.capa;
-    cardTitle.textContent = item.titulo;
-    cardInfo.textContent = "Ano: "+item.ano;
-    cardSinopse.textContent = item.sinopse;
-}
-
-function hideCard() {
-    card.style.display = "none";
-}
-
-function toggleFullscreen() {
-    if (!document.fullscreenElement) {
+/* ------------------- FULLSCREEN ------------------- */
+function toggleFullscreen(){
+    if(!document.fullscreenElement){
         document.documentElement.requestFullscreen();
     } else {
         document.exitFullscreen();
     }
 }
 
-// CONTROLE REMOTO / TECLADO
-document.addEventListener('keydown', function(e){
-    switch(e.key){
-        case "ArrowUp": moveMenu(-1); break;
-        case "ArrowDown": moveMenu(1); break;
-        case "ArrowLeft": moveMenuHorizontal(-1); break;
-        case "ArrowRight": moveMenuHorizontal(1); break;
-        case "Enter": selectMenu(); break;
-        case "PageUp": previousChannel(); break; // Ch-
-        case "PageDown": nextChannel(); break; // Ch+
-    }
+/* ------------------- DIRECIONAL ------------------- */
+let menuIndex = 0;
+let menuButtons = [];
+function updateMenuButtons(){
+    menuButtons = Array.from(document.querySelectorAll(".main-btn, .sub-btn"));
+    menuButtons.forEach(btn=>btn.tabIndex=-1);
+    menuButtons[menuIndex]?.focus();
 }
+document.addEventListener('keydown', e=>{
+    updateMenuButtons();
+    switch(e.key){
+        case "ArrowUp": menuIndex--; if(menuIndex<0)menuIndex=menuButtons.length-1; menuButtons[menuIndex].focus(); break;
+        case "ArrowDown": menuIndex++; if(menuIndex>=menuButtons.length)menuIndex=0; menuButtons[menuIndex].focus(); break;
+        case "ArrowLeft": break; // pode expandir para submenu lateral
+        case "ArrowRight": break;
+        case "Enter": menuButtons[menuIndex]?.click(); break;
+        case "PageUp": previousChannel(); break;
+        case "PageDown": nextChannel(); break;
+    }
+});
+
+/* ------------------- MUDAR CANAL ------------------- */
+function nextChannel(){
+    currentChannel++; if(currentChannel>=channels.length)currentChannel=0; playChannel(currentChannel);
+}
+function previousChannel(){
+    currentChannel--; if(currentChannel<0)currentChannel=channels.length-1; playChannel(currentChannel);
+}
+
+/* ------------------- INICIAR TV ------------------- */
+window.onload = ()=>{
+    loadTV();
+    updateMenuButtons();
+};
+</script>
+</body>
+</html>
