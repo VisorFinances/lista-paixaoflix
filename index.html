@@ -97,55 +97,105 @@ setInterval(()=>{
 
 /* STATE */
 let items=[],view=[]
-let zone='list' // search | menu | list
+let zone='list'
 let idx=0,menuIdx=0
 let hls=null
+let currentSection='tv'
 
 const menuBtns=[...document.querySelectorAll('.btn')]
 
-/* LOAD TV */
+/* ================= LOADERS ================= */
+
 async function loadTV(){
+  currentSection='tv'
   const t=await fetch('data/canais.m3u').then(r=>r.text())
   items=[]
   let n=''
   t.split('\n').forEach(l=>{
     if(l.startsWith('#EXTINF')) n=l.split(',').pop()
-    else if(l.startsWith('http')) items.push({title:n,url:l})
+    else if(l.startsWith('http')) items.push({title:n,url:l,type:'tv'})
   })
   view=[...items]
   render()
-  play(0)
+  play(0,true)
 }
 
-/* RENDER */
+async function loadFilmes(){
+  currentSection='filmes'
+  items=await fetch('data/filmes.json').then(r=>r.json())
+  view=[...items]
+  render()
+}
+
+async function loadSeries(){
+  currentSection='series'
+  items=await fetch('data/series.json').then(r=>r.json())
+  view=[...items]
+  render()
+}
+
+async function loadKids(){
+  currentSection='kids'
+  const t=await fetch('data/kids_canais.m3u').then(r=>r.text())
+  items=[]
+  let n=''
+  t.split('\n').forEach(l=>{
+    if(l.startsWith('#EXTINF')) n=l.split(',').pop()
+    else if(l.startsWith('http')) items.push({title:n,url:l,type:'tv'})
+  })
+  view=[...items]
+  render()
+  play(0,true)
+}
+
+async function loadKidsConteudo(){
+  currentSection='kidsconteudo'
+  const f=await fetch('data/kids_filmes.json').then(r=>r.json())
+  const s=await fetch('data/kids_series.json').then(r=>r.json())
+  items=[...f,...s]
+  view=[...items]
+  render()
+}
+
+async function loadFav(){
+  currentSection='fav'
+  items=await fetch('data/favoritos.json').then(r=>r.json())
+  view=[...items]
+  render()
+}
+
+/* ================= RENDER ================= */
+
 function render(){
   list.innerHTML=''
   view.forEach(v=>{
     const d=document.createElement('div')
     d.className='item'
-    d.textContent=v.title
+    d.textContent=v.nome || v.titulo || v.title
     list.appendChild(d)
   })
   idx=0
   updateFocus()
 }
 
-/* PLAY */
-function play(i){
+/* ================= PLAY ================= */
+
+function play(i,auto=false){
   const it=view[i]
-  if(!it) return
+  if(!it||!it.url) return
   if(hls){hls.destroy();hls=null}
   if(it.url.includes('.m3u8') && Hls.isSupported()){
     hls=new Hls();hls.loadSource(it.url);hls.attachMedia(video)
   }else video.src=it.url
   video.play().catch(()=>{})
-  now.querySelector('span').textContent=it.title
-  zap.textContent=it.title
+  now.querySelector('span').textContent=it.nome||it.titulo||it.title
+  zap.textContent=it.nome||it.titulo||it.title
   zap.style.display='block'
   setTimeout(()=>zap.style.display='none',1200)
 }
 
-/* FOCUS */
+/* ================= FOCUS ================= */
+
 function updateFocus(){
   document.querySelectorAll('.item').forEach((e,i)=>e.classList.toggle('focus',zone==='list'&&i===idx))
   menuBtns.forEach((b,i)=>b.classList.toggle('focus',zone==='menu'&&i===menuIdx))
@@ -153,24 +203,42 @@ function updateFocus(){
   if(zone==='list') document.querySelectorAll('.item')[idx]?.scrollIntoView({block:'center'})
 }
 
-/* KEYS */
+/* ================= KEYS ================= */
+
 document.addEventListener('keydown',e=>{
   if(e.key==='ArrowDown'){
     if(zone==='search') zone='menu'
     else if(zone==='menu') zone='list'
-    else if(zone==='list'){ idx=Math.min(idx+1,view.length-1); play(idx) }
+    else if(zone==='list'){
+      idx=Math.min(idx+1,view.length-1)
+      if(currentSection==='tv'||currentSection==='kids') play(idx,true)
+    }
   }
+
   if(e.key==='ArrowUp'){
     if(zone==='list' && idx===0) zone='menu'
     else if(zone==='menu') zone='search'
-    else if(zone==='list'){ idx-- }
+    else if(zone==='list') idx--
   }
+
   if(e.key==='ArrowLeft' && zone==='menu') menuIdx=Math.max(menuIdx-1,0)
   if(e.key==='ArrowRight' && zone==='menu') menuIdx=Math.min(menuIdx+1,menuBtns.length-1)
+
   if(e.key==='Enter' && zone==='menu'){
     menuBtns.forEach(b=>b.classList.remove('active'))
-    menuBtns[menuIdx].classList.add('active')
+    const btn=menuBtns[menuIdx]
+    btn.classList.add('active')
+
+    switch(btn.dataset.value || btn.dataset){
+      case 'tv': loadTV(); break
+      case 'filmes': loadFilmes(); break
+      case 'series': loadSeries(); break
+      case 'kids': loadKids(); break
+      case 'kidsconteudo': loadKidsConteudo(); break
+      case 'fav': loadFav(); break
+    }
   }
+
   updateFocus()
 })
 
