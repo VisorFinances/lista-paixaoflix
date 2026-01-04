@@ -18,10 +18,11 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;overflow:hidden}
 #side{width:420px;background:#111;display:flex;flex-direction:column;border-right:1px solid #222}
 
 /* HEADER */
-#header{padding:14px;display:flex;justify-content:space-between}
+#header{padding:14px;display:flex;justify-content:space-between;align-items:center}
 #logo{width:160px}
-#clock{font-size:20px;text-align:right}
-#date{font-size:12px;text-align:right;color:#bbb}
+#timebox{text-align:right}
+#clock{font-size:20px}
+#date{font-size:12px;color:#ccc}
 
 /* SEARCH */
 #search{margin:8px 14px;padding:10px;font-size:15px;background:#000;color:#fff;border:2px solid #e50914;border-radius:6px}
@@ -34,7 +35,7 @@ grid-template-columns:repeat(3,1fr);
 gap:6px
 }
 .btn{
-height:42px;
+height:40px;
 display:flex;
 align-items:center;
 justify-content:center;
@@ -63,7 +64,7 @@ border-left:6px solid #e50914
 #player{flex:1;position:relative}
 video{width:100%;height:100%;background:#000}
 
-/* OVERLAY TV */
+/* OVERLAY */
 #overlay{
 position:absolute;
 bottom:40px;
@@ -74,37 +75,6 @@ font-size:20px;
 border-left:6px solid #e50914;
 display:none
 }
-
-/* DETAILS PANEL */
-#details{
-position:absolute;
-top:0;
-right:0;
-width:420px;
-height:100%;
-background:#111;
-padding:16px;
-display:none;
-flex-direction:column;
-gap:10px
-}
-#details img{
-width:100%;
-border-radius:6px
-}
-#details h2{font-size:16px;margin:0}
-#details p{font-size:14px;color:#ddd;line-height:1.4}
-#actions{display:flex;gap:10px;margin-top:auto}
-.action{
-flex:1;
-padding:12px;
-text-align:center;
-border-radius:6px;
-font-size:16px
-}
-.play{background:#e50914}
-.back{background:#555}
-.action.focus{outline:2px solid #fff}
 </style>
 </head>
 
@@ -114,7 +84,7 @@ font-size:16px
 <div id="side">
   <div id="header">
     <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
-    <div>
+    <div id="timebox">
       <div id="clock"></div>
       <div id="date"></div>
     </div>
@@ -123,12 +93,12 @@ font-size:16px
   <input id="search" placeholder="Pesquisar...">
 
   <div id="menu">
-    <div class="btn active" data="tv">TV</div>
-    <div class="btn" data="filmes">Filmes</div>
-    <div class="btn" data="series">Séries</div>
-    <div class="btn kids" data="kids">Kids TV</div>
-    <div class="btn kids" data="kidsconteudo">Kids Conteúdo</div>
-    <div class="btn" data="fav">Fav</div>
+    <div class="btn active" data-type="tv">TV</div>
+    <div class="btn" data-type="filmes">Filmes</div>
+    <div class="btn" data-type="series">Séries</div>
+    <div class="btn kids" data-type="kids">Canal Kids</div>
+    <div class="btn kids" data-type="kidsconteudo">Filmes/Séries Kids</div>
+    <div class="btn" data-type="fav">Favoritos</div>
   </div>
 
   <div id="list"></div>
@@ -136,19 +106,7 @@ font-size:16px
 
 <div id="player">
   <video id="video" autoplay></video>
-
   <div id="overlay"></div>
-
-  <div id="details">
-    <img id="dPoster">
-    <h2 id="dTitle"></h2>
-    <p id="dSinopse"></p>
-
-    <div id="actions">
-      <div class="action play focus">Assistir agora</div>
-      <div class="action back">Voltar</div>
-    </div>
-  </div>
 </div>
 
 </div>
@@ -162,16 +120,13 @@ date.textContent=d.toLocaleDateString('pt-BR')
 },1000)
 
 /* STATE */
-let mode='tv'
-let focus='menu'
-let menuIdx=0
-let listIdx=0
-let actionIdx=0
+let focusArea='menu'
+let menuIndex=0
+let listIndex=0
 let items=[]
 let hls=null
 
-const btns=[...document.querySelectorAll('.btn')]
-const actions=[...document.querySelectorAll('.action')]
+const buttons=[...document.querySelectorAll('.btn')]
 
 /* LOADERS */
 async function loadM3U(file){
@@ -183,8 +138,7 @@ if(l.startsWith('#EXTINF')) name=l.split(',').pop()
 else if(l.startsWith('http')) items.push({nome:name,url:l})
 })
 renderList()
-playLive(0)
-details.style.display='none'
+playTV(0)
 }
 
 async function loadJSON(file){
@@ -198,24 +152,26 @@ list.innerHTML=''
 items.forEach((i,n)=>{
 const d=document.createElement('div')
 d.className='item'
-d.textContent=i.titulo || i.nome
+d.textContent=i.nome || i.titulo
 list.appendChild(d)
 })
-listIdx=0
-focusList()
+listIndex=0
+updateListFocus()
 }
 
 /* FOCUS */
-function focusMenu(){btns.forEach((b,i)=>b.classList.toggle('focus',i===menuIdx))}
-function focusList(){
-document.querySelectorAll('.item').forEach((e,i)=>e.classList.toggle('focus',i===listIdx))
-document.querySelectorAll('.item')[listIdx]?.scrollIntoView({block:'center'})
+function updateMenuFocus(){
+buttons.forEach((b,i)=>b.classList.toggle('focus',i===menuIndex))
 }
-function focusActions(){actions.forEach((a,i)=>a.classList.toggle('focus',i===actionIdx))}
+function updateListFocus(){
+document.querySelectorAll('.item').forEach((e,i)=>e.classList.toggle('focus',i===listIndex))
+document.querySelectorAll('.item')[listIndex]?.scrollIntoView({block:'center'})
+}
 
-/* TV PLAY */
-function playLive(i){
-const it=items[i]; if(!it)return
+/* PLAYER */
+function playTV(i){
+const it=items[i]
+if(!it)return
 if(hls){hls.destroy();hls=null}
 if(it.url.includes('.m3u8') && Hls.isSupported()){
 hls=new Hls()
@@ -228,71 +184,45 @@ overlay.style.display='block'
 setTimeout(()=>overlay.style.display='none',1200)
 }
 
-/* DETAILS */
-function openDetails(){
-const it=items[listIdx]
-if(!it)return
-dPoster.src=it.poster||''
-dTitle.textContent=it.titulo
-dSinopse.textContent=it.sinopse||''
-details.style.display='flex'
-focus='actions'
-actionIdx=0
-focusActions()
-}
+/* MENU ACTION */
+function selectMenu(){
+buttons.forEach(b=>b.classList.remove('active'))
+buttons[menuIndex].classList.add('active')
+const t=buttons[menuIndex].dataset.type
+focusArea='list'
 
-/* MENU */
-function selectMenu(i){
-btns.forEach(x=>x.classList.remove('active'))
-btns[i].classList.add('active')
-menuIdx=i
-mode=btns[i].dataset
-focus='list'
-
-if(mode==='tv') loadM3U('canais.m3u')
-if(mode==='kids') loadM3U('kids_canais.m3u')
-if(mode==='filmes') loadJSON('filmes.json')
-if(mode==='series') loadJSON('series.json')
-if(mode==='kidsconteudo') loadJSON('kids_filmes.json')
-if(mode==='fav') loadJSON('favoritos.json')
+if(t==='tv') loadM3U('canais.m3u')
+if(t==='kids') loadM3U('kids_canais.m3u')
+if(t==='filmes') loadJSON('filmes.json')
+if(t==='series') loadJSON('series.json')
+if(t==='kidsconteudo') loadJSON('kids_filmes.json')
+if(t==='fav') loadJSON('favoritos.json')
 }
 
 /* KEYS */
 document.addEventListener('keydown',e=>{
 if(e.key==='ArrowUp'){
-if(focus==='list'){listIdx=Math.max(0,listIdx-1);focusList()}
+if(focusArea==='list'){listIndex=Math.max(0,listIndex-1);updateListFocus()}
 }
 if(e.key==='ArrowDown'){
-if(focus==='menu'){focus='list';focusList()}
-else if(focus==='list'){listIdx=Math.min(items.length-1,listIdx+1);focusList()}
+if(focusArea==='menu'){focusArea='list';updateListFocus()}
+else if(focusArea==='list'){listIndex=Math.min(items.length-1,listIndex+1);updateListFocus()}
 }
 if(e.key==='ArrowLeft'){
-if(focus==='actions'){focus='list';details.style.display='none';focusList()}
-else if(focus==='list'){focus='menu';focusMenu()}
-else if(focus==='menu'){menuIdx=Math.max(0,menuIdx-1);focusMenu()}
+if(focusArea==='list'){focusArea='menu';updateMenuFocus()}
+else if(focusArea==='menu'){menuIndex=Math.max(0,menuIndex-1);updateMenuFocus()}
 }
 if(e.key==='ArrowRight'){
-if(focus==='menu'){menuIdx=Math.min(btns.length-1,menuIdx+1);focusMenu()}
-else if(focus==='list' && mode!=='tv' && mode!=='kids'){openDetails()}
+if(focusArea==='menu'){menuIndex=Math.min(buttons.length-1,menuIndex+1);updateMenuFocus()}
 }
 if(e.key==='Enter'){
-if(focus==='menu') selectMenu(menuIdx)
-else if(focus==='list' && (mode==='tv'||mode==='kids')) playLive(listIdx)
-else if(focus==='actions' && actionIdx===0){
-video.src=items[listIdx].url
-video.play().catch(()=>{})
-details.style.display='none'
-}
-else if(focus==='actions' && actionIdx===1){
-details.style.display='none'
-focus='list'
-focusList()
-}
+if(focusArea==='menu') selectMenu()
+else if(focusArea==='list' && buttons[menuIndex].dataset.type!=='filmes' && buttons[menuIndex].dataset.type!=='series') playTV(listIndex)
 }
 })
 
 /* INIT */
-focusMenu()
+updateMenuFocus()
 loadM3U('canais.m3u')
 </script>
 
