@@ -7,121 +7,97 @@
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
-
 <style>
-*{box-sizing:border-box;outline:none;margin:0;padding:0;}
-body{font-family:Poppins;background:#000;color:#fff;overflow:hidden;height:100vh;display:flex;}
-#app{display:flex;flex:1;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Poppins;background:#000;color:#fff;overflow:hidden}
+::-webkit-scrollbar{display:none}
 
-/* ===== SIDEBAR ===== */
-#side{width:420px;background:#111;display:flex;flex-direction:column;border-right:1px solid #222;position:relative;}
+#app{display:flex;height:100vh;width:100%}
 
-/* HEADER */
-#header{padding:16px;display:flex;align-items:center;justify-content:space-between;}
-#header img{width:160px;}
-#timebox{display:flex;flex-direction:column;align-items:flex-end;}
-#clock{font-size:20px;color:#fff;}
-#date{font-size:12px;color:#fff;opacity:0.9;}
+/* Sidebar */
+#side{width:420px;background:#111;display:flex;flex-direction:column;border-right:1px solid #222}
+#header{display:flex;align-items:center;padding:16px;gap:12px}
+#header img{width:160px}
+#timebox{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end}
+#clock{font-size:20px;color:#fff}
+#date{font-size:12px;color:#fff;opacity:.9}
 
-/* SEARCH */
-#search{margin:10px 16px;padding:10px;font-size:16px;background:#000;color:#fff;border:2px solid #e50914;border-radius:6px;}
+#search{margin:10px 16px;padding:10px;font-size:16px;background:#000;color:#fff;border:2px solid #e50914;border-radius:6px;outline:none}
+#search.focus{outline:3px solid #fff}
 
-/* NOW PLAYING */
-#now{margin:0 16px;font-size:13px;color:#fff;}
-#now span{font-size:14px;color:#fff;}
+#now{margin:10px 16px;font-size:13px;color:#fff}
+#now span{font-size:14px;color:#fff;font-weight:400}
 
-/* MENU */
-#menu{margin:10px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
-.btn{padding:6px;font-size:14px;background:#222;border-radius:6px;text-align:center;cursor:pointer;}
-.btn.active{background:#e50914;}
-.btn.kids{background:#0056b3;}
+#menu{margin:10px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.btn{padding:6px;font-size:14px;background:#222;border-radius:6px;text-align:center;cursor:pointer;outline:none}
+.btn.active{background:#e50914}
+.btn.kids{background:#0056b3}
 
-/* LIST */
-#list{flex:1;overflow-y:auto;margin:10px 0;}
-.item{padding:12px;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:center;font-size:16px;cursor:pointer;}
-.item.focus{background:#222;border-left:6px solid #e50914;box-shadow:0 0 10px #e50914;}
-.item .fav-icon{opacity:0.3;margin-left:8px;}
-.item.is-fav .fav-icon{opacity:1;color:#e50914;}
+#list{flex:1;overflow-y:auto}
+.item{padding:12px;border-bottom:1px solid #222;display:flex;justify-content:space-between;font-size:16px;cursor:pointer}
+.item.focus{background:rgba(255,255,255,.1);border-left:6px solid #e50914;box-shadow:0 0 10px #e50914}
+.item .fav{opacity:0.3;cursor:pointer}
+.item.is-fav .fav{opacity:1;color:#e50914}
 
-/* PLAYER */
-#player{flex:1;position:relative;}
-video{width:100%;height:100%;background:#000;}
-
-/* OVERLAY */
-#zap{position:absolute;bottom:40px;left:40px;background:rgba(0,0,0,.8);padding:10px 20px;font-size:20px;border-left:6px solid #e50914;display:none;}
-#overlay-meta{position:absolute;top:0;left:0;width:100%;height:100%;background:#000;background-size:cover;background-position:center right;display:none;flex-direction:column;justify-content:center;padding:60px;box-sizing:border-box;}
-#overlay-meta::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,#000 45%,transparent 100%);z-index:1;}
-#overlay-meta *{position:relative;z-index:2;color:#fff;}
-#overlay-meta h1{font-size:50px;margin:0;}
-.meta-extra{color:#e50914;font-weight:bold;font-size:20px;margin:10px 0;}
-#overlay-meta p{font-size:18px;max-width:550px;color:#ccc;line-height:1.4;}
-.btn-meta{padding:16px 20px;font-weight:bold;border-radius:6px;border:none;cursor:pointer;font-size:16px;}
-.btn-play{background:#e50914;color:#fff;}
-.btn-back{background:#333;color:#fff;margin-left:10px;}
-.btn-meta.focus{outline:3px solid #fff !important;}
+#player{flex:1;position:relative}
+video{width:100%;height:100%}
+#overlay-zap{position:absolute;bottom:40px;left:40px;background:rgba(0,0,0,.8);padding:10px 20px;font-size:20px;border-left:6px solid #e50914;display:none}
+#overlay-meta{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;justify-content:center;padding:40px;background-size:cover;background-position:center;box-sizing:border-box}
+#overlay-meta::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,#000 50%,transparent 100%);z-index:1;}
+#overlay-meta *{position:relative;z-index:2;color:#fff}
+#overlay-meta h1{font-size:40px;margin-bottom:10px}
+#overlay-meta .meta-extra{font-size:20px;color:#e50914;margin-bottom:10px}
+#overlay-meta p{font-size:16px;line-height:1.4;color:#ccc}
+.btn-meta{padding:12px 25px;font-size:16px;border:none;border-radius:6px;cursor:pointer;outline:none}
+.btn-play{background:#e50914;color:#fff;margin-right:10px}
+.btn-back{background:#333;color:#fff}
+.btn-meta.focus{outline:3px solid #fff}
 </style>
 </head>
 <body>
 
 <div id="app">
+  <div id="side">
+    <div id="header">
+      <img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
+      <div id="timebox">
+        <div id="clock"></div>
+        <div id="date"></div>
+      </div>
+    </div>
 
-<!-- SIDEBAR -->
-<div id="side">
-  <div id="header">
-    <img src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
-    <div id="timebox">
-      <div id="clock"></div>
-      <div id="date"></div>
+    <input id="search" placeholder="Pesquisar...">
+    <div id="now">Assistindo agora: <span>—</span></div>
+
+    <div id="menu">
+      <div class="btn active" data-session="tv">TV</div>
+      <div class="btn" data-session="filmes">Filmes</div>
+      <div class="btn" data-session="series">Séries</div>
+      <div class="btn kids" data-session="kids">Canal Kids</div>
+      <div class="btn kids" data-session="kidsconteudo">Filmes/Séries Kids</div>
+      <div class="btn" data-session="fav">Favoritos</div>
+    </div>
+
+    <div id="list"></div>
+  </div>
+
+  <div id="player">
+    <video id="video" autoplay></video>
+    <div id="overlay-zap"></div>
+    <div id="overlay-meta">
+      <h1 id="meta-title"></h1>
+      <div class="meta-extra">★ <span id="meta-rating"></span> | <span id="meta-year"></span></div>
+      <p id="meta-desc"></p>
+      <div style="display:flex;margin-top:20px;">
+        <button class="btn-meta btn-play" id="btn-start">ASSISTIR AGORA</button>
+        <button class="btn-meta btn-back" id="btn-close">VOLTAR</button>
+      </div>
     </div>
   </div>
-
-  <input id="search" placeholder="Pesquisar...">
-  <div id="now">Assistindo agora: <span>—</span></div>
-
-  <div id="menu">
-    <div class="btn active" data-type="tv">TV</div>
-    <div class="btn" data-type="filmes">Filmes</div>
-    <div class="btn" data-type="series">Séries</div>
-    <div class="btn kids" data-type="kids">Canal Kids</div>
-    <div class="btn kids" data-type="kidsconteudo">Filmes/Séries Kids</div>
-    <div class="btn" data-type="fav">Favoritos</div>
-  </div>
-
-  <div id="list"></div>
-</div>
-
-<!-- PLAYER -->
-<div id="player">
-  <video id="video" autoplay></video>
-  <div id="zap"></div>
-  <div id="overlay-meta">
-    <h1 id="meta-title"></h1>
-    <div class="meta-extra">★ <span id="meta-rating">--</span> | <span id="meta-year">----</span></div>
-    <p id="meta-desc"></p>
-    <div style="display:flex;margin-top:20px;">
-      <button class="btn-meta btn-play" id="btn-start">ASSISTIR AGORA</button>
-      <button class="btn-meta btn-back" id="btn-close">VOLTAR</button>
-    </div>
-  </div>
-</div>
-
 </div>
 
 <script>
-const video=document.getElementById('video');
-const list=document.getElementById('list');
-const nowEl=document.querySelector('#now span');
-const zapEl=document.getElementById('zap');
-const overlayMeta=document.getElementById('overlay-meta');
-const metaTitle=document.getElementById('meta-title');
-const metaDesc=document.getElementById('meta-desc');
-const metaRating=document.getElementById('meta-rating');
-const metaYear=document.getElementById('meta-year');
-const btnStart=document.getElementById('btn-start');
-const btnClose=document.getElementById('btn-close');
-let hls=null, items=[], view=[], focusIndex=0, currentMode='tv', favs=[], currentSerieEpisodes=null;
-
-// ===== CLOCK =====
+// Clock
 function updateClock(){
   const d=new Date();
   document.getElementById('clock').innerText=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
@@ -129,130 +105,127 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-// ===== LOCAL STORAGE FAVORITOS =====
-function loadFavs(){return JSON.parse(localStorage.getItem('flix_favs')||'[]');}
-function toggleFav(item){
-  favs=loadFavs();
-  const name=item.nome||item.titulo;
-  const idx=favs.findIndex(f=>f.nome===name);
-  if(idx>-1) favs.splice(idx,1);
-  else favs.push({...item});
-  localStorage.setItem('flix_favs',JSON.stringify(favs));
-  render();
-}
+// State
+let items=[],view=[],idx=0,hls=null,favs=[],mode='tv',focusables=[],currentSerieEpisodes=null;
 
-// ===== FETCH JSON/M3U =====
-async function fetchList(file,type){
-  let data=[];
+// Fetch M3U/JSON
+async function fetchData(file,type){
   try{
+    const res=await fetch(file);
     if(file.endsWith('.m3u')){
-      const txt=await (await fetch('data/'+file)).text();
-      let n=''; txt.split('\n').forEach(l=>{
-        if(l.startsWith('#EXTINF')) n=l.split(',').pop();
-        else if(l.startsWith('http')) data.push({nome:n,url:l,type:'tv'});
+      const txt=await res.text();
+      let name=''; const arr=[];
+      txt.split('\n').forEach(l=>{
+        if(l.startsWith('#EXTINF')) name=l.split(',').pop();
+        else if(l.startsWith('http')) arr.push({nome:name,url:l,type:type});
       });
+      return arr;
     } else {
-      const json=await (await fetch('data/'+file)).json();
-      data=json.map(x=>({...x,type}));
+      const data=await res.json();
+      return data.map(x=>({...x,type:type==='movie'?'movie':'serie'}));
     }
-  }catch(e){console.error(e);}
-  return data;
+  } catch(e){return[];}
 }
 
-// ===== LOAD CONTENT =====
-async function loadContent(mode){
-  currentMode=mode;
-  switch(mode){
-    case 'tv': items=await fetchList('canais.m3u','tv'); break;
-    case 'filmes': items=await fetchList('filmes.json','movie'); break;
-    case 'series': items=await fetchList('series.json','serie'); break;
-    case 'kids': items=await fetchList('kids_canais.m3u','tv'); break;
-    case 'kidsconteudo':
-      items=await fetchList('kids_filmes.json','movie');
-      items.push(...await fetchList('kids_series.json','serie'));
-      break;
-    case 'fav': items=loadFavs(); break;
+// Load Session
+async function loadSession(s){
+  mode=s;
+  if(s==='tv') view=await fetchData('canais.m3u','tv');
+  else if(s==='filmes') view=await fetchData('filmes.json','movie');
+  else if(s==='series') view=await fetchData('series.json','serie');
+  else if(s==='kids') view=await fetchData('kids_canais.m3u','tv');
+  else if(s==='kidsconteudo'){ 
+    const f=await fetchData('kids_filmes.json','movie');
+    const s2=await fetchData('kids_series.json','serie');
+    view=[...f,...s2];
   }
-  view=[...items];
-  focusIndex=0;
+  else if(s==='fav'){ 
+    view=favs;
+  }
   render();
   play(0);
 }
 
-// ===== RENDER LIST =====
+// Render
 function render(){
+  const list=document.getElementById('list');
   list.innerHTML='';
-  const favItems=loadFavs();
   view.forEach((i,n)=>{
     const d=document.createElement('div');
-    d.className='item';
-    if(favItems.some(f=>f.nome===i.nome)) d.classList.add('is-fav');
-    d.innerHTML=`<span>${i.nome||i.titulo}</span><span class="fav-icon">☆</span>`;
-    d.onclick=()=>{ if(i.type==='tv') play(n); else showMeta(i); }
-    d.querySelector('.fav-icon').onclick=e=>{ e.stopPropagation(); toggleFav(i); }
+    const isFav=favs.some(f=>f.nome===i.nome);
+    d.className='item'+(isFav?' is-fav':'');
+    d.innerHTML=`<span>${i.nome||i.titulo}</span><span class='fav'>☆</span>`;
+    d.onclick=()=>{if(i.type==='tv') play(n); else showMeta(i);};
+    d.querySelector('.fav').onclick=e=>{e.stopPropagation(); toggleFav(i);};
     list.appendChild(d);
   });
-  updateFocus();
+  idx=0;
+  refreshFocus();
+  focusItem();
 }
 
-// ===== PLAY =====
+function toggleFav(i){
+  const idx=favs.findIndex(f=>f.nome===i.nome);
+  if(idx>-1) favs.splice(idx,1); else favs.push(i);
+  render();
+}
+
 function play(i){
-  const it=view[i]; if(!it) return;
+  const it=view[i];
+  if(!it)return;
   if(hls){hls.destroy();hls=null;}
-  if(it.url?.includes('.m3u8') && Hls.isSupported()){ hls=new Hls(); hls.loadSource(it.url); hls.attachMedia(video); }
-  else video.src=it.url;
+  if(it.url?.includes('.m3u8') && Hls.isSupported()){
+    hls=new Hls(); hls.loadSource(it.url); hls.attachMedia(video);
+  } else video.src=it.url;
   video.play().catch(()=>{});
-  nowEl.innerText=it.nome||it.titulo;
-  zapEl.innerText=it.nome||it.titulo;
-  zapEl.style.display='block';
-  setTimeout(()=>zapEl.style.display='none',1200);
-  focusIndex=i+document.querySelectorAll('#menu .btn').length+1; // skip menu
-  updateFocus();
+  document.getElementById('now').querySelector('span').innerText=it.nome||it.titulo;
+  const overlay=document.getElementById('overlay-zap');
+  overlay.innerText=it.nome||it.titulo; overlay.style.display='block';
+  setTimeout(()=>overlay.style.display='none',1200);
 }
 
-// ===== META OVERLAY =====
 function showMeta(i){
-  metaTitle.innerText=i.nome||i.titulo;
-  metaDesc.innerText=i.desc||'Sem descrição.';
-  metaRating.innerText=i.rating||'--';
-  metaYear.innerText=i.year||'----';
-  overlayMeta.style.backgroundImage=`url(${i.poster||''})`;
-  overlayMeta.style.display='flex';
-  btnStart.onclick=()=>{ if(i.type==='serie'){ /* aqui você pode integrar Archive.org */ } else play(view.indexOf(i)); overlayMeta.style.display='none'; }
-}
-btnClose.onclick=()=>overlayMeta.style.display='none';
-
-// ===== MENU BOTÕES =====
-document.querySelectorAll('#menu .btn').forEach((b,n)=>{
-  b.onclick=()=>{ document.querySelectorAll('#menu .btn').forEach(bb=>bb.classList.remove('active')); b.classList.add('active'); loadContent(b.dataset.type); }
-});
-
-// ===== FOCUS/KEYBOARD =====
-function updateFocus(){
-  const focusables=[document.getElementById('search'), ...document.querySelectorAll('#menu .btn'), ...document.querySelectorAll('#list .item'), btnStart, btnClose];
-  focusables.forEach((f,i)=>f.classList.toggle('focus',i===focusIndex));
-  const el=focusables[focusIndex]; if(el) el.scrollIntoView({block:'center'});
+  const overlay=document.getElementById('overlay-meta');
+  overlay.style.backgroundImage=`url(${i.poster||''})`;
+  document.getElementById('meta-title').innerText=i.nome||i.titulo;
+  document.getElementById('meta-desc').innerText=i.desc||'Sem descrição';
+  document.getElementById('meta-rating').innerText=i.rating||'--';
+  document.getElementById('meta-year').innerText=i.year||'----';
+  overlay.style.display='flex';
+  document.getElementById('btn-start').onclick=()=>{if(i.url) play(view.indexOf(i));};
 }
 
+// Focus
+function refreshFocus(){
+  focusables=[document.getElementById('search'),...document.querySelectorAll('#menu .btn'),...document.querySelectorAll('#list .item'),document.getElementById('btn-start'),document.getElementById('btn-close')];
+}
+function focusItem(){
+  focusables.forEach((f,n)=>f.classList.toggle('focus',n===idx));
+  focusables[idx]?.scrollIntoView({block:'center'});
+}
+
+// Key Navigation
 document.addEventListener('keydown',e=>{
-  const focusables=[document.getElementById('search'), ...document.querySelectorAll('#menu .btn'), ...document.querySelectorAll('#list .item'), btnStart, btnClose];
-  if(e.key==='ArrowDown'){ focusIndex=Math.min(focusIndex+1,focusables.length-1); updateFocus(); e.preventDefault(); }
-  if(e.key==='ArrowUp'){ focusIndex=Math.max(focusIndex-1,0); updateFocus(); e.preventDefault(); }
-  if(e.key==='ArrowRight'){ e.preventDefault(); if(focusables[focusIndex]===document.getElementById('search')){ focusIndex++; } else if(focusables[focusIndex].classList.contains('item')){ /* lateral direito para overlay/meta */ focusIndex=focusables.indexOf(btnStart); } updateFocus(); }
-  if(e.key==='ArrowLeft'){ e.preventDefault(); if(focusables[focusIndex]===btnStart){ focusIndex=document.querySelectorAll('#list .item').length+document.querySelectorAll('#menu .btn').length-1; } updateFocus(); }
-  if(e.key==='Enter'){ focusables[focusIndex].click(); }
+  refreshFocus();
+  if(e.key==='ArrowDown'){idx=Math.min(idx+1,focusables.length-1); focusItem(); e.preventDefault();}
+  if(e.key==='ArrowUp'){idx=Math.max(idx-1,0); focusItem(); e.preventDefault();}
+  if(e.key==='ArrowLeft'){/* lateral logic */}
+  if(e.key==='ArrowRight'){/* lateral logic */}
+  if(e.key==='Enter'){focusables[idx].click();}
 });
 
-// ===== SEARCH REAL TIME =====
+// Menu Buttons
+document.querySelectorAll('#menu .btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('#menu .btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); loadSession(b.dataset.session);});
+
+// Search
 document.getElementById('search').addEventListener('input',()=>{
   const q=document.getElementById('search').value.toLowerCase();
   view=items.filter(i=>(i.nome||i.titulo).toLowerCase().includes(q));
-  focusIndex=document.querySelectorAll('#menu .btn').length+1;
   render();
 });
 
-// ===== INIT =====
-loadContent('tv');
+// Init
+loadSession('tv');
 </script>
 
 </body>
