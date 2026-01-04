@@ -11,129 +11,61 @@
 
 <style>
 *{box-sizing:border-box}
-body{
-margin:0;
-font-family:Poppins;
-background:#000;
-color:#fff;
-overflow:hidden
-}
+body{margin:0;font-family:Poppins;background:#000;color:#fff;overflow:hidden}
 ::-webkit-scrollbar{display:none}
-
 #app{display:flex;height:100vh}
 
 /* SIDEBAR */
-#side{
-width:420px;
-background:#111;
-display:flex;
-flex-direction:column;
-border-right:1px solid #222
-}
+#side{width:420px;background:#111;display:flex;flex-direction:column;border-right:1px solid #222}
 
 /* HEADER */
-#header{
-padding:14px;
-display:flex;
-align-items:center;
-justify-content:space-between
-}
+#header{padding:14px;display:flex;justify-content:space-between;align-items:center}
 #logo{width:160px}
 #timebox{text-align:right}
 #clock{font-size:20px}
-#date{font-size:12px;opacity:.9}
+#date{font-size:12px}
 
 /* SEARCH */
-#search{
-margin:8px 14px;
-padding:10px;
-font-size:16px;
-background:#000;
-color:#fff;
-border:2px solid #e50914;
-border-radius:6px;
-outline:none
-}
+#search{margin:8px 14px;padding:10px;font-size:16px;background:#000;color:#fff;border:2px solid #e50914;border-radius:6px}
 #search.focus{box-shadow:0 0 0 2px #fff}
 
 /* NOW */
-#now{
-margin:4px 14px;
-font-size:13px
-}
+#now{margin:4px 14px;font-size:13px}
 #now span{font-size:14px}
 
 /* MENU */
-#menu{
-margin:10px 14px;
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:6px
-}
-.btn{
-padding:6px;
-font-size:13px;
-background:#222;
-border-radius:6px;
-text-align:center;
-white-space:nowrap
-}
+#menu{margin:10px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.btn{padding:6px;font-size:13px;background:#222;border-radius:6px;text-align:center;white-space:nowrap}
 .btn.focus{box-shadow:0 0 0 2px #fff}
 .btn.active{background:#e50914}
 .btn.kids{background:#0056b3}
 
 /* LIST */
-#list{
-flex:1;
-overflow-y:auto
-}
-.item{
-padding:12px;
-border-bottom:1px solid #222;
-display:flex;
-justify-content:space-between;
-align-items:center;
-font-size:16px
-}
-.item.focus{
-background:#222;
-border-left:6px solid #e50914
-}
+#list{flex:1;overflow-y:auto}
+.item{padding:12px;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:center;font-size:16px}
+.item.focus{background:#222;border-left:6px solid #e50914}
+.star{opacity:.4}
+.star.active{color:#e50914;opacity:1}
 
 /* PLAYER */
 #player{flex:1;position:relative}
-video{width:100%;height:100%;background:#000}
+video{width:100%;height:100%}
 
 /* OVERLAY */
-#zap{
-position:absolute;
-bottom:40px;
-left:40px;
-background:rgba(0,0,0,.8);
-padding:10px 20px;
-font-size:20px;
-border-left:6px solid #e50914;
-display:none
-}
+#zap{position:absolute;bottom:40px;left:40px;background:rgba(0,0,0,.8);padding:10px 20px;font-size:20px;border-left:6px solid #e50914;display:none}
 </style>
 </head>
 
 <body>
-
 <div id="app">
 
 <div id="side">
-
 <div id="header">
 <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
-<div id="timebox">
-<div id="clock"></div>
-<div id="date"></div>
-</div>
+<div id="timebox"><div id="clock"></div><div id="date"></div></div>
 </div>
 
 <input id="search" placeholder="Pesquisar...">
-
 <div id="now">Assistindo agora: <span>—</span></div>
 
 <div id="menu">
@@ -165,28 +97,35 @@ date.textContent=d.toLocaleDateString('pt-BR')
 
 /* STATE */
 let items=[],view=[],idx=0,menuIdx=0
-let focusArea='list'
-let hls=null
+let focusArea='list',hls=null
 const buttons=[...document.querySelectorAll('.btn')]
+const favs=JSON.parse(localStorage.getItem('pf_favs')||'[]')
+
+/* FAVORITOS */
+const isFav=i=>favs.some(f=>f.nome===i.nome)
+function toggleFav(i){
+const p=favs.findIndex(f=>f.nome===i.nome)
+p>-1?favs.splice(p,1):favs.push(i)
+localStorage.setItem('pf_favs',JSON.stringify(favs))
+render()
+}
 
 /* LOADERS */
-async function loadM3U(file){
+async function loadM3U(file,auto=true){
 const t=await fetch('data/'+file).then(r=>r.text())
 items=[]
 let n=''
 t.split('\n').forEach(l=>{
-if(l.startsWith('#EXTINF')) n=l.split(',').pop()
-else if(l.startsWith('http')) items.push({nome:n,url:l})
+if(l.startsWith('#EXTINF'))n=l.split(',').pop()
+else if(l.startsWith('http'))items.push({nome:n,url:l})
 })
-view=[...items]
-render()
-play(0)
+view=[...items];render()
+if(auto)play(0)
 }
 
 async function loadJSON(file){
 items=await fetch('data/'+file).then(r=>r.json())
-view=[...items]
-render()
+view=[...items];render()
 }
 
 /* RENDER */
@@ -195,11 +134,13 @@ list.innerHTML=''
 view.forEach((i,n)=>{
 const d=document.createElement('div')
 d.className='item'
-d.innerHTML=`<span>${i.nome||i.titulo}</span><span>☆</span>`
+d.innerHTML=`<span>${i.nome||i.titulo}</span>
+<span class="star ${isFav(i)?'active':''}">★</span>`
+d.onclick=()=>{idx=n;play(idx)}
+d.querySelector('.star').onclick=e=>{e.stopPropagation();toggleFav(i)}
 list.appendChild(d)
 })
-idx=0
-focusList()
+idx=0;focusList()
 }
 
 /* FOCUS */
@@ -207,45 +148,38 @@ function focusMenu(){
 focusArea='menu'
 buttons.forEach((b,i)=>b.classList.toggle('focus',i===menuIdx))
 }
-
 function focusList(){
 focusArea='list'
 buttons.forEach(b=>b.classList.remove('focus'))
-document.querySelectorAll('.item').forEach((e,i)=>{
-e.classList.toggle('focus',i===idx)
-})
+document.querySelectorAll('.item').forEach((e,i)=>e.classList.toggle('focus',i===idx))
 document.querySelectorAll('.item')[idx]?.scrollIntoView({block:'center'})
 }
 
 /* PLAY */
 function play(i){
-const it=view[i]
-if(!it)return
+const it=view[i];if(!it)return
 if(hls){hls.destroy();hls=null}
 if(it.url?.includes('.m3u8')&&Hls.isSupported()){
-hls=new Hls()
-hls.loadSource(it.url)
-hls.attachMedia(video)
+hls=new Hls();hls.loadSource(it.url);hls.attachMedia(video)
 }else video.src=it.url
 video.play().catch(()=>{})
 now.querySelector('span').textContent=it.nome||it.titulo
 zap.textContent=it.nome||it.titulo
 zap.style.display='block'
-setTimeout(()=>zap.style.display='none',1200)
+setTimeout(()=>zap.style.display='none',1500)
 }
 
-/* ACTIVATE MENU */
+/* MENU */
 function activateMenu(){
 buttons.forEach(b=>b.classList.remove('active'))
-const b=buttons[menuIdx]
-b.classList.add('active')
+const b=buttons[menuIdx];b.classList.add('active')
 const s=b.dataset.session
-if(s==='tv') loadM3U('canais.m3u')
-if(s==='kids') loadM3U('kids_canais.m3u')
-if(s==='filmes') loadJSON('filmes.json')
-if(s==='series') loadJSON('series.json')
-if(s==='kidsconteudo') loadJSON('kids_filmes.json')
-if(s==='fav') loadJSON('favoritos.json')
+if(s==='tv')loadM3U('canais.m3u',true)
+if(s==='kids')loadM3U('kids_canais.m3u',true)
+if(s==='filmes')loadJSON('filmes.json')
+if(s==='series')loadJSON('series.json')
+if(s==='kidsconteudo')loadJSON('kids_filmes.json')
+if(s==='fav'){items=[...favs];view=[...items];render()}
 }
 
 /* SEARCH */
@@ -258,37 +192,21 @@ render()
 /* KEYS */
 document.addEventListener('keydown',e=>{
 switch(e.keyCode){
-case 38: // UP
-if(focusArea==='list') focusMenu()
+case 38: if(focusArea==='list')focusMenu();break
+case 40:
+if(focusArea==='menu')focusList()
+else{idx=Math.min(idx+1,view.length-1);play(idx);focusList()}
 break
-case 40: // DOWN
-if(focusArea==='menu') focusList()
-else{
-idx=Math.min(idx+1,view.length-1)
-play(idx)
-focusList()
-}
-break
-case 37: // LEFT
-if(focusArea==='menu'){menuIdx=Math.max(menuIdx-1,0);focusMenu()}
-break
-case 39: // RIGHT
-if(focusArea==='menu'){menuIdx=Math.min(menuIdx+1,buttons.length-1);focusMenu()}
-break
-case 13: // OK
-if(focusArea==='menu'){activateMenu();focusList()}
-break
-case 427: // CH+
-idx=Math.max(idx-1,0);play(idx);focusList()
-break
-case 428: // CH-
-idx=Math.min(idx+1,view.length-1);play(idx);focusList()
-break
+case 37: if(focusArea==='menu'){menuIdx=Math.max(menuIdx-1,0);focusMenu()}break
+case 39: if(focusArea==='menu'){menuIdx=Math.min(menuIdx+1,buttons.length-1);focusMenu()}break
+case 13: if(focusArea==='menu'){activateMenu();focusList()}break
+case 427: idx=Math.max(idx-1,0);play(idx);focusList();break
+case 428: idx=Math.min(idx+1,view.length-1);play(idx);focusList();break
 }
 })
 
 /* INIT */
-loadM3U('canais.m3u')
+loadM3U('canais.m3u',true)
 </script>
 
 </body>
