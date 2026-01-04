@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <title>PaixãoFlix</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logoof512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
@@ -36,15 +35,15 @@ border-right:1px solid #222
 padding:16px;
 display:flex;
 align-items:center;
-gap:12px
+gap:16px
 }
-#header img{width:120px}
+#header img{width:160px}
 #timebox{
 display:flex;
 flex-direction:column
 }
-#clock{font-size:15px}
-#date{font-size:13px;opacity:.9}
+#clock{font-size:16px;color:#fff}
+#date{font-size:14px;color:#fff;opacity:.9}
 
 /* SEARCH */
 #search{
@@ -60,9 +59,13 @@ border-radius:6px
 /* NOW PLAYING */
 #now{
 margin:0 16px;
-font-size:13px
+font-size:13px;
+color:#fff
 }
-#now span{font-size:14px}
+#now span{
+font-size:14px;
+font-weight:400
+}
 
 /* MENU */
 #menu{
@@ -73,12 +76,13 @@ gap:6px
 }
 .btn{
 padding:6px;
-font-size:14px;
+font-size:13px;
 background:#222;
 border-radius:6px;
-text-align:center
+text-align:center;
+white-space:nowrap
 }
-.btn.active{background:#e50914}
+.btn.active,.btn.focus{background:#e50914}
 .btn.kids{background:#0056b3}
 
 /* LIST */
@@ -130,17 +134,17 @@ display:none
 </div>
 </div>
 
-<input id="search" placeholder="Pesquisar...">
+<input id="search" placeholder="Pesquisar..." tabindex="0">
 
 <div id="now">Assistindo agora: <span>—</span></div>
 
 <div id="menu">
-<div class="btn active" data="tv">TV</div>
-<div class="btn" data="filmes">Filmes</div>
-<div class="btn" data="series">Séries</div>
-<div class="btn kids" data="kids">Canal Kids</div>
-<div class="btn kids" data="kidsconteudo">Filmes/Séries Kids</div>
-<div class="btn" data="fav">Favoritos</div>
+<div class="btn active" tabindex="0" data="tv">TV</div>
+<div class="btn" tabindex="0" data="filmes">Filmes</div>
+<div class="btn" tabindex="0" data="series">Séries</div>
+<div class="btn kids" tabindex="0" data="kids">Canal Kids</div>
+<div class="btn kids" tabindex="0" data="kidsconteudo">Filmes/Séries Kids</div>
+<div class="btn" tabindex="0" data="fav">Favoritos</div>
 </div>
 
 <div id="list"></div>
@@ -162,7 +166,7 @@ date.innerText=d.toLocaleDateString('pt-BR')
 },1000)
 
 /* ===== STATE ===== */
-let items=[],view=[],idx=0,hls=null,favs=[]
+let items=[],view=[],idx=0,focusArea='list',menuIdx=0,hls=null
 
 /* ===== LOAD TV ===== */
 async function loadTV(){
@@ -171,7 +175,7 @@ items=[]
 let n=''
 t.split('\n').forEach(l=>{
 if(l.startsWith('#EXTINF'))n=l.split(',').pop()
-else if(l.startsWith('http'))items.push({nome:n,url:l,type:'tv'})
+else if(l.startsWith('http'))items.push({nome:n,url:l})
 })
 view=[...items]
 render()
@@ -184,16 +188,16 @@ list.innerHTML=''
 view.forEach((i,n)=>{
 const d=document.createElement('div')
 d.className='item'
-d.innerHTML=`<span>${i.nome||i.titulo}</span><span>☆</span>`
+d.innerHTML=`<span>${i.nome}</span><span>☆</span>`
 list.appendChild(d)
 })
 idx=0
-focus()
+focusList()
 }
 
 /* ===== FOCUS ===== */
-function focus(){
-[...document.querySelectorAll('.item')].forEach((e,i)=>{
+function focusList(){
+document.querySelectorAll('.item').forEach((e,i)=>{
 e.classList.toggle('focus',i===idx)
 })
 document.querySelectorAll('.item')[idx]?.scrollIntoView({block:'center'})
@@ -204,32 +208,58 @@ function play(i){
 const it=view[i]
 if(!it)return
 if(hls){hls.destroy();hls=null}
-if(it.url?.includes('.m3u8')&&Hls.isSupported()){
+if(it.url.includes('.m3u8')&&Hls.isSupported()){
 hls=new Hls()
 hls.loadSource(it.url)
 hls.attachMedia(video)
 }else video.src=it.url
 video.play().catch(()=>{})
-now.querySelector('span').innerText=it.nome||it.titulo
-zap.innerText=it.nome||it.titulo
+now.querySelector('span').innerText=it.nome
+zap.innerText=it.nome
 zap.style.display='block'
 setTimeout(()=>zap.style.display='none',1200)
 }
 
+/* ===== MENU FOCUS ===== */
+function focusMenu(){
+document.querySelectorAll('.btn').forEach((b,i)=>{
+b.classList.toggle('focus',i===menuIdx)
+})
+}
+
 /* ===== KEYS ===== */
 document.addEventListener('keydown',e=>{
-if(e.keyCode===40){idx=Math.min(idx+1,view.length-1);play(idx)}
-if(e.keyCode===38){idx=Math.max(idx-1,0);play(idx)}
-if(e.keyCode===33){idx=Math.max(idx-5,0);play(idx)}
-if(e.keyCode===34){idx=Math.min(idx+5,view.length-1);play(idx)}
-focus()
+if(e.key==='ArrowDown'){
+if(focusArea==='menu'){focusArea='list'}
+else if(focusArea==='list'){idx=Math.min(idx+1,view.length-1);play(idx);focusList()}
+}
+if(e.key==='ArrowUp'){
+if(focusArea==='list' && idx===0){focusArea='menu'}
+else if(focusArea==='list'){idx--;play(idx);focusList()}
+}
+if(e.key==='ArrowRight' && focusArea==='menu'){
+menuIdx=Math.min(menuIdx+1,5);focusMenu()
+}
+if(e.key==='ArrowLeft' && focusArea==='menu'){
+menuIdx=Math.max(menuIdx-1,0);focusMenu()
+}
+if(e.key==='Enter'){
+if(focusArea==='menu'){
+document.querySelectorAll('.btn')[menuIdx].click()
+}
+}
 })
 
 /* ===== SEARCH ===== */
 search.addEventListener('input',()=>{
 const q=search.value.toLowerCase()
-view=items.filter(i=>(i.nome||i.titulo).toLowerCase().includes(q))
+view=items.filter(i=>i.nome.toLowerCase().includes(q))
 render()
+})
+
+/* MENU CLICK */
+document.querySelectorAll('.btn').forEach(b=>{
+b.onclick=()=>alert('Sessão: '+b.dataset)
 })
 
 /* INIT */
