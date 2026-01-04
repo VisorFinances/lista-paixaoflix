@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>PaixãoFlix VIP - 3TB</title>
+<title>PaixãoFlix VIP</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
@@ -11,7 +11,17 @@
     :root { --primary: #e50914; --bg: #0a0a0a; --focus: #fff; }
     body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
     
-    /* Menu Lateral */
+    /* Splash Screen - Abertura */
+    #splash { position:fixed; inset:0; background:#000; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.8s ease; }
+    #splash img { width: 250px; animation: pulse 2s infinite ease-in-out; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } }
+
+    /* Indicador de Carregamento (Spinner) */
+    #loader { position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); display:none; z-index:50; }
+    .spinner { width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Layout Estrutural */
     #side{width:320px;background:var(--bg);display:flex;flex-direction:column;z-index:20;border-right:1px solid #222;}
     #header-container { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid #222; }
     #logo{max-width:110px; height: auto;}
@@ -21,7 +31,6 @@
     #search{width:100%; height:32px; box-sizing:border-box; padding:0 10px; border-radius:4px; border:1px solid #333; background:#111; color:#fff; outline:none; font-size: 13px;}
     #search.focus { border-color: var(--primary); outline: 2px solid var(--focus); }
 
-    /* Info Bar - Reduzida */
     #now-playing-box { padding: 5px 15px; background: #000; border-bottom: 1px solid #222; font-size: 10px; min-height: 30px;}
     #now-playing-title { color: #fff; font-weight: 700; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -33,7 +42,6 @@
     .sub-btn { width: 100%; padding: 8px 15px; text-align: left; background: transparent; border: none; color: #888; cursor: pointer; font-size: 13px; outline: none; }
     .sub-btn.focus { color: #fff; background: #222; }
 
-    /* Lista de Conteúdo */
     #list-container{width: 280px; background: #050505; border-left: 1px solid #222; overflow: hidden; transition: 0.3s;}
     #list{height:100%; overflow-y:auto; scrollbar-width: none;}
     .item{padding:12px 15px; border-bottom:1px solid #111; cursor:pointer; font-size:13px; outline:none;}
@@ -44,12 +52,7 @@
     #player-container{flex:1; position:relative; background:#000;}
     video{width:100%; height:100%;}
     
-    /* Barra de Volume */
-    #volume-card {
-        position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.8);
-        padding: 15px; border-radius: 10px; display: none; align-items: center; gap: 10px;
-        border: 1px solid #333; z-index: 1000;
-    }
+    #volume-card { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; display: none; align-items: center; gap: 10px; border: 1px solid #333; z-index: 1000; }
     #vol-bar-bg { width: 150px; height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
     #vol-bar-fill { width: 50%; height: 100%; background: var(--primary); transition: 0.1s; }
 
@@ -60,13 +63,18 @@
 </head>
 <body>
 
+<div id="splash">
+    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" alt="PaixãoFlix Logo">
+    <p style="margin-top:20px; letter-spacing: 2px; font-size: 12px; opacity: 0.6;">CARREGANDO SISTEMA...</p>
+</div>
+
 <div id="side">
     <div id="header-container">
         <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
         <div id="clock">00:00</div>
     </div>
-    <div id="search-box"><input id="search" placeholder="Pesquisar..."></div>
-    <div id="now-playing-box">ASSISTINDO: <span id="now-playing-title">Nenhum</span></div>
+    <div id="search-box"><input id="search" placeholder="Pesquisar em tudo..."></div>
+    <div id="now-playing-box">ASSISTINDO: <span id="now-playing-title">Nenhum conteúdo</span></div>
     
     <div id="menu-container">
         <button class="main-btn" onfocus="toggleMenu('sub-tv', loadTV)">CANAIS TV</button>
@@ -109,6 +117,7 @@
 <div id="list-container"><div id="list"></div></div>
 
 <div id="player-container">
+    <div id="loader"><div class="spinner"></div></div>
     <video id="video" autoplay></video>
     
     <div id="volume-card">
@@ -120,14 +129,14 @@
         <h1 id="meta-title" style="color:var(--primary); margin:0;"></h1>
         <p id="meta-desc" style="max-width:600px; font-size:16px;"></p>
         <div style="margin-top:20px;">
-            <button class="btn-meta" id="btn-start">VER AGORA</button>
+            <button class="btn-meta" id="btn-start">ASSISTIR AGORA</button>
             <button class="btn-meta" style="background:#333; color:#fff;" id="btn-close">VOLTAR</button>
         </div>
     </div>
 </div>
 
 <script>
-const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta'), searchInput=document.getElementById('search'), npTitle=document.getElementById('now-playing-title'), volCard=document.getElementById('volume-card'), volFill=document.getElementById('vol-bar-fill');
+const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta'), searchInput=document.getElementById('search'), npTitle=document.getElementById('now-playing-title'), volCard=document.getElementById('volume-card'), volFill=document.getElementById('vol-bar-fill'), loader=document.getElementById('loader');
 let hls=null, items=[], focusIndex=0, allData=[];
 
 function updateClock(){
@@ -135,21 +144,17 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-// Pesquisa Global
-searchInput.oninput = () => {
-    const t = searchInput.value.toLowerCase();
-    if(t.length < 2) return;
-    const filtered = allData.filter(i => (i.titulo || i.nome || "").toLowerCase().includes(t));
-    render(filtered);
-};
+// Eventos do Vídeo para o Spinner
+video.addEventListener('waiting', () => loader.style.display = 'block');
+video.addEventListener('playing', () => loader.style.display = 'none');
+video.addEventListener('canplay', () => loader.style.display = 'none');
 
 async function loadJSON(file) {
     try {
         const r = await fetch(`data/${file}`);
         items = await r.json();
-        if(allData.length < 50) allData.push(...items); // Popula banco de pesquisa
         render();
-    } catch(e) { list.innerHTML = '<div class="item">Erro ao carregar lista</div>'; }
+    } catch(e) {}
 }
 
 async function loadM3U(file) {
@@ -162,7 +167,6 @@ async function loadM3U(file) {
                 if(l.startsWith('#EXTINF')) n = l.split(',').pop().trim();
                 else if(l.trim().startsWith('http')) items.push({titulo: n, url: l.trim(), tipo:'tv'});
             });
-            if(allData.length < 50) allData.push(...items);
             render();
         }
     } catch(e){}
@@ -174,8 +178,7 @@ async function loadKidsAll() {
     try {
         const [f, s] = await Promise.all([fetch('data/kids_filmes.json'), fetch('data/kids_series.json')]);
         const d1 = await f.json(); const d2 = await s.json();
-        items = [...d1, ...d2];
-        render();
+        items = [...d1, ...d2]; render();
     } catch(e){}
 }
 
@@ -205,6 +208,7 @@ function render(custom){
 
 function play(url, title){
     if(!url) return;
+    loader.style.display = 'block';
     if(hls) hls.destroy();
     npTitle.innerText = title;
     if(url.includes('m3u8')){
@@ -216,7 +220,7 @@ function play(url, title){
 
 function showMeta(i){
     document.getElementById('meta-title').innerText = i.titulo || i.nome;
-    document.getElementById('meta-desc').innerText = i.desc || "Sem sinopse.";
+    document.getElementById('meta-desc').innerText = i.desc || "Sem sinopse disponível.";
     overlayMeta.style.display='flex';
     refreshFocus();
     focusIndex = window.focusables.indexOf(document.getElementById('btn-start'));
@@ -241,7 +245,6 @@ function updateFocus(){
     if(el) el.scrollIntoView({block:'center', behavior:'smooth'});
 }
 
-// Volume e Canais
 let volTimeout;
 function changeVol(dir) {
     let v = video.volume + (dir * 0.1);
@@ -255,13 +258,10 @@ function changeVol(dir) {
 
 document.addEventListener('keydown', e=>{
     if(e.key==='Backspace') { document.body.classList.remove('list-hidden'); e.preventDefault(); }
-    
-    // Setas laterais no player para Volume
     if(document.body.classList.contains('list-hidden')) {
         if(e.key==='ArrowRight') { changeVol(1); e.preventDefault(); }
         if(e.key==='ArrowLeft') { changeVol(-1); e.preventDefault(); }
     }
-
     refreshFocus();
     let cur = window.focusables[focusIndex];
     if(e.key==='ArrowDown'){ focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); }
@@ -273,18 +273,20 @@ document.addEventListener('keydown', e=>{
     if(e.key==='ArrowLeft' && cur.classList.contains('item')){
         focusIndex = window.focusables.indexOf(document.querySelector('.main-btn.focus') || document.querySelector('.main-btn'));
     }
-    if(e.key==='Enter' || e.keyCode===13){ cur.click(); }
+    if(e.key==='Enter'){ cur.click(); }
     updateFocus();
 });
 
 window.onload=async()=>{ 
     await loadTV();
     if(items.length > 0) play(items[0].url, items[0].titulo);
-    // Build inicial do banco de pesquisa
-    ['filmes.json', 'series.json', 'kids_filmes.json'].forEach(async f => {
-        const r = await fetch(`data/${f}`).catch(()=>{});
-        if(r && r.ok) { const d = await r.json(); allData.push(...d); }
-    });
+    
+    // Esconde o Splash após o carregamento inicial (3 segundos para impacto visual)
+    setTimeout(() => {
+        const splash = document.getElementById('splash');
+        splash.style.opacity = '0';
+        setTimeout(() => splash.style.display = 'none', 800);
+    }, 3000);
 };
 </script>
 </body>
