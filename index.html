@@ -27,7 +27,6 @@ body{margin:0;font-family:Poppins;background:#000;color:#fff;overflow:hidden}
 
 /* SEARCH */
 #search{margin:8px 14px;padding:10px;font-size:16px;background:#000;color:#fff;border:2px solid #e50914;border-radius:6px}
-#search.focus{box-shadow:0 0 0 2px #fff}
 
 /* NOW */
 #now{margin:4px 14px;font-size:13px}
@@ -35,24 +34,57 @@ body{margin:0;font-family:Poppins;background:#000;color:#fff;overflow:hidden}
 
 /* MENU */
 #menu{margin:10px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.btn{padding:6px;font-size:13px;background:#222;border-radius:6px;text-align:center;white-space:nowrap}
-.btn.focus{box-shadow:0 0 0 2px #fff}
+.btn{padding:6px;font-size:13px;background:#222;border-radius:6px;text-align:center}
 .btn.active{background:#e50914}
+.btn.focus{box-shadow:0 0 0 2px #fff}
 .btn.kids{background:#0056b3}
 
 /* LIST */
 #list{flex:1;overflow-y:auto}
-.item{padding:12px;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:center;font-size:16px}
+.item{padding:12px;border-bottom:1px solid #222;font-size:16px}
 .item.focus{background:#222;border-left:6px solid #e50914}
-.star{opacity:.4}
-.star.active{color:#e50914;opacity:1}
 
 /* PLAYER */
 #player{flex:1;position:relative}
 video{width:100%;height:100%}
 
+/* DETAILS PANEL */
+#details{
+position:absolute;
+top:0;right:0;
+width:420px;height:100%;
+background:linear-gradient(90deg,transparent,#000 40%);
+padding:40px;
+display:none;
+flex-direction:column;
+justify-content:center
+}
+#details img{width:220px;border-radius:6px;margin-bottom:20px}
+#details h2{margin:0;font-size:26px}
+#meta{margin:8px 0;color:#e50914}
+#desc{font-size:14px;color:#ccc;line-height:1.4}
+
+.actions{margin-top:20px;display:flex;gap:10px}
+.action{
+padding:10px 20px;
+font-size:16px;
+border-radius:6px
+}
+.play{background:#e50914}
+.back{background:#555}
+.action.focus{box-shadow:0 0 0 2px #fff}
+
 /* OVERLAY */
-#zap{position:absolute;bottom:40px;left:40px;background:rgba(0,0,0,.8);padding:10px 20px;font-size:20px;border-left:6px solid #e50914;display:none}
+#zap{
+position:absolute;
+bottom:40px;
+left:40px;
+background:rgba(0,0,0,.8);
+padding:10px 20px;
+font-size:20px;
+border-left:6px solid #e50914;
+display:none
+}
 </style>
 </head>
 
@@ -69,12 +101,12 @@ video{width:100%;height:100%}
 <div id="now">Assistindo agora: <span>—</span></div>
 
 <div id="menu">
-<div class="btn active" data-session="tv">TV</div>
-<div class="btn" data-session="filmes">Filmes</div>
-<div class="btn" data-session="series">Séries</div>
-<div class="btn kids" data-session="kids">Canal Kids</div>
-<div class="btn kids" data-session="kidsconteudo">Filmes/Séries Kids</div>
-<div class="btn" data-session="fav">Favoritos</div>
+<div class="btn active" data="tv">TV</div>
+<div class="btn" data="filmes">Filmes</div>
+<div class="btn" data="series">Séries</div>
+<div class="btn kids" data="kids">Canal Kids</div>
+<div class="btn kids" data="kidsconteudo">Filmes/Séries Kids</div>
+<div class="btn" data="fav">Favoritos</div>
 </div>
 
 <div id="list"></div>
@@ -82,6 +114,19 @@ video{width:100%;height:100%}
 
 <div id="player">
 <video id="video" autoplay></video>
+
+<div id="details">
+<img id="poster">
+<h2 id="title"></h2>
+<div id="meta"></div>
+<div id="desc"></div>
+
+<div class="actions">
+<div class="action play">ASSISTIR</div>
+<div class="action back">VOLTAR</div>
+</div>
+</div>
+
 <div id="zap"></div>
 </div>
 
@@ -97,30 +142,21 @@ date.textContent=d.toLocaleDateString('pt-BR')
 
 /* STATE */
 let items=[],view=[],idx=0,menuIdx=0
-let focusArea='list',hls=null
-const buttons=[...document.querySelectorAll('.btn')]
-const favs=JSON.parse(localStorage.getItem('pf_favs')||'[]')
+let mode='tv',hls=null
+let detailsFocus=0
 
-/* FAVORITOS */
-const isFav=i=>favs.some(f=>f.nome===i.nome)
-function toggleFav(i){
-const p=favs.findIndex(f=>f.nome===i.nome)
-p>-1?favs.splice(p,1):favs.push(i)
-localStorage.setItem('pf_favs',JSON.stringify(favs))
-render()
-}
+const buttons=[...document.querySelectorAll('.btn')]
+const actions=[...document.querySelectorAll('.action')]
 
 /* LOADERS */
-async function loadM3U(file,auto=true){
+async function loadM3U(file){
 const t=await fetch('data/'+file).then(r=>r.text())
-items=[]
-let n=''
+items=[];let n=''
 t.split('\n').forEach(l=>{
 if(l.startsWith('#EXTINF'))n=l.split(',').pop()
 else if(l.startsWith('http'))items.push({nome:n,url:l})
 })
-view=[...items];render()
-if(auto)play(0)
+view=[...items];render();play(0)
 }
 
 async function loadJSON(file){
@@ -134,79 +170,67 @@ list.innerHTML=''
 view.forEach((i,n)=>{
 const d=document.createElement('div')
 d.className='item'
-d.innerHTML=`<span>${i.nome||i.titulo}</span>
-<span class="star ${isFav(i)?'active':''}">★</span>`
-d.onclick=()=>{idx=n;play(idx)}
-d.querySelector('.star').onclick=e=>{e.stopPropagation();toggleFav(i)}
+d.textContent=i.nome||i.titulo
 list.appendChild(d)
 })
 idx=0;focusList()
 }
 
 /* FOCUS */
-function focusMenu(){
-focusArea='menu'
-buttons.forEach((b,i)=>b.classList.toggle('focus',i===menuIdx))
-}
 function focusList(){
-focusArea='list'
-buttons.forEach(b=>b.classList.remove('focus'))
 document.querySelectorAll('.item').forEach((e,i)=>e.classList.toggle('focus',i===idx))
 document.querySelectorAll('.item')[idx]?.scrollIntoView({block:'center'})
+}
+
+/* DETAILS */
+function showDetails(i){
+if(mode==='tv'||mode==='kids'){details.style.display='none';return}
+details.style.display='flex'
+poster.src=i.poster||''
+title.textContent=i.titulo||i.nome
+meta.textContent=`⭐ ${i.rating||'--'}  •  ${i.year||'----'}`
+desc.textContent=i.desc||'Sem descrição'
 }
 
 /* PLAY */
 function play(i){
 const it=view[i];if(!it)return
+if(it.url){
 if(hls){hls.destroy();hls=null}
-if(it.url?.includes('.m3u8')&&Hls.isSupported()){
+if(it.url.includes('.m3u8')&&Hls.isSupported()){
 hls=new Hls();hls.loadSource(it.url);hls.attachMedia(video)
 }else video.src=it.url
 video.play().catch(()=>{})
+}
 now.querySelector('span').textContent=it.nome||it.titulo
 zap.textContent=it.nome||it.titulo
 zap.style.display='block'
-setTimeout(()=>zap.style.display='none',1500)
+setTimeout(()=>zap.style.display='none',1200)
+showDetails(it)
 }
 
 /* MENU */
-function activateMenu(){
-buttons.forEach(b=>b.classList.remove('active'))
-const b=buttons[menuIdx];b.classList.add('active')
-const s=b.dataset.session
-if(s==='tv')loadM3U('canais.m3u',true)
-if(s==='kids')loadM3U('kids_canais.m3u',true)
-if(s==='filmes')loadJSON('filmes.json')
-if(s==='series')loadJSON('series.json')
-if(s==='kidsconteudo')loadJSON('kids_filmes.json')
-if(s==='fav'){items=[...favs];view=[...items];render()}
-}
-
-/* SEARCH */
-search.oninput=()=>{
-const q=search.value.toLowerCase()
-view=items.filter(i=>(i.nome||i.titulo).toLowerCase().includes(q))
-render()
-}
-
-/* KEYS */
-document.addEventListener('keydown',e=>{
-switch(e.keyCode){
-case 38: if(focusArea==='list')focusMenu();break
-case 40:
-if(focusArea==='menu')focusList()
-else{idx=Math.min(idx+1,view.length-1);play(idx);focusList()}
-break
-case 37: if(focusArea==='menu'){menuIdx=Math.max(menuIdx-1,0);focusMenu()}break
-case 39: if(focusArea==='menu'){menuIdx=Math.min(menuIdx+1,buttons.length-1);focusMenu()}break
-case 13: if(focusArea==='menu'){activateMenu();focusList()}break
-case 427: idx=Math.max(idx-1,0);play(idx);focusList();break
-case 428: idx=Math.min(idx+1,view.length-1);play(idx);focusList();break
+buttons.forEach((b,i)=>{
+b.onclick=()=>{
+buttons.forEach(x=>x.classList.remove('active'))
+b.classList.add('active')
+mode=b.dataset
+if(b.dataset==='tv')loadM3U('canais.m3u')
+if(b.dataset==='kids')loadM3U('kids_canais.m3u')
+if(b.dataset==='filmes')loadJSON('filmes.json')
+if(b.dataset==='series')loadJSON('series.json')
+if(b.dataset==='kidsconteudo')loadJSON('kids_filmes.json')
 }
 })
 
+/* KEYS */
+document.addEventListener('keydown',e=>{
+if(e.keyCode===40){idx=Math.min(idx+1,view.length-1);play(idx);focusList()}
+if(e.keyCode===38){idx=Math.max(idx-1,0);play(idx);focusList()}
+})
+
 /* INIT */
-loadM3U('canais.m3u',true)
+loadM3U('canais.m3u')
 </script>
 
 </body>
