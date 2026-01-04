@@ -2,89 +2,100 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>PaixãoFlix – Experiência VIP</title>
+<title>PaixãoFlix VIP</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 <style>
-    :root { --primary: #e50914; --bg: #0a0a0a; --focus: #fff; --glow: rgba(229, 9, 20, 0.6); }
+    :root { --primary: #e50914; --bg: #0a0a0a; --focus: #fff; }
     body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
     
-    /* Side Menu - Design Profissional */
-    #side{width:320px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;transition: 0.3s;}
-    #top{padding:20px;}
-    #logo{max-width:140px; margin-bottom: 10px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));}
-    #clock-box{text-align:right; margin-bottom: 10px;}
-    #clock{font-size:24px;font-weight:700;color: var(--primary);}
-    #date{font-size:12px;opacity:0.6;}
+    /* Cabeçalho Alinhado */
+    #side{width:320px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
+    #header-container { display: flex; align-items: center; justify-content: space-between; padding: 20px; border-bottom: 1px solid #222; }
+    #logo{max-width:130px; height: auto;}
+    #time-info { text-align: right; line-height: 1.2; }
+    #clock { font-size: 18px; font-weight: 700; }
+    #date { font-size: 10px; opacity: 0.7; text-transform: uppercase; }
 
-    #search{width:100%; height:40px; box-sizing:border-box; padding:0 15px; border-radius:10px; border:1px solid #333; background:#111; color:#fff; outline:none; margin-bottom:15px; font-size: 16px; transition: 0.3s;}
-    #search.focus { border-color: var(--primary); box-shadow: 0 0 15px var(--glow); transform: scale(1.02); }
+    #search-box { padding: 15px; }
+    #search{width:100%; height:35px; box-sizing:border-box; padding:0 12px; border-radius:6px; border:1px solid #333; background:#111; color:#fff; outline:none; font-size: 14px;}
+    #search.focus { border-color: var(--primary); outline: 2px solid var(--focus); }
 
-    /* Accordion Animado */
+    /* Menus */
     #menu-container{flex:1; overflow-y:auto; padding:0 15px; scrollbar-width: none;}
-    .main-btn { width: 100%; padding: 15px; text-align: left; background: #1a1a1a; border: none; color: #fff; font-weight: 700; cursor: pointer; border-radius: 8px; margin-bottom:8px; font-size: 16px; transition: 0.3s; display: flex; justify-content: space-between; }
-    .main-btn.focus { background: var(--primary); transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+    .main-btn { width: 100%; padding: 12px; text-align: left; background: #1a1a1a; border: none; color: #fff; font-weight: 700; cursor: pointer; border-radius: 6px; margin-bottom:5px; font-size: 16px; outline:none; display: flex; justify-content: space-between; }
+    .main-btn.focus { background: var(--primary); transform: scale(1.02); }
     
-    .submenu { display: none; background: #111; flex-direction: column; padding: 5px 0; border-radius: 0 0 8px 8px; margin-top: -8px; margin-bottom: 10px; border: 1px solid #222; border-top: none; }
-    .sub-btn { width: 100%; padding: 12px 25px; text-align: left; background: transparent; border: none; color: #888; cursor: pointer; font-size: 16px; outline: none; transition: 0.2s; }
-    .sub-btn.focus { color: #fff; background: rgba(255,255,255,0.05); border-left: 5px solid var(--primary); padding-left: 30px; }
+    .submenu { display: none; background: #111; flex-direction: column; padding: 2px 0; border-radius: 0 0 6px 6px; margin-bottom: 10px; border: 1px solid #222; border-top:none; }
+    .sub-btn { width: 100%; padding: 10px 20px; text-align: left; background: transparent; border: none; color: #aaa; cursor: pointer; font-size: 16px; outline: none; }
+    .sub-btn.focus { color: #fff; background: rgba(255,255,255,0.1); border-left: 5px solid var(--primary); }
 
-    /* Lista de Conteúdo */
-    #list-container{width: 300px; background: #050505; border-left: 1px solid #222; overflow: hidden; position: relative;}
+    /* Conteúdo */
+    #list-container{width: 280px; background: #050505; border-left: 1px solid #222; overflow: hidden;}
     #list{height:100%; overflow-y:auto; scrollbar-width: none;}
-    .item{padding:18px; border-bottom:1px solid #111; cursor:pointer; font-size:16px; transition: 0.3s; display: flex; align-items: center; background: transparent;}
-    .item.focus{ background: var(--primary); color: #fff; transform: scale(1.03); box-shadow: 0 0 20px var(--glow); z-index: 5; border-radius: 4px; }
+    .item{padding:15px; border-bottom:1px solid #111; cursor:pointer; font-size:15px; outline:none;}
+    .item.focus{ background: var(--primary); color: #fff; font-weight: bold; }
 
-    /* Player e Preview */
-    #player-container{flex:1; position:relative; background:#000; display: flex; flex-direction: column;}
-    video{width:100%; height:100%; transition: opacity 0.5s ease-in-out;}
+    /* Player e Preview com Capa */
+    #player-container{flex:1; position:relative; background:#000;}
+    video{width:100%; height:100%; background:#000;}
     
-    /* Overlay de Preview Inteligente */
-    #preview-overlay {
-        position: absolute; bottom: 30px; left: 30px; right: 30px;
-        background: rgba(0,0,0,0.8); padding: 25px; border-radius: 15px;
-        display: none; border: 1px solid #333; backdrop-filter: blur(10px);
-        animation: slideUp 0.4s ease-out;
+    #preview-card {
+        position: absolute; bottom: 40px; left: 40px; right: 40px;
+        background: rgba(0,0,0,0.85); padding: 20px; border-radius: 12px;
+        display: none; border: 1px solid #444; backdrop-filter: blur(10px);
+        align-items: center; gap: 20px; animation: fadeInUp 0.3s ease;
     }
-    @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    #preview-poster { width: 100px; height: 150px; border-radius: 8px; object-fit: cover; background: #222; }
 
-    #progress-container { position: absolute; bottom: 0; width: 100%; height: 6px; background: #222; }
-    #progress-bar { width: 0%; height: 100%; background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+    #progress-container { position: absolute; bottom: 0; width: 100%; height: 5px; background: #222; }
+    #progress-bar { width: 0%; height: 100%; background: var(--primary); }
 
     /* Modais */
     #overlay-meta, #overlay-resume{position:absolute; inset:0; background:rgba(0,0,0,0.96); display:none; flex-direction:column; justify-content:center; padding:60px; z-index:100;}
-    .btn-meta{padding:18px 40px; font-weight:700; border-radius:10px; border:none; cursor:pointer; margin-right:15px; font-size: 18px; transition: 0.3s;}
-    .btn-meta.focus { transform: scale(1.1); background: var(--primary); color: #fff; box-shadow: 0 0 20px var(--glow); }
+    .btn-meta{padding:15px 35px; font-weight:700; border-radius:8px; border:none; cursor:pointer; margin-right:15px; font-size: 16px; outline:none;}
+    .btn-meta.focus { background: var(--primary); color: #fff; outline: 3px solid #fff; }
 </style>
 </head>
 <body>
 
 <div id="side">
-    <div id="top">
-        <div id="clock-box"><div id="clock">00:00</div><div id="date">00/00/00</div></div>
+    <div id="header-container">
         <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
-        <input id="search" placeholder="O que vamos ver hoje?">
+        <div id="time-info">
+            <div id="clock">00:00</div>
+            <div id="date">01 JAN</div>
+        </div>
+    </div>
+    
+    <div id="search-box">
+        <input id="search" placeholder="Pesquisar em tudo...">
     </div>
     
     <div id="menu-container">
-        <button class="main-btn" onclick="toggleMenu('sub-tv', loadTV)">CANAIS TV <span>📺</span></button>
+        <button class="main-btn" onclick="toggleMenu('sub-tv', loadTV)">CANAIS TV</button>
         <div id="sub-tv" class="submenu"></div>
 
-        <button class="main-btn" onclick="toggleMenu('sub-filmes')">CINEMA <span>🎬</span></button>
+        <button class="main-btn" onclick="toggleMenu('sub-filmes')">CINEMA</button>
         <div id="sub-filmes" class="submenu">
             <button class="sub-btn" onclick="loadJSON('filmes','filmes.json')">Todos os Filmes</button>
             <button class="sub-btn" onclick="filtrar('Ação')">Ação</button>
+            <button class="sub-btn" onclick="filtrar('Aventura')">Aventura</button>
             <button class="sub-btn" onclick="filtrar('Comédia')">Comédia</button>
             <button class="sub-btn" onclick="filtrar('Drama')">Drama</button>
+            <button class="sub-btn" onclick="filtrar('Documentário')">Documentário</button>
+            <button class="sub-btn" onclick="filtrar('Ficção')">Ficção</button>
             <button class="sub-btn" onclick="filtrar('Terror')">Terror</button>
+            <button class="sub-btn" onclick="filtrar('Adulto')">Adulto</button>
         </div>
 
-        <button class="main-btn" onclick="toggleMenu('sub-series', () => loadJSON('series','series.json'))">SÉRIES <span>🍿</span></button>
+        <button class="main-btn" onclick="toggleMenu('sub-series', () => loadJSON('series','series.json'))">SÉRIES</button>
         <div id="sub-series" class="submenu"></div>
 
-        <button class="main-btn" style="background:#0056b3" onclick="toggleMenu('sub-kids')">ÁREA KIDS <span>🎈</span></button>
+        <button class="main-btn" style="background:#0044cc" onclick="toggleMenu('sub-kids')">ÁREA KIDS</button>
         <div id="sub-kids" class="submenu">
             <button class="sub-btn" onclick="loadJSON('kids','kids_canais.m3u')">Canal Kids</button>
             <button class="sub-btn" onclick="loadKidsConteudo()">Filmes e Séries Kids</button>
@@ -95,76 +106,103 @@
 <div id="list-container"><div id="list"></div></div>
 
 <div id="player-container">
-    <video id="video" autoplay style="opacity:0;"></video>
+    <video id="video" autoplay></video>
     
-    <div id="preview-overlay">
-        <h2 id="pre-title" style="margin:0; color:var(--primary);"></h2>
-        <p id="pre-desc" style="margin:10px 0 0; font-size:14px; color:#ccc; line-height:1.4;"></p>
+    <div id="preview-card">
+        <img id="preview-poster" src="">
+        <div>
+            <h2 id="pre-title" style="margin:0; font-size:22px;"></h2>
+            <p id="pre-desc" style="margin:8px 0 0; font-size:14px; color:#bbb; line-height:1.4;"></p>
+        </div>
     </div>
 
     <div id="progress-container"><div id="progress-bar"></div></div>
     
     <div id="overlay-resume">
-        <h1 style="font-size:40px;">Continuar a ver?</h1>
-        <p>Parece que já começaste este vídeo. Queres continuar?</p>
-        <div style="margin-top:30px;">
+        <h1>Continuar assistindo?</h1>
+        <div style="margin-top:20px;">
             <button class="btn-meta" id="res-continue">CONTINUAR</button>
-            <button class="btn-meta" style="background:#333; color:#fff;" id="res-restart">RECOMEÇAR</button>
+            <button class="btn-meta" style="background:#444; color:#fff;" id="res-restart">REINICIAR</button>
         </div>
     </div>
 
     <div id="overlay-meta">
-        <h1 id="meta-title" style="font-size:45px; margin:0;"></h1>
-        <p id="meta-desc" style="max-width:700px; font-size:20px; color:#aaa;"></p>
-        <div style="margin-top:30px;">
-            <button class="btn-meta" id="btn-start">VER AGORA</button>
-            <button class="btn-meta" style="background:#333; color:#fff;" id="btn-close">VOLTAR</button>
+        <h1 id="meta-title"></h1>
+        <p id="meta-desc" style="max-width:600px; color:#ccc;"></p>
+        <div style="margin-top:20px;">
+            <button class="btn-meta" id="btn-start">ASSISTIR AGORA</button>
+            <button class="btn-meta" style="background:#444; color:#fff;" id="btn-close">VOLTAR</button>
         </div>
     </div>
 </div>
 
 <script>
-const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta'), overlayResume=document.getElementById('overlay-resume'), pBar=document.getElementById('progress-bar'), searchInput=document.getElementById('search'), preView=document.getElementById('preview-overlay');
-let hls=null, items=[], focusIndex=0, currentSerieEpisodes=null, lastTitle="", currentChannelIndex=0;
+const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta'), overlayResume=document.getElementById('overlay-resume'), pBar=document.getElementById('progress-bar'), searchInput=document.getElementById('search'), previewCard=document.getElementById('preview-card');
+let hls=null, items=[], focusIndex=0, lastTitle="", allContent=[];
 
-// Relógio Profissional
+// DATA E HORA ALINHADO (Ex: 12:00 | 04 JAN)
 function updateClock(){
     const now=new Date();
     document.getElementById('clock').innerText=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    document.getElementById('date').innerText=now.toLocaleDateString('pt-BR',{weekday:'long', day:'numeric', month:'long'});
+    const options = { day: '2-digit', month: 'short' };
+    document.getElementById('date').innerText=now.toLocaleDateString('pt-BR', options).toUpperCase();
 }
 setInterval(updateClock,1000); updateClock();
 
+// PESQUISA GLOBAL FUNCIONAL
+async function buildSearchDatabase() {
+    allContent = [];
+    const files = ['canais.m3u', 'filmes.json', 'series.json', 'kids_filmes.json', 'kids_series.json'];
+    for(let f of files) {
+        const r = await fetch(`data/${f}`).catch(()=>{});
+        if(r && r.ok) {
+            if(f.endsWith('.json')) {
+                const data = await r.json();
+                allContent.push(...data.map(i => ({...i, source: f})));
+            } else {
+                const text = await r.text();
+                let n='';
+                text.split('\n').forEach(l => {
+                    if(l.startsWith('#EXTINF')) n = l.split(',').pop();
+                    else if(l.startsWith('http')) allContent.push({titulo: n.trim(), url: l.trim(), source: f});
+                });
+            }
+        }
+    }
+}
+searchInput.oninput = () => {
+    const t = searchInput.value.toLowerCase();
+    if(t.length < 2) return;
+    const filtered = allContent.filter(i => (i.titulo || i.nome || "").toLowerCase().includes(t));
+    render(filtered);
+};
+
+// LOGICA DE DADOS
 async function smartFetch(file) {
     try { const r = await fetch(`data/${file}?v=${Date.now()}`); return r.ok ? r : null; } catch(e) { return null; }
 }
 
 function toggleMenu(id, callback) {
+    document.querySelectorAll('.submenu').forEach(s => { if(s.id !== id) s.style.display = 'none'; });
     const el = document.getElementById(id);
-    const isOpen = el.style.display === 'flex';
-    document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
-    el.style.display = isOpen ? 'none' : 'flex';
-    if(!isOpen && callback) callback();
+    el.style.display = (el.style.display === 'flex') ? 'none' : 'flex';
+    if(el.style.display === 'flex' && callback) callback();
     refreshFocus();
 }
 
 async function loadJSON(mode, file){
     const r = await smartFetch(file);
     if(r) {
-        if(file.endsWith('.m3u')) {
-            const t = await r.text(); parseM3U(t, true);
-        } else {
-            items = await r.json();
-            render();
-        }
+        if(file.endsWith('.m3u')) { const t = await r.text(); parseM3U(t, true); }
+        else { items = await r.json(); render(); }
     }
 }
 
 async function loadKidsConteudo() {
-    const [fRes, sRes] = await Promise.all([smartFetch('kids_filmes.json'), smartFetch('kids_series.json')]);
+    const [f, s] = await Promise.all([smartFetch('kids_filmes.json'), smartFetch('kids_series.json')]);
     items = [];
-    if(fRes) { const f = await fRes.json(); items.push(...f.map(i=>({...i, type:'movie'}))); }
-    if(sRes) { const s = await sRes.json(); items.push(...s.map(i=>({...i, type:'serie'}))); }
+    if(f) { const d = await f.json(); items.push(...d.map(x=>({...x, type:'movie'}))); }
+    if(s) { const d = await s.json(); items.push(...d.map(x=>({...x, type:'serie'}))); }
     render();
 }
 
@@ -192,17 +230,15 @@ async function filtrar(gen){
     }
 }
 
+// RENDER E PREVIEW COM CAPA
 function render(custom){
     list.innerHTML='';
     const target = custom || items;
     target.forEach((i, idx)=>{
         const d=document.createElement('div');
-        d.className='item focusable'; 
-        d.innerHTML=`<span>${i.titulo || i.nome}</span>`;
-        d.onmouseover = () => showPreview(i); // Suporte para rato/touch
+        d.className='item focusable'; d.innerHTML=`<span>${i.titulo || i.nome}</span>`;
         d.onclick=()=>{
-            currentChannelIndex = idx;
-            if(i.type==='tv') play(i.url, i.titulo);
+            if(i.source === 'canais.m3u' || i.type === 'tv') play(i.url, i.titulo || i.nome);
             else showMeta(i);
         };
         list.appendChild(d);
@@ -210,55 +246,36 @@ function render(custom){
     refreshFocus();
 }
 
-// Preview Inteligente enquanto navega
 function showPreview(i) {
-    if(!i.desc) { preView.style.display = 'none'; return; }
+    if(!i.desc && !i.poster) { previewCard.style.display='none'; return; }
     document.getElementById('pre-title').innerText = i.titulo || i.nome;
-    document.getElementById('pre-desc').innerText = i.desc;
-    preView.style.display = 'block';
+    document.getElementById('pre-desc').innerText = (i.desc || "Sem descrição disponível").substring(0, 120) + "...";
+    document.getElementById('preview-poster').src = i.poster || "https://via.placeholder.com/100x150?text=No+Image";
+    previewCard.style.display = 'flex';
 }
 
 function showMeta(i){
-    const name = i.titulo || i.nome;
-    document.getElementById('meta-title').innerText = name;
+    document.getElementById('meta-title').innerText = i.titulo || i.nome;
     document.getElementById('meta-desc').innerText = i.desc || "";
     overlayMeta.style.display='flex';
-    preView.style.display = 'none';
+    previewCard.style.display='none';
     refreshFocus();
     focusIndex = window.focusables.indexOf(document.getElementById('btn-start'));
     updateFocus();
-    document.getElementById('btn-start').onclick = () => checkResume(i.url || i.link, name, i);
+    document.getElementById('btn-start').onclick = () => play(i.url || i.link, i.titulo || i.nome);
     document.getElementById('btn-close').onclick = () => { overlayMeta.style.display='none'; refreshFocus(); };
 }
 
-function play(url, title, time=0){
-    lastTitle=title; 
-    video.style.opacity = "0"; // Efeito Fade-out
-    setTimeout(() => {
-        if(hls) hls.destroy(); video.pause();
-        if(url.includes('m3u8')){
-            hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, ()=> { if(time) video.currentTime=time; video.play(); });
-        } else { 
-            video.src=url; 
-            video.oncanplay=()=>{ if(time){video.currentTime=time;video.oncanplay=null;} video.play(); };
-        }
-        video.style.opacity = "1"; // Efeito Fade-in
-    }, 300);
-    overlayMeta.style.display=overlayResume.style.display='none';
+function play(url, title){
+    if(hls) hls.destroy();
+    if(url.includes('m3u8')){
+        hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, ()=> video.play());
+    } else { video.src=url; video.play(); }
+    overlayMeta.style.display = overlayResume.style.display = 'none';
 }
 
-function checkResume(url, title, i){
-    const s = localStorage.getItem('res_'+title);
-    if(s && parseFloat(s) > 10){
-        overlayResume.style.display='flex'; refreshFocus();
-        focusIndex = window.focusables.indexOf(document.getElementById('res-continue'));
-        updateFocus();
-        document.getElementById('res-continue').onclick=()=>play(url,title,parseFloat(s));
-        document.getElementById('res-restart').onclick=()=>{localStorage.removeItem('res_'+title); play(url,title);};
-    } else play(url,title);
-}
-
+// NAVEGAÇÃO 4D
 function refreshFocus(){
     window.focusables = [searchInput, ...document.querySelectorAll('.main-btn, .sub-btn, .item, .btn-meta')].filter(e => e.offsetParent !== null);
 }
@@ -268,10 +285,9 @@ function updateFocus(){
     const el = window.focusables[focusIndex];
     if(el) {
         el.scrollIntoView({block:'center', behavior:'smooth'});
-        // Se for um item da lista, mostra o preview
         if(el.classList.contains('item')) {
-            const dataIndex = Array.from(document.querySelectorAll('.item')).indexOf(el);
-            if(items[dataIndex]) showPreview(items[dataIndex]);
+            const idx = Array.from(document.querySelectorAll('.item')).indexOf(el);
+            if(items[idx]) showPreview(items[idx]);
         }
     }
 }
@@ -279,32 +295,20 @@ function updateFocus(){
 document.addEventListener('keydown', e=>{
     refreshFocus();
     let cur = window.focusables[focusIndex];
-    
     if(e.key==='ArrowDown'){ focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); }
     if(e.key==='ArrowUp'){ focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; e.preventDefault(); }
-    
-    if(e.key==='ArrowRight'){
-        if(!cur.classList.contains('item') && !cur.classList.contains('btn-meta')){
-            const firstItem = document.querySelector('.item');
-            if(firstItem) focusIndex = window.focusables.indexOf(firstItem);
-        }
+    if(e.key==='ArrowRight' && !cur.classList.contains('item')){
+        const first = document.querySelector('.item');
+        if(first) focusIndex = window.focusables.indexOf(first);
     }
-    if(e.key==='ArrowLeft'){
-        if(cur.classList.contains('item')){
-            const menuBtn = document.querySelector('.main-btn.focus') || document.querySelector('.main-btn');
-            focusIndex = window.focusables.indexOf(menuBtn);
-        } else {
-            // Fecha submenus se estiver no menu principal e carregar esquerda
-            document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
-            refreshFocus();
-        }
+    if(e.key==='ArrowLeft' && cur.classList.contains('item')){
+        focusIndex = window.focusables.indexOf(document.querySelector('.main-btn.focus') || document.querySelector('.main-btn'));
     }
-
-    if(e.key==='Enter' || e.keyCode===13){ cur.click(); }
+    if(e.key==='Enter'){ cur.click(); }
     updateFocus();
 });
 
-window.onload=()=>{ loadTV(); };
+window.onload=()=>{ loadTV(); buildSearchDatabase(); };
 </script>
 </body>
 </html>
