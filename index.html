@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>PaixãoFlix VIP - Final</title>
+<title>PaixãoFlix VIP</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 <style>
@@ -128,7 +128,6 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-// Pesquisa
 searchInput.oninput = () => {
     const t = searchInput.value.toLowerCase();
     if(t.length < 2) return;
@@ -138,8 +137,7 @@ searchInput.oninput = () => {
 
 function toggleMenu(id, callback) {
     document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
-    const target = document.getElementById(id);
-    target.style.display = 'flex';
+    document.getElementById(id).style.display = 'flex';
     if(callback) callback();
     refreshFocus();
 }
