@@ -1,295 +1,70 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interface Streaming TV</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
-    <style>
-        :root {
-            --bg-color: #0f0f0f;
-            --primary: #0044cc;
-            --focus-bg: #ffffff;
-            --focus-text: #000;
-            --text: #fff;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text);
-            font-family: Arial, sans-serif;
-            margin: 0;
-            overflow: hidden;
-            display: flex;
-            height: 100vh;
-        }
-
-        /* Layout */
-        #menu-container {
-            width: 300px;
-            background: #1a1a1a;
-            padding: 20px;
-            height: 100%;
-            overflow-y: auto;
-            box-sizing: border-box;
-            border-right: 2px solid #333;
-        }
-
-        #content-area {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        /* Player */
-        #player-wrapper {
-            width: 100%;
-            height: 60%;
-            background: #000;
-        }
-        video { width: 100%; height: 100%; }
-
-        /* Card de Informações */
-        #info-card {
-            padding: 20px;
-            height: 40%;
-            background: linear-gradient(0deg, #000 0%, #1a1a1a 100%);
-            display: flex;
-            gap: 20px;
-            visibility: hidden; /* Aparece apenas ao focar em filme/serie */
-        }
-
-        #info-card img {
-            height: 100%;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
-        }
-
-        /* Botões e Navegação */
-        .main-btn, .sub-btn, .content-item {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 5px;
-            background: #333;
-            color: white;
-            border: none;
-            text-align: left;
-            cursor: pointer;
-            outline: none;
-        }
-
-        .main-btn:focus, .sub-btn:focus, .content-item:focus {
-            background: var(--focus-bg);
-            color: var(--focus-text);
-            transform: scale(1.05);
-        }
-
-        .submenu { display: none; padding-left: 15px; margin-bottom: 10px; }
-        .active { display: block; }
-
-        #status-bar {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKYNETchat V1</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
+<style>
+body { margin:0; font-family: Arial; background:#111; color:#fff; }
+#menu-container { display:flex; flex-direction:column; width:250px; background:#222; }
+.main-btn, .sub-btn { padding:10px; border:none; color:#fff; background:#333; text-align:left; cursor:pointer; outline:none; }
+.main-btn:focus, .sub-btn:focus { background:#0044cc; }
+.submenu { display:none; flex-direction:column; }
+#player-container { position:relative; margin-left:260px; padding:10px; }
+#player { width:100%; height:500px; background:#000; }
+#card { position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.8); padding:10px; width:300px; display:none; }
+#card img { width:100%; }
+#fullscreen-btn { position:absolute; top:10px; right:10px; padding:5px 10px; cursor:pointer; background:#0044cc; border:none; color:#fff; }
+</style>
 </head>
-<body onload="initApp()">
+<body>
 
 <div id="menu-container">
-    <div id="status-bar">ASSISTINDO AGORA: <span id="current-stream">Carregando...</span></div>
-    
-    <button class="main-btn nav-item" onclick="toggleMenu('sub-tv')">CANAIS TV</button>
-    <div id="sub-tv" class="submenu">
-        </div>
+    <button class="main-btn" onclick="toggleMenu('sub-tv', loadTV)">CANAIS TV</button>
+    <div id="sub-tv" class="submenu"></div>
 
-    <button class="main-btn nav-item" onclick="toggleMenu('sub-filmes')">CINEMA</button>
-    <div id="sub-filmes" class="submenu">
-        <button class="sub-btn nav-item" onclick="filtrar('Ação')">Ação</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Animação')">Animação</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Anime')">Anime</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Aventura')">Aventura</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Clássicos')">Clássicos</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Comédia')">Comédia</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Documentários')">Documentários</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Dorama')">Dorama</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Drama')">Drama</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Faroeste')">Faroeste</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Ficção')">Ficção</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Nacional')">Nacional</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Policial')">Policial</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Religioso')">Religioso</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Romance')">Romance</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Suspense')">Suspense</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Terror')">Terror</button>
-        <button class="sub-btn nav-item" onclick="filtrar('Adulto')">Adulto (S/ PIN)</button>
-    </div>
+    <button class="main-btn" onclick="toggleMenu('sub-filmes', loadFilmesMenu)">CINEMA</button>
+    <div id="sub-filmes" class="submenu"></div>
 
-    <button class="main-btn nav-item" onclick="toggleMenu('sub-series')">SÉRIES</button>
-    <div id="sub-series" class="submenu">
-        <button class="sub-btn nav-item" onclick="loadContent('series.json')">Todas as Séries</button>
-    </div>
+    <button class="main-btn" onclick="toggleMenu('sub-series', loadSeriesMenu)">SÉRIES</button>
+    <div id="sub-series" class="submenu"></div>
 
-    <button class="main-btn nav-item" style="background:#0044cc" onclick="toggleMenu('sub-kids')">ÁREA KIDS</button>
-    <div id="sub-kids" class="submenu">
-        <button class="sub-btn nav-item" onclick="loadKidsTV()">Canal Kids</button>
-        <button class="sub-btn nav-item" onclick="loadKidsAll()">Filmes e Séries Kids</button>
-    </div>
+    <button class="main-btn" style="background:#0044cc" onclick="toggleMenu('sub-kids', loadKidsMenu)">ÁREA KIDS</button>
+    <div id="sub-kids" class="submenu"></div>
 </div>
 
-<div id="content-area">
-    <div id="player-wrapper">
-        <video id="video-player" controls></video>
+<div id="player-container">
+    <video id="player" controls></video>
+    <div id="card">
+        <img id="card-img" src="" alt="">
+        <h3 id="card-title"></h3>
+        <p id="card-info"></p>
+        <p id="card-sinopse"></p>
     </div>
-    
-    <div id="info-card">
-        <img id="card-img" src="" alt="Capa">
-        <div>
-            <h2 id="card-title">Título</h2>
-            <p id="card-year">Ano</p>
-            <p id="card-extra">Temps: -</p>
-            <p id="card-desc">Sinopse do conteúdo selecionado...</p>
-        </div>
-    </div>
+    <button id="fullscreen-btn" onclick="toggleFullscreen()">Tela Cheia</button>
 </div>
 
 <script>
-    const video = document.getElementById('video-player');
-    const hls = new Hls();
-    let currentChannelIndex = 0;
-    const channels = [
-        { name: "Canal 1", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" },
-        { name: "Canal 2", url: "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8" }
-    ];
+/* ------------------- DADOS ------------------- */
+let channels = [
+    {name:"Band", url:"https://example.com/band.m3u8"},
+    {name:"Globo", url:"https://example.com/globo.m3u8"},
+    {name:"Record", url:"https://example.com/record.m3u8"}
+];
 
-    function initApp() {
-        renderChannels();
-        playStream(channels[0].url, channels[0].name);
-        document.querySelector('.nav-item').focus();
-    }
-
-    // Gerenciar Canais na lista
-    function renderChannels() {
-        const container = document.getElementById('sub-tv');
-        channels.forEach((ch, index) => {
-            const btn = document.createElement('button');
-            btn.className = 'sub-btn nav-item';
-            btn.innerText = ch.name;
-            btn.onclick = () => playStream(ch.url, ch.name);
-            container.appendChild(btn);
-        });
-    }
-
-    function playStream(url, name) {
-        document.getElementById('current-stream').innerText = name;
-        if (Hls.isSupported()) {
-            hls.loadSource(url);
-            hls.attachMedia(video);
-            video.play();
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = url;
-            video.play();
-        }
-        document.getElementById('info-card').style.visibility = 'hidden';
-    }
-
-    function toggleMenu(id) {
-        const el = document.getElementById(id);
-        el.classList.toggle('active');
-    }
-
-    // Simulação de Dados para Filmes/Séries
-    function filtrar(cat) {
-        // Aqui você chamaria seu JSON. Simulação:
-        const mockData = [
-            { title: cat + " Filme 1", year: "2023", img: "https://via.placeholder.com/150x220", desc: "Sinopse do filme de " + cat, type: 'filme' },
-            { title: cat + " Serie 1", year: "2022", img: "https://via.placeholder.com/150x220", desc: "Sinopse da série...", type: 'serie', seasons: 3 }
-        ];
-        showContentList(mockData);
-    }
-
-    function showContentList(data) {
-        const subMenu = document.querySelector('.submenu.active');
-        // Remove itens antigos se existirem
-        const oldList = document.querySelectorAll('.dynamic-item');
-        oldList.forEach(item => item.remove());
-
-        data.forEach(item => {
-            const btn = document.createElement('button');
-            btn.className = 'sub-btn nav-item dynamic-item';
-            btn.innerText = item.title;
-            
-            // Comportamento ao focar (hover/direcional)
-            btn.onfocus = () => {
-                const card = document.getElementById('info-card');
-                card.style.visibility = 'visible';
-                document.getElementById('card-title').innerText = item.title;
-                document.getElementById('card-year').innerText = item.year;
-                document.getElementById('card-desc').innerText = item.desc;
-                document.getElementById('card-img').src = item.img;
-                document.getElementById('card-extra').innerText = item.seasons ? `Temporadas: ${item.seasons}` : "";
-            };
-
-            btn.onclick = () => {
-                playStream('https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', item.title);
-                document.getElementById('info-card').style.visibility = 'hidden';
-            };
-
-            subMenu.appendChild(btn);
-        });
-    }
-
-    // NAVEGAÇÃO POR CONTROLE REMOTO (D-PAD)
-    document.addEventListener('keydown', (e) => {
-        const current = document.activeElement;
-        const navItems = Array.from(document.querySelectorAll('.nav-item:not([style*="display: none"])'));
-        const index = navItems.indexOf(current);
-
-        switch(e.key) {
-            case 'ArrowDown':
-                if (index < navItems.length - 1) navItems[index + 1].focus();
-                break;
-            case 'ArrowUp':
-                if (index > 0) navItems[index - 1].focus();
-                break;
-            case 'ArrowRight':
-                // Se estiver no menu, tenta ir para o player (tela cheia)
-                video.requestFullscreen();
-                break;
-            case 'ArrowLeft':
-                if(document.fullscreenElement) document.exitFullscreen();
-                break;
-            case 'Enter':
-                // O clique já é tratado pelos handlers nativos do botão
-                break;
-            case 'ChannelUp': // Ch+ comum em Smart TVs
-            case 'PageUp': 
-                changeChannel(1);
-                break;
-            case 'ChannelDown': // Ch-
-            case 'PageDown':
-                changeChannel(-1);
-                break;
-        }
-    });
-
-    function changeChannel(dir) {
-        currentChannelIndex = (currentChannelIndex + dir + channels.length) % channels.length;
-        playStream(channels[currentChannelIndex].url, channels[currentChannelIndex].name);
-    }
-
-    function loadKidsTV() {
-        playStream(channels[0].url, "Canal Kids");
-    }
-
-    function loadKidsAll() {
-        filtrar("Kids");
-    }
-</script>
-
-</body>
-</html>
+let filmes = [
+    {titulo:"AÇÃO", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de ação."},
+    {titulo:"ANIMAÇÃO", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de animação."},
+    {titulo:"ANIME", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de anime."},
+    {titulo:"AVENTURA", ano:2022, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de aventura."},
+    {titulo:"CLAŚSICOS", ano:2021, capa:"https://via.placeholder.com/300x150", sinopse:"Filme clássico."},
+    {titulo:"COMÉDIA", ano:2022, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de comédia."},
+    {titulo:"DORAMA", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme dorama."},
+    {titulo:"DOCUMENTÁRIOS", ano:2021, capa:"https://via.placeholder.com/300x150", sinopse:"Documentário."},
+    {titulo:"DRAMA", ano:2022, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de drama."},
+    {titulo:"FAROESTE", ano:2020, capa:"https://via.placeholder.com/300x150", sinopse:"Filme faroeste."},
+    {titulo:"FICÇÃO", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme de ficção."},
+    {titulo:"NACIONAL", ano:2023, capa:"https://via.placeholder.com/300x150", sinopse:"Filme nacional."},
+    {titulo:"POLICIAL", ano:2022, capa:"https://via.placeholder.com/300x150", sinopse:"Filme policial."},
+    {titulo:"RELIGIOSO", ano:2021, capa
