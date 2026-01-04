@@ -41,7 +41,7 @@
     </div>
     <div id="search-box"><input id="search" placeholder="Pesquisar..."></div>
     <div id="menu-container">
-        <button class="main-btn" onfocus="handleCategoryFocus('sub-tv', loadTV)">CANAIS TV</button>
+        <button class="main-btn" id="btn-tv" onfocus="handleCategoryFocus('sub-tv', loadTV)">CANAIS TV</button>
         <div id="sub-tv" class="submenu"></div>
 
         <button class="main-btn" id="cinema-btn">CINEMA</button>
@@ -87,7 +87,7 @@
 
 <script>
 const video=document.getElementById('video'), list=document.getElementById('list'), previewCard=document.getElementById('preview-card'), searchInput=document.getElementById('search');
-let hls=null, items=[], focusIndex=0, zappingTimer=null, allData=[];
+let hls=null, items=[], focusIndex=0, zappingTimer=null, allData=[], isTVMode = false;
 
 function updateClock(){
     const now=new Date();
@@ -96,11 +96,11 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-// PESQUISA GLOBAL EM TEMPO REAL
 searchInput.oninput = () => {
     const t = searchInput.value.toLowerCase().trim();
-    if(t.length === 0) { loadTV(); return; }
+    if(t.length === 0) { isTVMode=true; loadTV(); return; }
     if(t.length >= 1) {
+        isTVMode=false;
         items = allData.filter(i => (i.titulo || i.nome || "").toLowerCase().includes(t));
         render();
     }
@@ -108,6 +108,7 @@ searchInput.oninput = () => {
 
 function handleCategoryFocus(id, callback) {
     list.innerHTML = ''; previewCard.style.display = 'none';
+    isTVMode = (id === 'sub-tv');
     if(callback) callback();
     refreshFocus();
 }
@@ -121,6 +122,7 @@ function toggleMenu(id) {
 }
 
 async function loadJSON(file) {
+    isTVMode = false;
     const r = await fetch(`data/${file}`);
     items = await r.json();
     render();
@@ -138,9 +140,10 @@ async function loadM3U(file) {
     }
 }
 
-async function loadTV() { await loadM3U('canais.m3u'); }
+async function loadTV() { isTVMode=true; await loadM3U('canais.m3u'); }
 
 async function loadKidsAll() {
+    isTVMode = false;
     const [f, s] = await Promise.all([fetch('data/kids_filmes.json'), fetch('data/kids_series.json')]);
     items = [];
     if(f.ok) items.push(...await f.json());
@@ -149,6 +152,7 @@ async function loadKidsAll() {
 }
 
 async function filtrar(gen){
+    isTVMode = false;
     const r = await fetch('data/filmes.json');
     const d = await r.json();
     items = d.filter(f => f.genero === gen);
@@ -169,14 +173,14 @@ function render(){
 function handleSelection(i) {
     if(!i) return;
     clearTimeout(zappingTimer);
-    if(i.type !== 'tv' && !i.url?.includes('m3u8')) {
+    if(i.type === 'tv' || i.url?.includes('m3u8')) {
+        previewCard.style.display = 'none';
+        zappingTimer = setTimeout(() => play(i.url, i.titulo || i.nome), 600);
+    } else {
         document.getElementById('pre-title').innerText = i.titulo || i.nome;
         document.getElementById('pre-desc').innerText = (i.desc || "").substring(0, 300) + "...";
         document.getElementById('preview-poster').src = i.poster || "";
         previewCard.style.display = 'flex';
-    } else {
-        previewCard.style.display = 'none';
-        zappingTimer = setTimeout(() => play(i.url, i.titulo || i.nome), 600);
     }
 }
 
@@ -207,6 +211,35 @@ function updateFocus(){
 
 document.addEventListener('keydown', e=>{
     refreshFocus();
+    
+    // ZAPPING DIRETO CH+ / CH- (SÓ FUNCIONA EM MODO TV)
+    if((e.key==='PageUp' || e.key==='ChannelUp' || e.key==='PageDown' || e.key==='ChannelDown') && isTVMode){
+        e.preventDefault();
+        let currentItemIndex = -1;
+        const currentEl = window.focusables[focusIndex];
+        
+        // Se já estivermos na lista, pegamos o index atual dos itens
+        if(currentEl && currentEl.classList.contains('item')){
+            currentItemIndex = Array.from(document.querySelectorAll('.item')).indexOf(currentEl);
+        } else {
+            // Se não estivermos na lista, começamos do primeiro
+            currentItemIndex = 0;
+        }
+
+        if(e.key==='PageUp' || e.key==='ChannelUp') {
+            currentItemIndex = (currentItemIndex - 1 + items.length) % items.length;
+        } else {
+            currentItemIndex = (currentItemIndex + 1) % items.length;
+        }
+
+        // Move o foco para o item e dá o play imediato (Zapping)
+        const allItems = document.querySelectorAll('.item');
+        focusIndex = window.focusables.indexOf(allItems[currentItemIndex]);
+        updateFocus();
+        play(items[currentItemIndex].url, items[currentItemIndex].titulo);
+        return;
+    }
+
     if(e.key==='ArrowDown'){ focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); }
     if(e.key==='ArrowUp'){ focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; e.preventDefault(); }
     if(e.key==='ArrowRight' && !window.focusables[focusIndex].classList.contains('item')){
@@ -229,7 +262,6 @@ document.addEventListener('keydown', e=>{
 
 window.onload=async()=>{ 
     await loadTV();
-    // CARGA GLOBAL PARA PESQUISA
     ['filmes.json', 'series.json', 'kids_filmes.json', 'kids_series.json', 'canais.m3u'].forEach(file => {
         fetch(`data/${file}`).then(r => file.endsWith('.json') ? r.json() : r.text().then(txt => {
             let mItems = []; let n = '';
@@ -241,7 +273,7 @@ window.onload=async()=>{
         })).then(d => allData.push(...d)).catch(()=>{});
     });
     refreshFocus();
-    focusIndex = window.focusables.indexOf(document.querySelector('.main-btn'));
+    focusIndex = window.focusables.indexOf(document.getElementById('btn-tv'));
     updateFocus();
 };
 </script>
