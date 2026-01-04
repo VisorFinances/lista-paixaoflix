@@ -148,11 +148,16 @@ function render(){
         d.className='item focusable'; 
         d.innerHTML=`<span>${i.titulo || i.nome}</span>`;
         d.onclick=()=> {
+            const isFromSearch = (searchInput.value.trim().length > 0);
             if(i.episodios && i.episodios.length > 0) {
                 items = i.episodios;
                 render();
             } else {
                 play(i.url || i.link, i.titulo || i.nome);
+                if(isFromSearch) {
+                    searchInput.value = ''; // Limpa a busca
+                    isTVMode = true; // Volta para o modo TV padrão após limpar
+                }
             }
         };
         list.appendChild(d);
@@ -163,8 +168,6 @@ function render(){
 function handleSelection(i) {
     if(!i) return;
     clearTimeout(zappingTimer);
-    
-    // Mostra card de info para filmes, séries e episódios
     if(i.type !== 'tv' && !i.url?.includes('m3u8')) {
         document.getElementById('pre-title').innerText = i.titulo || i.nome;
         document.getElementById('pre-desc').innerText = i.desc ? i.desc.substring(0, 250) + "..." : "Descrição não disponível.";
@@ -191,7 +194,7 @@ function updateFocus(){
     window.focusables.forEach((f,idx)=>f.classList.toggle('focus', idx===focusIndex));
     const el = window.focusables[focusIndex];
     if(el) {
-        if(el.id === 'search') el.focus(); // Ativa o teclado automaticamente
+        if(el.id === 'search') el.focus();
         if(el.classList.contains('item')) {
             el.scrollIntoView({block:'center', behavior:'smooth'});
             const idx = Array.from(document.querySelectorAll('.item')).indexOf(el);
@@ -225,7 +228,7 @@ document.addEventListener('keydown', e=>{
     }
     
     if(e.key==='Enter' || e.keyCode === 13){
-        if(currentEl.id === 'search') return; // Já está focado e pronto
+        if(currentEl.id === 'search') return;
         if(currentEl.id === 'cinema-btn') toggleMenu('sub-cinema');
         else if(currentEl.id === 'series-btn') toggleMenu('sub-series');
         else if(currentEl.id === 'kids-btn') toggleMenu('sub-kids');
