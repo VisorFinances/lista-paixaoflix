@@ -25,7 +25,17 @@ body{margin:0;background:#000;color:#fff;font-family:Poppins;overflow:hidden}
 #date{font-size:12px;color:#ccc}
 
 /* SEARCH */
-#search{margin:8px 14px;padding:10px;font-size:15px;background:#000;color:#fff;border:2px solid #e50914;border-radius:6px}
+#search{
+margin:8px 14px;
+padding:10px;
+font-size:15px;
+background:#000;
+color:#fff;
+border:2px solid #e50914;
+border-radius:6px;
+outline:none
+}
+#search.focus{outline:2px solid #fff}
 
 /* MENU */
 #menu{
@@ -120,7 +130,7 @@ date.textContent=d.toLocaleDateString('pt-BR')
 },1000)
 
 /* STATE */
-let focusArea='menu'
+let focusArea='menu' // menu | search | list
 let menuIndex=0
 let listIndex=0
 let items=[]
@@ -162,8 +172,14 @@ updateListFocus()
 /* FOCUS */
 function updateMenuFocus(){
 buttons.forEach((b,i)=>b.classList.toggle('focus',i===menuIndex))
+search.classList.remove('focus')
+}
+function updateSearchFocus(){
+buttons.forEach(b=>b.classList.remove('focus'))
+search.classList.add('focus')
 }
 function updateListFocus(){
+search.classList.remove('focus')
 document.querySelectorAll('.item').forEach((e,i)=>e.classList.toggle('focus',i===listIndex))
 document.querySelectorAll('.item')[listIndex]?.scrollIntoView({block:'center'})
 }
@@ -202,23 +218,33 @@ if(t==='fav') loadJSON('favoritos.json')
 /* KEYS */
 document.addEventListener('keydown',e=>{
 if(e.key==='ArrowUp'){
-if(focusArea==='list'){listIndex=Math.max(0,listIndex-1);updateListFocus()}
+if(focusArea==='list'){focusArea='search';updateSearchFocus()}
+else if(focusArea==='search'){focusArea='menu';updateMenuFocus()}
 }
 if(e.key==='ArrowDown'){
-if(focusArea==='menu'){focusArea='list';updateListFocus()}
+if(focusArea==='menu'){focusArea='search';updateSearchFocus()}
+else if(focusArea==='search'){focusArea='list';updateListFocus()}
 else if(focusArea==='list'){listIndex=Math.min(items.length-1,listIndex+1);updateListFocus()}
 }
 if(e.key==='ArrowLeft'){
-if(focusArea==='list'){focusArea='menu';updateMenuFocus()}
-else if(focusArea==='menu'){menuIndex=Math.max(0,menuIndex-1);updateMenuFocus()}
+if(focusArea==='menu'){menuIndex=Math.max(0,menuIndex-1);updateMenuFocus()}
 }
 if(e.key==='ArrowRight'){
 if(focusArea==='menu'){menuIndex=Math.min(buttons.length-1,menuIndex+1);updateMenuFocus()}
 }
 if(e.key==='Enter'){
 if(focusArea==='menu') selectMenu()
-else if(focusArea==='list' && buttons[menuIndex].dataset.type!=='filmes' && buttons[menuIndex].dataset.type!=='series') playTV(listIndex)
+else if(focusArea==='list' && buttons[menuIndex].dataset.type==='tv') playTV(listIndex)
 }
+})
+
+/* SEARCH */
+search.addEventListener('input',()=>{
+const q=search.value.toLowerCase()
+const base=items
+const filtered=base.filter(i=>(i.nome||i.titulo).toLowerCase().includes(q))
+items=filtered
+renderList()
 })
 
 /* INIT */
