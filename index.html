@@ -2,16 +2,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>PaixãoFlix Kids VIP</title>
+<title>PaixãoFlix Pro – Zapping Mode</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo512.png?raw=true">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 <style>
-    :root { --primary: #e50914; --bg: #111; --focus: #fff; --kids: #ffcc00; }
+    :root { --primary: #e50914; --bg: #111; --focus: #fff; }
     body{margin:0;background:#000;color:#fff;font-family:Poppins;display:flex;height:100vh;overflow:hidden}
     
-    /* Side Menu */
     #side{width:300px;background:var(--bg);display:flex;flex-direction:column;z-index:10;border-right:1px solid #222;}
     #top{padding:15px;}
     #logo{max-width:120px; margin-bottom: 5px;}
@@ -19,11 +18,9 @@
     #clock{font-size:20px;font-weight:700;}
     #date{font-size:11px;opacity:0.6;}
 
-    /* Busca */
     #search{width:100%; height:35px; box-sizing:border-box; padding:0 10px; border-radius:6px; border:1px solid #333; background:#000; color:#fff; outline:none; margin-bottom:10px; font-size: 14px;}
     #search.focus { border-color: var(--primary); outline: 2px solid var(--focus); }
 
-    /* Accordion Menu */
     #menu-container{flex:1; overflow-y:auto; padding:0 10px; scrollbar-width: none;}
     #menu-container::-webkit-scrollbar { display: none; }
     .main-btn { width: 100%; padding: 12px; text-align: left; background: #222; border: none; color: #fff; font-weight: 700; cursor: pointer; border-radius: 6px; display: flex; justify-content: space-between; outline: none; margin-bottom:5px; font-size: 16px; }
@@ -33,20 +30,17 @@
     .sub-btn { width: 100%; padding: 10px 20px; text-align: left; background: transparent; border: none; color: #aaa; cursor: pointer; font-size: 16px; outline: none; }
     .sub-btn.focus { color: #fff; background: rgba(255,255,255,0.1); border-left: 4px solid var(--primary); }
 
-    /* Content List */
     #list-container{width: 280px; background: #080808; border-left: 1px solid #222; overflow: hidden;}
     #list{height:100%; overflow-y:auto; scrollbar-width: none;}
     #list::-webkit-scrollbar { display: none; }
     .item{padding:15px; border-bottom:1px solid #111; cursor:pointer; outline:none; font-size:15px; display: flex; align-items: center;}
     .item.focus{ background: var(--primary); color: #fff; border-left: 5px solid #fff; font-weight: bold;}
 
-    /* Video Player */
     #player-container{flex:1; position:relative; background:#000;}
     video{width:100%; height:100%;}
     #progress-container { position: absolute; bottom: 0; width: 100%; height: 5px; background: #333; }
     #progress-bar { width: 0%; height: 100%; background: var(--primary); }
 
-    /* Overlays */
     #overlay-meta, #overlay-resume{position:absolute; inset:0; background:rgba(0,0,0,0.95); display:none; flex-direction:column; justify-content:center; padding:60px; z-index:100;}
     .btn-meta{padding:15px 30px; font-weight:700; border-radius:6px; border:none; cursor:pointer; margin-right:10px; outline:none; font-size: 16px;}
     .btn-meta.focus { outline: 4px solid var(--focus); background: var(--primary); color: #fff; }
@@ -111,7 +105,7 @@
 
 <script>
 const video=document.getElementById('video'), list=document.getElementById('list'), overlayMeta=document.getElementById('overlay-meta'), overlayResume=document.getElementById('overlay-resume'), pBar=document.getElementById('progress-bar'), searchInput=document.getElementById('search');
-let hls=null, items=[], focusIndex=0, currentSerieEpisodes=null, lastTitle="", allContent=[];
+let hls=null, items=[], focusIndex=0, currentSerieEpisodes=null, lastTitle="", currentChannelIndex=0;
 
 function updateClock(){
     const now=new Date();
@@ -120,7 +114,6 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-// --- LOGICA DE DADOS ---
 async function smartFetch(file) {
     try { const r = await fetch(`data/${file}?v=${Date.now()}`); return r.ok ? r : null; } catch(e) { return null; }
 }
@@ -138,7 +131,7 @@ async function loadJSON(mode, file){
     const r = await smartFetch(file);
     if(r) {
         if(file.endsWith('.m3u')) {
-            const t = await r.text(); parseM3U(t);
+            const t = await r.text(); parseM3U(t, true); // True para Autoplay
         } else {
             items = await r.json();
             render();
@@ -154,18 +147,19 @@ async function loadKidsConteudo() {
     render();
 }
 
-function parseM3U(txt) {
+function parseM3U(txt, auto=false) {
     items=[]; let n='';
     txt.split('\n').forEach(l=>{
         if(l.startsWith('#EXTINF')) n=l.split(',').pop();
         else if(l.startsWith('http')) items.push({titulo:n.trim(), url:l.trim(), type:'tv'});
     });
     render();
+    if(auto && items.length > 0) play(items[0].url, items[0].titulo);
 }
 
 async function loadTV(){
     const r = await smartFetch('canais.m3u');
-    if(r) { const t = await r.text(); parseM3U(t); }
+    if(r) { const t = await r.text(); parseM3U(t, true); }
 }
 
 async function filtrar(gen){
@@ -177,19 +171,15 @@ async function filtrar(gen){
     }
 }
 
-// --- RENDER ---
 function render(custom){
     list.innerHTML='';
     const target = custom || items;
-    if(currentSerieEpisodes){
-        const b=document.createElement('div'); b.className='item focusable'; b.innerHTML='⬅ VOLTAR';
-        b.onclick=()=>{currentSerieEpisodes=null; render();}; list.appendChild(b);
-    }
-    target.forEach(i=>{
+    target.forEach((i, idx)=>{
         const d=document.createElement('div');
         const name = i.titulo || i.nome;
         d.className='item focusable'; d.innerHTML=`<span>${name}</span>`;
         d.onclick=()=>{
+            currentChannelIndex = idx;
             if(i.type==='tv' || currentSerieEpisodes) play(i.url || i.link, name);
             else showMeta(i);
         };
@@ -206,7 +196,6 @@ function showMeta(i){
     refreshFocus();
     focusIndex = window.focusables.indexOf(document.getElementById('btn-start'));
     updateFocus();
-
     document.getElementById('btn-start').onclick = () => checkResume(i.url || i.link, name, i);
     document.getElementById('btn-close').onclick = () => { overlayMeta.style.display='none'; refreshFocus(); };
 }
@@ -221,10 +210,6 @@ function play(url, title, time=0){
 }
 
 function checkResume(url, title, i){
-    if(i.type === 'serie' && i.identificador_archive) {
-        loadEpisodes(i.identificador_archive);
-        return;
-    }
     const s = localStorage.getItem('res_'+title);
     if(s){
         overlayResume.style.display='flex'; refreshFocus();
@@ -235,17 +220,6 @@ function checkResume(url, title, i){
     } else play(url,title);
 }
 
-async function loadEpisodes(id) {
-    const res = await fetch(`https://archive.org/metadata/${id}`);
-    const d = await res.json();
-    currentSerieEpisodes = d.files.filter(f=>f.name.endsWith('.mp4')).map(v=>({
-        titulo: v.title || v.name, url: `https://archive.org/download/${id}/${v.name}`
-    }));
-    overlayMeta.style.display='none';
-    render();
-}
-
-// --- NAVEGAÇÃO 4D ---
 function refreshFocus(){
     window.focusables = [searchInput, ...document.querySelectorAll('.main-btn, .sub-btn, .item, .btn-meta')].filter(e => e.offsetParent !== null);
 }
@@ -256,14 +230,31 @@ function updateFocus(){
     if(el) el.scrollIntoView({block:'center', behavior:'smooth'});
 }
 
+// TROCA DE CANAL RÁPIDA (ZAPPING)
+function zap(direction) {
+    if(items.length === 0) return;
+    currentChannelIndex = (currentChannelIndex + direction + items.length) % items.length;
+    const next = items[currentChannelIndex];
+    play(next.url, next.titulo || next.nome);
+    // Opcional: focar no item da lista correspondente
+    const listItems = document.querySelectorAll('.item');
+    if(listItems[currentChannelIndex]) {
+        focusIndex = window.focusables.indexOf(listItems[currentChannelIndex]);
+        updateFocus();
+    }
+}
+
 document.addEventListener('keydown', e=>{
     refreshFocus();
     let cur = window.focusables[focusIndex];
     
+    // Suporte a teclas Channel Up/Down (Zapping)
+    if(e.key === 'ChannelUp' || e.keyCode === 427) { zap(-1); e.preventDefault(); return; }
+    if(e.key === 'ChannelDown' || e.keyCode === 428) { zap(1); e.preventDefault(); return; }
+
     if(e.key==='ArrowDown'){ focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); }
     if(e.key==='ArrowUp'){ focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; e.preventDefault(); }
     
-    // NAVEGAÇÃO LATERAL (X-AXIS)
     if(e.key==='ArrowRight'){
         if(!cur.classList.contains('item') && !cur.classList.contains('btn-meta')){
             const firstItem = document.querySelector('.item');
