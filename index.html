@@ -28,8 +28,8 @@
     #now-playing-bar b { color: #fff; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .play-icon-small { width: 12px; height: 12px; fill: var(--primary); }
 
-    #buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px}
-    #buttons button{padding:10px;border:0;border-radius:6px;background:#222;color:#fff;font-weight:700;cursor:pointer;font-size:11px;outline:none;}
+    #buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px; overflow-y: auto; max-height: 400px;}
+    #buttons button{padding:10px;border:0;border-radius:6px;background:#222;color:#fff;font-weight:700;cursor:pointer;font-size:10px;outline:none;text-transform: uppercase;}
     #buttons button.active{background:var(--primary)}
     #buttons button.focus { outline: 3px solid #fff !important; }
 
@@ -38,8 +38,6 @@
     .item{padding:14px;border-bottom:1px solid #222;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:5px solid transparent;outline:none;}
     .item.focus{border-left-color:var(--primary); background:rgba(255,255,255,0.05); outline: none !important;}
     
-    .fav-icon{opacity:0.3; font-size:18px;}
-
     #player{flex:1;position:relative;background:#000;}
     video{width:100%;height:100%;}
 
@@ -77,11 +75,26 @@
 
     <div id="buttons">
         <button id="btnTV">TV</button>
-        <button id="btnFilmes">FILMES</button>
         <button id="btnSeries">SÉRIES</button>
-        <button id="btnKidsCanais" style="background:#0056b3">CANAIS KIDS</button>
-        <button id="btnKidsConteudo" style="background:#0056b3">FILMES/SÉRIES KIDS</button>
-        <button id="btnFav">FAVORITOS</button>
+        <button id="btnFilmes">TODOS FILMES</button>
+        <button onclick="filtrar('Ação')">Ação</button>
+        <button onclick="filtrar('Adulto')">Adulto</button>
+        <button onclick="filtrar('Animação')">Animação</button>
+        <button onclick="filtrar('Anime')">Anime</button>
+        <button onclick="filtrar('Aventura')">Aventura</button>
+        <button onclick="filtrar('Clássicos')">Clássicos</button>
+        <button onclick="filtrar('Comédia')">Comédia</button>
+        <button onclick="filtrar('Documentário')">Documentário</button>
+        <button onclick="filtrar('Dorama')">Dorama</button>
+        <button onclick="filtrar('Drama')">Drama</button>
+        <button onclick="filtrar('Faroeste')">Faroeste</button>
+        <button onclick="filtrar('Ficção')">Ficção</button>
+        <button onclick="filtrar('Nacional')">Nacional</button>
+        <button onclick="filtrar('Policial')">Policial</button>
+        <button onclick="filtrar('Religioso')">Religioso</button>
+        <button onclick="filtrar('Romance')">Romance</button>
+        <button onclick="filtrar('Suspense')">Suspense</button>
+        <button onclick="filtrar('Terror')">Terror</button>
     </div>
     <div id="list-container"><div id="list"></div></div>
 </div>
@@ -172,11 +185,23 @@ async function loadJSON(m, file){
     render();
 }
 
+async function filtrar(generoAlvo) {
+    overlayMeta.style.display = 'none';
+    currentSerieEpisodes = null;
+    const res = await smartFetch('filmes.json');
+    if (!res) return;
+    try {
+        const todosFilmes = await res.json();
+        items = todosFilmes.filter(f => f.genero === generoAlvo);
+        render();
+    } catch (e) { items = []; render(); }
+}
+
 function render(customList=null){
     list.innerHTML='';
     const target = customList || items;
     if(currentSerieEpisodes){
-        const b=document.createElement('div'); b.className='item focusable'; b.innerHTML='<b>⬅ VOLTAR PARA LISTA</b>';
+        const b=document.createElement('div'); b.className='item focusable'; b.innerHTML='<b>⬅ VOLTAR PARA SÉRIES</b>';
         b.onclick=()=>{currentSerieEpisodes=null; render();}; list.appendChild(b);
     }
     target.forEach(i=>{
@@ -199,6 +224,7 @@ function showMeta(i){
     document.getElementById('meta-desc').innerText = i.desc || "Sem descrição.";
     overlayMeta.style.backgroundImage = `url(${i.poster || ''})`;
     overlayMeta.style.display = 'flex';
+    refreshFocus();
     
     document.getElementById('btn-start').onclick = async () => {
         if(i.type === 'serie' && i.identificador_archive){
@@ -253,10 +279,3 @@ function setActive(id){
 
 document.getElementById('btnTV').onclick=loadTV;
 document.getElementById('btnFilmes').onclick=()=>loadJSON('filmes','filmes.json');
-document.getElementById('btnSeries').onclick=()=>loadJSON('series','series.json');
-document.getElementById('btn-close').onclick=()=>{ overlayMeta.style.display='none'; refreshFocus(); };
-
-window.onload=loadTV;
-</script>
-</body>
-</html>
