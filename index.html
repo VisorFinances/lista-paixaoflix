@@ -39,7 +39,9 @@
         <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
         <div id="time-info"><div id="clock">00:00</div><div id="date">-- ---</div></div>
     </div>
-    <div id="search-box"><input id="search" placeholder="Pesquisar..."></div>
+    <div id="search-box">
+        <input id="search" placeholder="Pesquisar..." onfocus="this.select();">
+    </div>
     <div id="menu-container">
         <button class="main-btn" id="btn-tv" onfocus="handleCategoryFocus('sub-tv', loadTV)">CANAIS TV</button>
         <div id="sub-tv" class="submenu"></div>
@@ -68,12 +70,18 @@
 <div id="list-container"><div id="list"></div></div>
 <div id="player-container">
     <video id="video" autoplay></video>
-    <div id="preview-card"><img id="preview-poster" src=""><div id="pre-info"><h2 id="pre-title" style="margin:0; font-size:32px; color:var(--primary);"></h2><p id="pre-desc" style="font-size:16px; color:#ccc; max-width: 700px; margin-top:8px; line-height:1.4;"></p></div></div>
+    <div id="preview-card">
+        <img id="preview-poster" src="">
+        <div id="pre-info">
+            <h2 id="pre-title" style="margin:0; font-size:32px; color:var(--primary);"></h2>
+            <p id="pre-desc" style="font-size:16px; color:#ccc; max-width: 700px; margin-top:8px; line-height:1.4;"></p>
+        </div>
+    </div>
 </div>
 
 <script>
 const video=document.getElementById('video'), list=document.getElementById('list'), previewCard=document.getElementById('preview-card'), searchInput=document.getElementById('search');
-let hls=null, items=[], focusIndex=0, zappingTimer=null, allData=[], isTVMode = false, isSeriesView = false;
+let hls=null, items=[], focusIndex=0, zappingTimer=null, allData=[], isTVMode = false;
 
 function updateClock(){
     const now=new Date();
@@ -82,13 +90,13 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-function clearList() { items = []; list.innerHTML = ''; previewCard.style.display = 'none'; isSeriesView = false; }
+function clearList() { items = []; list.innerHTML = ''; previewCard.style.display = 'none'; }
 
 searchInput.oninput = () => {
     const t = searchInput.value.toLowerCase().trim();
     if(t.length === 0) { isTVMode=true; loadTV(); return; }
     if(t.length >= 1) {
-        isTVMode=false; isSeriesView=false;
+        isTVMode=false;
         items = allData.filter(i => (i.titulo || i.nome || "").toLowerCase().includes(t));
         render();
     }
@@ -106,7 +114,7 @@ function toggleMenu(id) {
 }
 
 async function loadJSON(file, isSeries = false) { 
-    isTVMode=false; isSeriesView = isSeries;
+    isTVMode=false;
     const r=await fetch(`data/${file}`); items=await r.json(); render(); 
 }
 
@@ -123,31 +131,27 @@ async function loadM3U(file) {
     return [];
 }
 
-async function loadTV() { isTVMode=true; isSeriesView=false; return await loadM3U('canais.m3u'); }
+async function loadTV() { isTVMode=true; return await loadM3U('canais.m3u'); }
 
 async function loadKidsAll() {
-    isTVMode=false; isSeriesView=false;
+    isTVMode=false;
     const [f, s]=await Promise.all([fetch('data/kids_filmes.json'), fetch('data/kids_series.json')]);
     items=[]; if(f.ok) items.push(...await f.json()); if(s.ok) items.push(...await s.json()); render();
 }
 
-async function filtrar(gen){ isTVMode=false; isSeriesView=false; const r=await fetch('data/filmes.json'); const d=await r.json(); items=d.filter(f=>f.genero===gen); render(); }
+async function filtrar(gen){ isTVMode=false; const r=await fetch('data/filmes.json'); const d=await r.json(); items=d.filter(f=>f.genero===gen); render(); }
 
 function render(){
     list.innerHTML='';
     items.forEach((i, idx)=>{
         const d=document.createElement('div');
         d.className='item focusable'; 
-        // Se i.episodios existe e estamos na visão de séries, mostramos o título da série, caso contrário o título do item/episódio
         d.innerHTML=`<span>${i.titulo || i.nome}</span>`;
         d.onclick=()=> {
             if(i.episodios && i.episodios.length > 0) {
-                // É UMA SÉRIE: Carrega episódios na lista lateral
                 items = i.episodios;
-                isSeriesView = false; // Agora estamos vendo episódios (que funcionam como filmes)
                 render();
             } else {
-                // É FILME OU EPISÓDIO: Dá o play
                 play(i.url || i.link, i.titulo || i.nome);
             }
         };
@@ -159,9 +163,11 @@ function render(){
 function handleSelection(i) {
     if(!i) return;
     clearTimeout(zappingTimer);
+    
+    // Mostra card de info para filmes, séries e episódios
     if(i.type !== 'tv' && !i.url?.includes('m3u8')) {
         document.getElementById('pre-title').innerText = i.titulo || i.nome;
-        document.getElementById('pre-desc').innerText = i.desc ? i.desc.substring(0, 250) + "..." : "Detalhes não disponíveis.";
+        document.getElementById('pre-desc').innerText = i.desc ? i.desc.substring(0, 250) + "..." : "Descrição não disponível.";
         document.getElementById('preview-poster').src = i.poster || "";
         previewCard.style.display = 'flex';
     } else {
@@ -184,10 +190,13 @@ function refreshFocus(){ window.focusables = [searchInput, ...document.querySele
 function updateFocus(){
     window.focusables.forEach((f,idx)=>f.classList.toggle('focus', idx===focusIndex));
     const el = window.focusables[focusIndex];
-    if(el && el.classList.contains('item')) {
-        el.scrollIntoView({block:'center', behavior:'smooth'});
-        const idx = Array.from(document.querySelectorAll('.item')).indexOf(el);
-        handleSelection(items[idx]);
+    if(el) {
+        if(el.id === 'search') el.focus(); // Ativa o teclado automaticamente
+        if(el.classList.contains('item')) {
+            el.scrollIntoView({block:'center', behavior:'smooth'});
+            const idx = Array.from(document.querySelectorAll('.item')).indexOf(el);
+            handleSelection(items[idx]);
+        }
     }
 }
 
@@ -216,6 +225,7 @@ document.addEventListener('keydown', e=>{
     }
     
     if(e.key==='Enter' || e.keyCode === 13){
+        if(currentEl.id === 'search') return; // Já está focado e pronto
         if(currentEl.id === 'cinema-btn') toggleMenu('sub-cinema');
         else if(currentEl.id === 'series-btn') toggleMenu('sub-series');
         else if(currentEl.id === 'kids-btn') toggleMenu('sub-kids');
