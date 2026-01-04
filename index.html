@@ -39,9 +39,7 @@
         <img id="logo" src="https://github.com/VisorFinances/lista-paixaoflix/blob/main/logo.png?raw=true">
         <div id="time-info"><div id="clock">00:00</div><div id="date">-- ---</div></div>
     </div>
-    <div id="search-box">
-        <input id="search" placeholder="Pesquisar..." onfocus="this.select();">
-    </div>
+    <div id="search-box"><input id="search" placeholder="Pesquisar..." onfocus="this.select();"></div>
     <div id="menu-container">
         <button class="main-btn" id="btn-tv" onfocus="handleCategoryFocus('sub-tv', loadTV)">CANAIS TV</button>
         <div id="sub-tv" class="submenu"></div>
@@ -49,15 +47,11 @@
         <button class="main-btn" id="cinema-btn" onfocus="clearList()">CINEMA</button>
         <div id="sub-cinema" class="submenu">
             <button class="sub-btn" onfocus="loadJSON('filmes.json')">TODOS OS FILMES</button>
-            <button class="sub-btn" onfocus="filtrar('Adulto')">ADULTO</button>
-            <button class="sub-btn" onfocus="filtrar('Ação')">AÇÃO</button>
-            <button class="sub-btn" onfocus="filtrar('Comédia')">COMÉDIA</button>
-            <button class="sub-btn" onfocus="filtrar('Terror')">TERROR</button>
         </div>
 
         <button class="main-btn" id="series-btn" onfocus="clearList()">SÉRIES</button>
         <div id="sub-series" class="submenu">
-             <button class="sub-btn" onfocus="loadJSON('series.json', true)">TODAS AS SÉRIES</button>
+             <button class="sub-btn" onfocus="loadJSON('series.json')">TODAS AS SÉRIES</button>
         </div>
 
         <button class="main-btn" id="kids-btn" style="background:#0044cc" onfocus="clearList()">ÁREA KIDS</button>
@@ -92,7 +86,6 @@ setInterval(updateClock,1000); updateClock();
 
 function clearList() { items = []; list.innerHTML = ''; previewCard.style.display = 'none'; }
 
-// Quando digita na pesquisa, a lista renderiza e o card de preview foca no primeiro resultado
 searchInput.oninput = () => {
     const t = searchInput.value.toLowerCase().trim();
     if(t.length === 0) { isTVMode=true; loadTV(); return; }
@@ -100,7 +93,7 @@ searchInput.oninput = () => {
         isTVMode=false;
         items = allData.filter(i => (i.titulo || i.nome || "").toLowerCase().includes(t));
         render();
-        if(items.length > 0) handleSelection(items[0]); // Preview imediato do 1º resultado
+        if(items.length > 0) handleSelection(items[0]);
     }
 };
 
@@ -115,10 +108,7 @@ function toggleMenu(id) {
     refreshFocus();
 }
 
-async function loadJSON(file, isSeries = false) { 
-    isTVMode=false;
-    const r=await fetch(`data/${file}`); items=await r.json(); render(); 
-}
+async function loadJSON(file) { isTVMode=false; const r=await fetch(`data/${file}`); items=await r.json(); render(); }
 
 async function loadM3U(file) {
     const r=await fetch(`data/${file}`);
@@ -138,14 +128,15 @@ async function loadTV() { isTVMode=true; return await loadM3U('canais.m3u'); }
 async function loadKidsAll() {
     isTVMode=false;
     const [f, s]=await Promise.all([fetch('data/kids_filmes.json'), fetch('data/kids_series.json')]);
-    items=[]; if(f.ok) items.push(...await f.json()); if(s.ok) items.push(...await s.json()); render();
+    items=[]; 
+    if(f.ok) items.push(...await f.json()); 
+    if(s.ok) items.push(...await s.json()); 
+    render();
 }
-
-async function filtrar(gen){ isTVMode=false; const r=await fetch('data/filmes.json'); const d=await r.json(); items=d.filter(f=>f.genero===gen); render(); }
 
 function render(){
     list.innerHTML='';
-    items.forEach((i, idx)=>{
+    items.forEach((i)=>{
         const d=document.createElement('div');
         d.className='item focusable'; 
         d.innerHTML=`<span>${i.titulo || i.nome}</span>`;
@@ -156,10 +147,7 @@ function render(){
                 render();
             } else {
                 play(i.url || i.link, i.titulo || i.nome);
-                if(isFromSearch) {
-                    searchInput.value = '';
-                    isTVMode = true;
-                }
+                if(isFromSearch) { searchInput.value = ''; isTVMode = true; }
             }
         };
         list.appendChild(d);
@@ -167,19 +155,15 @@ function render(){
     refreshFocus();
 }
 
-// Lógica de Preview (Capa + Info)
 function handleSelection(i) {
     if(!i) return;
     clearTimeout(zappingTimer);
-    
-    // Mostra o card de preview para qualquer item que não seja canal de TV puro
-    if(i.type !== 'tv' && !i.url?.includes('m3u8')) {
+    if(i.type !== 'tv' && !(i.url || "").includes('m3u8')) {
         document.getElementById('pre-title').innerText = i.titulo || i.nome;
-        document.getElementById('pre-desc').innerText = i.desc ? i.desc.substring(0, 250) + "..." : "Descrição disponível em breve.";
+        document.getElementById('pre-desc').innerText = i.desc || "Descrição disponível em breve.";
         document.getElementById('preview-poster').src = i.poster || "";
         previewCard.style.display = 'flex';
     } else {
-        // Se for canal de TV, oculta o card e ativa o zapping automático
         previewCard.style.display = 'none';
         zappingTimer = setTimeout(() => play(i.url, i.titulo || i.nome), 600);
     }
@@ -190,8 +174,8 @@ function play(url, title){
     if(hls) hls.destroy();
     if(url.includes('m3u8')){
         hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, ()=> video.play().catch(()=> {}));
-    } else { video.src=url; video.play().catch(()=> {}); }
+        hls.on(Hls.Events.MANIFEST_PARSED, ()=> video.play().catch(()=>{}));
+    } else { video.src=url; video.play().catch(()=>{}); }
 }
 
 function refreshFocus(){ window.focusables = [searchInput, ...document.querySelectorAll('.main-btn, .sub-btn, .item')].filter(e => e.offsetParent !== null); }
@@ -204,7 +188,7 @@ function updateFocus(){
         if(el.classList.contains('item')) {
             el.scrollIntoView({block:'center', behavior:'smooth'});
             const idx = Array.from(document.querySelectorAll('.item')).indexOf(el);
-            handleSelection(items[idx]); // ESSENCIAL: Atualiza o preview ao navegar na lista de pesquisa
+            handleSelection(items[idx]);
         }
     }
 }
@@ -212,17 +196,6 @@ function updateFocus(){
 document.addEventListener('keydown', e=>{
     refreshFocus();
     const currentEl = window.focusables[focusIndex];
-
-    if((e.key==='PageUp' || e.key==='ChannelUp' || e.key==='PageDown' || e.key==='ChannelDown') && isTVMode){
-        e.preventDefault();
-        let idx = (currentEl && currentEl.classList.contains('item')) ? Array.from(document.querySelectorAll('.item')).indexOf(currentEl) : 0;
-        idx = (e.key.includes('Up')) ? (idx - 1 + items.length) % items.length : (idx + 1) % items.length;
-        focusIndex = window.focusables.indexOf(document.querySelectorAll('.item')[idx]);
-        updateFocus();
-        play(items[idx].url, items[idx].titulo);
-        return;
-    }
-
     if(e.key==='ArrowDown'){ focusIndex=(focusIndex+1)%window.focusables.length; e.preventDefault(); }
     if(e.key==='ArrowUp'){ focusIndex=(focusIndex-1+window.focusables.length)%window.focusables.length; e.preventDefault(); }
     if(e.key==='ArrowRight' && !currentEl.classList.contains('item')){
@@ -232,7 +205,6 @@ document.addEventListener('keydown', e=>{
         const sub = document.querySelector('.sub-btn.focus') || document.querySelector('.main-btn.focus');
         if(sub) focusIndex = window.focusables.indexOf(sub);
     }
-    
     if(e.key==='Enter' || e.keyCode === 13){
         if(currentEl.id === 'search') return;
         if(currentEl.id === 'cinema-btn') toggleMenu('sub-cinema');
@@ -244,8 +216,7 @@ document.addEventListener('keydown', e=>{
 });
 
 window.onload=async()=>{ 
-    const canais = await loadTV();
-    if(canais && canais.length > 0) { play(canais[0].url, canais[0].titulo); }
+    await loadTV();
     ['filmes.json', 'series.json', 'kids_filmes.json', 'kids_series.json', 'canais.m3u'].forEach(file => {
         fetch(`data/${file}`).then(r => file.endsWith('.json') ? r.json() : r.text().then(txt => {
             let mItems = []; let n = '';
@@ -257,8 +228,6 @@ window.onload=async()=>{
         })).then(d => allData.push(...d)).catch(()=>{});
     });
     refreshFocus();
-    const firstItem = document.querySelector('.item');
-    focusIndex = firstItem ? window.focusables.indexOf(firstItem) : window.focusables.indexOf(document.getElementById('btn-tv'));
     updateFocus();
 };
 </script>
