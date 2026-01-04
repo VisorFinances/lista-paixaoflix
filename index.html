@@ -66,7 +66,7 @@
         </div>
         <input id="search" placeholder="Pesquisar...">
     </div>
-    <div id="now-playing-bar"><span>Assistindo agora: <b id="current-title">Nenhum conteúdo</b></span></div>
+    <div id="now-playing-bar"><span>Assistindo: <b id="current-title">Nenhum conteúdo</b></span></div>
     <div id="buttons">
         <button id="btnTV">TV</button>
         <button id="btnFilmes">FILMES</button>
@@ -110,7 +110,7 @@ function play(url, title, isZap=false){
     if(hls){hls.destroy(); hls=null;}
     video.pause(); video.removeAttribute('src'); video.load();
     if(url.includes('.m3u8')){
-        hls=new Hls(); hls.loadSource(url); hls.attachMedia(video);
+        if(Hls.isSupported()){ hls=new Hls(); hls.loadSource(url); hls.attachMedia(video); }
     } else { video.src=url; }
     video.play().catch(()=>{});
     overlayMeta.style.display='none';
@@ -122,13 +122,13 @@ function play(url, title, isZap=false){
     }
 }
 
-async function fetchArchive(id) {
-    list.innerHTML = '<div class="item">Carregando episódios...</div>';
+async function fetchArchiveEpisodes(id) {
+    list.innerHTML = '<div class="item">Buscando episódios...</div>';
     try {
         const r = await fetch(`https://archive.org/metadata/${id}`);
         const d = await r.json();
         const files = d.files.filter(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv'));
-        list.innerHTML = '<div class="item" onclick="loadJSON(\'series\',\'series.json\')"><b>⬅ VOLTAR</b></div>';
+        list.innerHTML = '<div class="item" onclick="loadJSON(\'series\',\'series.json\')"><b>⬅ VOLTAR PARA LISTA</b></div>';
         files.forEach(f => {
             const el = document.createElement('div'); el.className = 'item focusable';
             el.innerHTML = `<span>${f.title || f.name}</span>`;
@@ -136,26 +136,30 @@ async function fetchArchive(id) {
             list.appendChild(el);
         });
         refreshFocus();
-    } catch(e) { list.innerHTML = '<div class="item">Erro.</div>'; }
+    } catch(e) { list.innerHTML = '<div class="item">Erro ao carregar do Archive.</div>'; }
 }
 
-async function loadM3U(m, file){
-    mode=m; setActive('btn'+m.charAt(0).toUpperCase()+m.slice(1));
-    const res = await fetch(file);
-    const txt = await res.text();
-    items=[]; let name='';
-    txt.split('\n').forEach(l=>{
-        if(l.startsWith('#EXTINF')) name=l.split(',').pop();
-        else if(l.startsWith('http')) items.push({nome:name.trim(), url:l.trim()});
-    });
-    render();
+async function loadM3U(m, file, btnId){
+    mode=m; setActive(btnId);
+    try {
+        const res = await fetch(file);
+        const txt = await res.text();
+        items=[]; let name='';
+        txt.split('\n').forEach(l=>{
+            if(l.startsWith('#EXTINF')) name=l.split(',').pop();
+            else if(l.startsWith('http')) items.push({nome:name.trim(), url:l.trim()});
+        });
+        render();
+    } catch(e) { console.error("Erro ao carregar M3U"); }
 }
 
-async function loadJSON(m, file){
-    mode=m; setActive('btn'+m.charAt(0).toUpperCase()+m.slice(1));
-    const res = await fetch(file);
-    items = await res.json();
-    render();
+async function loadJSON(m, file, btnId){
+    mode=m; if(btnId) setActive(btnId);
+    try {
+        const res = await fetch(file);
+        items = await res.json();
+        render();
+    } catch(e) { console.error("Erro ao carregar JSON"); }
 }
 
 function render(){
@@ -164,7 +168,10 @@ function render(){
         const d = document.createElement('div');
         d.className = 'item focusable';
         d.innerHTML = `<span>${i.nome || i.titulo}</span>`;
-        d.onclick = () => { if(mode.includes('tv') || mode.includes('KidsCanais')) play(i.url, i.nome); else showMeta(i); };
+        d.onclick = () => { 
+            if(mode === 'tv' || mode === 'kids_tv') play(i.url, i.nome || i.titulo, true); 
+            else showMeta(i); 
+        };
         list.appendChild(d);
     });
     refreshFocus();
@@ -173,21 +180,21 @@ function render(){
 function showMeta(i){
     document.getElementById('meta-title').innerText = i.nome || i.titulo;
     document.getElementById('meta-desc').innerText = i.desc || "";
+    document.getElementById('meta-rating').innerText = i.rating || "8.5";
+    document.getElementById('meta-year').innerText = i.year || "2024";
     overlayMeta.style.backgroundImage = `url(${i.poster})`;
     overlayMeta.style.display = 'flex';
     document.getElementById('btn-start').onclick = () => {
-        if(i.identificador_archive) fetchArchive(i.identificador_archive);
+        if(i.identificador_archive) fetchArchiveEpisodes(i.identificador_archive);
         else play(i.url, i.nome || i.titulo);
     };
 }
 
 function refreshFocus(){ window.focusables=[...document.querySelectorAll('#search, #buttons button, .item, .btn-meta')].filter(e=>e.offsetParent !== null); }
-
 function updateFocus(){
     window.focusables.forEach((f,i)=>f.classList.toggle('focus', i===focusIndex));
     window.focusables[focusIndex]?.scrollIntoView({block:'center'});
 }
-
 document.addEventListener('keydown', e=>{
     refreshFocus();
     if(e.key==='ArrowDown') { focusIndex=(focusIndex+1)%window.focusables.length; updateFocus(); }
@@ -200,14 +207,15 @@ function setActive(id){
     if(document.getElementById(id)) document.getElementById(id).classList.add('active');
 }
 
-document.getElementById('btnTV').onclick=()=>loadM3U('tv','canais.m3u');
-document.getElementById('btnFilmes').onclick=()=>loadJSON('filmes','filmes.json');
-document.getElementById('btnSeries').onclick=()=>loadJSON('series','series.json');
-document.getElementById('btnKidsCanais').onclick=()=>loadM3U('KidsCanais','kids.m3u');
-document.getElementById('btnKidsConteudo').onclick=()=>loadJSON('KidsConteudo','kids.json');
+// BOTÕES ORIGINAIS RESTAURADOS
+document.getElementById('btnTV').onclick=()=>loadM3U('tv','canais.m3u','btnTV');
+document.getElementById('btnFilmes').onclick=()=>loadJSON('filmes','filmes.json','btnFilmes');
+document.getElementById('btnSeries').onclick=()=>loadJSON('series','series.json','btnSeries');
+document.getElementById('btnKidsCanais').onclick=()=>loadM3U('kids_tv','kids.m3u','btnKidsCanais');
+document.getElementById('btnKidsConteudo').onclick=()=>loadJSON('kids_json','kids.json','btnKidsConteudo');
 document.getElementById('btn-close').onclick=()=>overlayMeta.style.display='none';
 
-window.onload=()=>loadM3U('tv','canais.m3u');
+window.onload=()=>loadM3U('tv','canais.m3u','btnTV');
 </script>
 </body>
 </html>
