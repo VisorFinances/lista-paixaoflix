@@ -18,56 +18,15 @@ html, body {
     overflow: hidden;
 }
 
-#app {
-    display: flex;
+#player {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 100%;
-}
-
-/* MENU */
-#menu {
-    width: 220px; /* REDUZIDO */
-    background: #1a1a1a;
-    display: flex;
-    flex-direction: column;
-}
-
-#menuHeader {
-    padding: 16px;
-    border-bottom: 1px solid #222;
-}
-
-#menuHeader img {
-    height: 72px;
-}
-
-#clock {
-    margin-top: 8px;
-    font-size: 15px;
-}
-
-.menu-item {
-    padding: 18px 20px;
-    font-size: 18px;
-}
-
-.menu-item.active {
-    background: #222;
-    border-left: 5px solid #ff9800;
-    font-weight: bold;
-}
-
-.menu-item.kids {
-    color: #ff9800;
-}
-
-/* CONTENT */
-#content {
-    flex: 1;
-    position: relative;
     background: black;
 }
 
-/* PLAYER */
 video {
     width: 100%;
     height: 100%;
@@ -75,22 +34,21 @@ video {
     background: black;
 }
 
-/* CHANNEL LIST */
 #channelList {
-    position: absolute;
-    top: 0;
+    position: fixed;
+    top: 100px; /* abaixo de logotipo/data */
     left: 0;
-    width: 260px;
-    height: 100%;
-    background: rgba(20,20,20,0.96);
-    display: none;
-    overflow: hidden;
+    width: 280px; /* menu mais estreito */
+    height: calc(100% - 100px);
+    background: rgba(20,20,20,0.95);
+    overflow: hidden; /* barra não visível */
 }
 
 .channel {
     padding: 14px 16px;
-    font-size: 18px;
     border-bottom: 1px solid #222;
+    font-size: 18px;
+    cursor: pointer;
 }
 
 .channel.active {
@@ -98,162 +56,172 @@ video {
     color: #000;
     font-weight: bold;
 }
+
+#topBar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background: rgba(15,15,15,0.95);
+    z-index: 10;
+}
+
+#topBar img {
+    height: 72px;
+    vertical-align: middle;
+}
+
+#topBar span {
+    font-size: 18px;
+    opacity: 0.9;
+}
 </style>
 </head>
 
 <body>
 
-<div id="app">
+<div id="player">
+    <video id="video" controls autoplay></video>
+</div>
 
-    <div id="menu">
-        <div id="menuHeader">
-            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-            <div id="clock"></div>
-        </div>
+<div id="channelList"></div>
 
-        <div class="menu-item active">TV ao vivo</div>
-        <div class="menu-item">Cinema</div>
-        <div class="menu-item">Séries</div>
-        <div class="menu-item kids">Canal Kids</div>
-        <div class="menu-item kids">Filmes Kids</div>
-        <div class="menu-item kids">Séries Kids</div>
-    </div>
-
-    <div id="content">
-        <video id="video" autoplay></video>
-        <div id="channelList"></div>
-    </div>
-
+<div id="topBar">
+    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
+    <span id="clock"></span>
 </div>
 
 <script>
 const video = document.getElementById("video");
-const channelList = document.getElementById("channelList");
+const listEl = document.getElementById("channelList");
 
 let channels = [];
 let currentIndex = 0;
-let selectedIndex = 0;
-let listOpen = false;
 let hls = null;
 
-/* CLOCK */
+// RELÓGIO
 function updateClock() {
-    const d = new Date();
+    const now = new Date();
     const dias = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
     const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-    clock.innerText =
-        `${dias[d.getDay()]}, ${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+    document.getElementById("clock").innerText =
+        ` ${dias[now.getDay()]}, ${String(now.getDate()).padStart(2,"0")} ${meses[now.getMonth()]} ${now.getFullYear()} | ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-/* LOAD M3U */
+// CARREGAR M3U
 fetch("playlists/canais.m3u")
 .then(r => r.text())
 .then(text => {
     const lines = text.split("\n");
-    let temp = null;
+    let current = null;
 
     lines.forEach(l => {
         l = l.trim();
         if (l.startsWith("#EXTINF")) {
-            temp = { name: l.split(",").pop(), url: "" };
-        } else if (l.startsWith("http") && temp) {
-            temp.url = l;
-            channels.push(temp);
-            temp = null;
+            const name = l.split(",").pop();
+            current = { name, url: "" };
+        } else if (l.startsWith("http")) {
+            if (current) {
+                current.url = l;
+                channels.push(current);
+                current = null;
+            }
         }
     });
 
-    renderChannels();
-    playChannel(0);
+    renderList();
+    playChannel(0); // AUTOPLAY PRIMEIRO CANAL
 });
 
-/* RENDER */
-function renderChannels() {
-    channelList.innerHTML = "";
+// RENDER LISTA COM SCROLL INFINITO
+function renderList() {
+    listEl.innerHTML = "";
     channels.forEach((c, i) => {
         const div = document.createElement("div");
-        div.className = "channel" + (i === selectedIndex ? " active" : "");
+        div.className = "channel" + (i === currentIndex ? " active" : "");
         div.innerText = c.name;
-        channelList.appendChild(div);
+        listEl.appendChild(div);
     });
+    scrollToActive();
 }
 
-/* PLAY */
-function playChannel(i) {
-    currentIndex = (i + channels.length) % channels.length;
-    selectedIndex = currentIndex;
+function scrollToActive() {
+    const items = document.querySelectorAll(".channel");
+    if(items.length === 0) return;
 
-    if (hls) {
-        hls.destroy();
-        hls = null;
-    }
+    const active = items[currentIndex];
+    const offsetTop = active.offsetTop;
+    const offsetHeight = active.offsetHeight;
+    const containerHeight = listEl.offsetHeight;
 
-    const src = channels[currentIndex].url;
+    // rolagem infinita vertical
+    if(offsetTop < listEl.scrollTop) listEl.scrollTop = offsetTop;
+    else if(offsetTop + offsetHeight > listEl.scrollTop + containerHeight) 
+        listEl.scrollTop = offsetTop + offsetHeight - containerHeight;
+}
 
-    if (Hls.isSupported()) {
+// PLAYER
+function playChannel(index) {
+    currentIndex = index;
+    const src = channels[index].url;
+
+    if (hls) { hls.destroy(); hls = null; }
+
+    if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = src;
+    } else if (Hls.isSupported()) {
         hls = new Hls();
         hls.loadSource(src);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            video.play().catch(()=>{});
-        });
     } else {
         video.src = src;
-        video.play().catch(()=>{});
     }
 
-    renderChannels();
+    video.play().catch(()=>{});
+    renderList();
 }
 
-/* LIST */
-function showList(open) {
-    listOpen = open;
-    channelList.style.display = open ? "block" : "none";
-}
-
-/* CONTROLE */
+// CONTROLE REMOTO
 document.addEventListener("keydown", e => {
-
-    switch (e.key) {
-
-        case "ArrowRight":
-            showList(true);
-        break;
-
-        case "ArrowLeft":
-            showList(false);
-        break;
-
+    switch(e.key) {
         case "ArrowUp":
-            if (listOpen) {
-                selectedIndex = (selectedIndex - 1 + channels.length) % channels.length;
-                renderChannels();
-            }
+            currentIndex = (currentIndex - 1 + channels.length) % channels.length;
+            renderList();
         break;
 
         case "ArrowDown":
-            if (listOpen) {
-                selectedIndex = (selectedIndex + 1) % channels.length;
-                renderChannels();
-            }
+            currentIndex = (currentIndex + 1) % channels.length;
+            renderList();
         break;
 
         case "Enter":
-            if (listOpen) {
-                playChannel(selectedIndex);
-                showList(false);
-            }
+            playChannel(currentIndex);
         break;
 
-        /* CH + / - (IGUAL AO INDEX ORIGINAL, SÓ CORRIGIDO) */
         case "ChannelUp":
-            playChannel(currentIndex + 1);
+            currentIndex = (currentIndex + 1) % channels.length;
+            playChannel(currentIndex);
         break;
 
         case "ChannelDown":
-            playChannel(currentIndex - 1);
+            currentIndex = (currentIndex - 1 + channels.length) % channels.length;
+            playChannel(currentIndex);
+        break;
+
+        case "ArrowLeft":
+            // opcional: abrir/fechar menu lateral
+            listEl.style.transform = "translateX(-100%)";
+        break;
+
+        case "ArrowRight":
+            listEl.style.transform = "translateX(0)";
         break;
     }
 });
