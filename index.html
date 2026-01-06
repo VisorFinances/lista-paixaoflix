@@ -133,9 +133,10 @@ const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
 const menuItems = document.querySelectorAll(".menu-item");
 let channels = [];
-let movies = []; // Armazena os filmes do JSON
-let filteredMovies = []; // Armazena os filmes filtrados por categoria
-let viewMode = "channels"; // "channels", "categories", "movies"
+let movies = []; 
+let kidsMovies = []; // Novo banco de dados para Filmes Kids
+let filteredMovies = []; 
+let viewMode = "channels"; 
 
 let movieCategories = ["Lançamentos","AÇÃO", "AVENTURA", "ANIME", "ANIMAÇÃO", "COMÉDIA", "DRAMA", "DORAMA", "SUSPENSE", "POLICIAL", "TERROR", "DOCUMENTÁRIOS", "FICÇÃO CIENTÍFICA", "CLÁSSICOS", "FAROESTE", "NACIONAL", "ROMANCE", "RELIGIOSO", "ADULTO"];
 
@@ -158,7 +159,6 @@ setInterval(updateClock, 1000);
 updateClock();
 
 /* LOAD DATA */
-// Canais
 fetch("data/canais.m3u")
 .then(r => r.text())
 .then(text => {
@@ -178,10 +178,14 @@ fetch("data/canais.m3u")
     playMedia(channels[0]?.url); 
 });
 
-// Filmes
 fetch("data/filmes.json")
 .then(r => r.json())
 .then(data => { movies = data; });
+
+// Carregando o banco de dados Kids
+fetch("data/kids_filmes.json")
+.then(r => r.json())
+.then(data => { kidsMovies = data; });
 
 function renderList() {
     channelList.innerHTML = "";
@@ -230,7 +234,8 @@ function toggleList() {
     if (listOpen) {
         selectedIndex = 0;
         menuFocused = false;
-        viewMode = (menuIndex === 0) ? "channels" : "categories";
+        // Se menu for Cinema (1) ou Filmes Kids (4), vai para categorias
+        viewMode = (menuIndex === 1 || menuIndex === 4) ? "categories" : "channels";
         renderList();
     } else {
         menuFocused = true;
@@ -289,7 +294,10 @@ document.addEventListener("keydown", e => {
                     toggleList();
                 } else if (viewMode === "categories") {
                     const cat = movieCategories[selectedIndex];
-                    filteredMovies = movies.filter(f => f.genero === cat || cat === "Lançamentos");
+                    // Escolhe o banco de dados baseado no menu
+                    let dataBase = (menuIndex === 4) ? kidsMovies : movies;
+                    
+                    filteredMovies = dataBase.filter(f => f.genero === cat || cat === "Lançamentos");
                     viewMode = "movies";
                     selectedIndex = 0;
                     renderList();
