@@ -88,15 +88,23 @@ video {
     position: absolute;
     top: 0;
     left: 0;
-    width: 360px;
+    width: 280px; /* REDUZIDO */
     height: 100%;
     background: rgba(20,20,20,0.96);
     display: none;
     overflow-y: auto;
 }
 
+/* REMOVE SCROLLBAR */
+#channelList::-webkit-scrollbar {
+    display: none;
+}
+#channelList {
+    scrollbar-width: none;
+}
+
 .channel {
-    padding: 16px 18px;
+    padding: 14px 16px;
     font-size: 18px;
     border-bottom: 1px solid #222;
 }
@@ -189,18 +197,21 @@ function renderChannels() {
         div.innerText = c.name;
         channelList.appendChild(div);
     });
+
+    const active = channelList.querySelector(".active");
+    if (active) active.scrollIntoView({ block: "center" });
 }
 
 /* PLAY */
 function playChannel(i) {
-    channelIndex = i;
+    channelIndex = (i + channels.length) % channels.length;
 
     if (hls) {
         hls.destroy();
         hls = null;
     }
 
-    const src = channels[i].url;
+    const src = channels[channelIndex].url;
 
     if (Hls.isSupported()) {
         hls = new Hls();
@@ -217,32 +228,30 @@ function playChannel(i) {
 /* LIST VISIBILITY */
 function showList(show) {
     listVisible = show;
-    channelList.style.display = listVisible ? "block" : "none";
+    channelList.style.display = show ? "block" : "none";
 }
 
 /* CONTROLE */
 document.addEventListener("keydown", e => {
     switch (e.key) {
 
-        case "ArrowRight": // ABRE
+        case "ArrowRight":
             showList(true);
         break;
 
-        case "ArrowLeft": // FECHA
+        case "ArrowLeft":
             showList(false);
         break;
 
         case "ArrowUp":
             if (listVisible) {
-                channelIndex = (channelIndex - 1 + channels.length) % channels.length;
-                renderChannels();
+                playChannel(channelIndex - 1);
             }
         break;
 
         case "ArrowDown":
             if (listVisible) {
-                channelIndex = (channelIndex + 1) % channels.length;
-                renderChannels();
+                playChannel(channelIndex + 1);
             }
         break;
 
@@ -256,13 +265,11 @@ document.addEventListener("keydown", e => {
         break;
 
         case "ChannelUp":
-            channelIndex = (channelIndex + 1) % channels.length;
-            playChannel(channelIndex);
+            playChannel(channelIndex + 1);
         break;
 
         case "ChannelDown":
-            channelIndex = (channelIndex - 1 + channels.length) % channels.length;
-            playChannel(channelIndex);
+            playChannel(channelIndex - 1);
         break;
     }
 });
