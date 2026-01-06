@@ -65,7 +65,6 @@ html, body {
     flex: 1;
     position: relative;
     background: black;
-    overflow: hidden;
 }
 
 /* PLAYER */
@@ -101,82 +100,47 @@ video {
 }
 
 /* CINEMA */
-#cinemaSection {
+#cinema {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: #111;
-    display: none;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-#cinemaHeader {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     padding: 20px;
-}
-
-#cinemaHeader img {
-    width: 60%;
-    max-height: 360px;
-    object-fit: cover;
-    margin-bottom: 12px;
-    border-radius: 8px;
-}
-
-#cinemaHeader h2 {
-    margin: 0;
-    font-size: 28px;
-}
-
-#cinemaHeader p {
-    margin: 4px 0 0 0;
-    font-size: 16px;
-    color: #ccc;
-    text-align: center;
-}
-
-#cinemaList {
-    flex: 1;
-    display: flex;
+    box-sizing: border-box;
+    display: none;
     overflow-x: auto;
-    padding: 16px;
-    scroll-behavior: smooth;
+    white-space: nowrap;
 }
 
-.cinema-card {
-    min-width: 200px;
-    margin-right: 14px;
-    background: #1a1a1a;
-    border-radius: 8px;
-    overflow: hidden;
+.movie-card {
+    display: inline-block;
+    width: 200px;
+    margin-right: 16px;
+    vertical-align: top;
     cursor: pointer;
-    flex-shrink: 0;
 }
 
-.cinema-card img {
+.movie-card img {
     width: 100%;
-    height: 280px;
-    object-fit: cover;
+    border-radius: 6px;
 }
 
-.cinema-card .info {
-    padding: 8px;
+.movie-title {
+    font-weight: bold;
+    margin-top: 8px;
 }
 
-.cinema-card .info h3 {
-    margin: 0;
-    font-size: 18px;
-}
-
-.cinema-card .info p {
-    margin: 4px 0 0 0;
+.movie-genres {
     font-size: 14px;
     color: #ccc;
+}
+
+.movie-desc {
+    font-size: 13px;
+    margin-top: 4px;
+    height: 40px;
+    overflow: hidden;
 }
 </style>
 </head>
@@ -191,29 +155,18 @@ video {
             <div id="clock"></div>
         </div>
 
-        <div class="menu-item active" data-section="tv">TV ao vivo</div>
-        <div class="menu-item" data-section="cinema">Cinema</div>
-        <div class="menu-item" data-section="series">Séries</div>
-        <div class="menu-item kids" data-section="canalkids">Canal Kids</div>
-        <div class="menu-item kids" data-section="filmeskids">Filmes Kids</div>
-        <div class="menu-item kids" data-section="serieskids">Séries Kids</div>
+        <div class="menu-item active">TV ao vivo</div>
+        <div class="menu-item">Cinema</div>
+        <div class="menu-item">Séries</div>
+        <div class="menu-item kids">Canal Kids</div>
+        <div class="menu-item kids">Filmes Kids</div>
+        <div class="menu-item kids">Séries Kids</div>
     </div>
 
     <div id="content">
-        <!-- TV AO VIVO -->
         <video id="video" autoplay></video>
         <div id="channelList"></div>
-
-        <!-- CINEMA -->
-        <div id="cinemaSection">
-            <div id="cinemaHeader">
-                <img id="cinemaPoster" src="">
-                <h2 id="cinemaTitle"></h2>
-                <p id="cinemaYearGenre"></p>
-                <p id="cinemaDescription"></p>
-            </div>
-            <div id="cinemaList"></div>
-        </div>
+        <div id="cinema"></div>
     </div>
 
 </div>
@@ -221,12 +174,8 @@ video {
 <script>
 const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
-const cinemaSection = document.getElementById("cinemaSection");
-const cinemaPoster = document.getElementById("cinemaPoster");
-const cinemaTitle = document.getElementById("cinemaTitle");
-const cinemaYearGenre = document.getElementById("cinemaYearGenre");
-const cinemaDescription = document.getElementById("cinemaDescription");
-const cinemaList = document.getElementById("cinemaList");
+const cinemaEl = document.getElementById("cinema");
+const menuItems = document.querySelectorAll(".menu-item");
 
 let channels = [];
 let currentIndex = 0;
@@ -234,14 +183,11 @@ let selectedIndex = 0;
 let listOpen = false;
 let hls = null;
 
-let cinemaMovies = [];
-let cinemaSelected = 0;
-
 /* CLOCK */
 function updateClock() {
     const d = new Date();
     const dias = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-    const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+    const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov"];
     clock.innerText =
         `${dias[d.getDay()]}, ${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
@@ -293,7 +239,7 @@ function playChannel(i) {
 
     const src = channels[currentIndex].url;
 
-    if (Hls.isSupported() && src.endsWith(".m3u8")) {
+    if (Hls.isSupported()) {
         hls = new Hls();
         hls.loadSource(src);
         hls.attachMedia(video);
@@ -308,107 +254,102 @@ function playChannel(i) {
     renderChannels();
 }
 
-/* SHOW/HIDE CHANNEL LIST */
+/* SHOW/HIDE LIST */
 function showList(open) {
     listOpen = open;
     channelList.style.display = open ? "block" : "none";
 }
 
-/* LOAD CINEMA */
-cinemaMovies = [
-  {
-    "titulo": "Capitão América Admirável Mundo Novo",
-    "link": "https://archive.org/download/pf-acaocapitaoamericaadmiravelmundonovo/Capitão%20América%20Admirável%20Mundo%20Novo.mp4",
-    "desc": "Depois de se encontrar com o recém-eleito presidente dos EUA, Thaddeus Ross, Sam vê-se no meio de um incidente internacional. Ele tem de descobrir a razão por detrás de uma conspiração global nefasta antes que o verdadeiro cérebro faça com que o mundo inteiro fique vermelho.",
-    "lançamento": "13-02-2025 (BR)",
-    "genero": "AÇÃO",
-    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/yWOtVhuwJ6f5j9ELD2k3wKELEln.jpg"
-  },
-  {
-    "titulo": "Irmãos de Sangue: Malcolm X e Muhammad Ali",
-    "link": "https://archive.org/download/pf-acaoirmaodesangue/Irmãos%20de%20Sangue%20Malcolm%20X%20e%20Muhammad%20Ali.mp4",
-    "desc": "A história da amizade e do rompimento de dois dos maiores ícones do século XX.",
-    "lançamento": "09-09-2021 (BR)",
-    "genero": "DOCUMENTÁRIOS",
-    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/8niel2KjxfcOGmLWQc6p2fo5pUm.jpg"
-  }
-  /* Adicione todos os filmes do seu JSON aqui */
-];
-
-renderCinema();
-showCinemaMovie(0);
-
-/* RENDER CINEMA LIST */
-function renderCinema() {
-    cinemaList.innerHTML = "";
-    cinemaMovies.forEach((f, i) => {
-        const card = document.createElement("div");
-        card.className = "cinema-card";
-        card.innerHTML = `<img src="${f.poster}"><div class="info"><h3>${f.titulo}</h3><p>${f.lançamento} | ${f.genero}</p></div>`;
-        card.addEventListener("click", ()=> showCinemaMovie(i));
-        cinemaList.appendChild(card);
-    });
-}
-
-/* SHOW SELECTED CINEMA MOVIE */
-function showCinemaMovie(i) {
-    cinemaSelected = i;
-    const f = cinemaMovies[i];
-    cinemaPoster.src = f.poster;
-    cinemaTitle.innerText = f.titulo;
-    cinemaYearGenre.innerText = `${f.lançamento} | ${f.genero}`;
-    cinemaDescription.innerText = f.desc || "";
-}
-
 /* MENU NAVIGATION */
-const menuItems = document.querySelectorAll(".menu-item");
-let activeMenu = 0;
+let menuIndex = 0;
 
-function updateMenu() {
-    menuItems.forEach((m, i) => {
-        m.classList.toggle("active", i === activeMenu);
-    });
-    // Mostrar seção correspondente
-    if(menuItems[activeMenu].dataset.section === "tv") {
-        video.style.display = "block";
-        channelList.style.display = listOpen ? "block" : "none";
-        cinemaSection.style.display = "none";
-    } else if(menuItems[activeMenu].dataset.section === "cinema") {
-        video.style.display = "none";
-        channelList.style.display = "none";
-        cinemaSection.style.display = "flex";
-    } else {
-        video.style.display = "none";
-        channelList.style.display = "none";
-        cinemaSection.style.display = "none";
-    }
-}
-
-/* MENU CONTROLE REMOTO */
 document.addEventListener("keydown", e => {
-    switch(e.key){
+
+    switch(e.key) {
+
+        case "ArrowRight":
+            if(menuIndex === 1) showCinema();
+            else showList(true);
+        break;
+
+        case "ArrowLeft":
+            showList(false);
+            cinemaEl.style.display = "none";
+        break;
+
         case "ArrowUp":
-            activeMenu = (activeMenu - 1 + menuItems.length) % menuItems.length;
-            updateMenu();
-            break;
+            if(menuIndex > 0) {
+                menuIndex--;
+                updateMenu();
+            } else if(listOpen) {
+                selectedIndex = (selectedIndex - 1 + channels.length) % channels.length;
+                renderChannels();
+            }
+        break;
+
         case "ArrowDown":
-            activeMenu = (activeMenu + 1) % menuItems.length;
-            updateMenu();
-            break;
+            if(menuIndex < menuItems.length - 1) {
+                menuIndex++;
+                updateMenu();
+            } else if(listOpen) {
+                selectedIndex = (selectedIndex + 1) % channels.length;
+                renderChannels();
+            }
+        break;
+
         case "Enter":
-            updateMenu();
-            break;
+            if(listOpen) {
+                playChannel(selectedIndex);
+                showList(false);
+            } else if(menuIndex === 1) {
+                showCinema();
+            }
+        break;
+
         case "ChannelUp":
             playChannel(currentIndex + 1);
-            break;
+        break;
+
         case "ChannelDown":
             playChannel(currentIndex - 1);
-            break;
+        break;
     }
 });
 
-updateMenu();
+function updateMenu() {
+    menuItems.forEach((item, idx) => item.classList.toggle("active", idx === menuIndex));
+}
 
+/* SHOW CINEMA */
+fetch("data/filmes.json")
+.then(r => r.json())
+.then(data => {
+    cinemaEl.innerHTML = "";
+    data.forEach(f => {
+        const card = document.createElement("div");
+        card.className = "movie-card";
+        card.innerHTML = `
+            <img src="${f.poster}" alt="${f.titulo}">
+            <div class="movie-title">${f.titulo}</div>
+            <div class="movie-genres">${f.genero} | ${f.year || f.lançamento}</div>
+            <div class="movie-desc">${f.desc}</div>
+        `;
+        card.addEventListener("click", () => {
+            cinemaEl.style.display = "none";
+            showList(false);
+            if(hls){hls.destroy(); hls=null;}
+            video.src = f.link;
+            video.play();
+        });
+        cinemaEl.appendChild(card);
+    });
+});
+
+/* SHOW CINEMA FUNCTION */
+function showCinema() {
+    cinemaEl.style.display = "block";
+    channelList.style.display = "none";
+}
 </script>
 
 </body>
