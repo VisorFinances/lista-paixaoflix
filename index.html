@@ -84,7 +84,7 @@ video {
     height: 100%;
     background: rgba(20,20,20,0.96);
     display: none;
-    overflow: hidden;
+    overflow-y: hidden; /* REMOVIDA BARRA */
 }
 
 .channel {
@@ -169,7 +169,7 @@ fetch("playlists/canais.m3u")
     playChannel(0);
 });
 
-/* RENDER */
+/* RENDER COM ROLAGEM INFINITA */
 function renderChannels() {
     channelList.innerHTML = "";
     channels.forEach((c, i) => {
@@ -178,6 +178,23 @@ function renderChannels() {
         div.innerText = c.name;
         channelList.appendChild(div);
     });
+
+    // SCROLL INFINITO
+    if (listOpen) {
+        const activeEl = channelList.children[selectedIndex];
+        if (activeEl) {
+            const listHeight = channelList.offsetHeight;
+            const elTop = activeEl.offsetTop;
+            const elHeight = activeEl.offsetHeight;
+            const scroll = channelList.scrollTop;
+
+            if (elTop + elHeight > scroll + listHeight) {
+                channelList.scrollTop = elTop + elHeight - listHeight;
+            } else if (elTop < scroll) {
+                channelList.scrollTop = elTop;
+            }
+        }
+    }
 }
 
 /* PLAY */
@@ -211,6 +228,7 @@ function playChannel(i) {
 function showList(open) {
     listOpen = open;
     channelList.style.display = open ? "block" : "none";
+    renderChannels(); // atualiza scroll ao abrir
 }
 
 /* CONTROLE */
@@ -247,7 +265,7 @@ document.addEventListener("keydown", e => {
             }
         break;
 
-        /* CH + / - (IGUAL AO INDEX ORIGINAL, SÓ CORRIGIDO) */
+        /* CH + / - */
         case "ChannelUp":
             playChannel(currentIndex + 1);
         break;
