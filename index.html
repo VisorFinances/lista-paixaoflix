@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <title>PaixãoFlix TV</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
@@ -24,40 +25,82 @@ html, body {
 
 /* MENU */
 #menu {
-    width: 220px;
+    width: 240px;
     background: #1a1a1a;
     display: flex;
     flex-direction: column;
-    z-index: 30; /* Sempre visível */
+    z-index: 30;
+    padding: 10px;
+    box-sizing: border-box;
+    border-right: 1px solid #333;
 }
 
 #menuHeader {
     padding: 16px;
+    text-align: center;
     border-bottom: 1px solid #222;
+    margin-bottom: 15px;
 }
 
 #menuHeader img {
-    height: 72px;
+    height: 60px;
 }
 
 #clock {
     margin-top: 8px;
-    font-size: 15px;
+    font-size: 13px;
+    color: #aaa;
 }
 
+/* BOTÕES 3D */
 .menu-item {
-    padding: 18px 20px;
-    font-size: 18px;
+    padding: 15px 15px;
+    font-size: 17px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    background: #222;
+    border: 1px solid #333;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    color: #ccc;
+    box-shadow: 0 4px 0 #000; /* Efeito de profundidade 3D */
 }
 
+.menu-item i {
+    margin-right: 15px;
+    width: 20px;
+    text-align: center;
+}
+
+/* ESTADO ATIVO / SELECIONADO */
 .menu-item.active {
-    background: #222;
-    border-left: 5px solid #ff9800;
+    background: #333;
+    color: #fff;
+    transform: scale(1.08) translateX(10px);
+    border: 1px solid #ff9800;
+    box-shadow: 0 6px 15px rgba(255, 152, 0, 0.3), 0 4px 0 #b36b00;
     font-weight: bold;
 }
 
+/* ESTILO KIDS 3D */
 .menu-item.kids {
-    color: #ff9800;
+    border-left: 4px solid #ffeb3b;
+    color: #ffeb3b;
+}
+
+.menu-item.kids.active {
+    background: linear-gradient(145deg, #ff9800, #f44336);
+    color: #fff;
+    border: 1px solid #fff;
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.5), 0 4px 0 #9e5d00;
+    animation: pulseKids 1.5s infinite;
+}
+
+@keyframes pulseKids {
+    0% { transform: scale(1.08) translateX(10px); }
+    50% { transform: scale(1.12) translateX(15px); }
+    100% { transform: scale(1.08) translateX(10px); }
 }
 
 /* CONTENT */
@@ -74,23 +117,17 @@ video {
     background: black;
 }
 
-/* CHANNEL/CATEGORY LIST */
 #channelList {
     position: absolute;
     top: 0;
     left: 0;
-    width: 180px; 
+    width: 200px; 
     height: 100%;
-    background: rgba(20,20,20,0.96);
+    background: rgba(10,10,10,0.98);
     display: none;
     z-index: 10;
     overflow-y: auto;
-    scrollbar-width: none; 
-    -ms-overflow-style: none;
-}
-
-#channelList::-webkit-scrollbar {
-    display: none;
+    scrollbar-width: none;
 }
 
 .channel {
@@ -105,16 +142,15 @@ video {
     font-weight: bold;
 }
 
-/* POSTER PREVIEW */
 #posterPreview {
     position: absolute;
     top: 50%;
-    left: 200px; 
+    left: 220px; 
     transform: translateY(-50%);
     width: 280px;
     height: 400px;
     border-radius: 12px;
-    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    box-shadow: 0 0 40px rgba(0,0,0,0.9);
     display: none; 
     z-index: 20;
     background: #222;
@@ -132,12 +168,12 @@ video {
             <div id="clock"></div>
         </div>
 
-        <div class="menu-item active">TV ao vivo</div>
-        <div class="menu-item">Cinema</div>
-        <div class="menu-item">Séries</div>
-        <div class="menu-item kids">Canal Kids</div>
-        <div class="menu-item kids">Filmes Kids</div>
-        <div class="menu-item kids">Séries Kids</div>
+        <div class="menu-item active"><i class="fas fa-tv"></i> TV ao vivo</div>
+        <div class="menu-item"><i class="fas fa-film"></i> Cinema</div>
+        <div class="menu-item"><i class="fas fa-clapperboard"></i> Séries</div>
+        <div class="menu-item kids"><i class="fas fa-child"></i> Canal Kids</div>
+        <div class="menu-item kids"><i class="fas fa-icons"></i> Filmes Kids</div>
+        <div class="menu-item kids"><i class="fas fa-robot"></i> Séries Kids</div>
     </div>
 
     <div id="content">
@@ -156,7 +192,7 @@ const menuItems = document.querySelectorAll(".menu-item");
 let channels = [];
 let movies = []; 
 let kidsMovies = []; 
-let kidsSeries = []; // Adicionado para Séries Kids
+let kidsSeries = []; 
 let filteredMovies = []; 
 let viewMode = "channels"; 
 
@@ -197,7 +233,7 @@ fetch("data/canais.m3u").then(r => r.text()).then(text => {
 
 fetch("data/filmes.json").then(r => r.json()).then(data => { movies = data; });
 fetch("data/kids_filmes.json").then(r => r.json()).then(data => { kidsMovies = data; });
-fetch("data/kids_series.json").then(r => r.json()).then(data => { kidsSeries = data; }); // Carga Séries Kids
+fetch("data/kids_series.json").then(r => r.json()).then(data => { kidsSeries = data; });
 
 function renderList() {
     channelList.innerHTML = "";
@@ -254,7 +290,7 @@ function toggleList() {
         menuFocused = false;
         if (menuIndex === 1) viewMode = "categories";
         else if (menuIndex === 4) { viewMode = "movies"; filteredMovies = kidsMovies; }
-        else if (menuIndex === 5) { viewMode = "movies"; filteredMovies = kidsSeries; } // Lógica Séries Kids
+        else if (menuIndex === 5) { viewMode = "movies"; filteredMovies = kidsSeries; }
         else viewMode = "channels";
         renderList();
     } else {
