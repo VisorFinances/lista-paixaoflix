@@ -2,13 +2,13 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PaixãoFlix TV</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+*{margin:0;padding:0;box-sizing:border-box}
 body{
   background:#1e1e1e;
   color:#fff;
@@ -19,28 +19,34 @@ header{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:10px 20px;
+  padding:12px 24px;
 }
-header img{height: 72px}
-#clock{font-size:16px;opacity:.85}
-
-#layout{
+header img{
+  height:72px;
+}
+#clock{
+  font-size:18px;
+  opacity:.85;
+}
+#app{
   display:flex;
-  height:calc(100vh - 60px);
+  height:calc(100vh - 96px);
 }
 #menu{
-  width:260px;
+  width:280px;
   background:#111;
-  padding:15px;
+  padding:16px;
 }
 .menu-item{
-  padding:14px;
-  margin-bottom:6px;
   background:#222;
-  border-radius:8px;
+  padding:16px;
+  margin-bottom:8px;
+  border-radius:10px;
+  font-size:18px;
 }
-.menu-item.active{background:#ff7a00}
-
+.menu-item.active{
+  background:#ff7a00;
+}
 #content{
   flex:1;
   position:relative;
@@ -50,24 +56,29 @@ video{
   height:100%;
   background:#000;
 }
-
 #card{
   position:absolute;
-  bottom:30px;
-  left:30px;
-  background:rgba(0,0,0,.75);
-  padding:20px;
+  bottom:32px;
+  left:32px;
   width:420px;
-  border-radius:14px;
+  background:rgba(0,0,0,.78);
+  padding:20px;
+  border-radius:16px;
 }
 #card img{
   width:100%;
-  border-radius:10px;
+  border-radius:12px;
 }
-#card h2{margin:10px 0 5px}
-#card p{font-size:14px;opacity:.85}
-
+#card h2{
+  margin:10px 0 4px;
+  font-size:20px;
+}
+#card p{
+  font-size:14px;
+  opacity:.85;
+}
 .hidden{display:none}
+.kids .menu-item.active{background:#ff9800}
 </style>
 </head>
 
@@ -78,53 +89,67 @@ video{
   <div id="clock"></div>
 </header>
 
-<div id="layout">
+<div id="app">
 
   <div id="menu">
     <div class="menu-item active">TV AO VIVO</div>
     <div class="menu-item">CINEMA</div>
     <div class="menu-item">SÉRIES</div>
-    <div class="menu-item" style="background:#ff7a00">KIDS</div>
+    <div class="menu-item">KIDS</div>
   </div>
 
   <div id="content">
-    <video id="player" controls autoplay></video>
+    <video id="player" autoplay muted controls></video>
 
-    <div id="card">
-      <img src="https://via.placeholder.com/400x220">
-      <h2>Título Exemplo</h2>
-      <p>2024</p>
-      <p>Descrição exibida automaticamente conforme navegação.</p>
+    <div id="card" class="hidden">
+      <img id="cardImg" src="">
+      <h2 id="cardTitle"></h2>
+      <p id="cardInfo"></p>
+      <p id="cardDesc"></p>
     </div>
   </div>
 
 </div>
 
 <script>
-/* CLOCK */
-function updateClock(){
+/* DATA E HORA */
+function clock(){
   const d=new Date();
   const dias=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
   const meses=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
   document.getElementById("clock").innerText=
     `${dias[d.getDay()]}, ${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
-setInterval(updateClock,1000);
-updateClock();
+setInterval(clock,1000); clock();
 
 /* PLAYER */
 const video=document.getElementById("player");
-const url="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"; // fallback seguro
-
-if(Hls.isSupported()){
-  const hls=new Hls();
-  hls.loadSource(url);
-  hls.attachMedia(video);
-}else{
-  video.src=url;
+function play(url){
+  if(Hls.isSupported()){
+    const hls=new Hls();
+    hls.loadSource(url);
+    hls.attachMedia(video);
+  }else{
+    video.src=url;
+  }
 }
 
-/* NAVIGATION */
+/* FALLBACK SEGURO */
+play("https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8");
+
+/* CARD */
+function showCard(img,title,info,desc){
+  document.getElementById("cardImg").src=img;
+  document.getElementById("cardTitle").innerText=title;
+  document.getElementById("cardInfo").innerText=info;
+  document.getElementById("cardDesc").innerText=desc;
+  document.getElementById("card").classList.remove("hidden");
+}
+function hideCard(){
+  document.getElementById("card").classList.add("hidden");
+}
+
+/* MENU */
 let index=0;
 const items=document.querySelectorAll(".menu-item");
 
@@ -133,11 +158,44 @@ document.addEventListener("keydown",e=>{
     items[index].classList.remove("active");
     index=(index+1)%items.length;
     items[index].classList.add("active");
+    hideCard();
   }
   if(e.key==="ArrowUp"){
     items[index].classList.remove("active");
     index=(index-1+items.length)%items.length;
     items[index].classList.add("active");
+    hideCard();
+  }
+  if(e.key==="Enter"){
+    const txt=items[index].innerText;
+    if(txt==="TV AO VIVO"){
+      hideCard();
+    }
+    if(txt==="CINEMA"){
+      showCard(
+        "https://via.placeholder.com/400x220",
+        "Cinema",
+        "Catálogos",
+        "Navegue pelos filmes usando o controle"
+      );
+    }
+    if(txt==="SÉRIES"){
+      showCard(
+        "https://via.placeholder.com/400x220",
+        "Séries",
+        "Archive.org",
+        "Séries hospedadas diretamente no Archive"
+      );
+    }
+    if(txt==="KIDS"){
+      document.body.classList.add("kids");
+      showCard(
+        "https://via.placeholder.com/400x220",
+        "Área Kids",
+        "Infantil",
+        "Conteúdo seguro para crianças"
+      );
+    }
   }
 });
 </script>
