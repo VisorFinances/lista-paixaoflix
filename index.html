@@ -28,8 +28,9 @@ video { width:100%; height:60%; object-fit:contain; background:black; }
 .category { margin:15px 0; position:relative; }
 .category-title { font-size:20px; margin-left:10px; margin-bottom:6px; }
 .carousel-container { position:relative; }
-.carousel { display:flex; overflow-x:hidden; scroll-behavior:smooth; padding:0 40px; }
-.card { flex:0 0 160px; margin-right:10px; background:#222; border-radius:6px; overflow:hidden; cursor:pointer; }
+.carousel { display:flex; overflow:hidden; padding:0 40px; }
+.card { flex:0 0 160px; margin-right:10px; background:#222; border-radius:6px; overflow:hidden; cursor:pointer; border:2px solid transparent; }
+.card.active { border:2px solid #ff9800; }
 .card img { width:100%; height:220px; object-fit:cover; display:block; }
 .card-info { padding:6px; font-size:13px; }
 .card-info h4 { margin:2px 0; font-size:14px; }
@@ -71,33 +72,22 @@ const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
 const cinemaContent = document.getElementById("cinemaContent");
 
-let channels = [];
-let currentIndex = 0;
-let selectedIndex = 0;
-let listOpen = false;
-let hls = null;
+let channels=[], currentIndex=0, selectedIndex=0, listOpen=false, hls=null;
 
 /* CLOCK */
-function updateClock() {
-    const d = new Date();
-    const dias = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-    const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-    clock.innerText =
-        `${dias[d.getDay()]}, ${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+function updateClock(){
+    const d=new Date();
+    const dias=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+    const meses=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+    clock.innerText=`${dias[d.getDay()]}, ${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
 setInterval(updateClock,1000);
 updateClock();
 
 /* TV AO VIVO */
-fetch("playlists/canais.m3u")
-.then(r => r.text())
-.then(text => {
-    const lines = text.split("\n"); let temp=null;
-    lines.forEach(l=>{
-        l=l.trim();
-        if(l.startsWith("#EXTINF")) temp={name:l.split(",").pop(), url:""};
-        else if(l.startsWith("http")&&temp){ temp.url=l; channels.push(temp); temp=null; }
-    });
+fetch("playlists/canais.m3u").then(r=>r.text()).then(text=>{
+    const lines=text.split("\n"); let temp=null;
+    lines.forEach(l=>{l=l.trim(); if(l.startsWith("#EXTINF")) temp={name:l.split(",").pop(),url:""}; else if(l.startsWith("http")&&temp){ temp.url=l; channels.push(temp); temp=null; } });
     renderChannels(); playChannel(0);
 });
 
@@ -116,12 +106,8 @@ function playChannel(i){
     selectedIndex=currentIndex;
     if(hls){hls.destroy(); hls=null;}
     const src=channels[currentIndex].url;
-    if(Hls.isSupported()){
-        hls=new Hls();
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{});});
-    } else { video.src=src; video.play().catch(()=>{});}
+    if(Hls.isSupported()){ hls=new Hls(); hls.loadSource(src); hls.attachMedia(video); hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{});}); } 
+    else { video.src=src; video.play().catch(()=>{});}
     renderChannels();
 }
 
@@ -140,7 +126,7 @@ document.addEventListener("keydown", e=>{
     }
 });
 
-/* CINEMA */
+/* CINEMA NAVEGÁVEL COM CONTROLE */
 fetch("data/filmes.json").then(r=>r.json()).then(data=>{
     const categories={};
     data.forEach(f=>{const cat=f.genero||"Outros"; if(!categories[cat]) categories[cat]=[]; categories[cat].push(f); });
@@ -159,19 +145,33 @@ fetch("data/filmes.json").then(r=>r.json()).then(data=>{
             const info=document.createElement("div"); info.className="card-info";
             info.innerHTML=`<h4>${f.titulo}</h4><p>${f.desc}</p><p>${f.lançamento||f.year}</p>`;
             card.appendChild(img); card.appendChild(info);
-            card.addEventListener("click",()=>{ video.src=f.link; video.play().catch(()=>{}); });
             carousel.appendChild(card);
         });
 
-        // setas
-        const leftArrow=document.createElement("div"); leftArrow.className="arrow left"; leftArrow.innerHTML="&#10094;";
-        const rightArrow=document.createElement("div"); rightArrow.className="arrow right"; rightArrow.innerHTML="&#10095;";
+        container.appendChild(carousel); divCat.appendChild(container); cinemaContent.appendChild(divCat);
 
-        leftArrow.addEventListener("click",()=>{carousel.scrollBy({left:-850, behavior:"smooth"});});
-        rightArrow.addEventListener("click",()=>{carousel.scrollBy({left:850, behavior:"smooth"});});
+        // Estado inicial
+        let activeIndex=0;
+        const cards=carousel.querySelectorAll(".card");
+        cards[activeIndex].classList.add("active");
 
-        container.appendChild(leftArrow); container.appendChild(carousel); container.appendChild(rightArrow);
-        divCat.appendChild(container); cinemaContent.appendChild(divCat);
+        function updateActive(index){
+            cards.forEach(c=>c.classList.remove("active"));
+            activeIndex=(index+cards.length)%cards.length;
+            cards[activeIndex].classList.add("active");
+            // Scroll para manter visível
+            const cardWidth=cards[activeIndex].offsetWidth+10;
+            carousel.scrollLeft=cardWidth*activeIndex;
+        }
+
+        // Controles de carrossel
+        document.addEventListener("keydown", e=>{
+            if(document.querySelector(".menu-item.active").innerText==="Cinema"){
+                if(e.key==="ArrowRight"){ updateActive(activeIndex+1); }
+                if(e.key==="ArrowLeft"){ updateActive(activeIndex-1); }
+                if(e.key==="Enter"){ video.src=categories[cat][activeIndex].link; video.play().catch(()=>{}); }
+            }
+        });
     }
 });
 </script>
