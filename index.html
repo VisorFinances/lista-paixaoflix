@@ -74,15 +74,16 @@ video {
     background: black;
 }
 
-/* CHANNEL LIST */
+/* CHANNEL/CATEGORY LIST */
 #channelList {
     position: absolute;
     top: 0;
     left: 0;
-    width: 260px;
+    width: 280px;
     height: 100%;
     background: rgba(20,20,20,0.96);
     display: none;
+    overflow-y: auto;
 }
 
 .channel {
@@ -126,11 +127,13 @@ const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
 const menuItems = document.querySelectorAll(".menu-item");
 let channels = [];
+let movieCategories = ["Lançamentos","Ação", "Aventura", "Anime", "Animação", "Comédia", "Drama", "Dorama", "Suspense", "Policial", "Terror", "Documentários", "Ficção", "Clássicos", "Faroeste", "Nacional", "Romance", "Religioso", "Adulto"];
+
 let currentIndex = 0;
 let selectedIndex = 0;
-let menuIndex = 0; // Índice do menu lateral
+let menuIndex = 0; 
 let listOpen = false;
-let menuFocused = true; // Inicia com foco no menu
+let menuFocused = true; 
 let hls = null;
 
 /* CLOCK */
@@ -144,13 +147,12 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-/* LOAD M3U */
+/* LOAD M3U (TV AO VIVO) */
 fetch("playlists/canais.m3u")
 .then(r => r.text())
 .then(text => {
     const lines = text.split("\n");
     let temp = null;
-
     lines.forEach(l => {
         l = l.trim();
         if (l.startsWith("#EXTINF")) {
@@ -161,21 +163,29 @@ fetch("playlists/canais.m3u")
             temp = null;
         }
     });
-
     renderChannels();
     playChannel(0); 
 });
 
-/* RENDER CHANNELS */
-function renderChannels() {
+/* RENDER LIST (Canais ou Categorias) */
+function renderList() {
     channelList.innerHTML = "";
-    channels.forEach((c, i) => {
+    // Se o menu selecionado for "Cinema" (índice 1)
+    let currentData = (menuIndex === 1) ? movieCategories : channels;
+    
+    currentData.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = "channel" + (i === selectedIndex ? " active" : "");
-        div.innerText = c.name;
+        div.innerText = (menuIndex === 1) ? item : item.name;
         channelList.appendChild(div);
     });
+    // Scroll automático para idosos
+    const activeItem = channelList.querySelector(".active");
+    if (activeItem) activeItem.scrollIntoView({ block: "center" });
 }
+
+// Mantendo compatibilidade com seu código original
+function renderChannels() { renderList(); }
 
 /* RENDER MENU */
 function renderMenu() {
@@ -186,58 +196,53 @@ function renderMenu() {
 
 /* PLAY */
 function playChannel(i) {
+    if (menuIndex !== 0) return; // Só toca se for TV ao vivo
     currentIndex = (i + channels.length) % channels.length;
     selectedIndex = currentIndex;
-
-    if (hls) {
-        hls.destroy();
-        hls = null;
-    }
-
+    if (hls) { hls.destroy(); hls = null; }
     const src = channels[currentIndex].url;
-
     if (Hls.isSupported()) {
         hls = new Hls();
         hls.loadSource(src);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            video.play().catch(()=>{});
-        });
+        hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(()=>{}); });
     } else {
         video.src = src;
         video.play().catch(()=>{});
     }
-
-    renderChannels();
+    renderList();
 }
 
-/* LIST */
-function showList(open) {
-    listOpen = open;
-    channelList.style.display = open ? "block" : "none";
+/* LIST TOGGLE */
+function toggleList() {
+    listOpen = !listOpen;
+    channelList.style.display = listOpen ? "block" : "none";
+    if (listOpen) {
+        selectedIndex = 0;
+        menuFocused = false;
+        renderList();
+    } else {
+        menuFocused = true;
+    }
 }
 
 /* CONTROLE */
 document.addEventListener("keydown", e => {
+    let currentDataCount = (menuIndex === 1) ? movieCategories.length : channels.length;
+
     switch (e.key) {
         case "ArrowRight":
-            if (menuFocused) {
-                menuFocused = false;
-                showList(true);
-            }
+            if (menuFocused && !listOpen) toggleList();
         break;
 
         case "ArrowLeft":
-            if (listOpen) {
-                showList(false);
-                menuFocused = true;
-            }
+            if (listOpen) toggleList();
         break;
 
         case "ArrowUp":
             if (listOpen) {
-                selectedIndex = (selectedIndex - 1 + channels.length) % channels.length;
-                renderChannels();
+                selectedIndex = (selectedIndex - 1 + currentDataCount) % currentDataCount;
+                renderList();
             } else if (menuFocused) {
                 menuIndex = (menuIndex - 1 + menuItems.length) % menuItems.length;
                 renderMenu();
@@ -246,8 +251,8 @@ document.addEventListener("keydown", e => {
 
         case "ArrowDown":
             if (listOpen) {
-                selectedIndex = (selectedIndex + 1) % channels.length;
-                renderChannels();
+                selectedIndex = (selectedIndex + 1) % currentDataCount;
+                renderList();
             } else if (menuFocused) {
                 menuIndex = (menuIndex + 1) % menuItems.length;
                 renderMenu();
@@ -255,22 +260,24 @@ document.addEventListener("keydown", e => {
         break;
 
         case "Enter":
-            if (listOpen) {
-                playChannel(selectedIndex);
-                showList(false);
+            if (menuFocused) {
+                toggleList(); // Abre/Fecha menu Cinema ou TV
+            } else if (listOpen) {
+                if (menuIndex === 0) { // Se estiver na TV
+                    playChannel(selectedIndex);
+                    toggleList();
+                } else {
+                    // Aqui você colocaria a lógica para abrir a categoria de filmes
+                    console.log("Abriu categoria: " + movieCategories[selectedIndex]);
+                    toggleList(); // Fecha ao selecionar (conforme pedido)
+                }
             }
         break;
 
-        case "ChannelUp":
-            playChannel(currentIndex + 1);
-        break;
-
-        case "ChannelDown":
-            playChannel(currentIndex - 1);
-        break;
+        case "ChannelUp": playChannel(currentIndex + 1); break;
+        case "ChannelDown": playChannel(currentIndex - 1); break;
     }
 });
 </script>
-
 </body>
 </html>
