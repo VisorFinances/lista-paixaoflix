@@ -166,7 +166,7 @@ fetch("playlists/canais.m3u")
     });
 
     renderChannels();
-    playChannel(0, true); // AUTOPLAY PRIMEIRO CANAL AO ABRIR
+    playChannel(0, true); // AUTOPLAY PRIMEIRO CANAL
 });
 
 /* RENDER COM SCROLL INFINITO */
@@ -271,7 +271,7 @@ document.addEventListener("keydown", e => {
             }
         break;
 
-        /* CH + / - */
+        /* CH + / - TROCA IMEDIATA DE CANAIS */
         case "ChannelUp":
             playChannel(currentIndex + 1);
         break;
