@@ -28,6 +28,7 @@ html, body {
     background: #1a1a1a;
     display: flex;
     flex-direction: column;
+    z-index: 30; /* Sempre visível */
 }
 
 #menuHeader {
@@ -104,17 +105,17 @@ video {
     font-weight: bold;
 }
 
-/* POSTER PREVIEW - FIXO */
+/* POSTER PREVIEW */
 #posterPreview {
     position: absolute;
     top: 50%;
-    left: 200px; /* Posicionado ao lado da lista */
+    left: 200px; 
     transform: translateY(-50%);
     width: 280px;
     height: 400px;
     border-radius: 12px;
     box-shadow: 0 0 30px rgba(0,0,0,0.8);
-    display: none; /* Inicia oculto */
+    display: none; 
     z-index: 20;
     background: #222;
     object-fit: cover;
@@ -176,10 +177,8 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-/* LOAD DATA */
-fetch("data/canais.m3u")
-.then(r => r.text())
-.then(text => {
+/* CARGA DE DADOS */
+fetch("data/canais.m3u").then(r => r.text()).then(text => {
     const lines = text.split("\n");
     let temp = null;
     lines.forEach(l => {
@@ -213,15 +212,10 @@ function renderList() {
         channelList.appendChild(div);
     });
     
-    // LOGICA DA CAPA (POSTER)
+    // ATUALIZA POSTER AO NAVEGAR
     if (listOpen && viewMode === "movies" && filteredMovies[selectedIndex]) {
-        const movie = filteredMovies[selectedIndex];
-        if (movie.poster) {
-            posterPreview.src = movie.poster;
-            posterPreview.style.display = "block";
-        } else {
-            posterPreview.style.display = "none";
-        }
+        posterPreview.src = filteredMovies[selectedIndex].poster;
+        posterPreview.style.display = "block";
     } else {
         posterPreview.style.display = "none";
     }
@@ -257,15 +251,9 @@ function toggleList() {
     if (listOpen) {
         selectedIndex = 0;
         menuFocused = false;
-        
-        if (menuIndex === 1) { 
-            viewMode = "categories";
-        } else if (menuIndex === 4) { 
-            viewMode = "movies";
-            filteredMovies = kidsMovies; // Carrega os dados do JSON Kids
-        } else {
-            viewMode = "channels";
-        }
+        if (menuIndex === 1) viewMode = "categories";
+        else if (menuIndex === 4) { viewMode = "movies"; filteredMovies = kidsMovies; }
+        else viewMode = "channels";
         renderList();
     } else {
         menuFocused = true;
@@ -274,13 +262,13 @@ function toggleList() {
 }
 
 document.addEventListener("keydown", e => {
-    let count = 0;
-    if (viewMode === "channels") count = channels.length;
-    else if (viewMode === "categories") count = movieCategories.length;
-    else if (viewMode === "movies") count = filteredMovies.length;
+    let count = (viewMode === "channels") ? channels.length : 
+                (viewMode === "categories") ? movieCategories.length : filteredMovies.length;
 
     switch (e.key) {
-        case "ArrowRight": if (menuFocused && !listOpen) toggleList(); break;
+        case "ArrowRight": 
+            if (menuFocused && !listOpen) toggleList(); 
+            break;
         case "ArrowLeft": 
             if (listOpen) {
                 if (viewMode === "movies" && menuIndex === 1) { 
@@ -288,7 +276,7 @@ document.addEventListener("keydown", e => {
                     selectedIndex = 0;
                     renderList();
                 } else {
-                    toggleList();
+                    toggleList(); // Fecha a lista e volta o foco para o MENU
                 }
             }
             break;
@@ -306,7 +294,7 @@ document.addEventListener("keydown", e => {
             } else if (listOpen) {
                 if (viewMode === "channels") {
                     playMedia(channels[selectedIndex].url);
-                    toggleList();
+                    toggleList(); // Fecha lista para o vídeo ser tela cheia
                 } else if (viewMode === "categories") {
                     const cat = movieCategories[selectedIndex];
                     filteredMovies = movies.filter(f => f.genero === cat || cat === "Lançamentos");
@@ -314,10 +302,9 @@ document.addEventListener("keydown", e => {
                     selectedIndex = 0;
                     renderList();
                 } else if (viewMode === "movies") {
-                    // Compatibilidade entre "link" (Cinema) e "url" (Kids)
                     const videoUrl = filteredMovies[selectedIndex].url || filteredMovies[selectedIndex].link;
                     playMedia(videoUrl);
-                    toggleList();
+                    toggleList(); // ESCONDE LISTA E POSTER NO PLAY
                 }
             }
             break;
