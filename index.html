@@ -4,7 +4,6 @@
 <meta charset="UTF-8" />
 <title>PaixãoFlix TV</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
@@ -25,7 +24,7 @@ html, body {
 
 /* MENU */
 #menu {
-    width: 220px; /* REDUZIDO */
+    width: 220px;
     background: #1a1a1a;
     display: flex;
     flex-direction: column;
@@ -84,7 +83,7 @@ video {
     height: 100%;
     background: rgba(20,20,20,0.96);
     display: none;
-    overflow-y: hidden; /* sem barra de rolagem */
+    overflow-y: auto;
 }
 
 .channel {
@@ -102,9 +101,7 @@ video {
 </head>
 
 <body>
-
 <div id="app">
-
     <div id="menu">
         <div id="menuHeader">
             <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
@@ -123,18 +120,14 @@ video {
         <video id="video" autoplay></video>
         <div id="channelList"></div>
     </div>
-
 </div>
 
 <script>
 const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
-const menuItems = document.querySelectorAll("#menu .menu-item");
-
 let channels = [];
 let currentIndex = 0;
 let selectedIndex = 0;
-let menuSelectedIndex = 0;
 let listOpen = false;
 let hls = null;
 
@@ -142,7 +135,7 @@ let hls = null;
 function updateClock() {
     const d = new Date();
     const dias = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-    const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+    const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov"];
     clock.innerText =
         `${dias[d.getDay()]}, ${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
@@ -168,10 +161,10 @@ fetch("playlists/canais.m3u")
     });
 
     renderChannels();
-    playChannel(0, true); // AUTOPLAY PRIMEIRO CANAL COM SOM
+    playChannel(0); // AUTOPLAY PRIMEIRO CANAL COM SOM
 });
 
-/* RENDER CHANNELS COM SCROLL INFINITO */
+/* RENDER */
 function renderChannels() {
     channelList.innerHTML = "";
     channels.forEach((c, i) => {
@@ -180,26 +173,13 @@ function renderChannels() {
         div.innerText = c.name;
         channelList.appendChild(div);
     });
-
-    if (listOpen) {
-        const activeEl = channelList.children[selectedIndex];
-        if (activeEl) {
-            const listHeight = channelList.offsetHeight;
-            const elTop = activeEl.offsetTop;
-            const elHeight = activeEl.offsetHeight;
-            const scroll = channelList.scrollTop;
-
-            if (elTop + elHeight > scroll + listHeight) {
-                channelList.scrollTop = elTop + elHeight - listHeight;
-            } else if (elTop < scroll) {
-                channelList.scrollTop = elTop;
-            }
-        }
-    }
+    // Scroll ativo sempre visível
+    const activeDiv = channelList.children[selectedIndex];
+    if (activeDiv) activeDiv.scrollIntoView({block:"nearest"});
 }
 
 /* PLAY */
-function playChannel(i, autoplay=false) {
+function playChannel(i) {
     currentIndex = (i + channels.length) % channels.length;
     selectedIndex = currentIndex;
 
@@ -214,18 +194,12 @@ function playChannel(i, autoplay=false) {
         hls = new Hls();
         hls.loadSource(src);
         hls.attachMedia(video);
-        if (autoplay) {
-            video.muted = false;
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.play().catch(()=>{});
-            });
-        }
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play().catch(()=>{});
+        });
     } else {
         video.src = src;
-        if (autoplay) {
-            video.muted = false;
-            video.play().catch(()=>{});
-        }
+        video.play().catch(()=>{});
     }
 
     renderChannels();
@@ -235,22 +209,11 @@ function playChannel(i, autoplay=false) {
 function showList(open) {
     listOpen = open;
     channelList.style.display = open ? "block" : "none";
-    renderChannels(); // atualiza scroll ao abrir
-}
-
-/* MENU NAVIGATION */
-function updateMenu() {
-    menuItems.forEach((item, i) => {
-        if (i === menuSelectedIndex) item.classList.add("active");
-        else item.classList.remove("active");
-    });
 }
 
 /* CONTROLE */
 document.addEventListener("keydown", e => {
-
     switch (e.key) {
-
         case "ArrowRight":
             showList(true);
         break;
@@ -263,10 +226,6 @@ document.addEventListener("keydown", e => {
             if (listOpen) {
                 selectedIndex = (selectedIndex - 1 + channels.length) % channels.length;
                 renderChannels();
-            } else {
-                // navegação menu
-                menuSelectedIndex = (menuSelectedIndex - 1 + menuItems.length) % menuItems.length;
-                updateMenu();
             }
         break;
 
@@ -274,10 +233,6 @@ document.addEventListener("keydown", e => {
             if (listOpen) {
                 selectedIndex = (selectedIndex + 1) % channels.length;
                 renderChannels();
-            } else {
-                // navegação menu
-                menuSelectedIndex = (menuSelectedIndex + 1) % menuItems.length;
-                updateMenu();
             }
         break;
 
@@ -288,7 +243,7 @@ document.addEventListener("keydown", e => {
             }
         break;
 
-        /* CH + / - TROCA IMEDIATA DE CANAIS */
+        /* CH+ / CH- */
         case "ChannelUp":
             playChannel(currentIndex + 1);
         break;
