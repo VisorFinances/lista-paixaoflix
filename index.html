@@ -173,7 +173,7 @@ fetch("data/canais.m3u")
             temp = null;
         }
     });
-    playMedia(channels[0]?.url); 
+    if(channels.length > 0) playMedia(channels[0].url); 
 });
 
 fetch("data/filmes.json").then(r => r.json()).then(data => { movies = data; });
@@ -207,7 +207,9 @@ function renderMenu() {
 function playMedia(url) {
     if (!url) return;
     if (hls) { hls.destroy(); hls = null; }
-    if (Hls.isSupported() && (url.includes(".m3u8") || url.includes("archive.org"))) {
+    
+    // Verifica se é HLS ou MP4 (Archive.org costuma ser MP4 direto)
+    if (Hls.isSupported() && url.includes(".m3u8")) {
         hls = new Hls();
         hls.loadSource(url);
         hls.attachMedia(video);
@@ -225,13 +227,13 @@ function toggleList() {
         selectedIndex = 0;
         menuFocused = false;
         
-        if (menuIndex === 1) {
-            viewMode = "categories"; // Menu Cinema: Abre Categorias
-        } else if (menuIndex === 4) {
-            viewMode = "movies";     // Menu Filmes Kids: Abre direto os Filmes
-            filteredMovies = kidsMovies;
+        if (menuIndex === 1) { // Cinema
+            viewMode = "categories";
+        } else if (menuIndex === 4) { // Filmes Kids
+            viewMode = "movies";
+            filteredMovies = kidsMovies; // Aqui garantimos que carrega os Filmes Kids
         } else {
-            viewMode = "channels";   // Outros: Abre Canais
+            viewMode = "channels";
         }
         renderList();
     } else {
@@ -249,7 +251,8 @@ document.addEventListener("keydown", e => {
         case "ArrowRight": if (menuFocused && !listOpen) toggleList(); break;
         case "ArrowLeft": 
             if (listOpen) {
-                if (viewMode === "movies" && menuIndex === 1) { // Só volta para categorias se for no Cinema
+                // Se estiver nos filmes do Cinema, volta para categorias. Se for Kids, fecha a lista.
+                if (viewMode === "movies" && menuIndex === 1) { 
                     viewMode = "categories";
                     selectedIndex = 0;
                     renderList();
@@ -274,12 +277,14 @@ document.addEventListener("keydown", e => {
                     playMedia(channels[selectedIndex].url);
                     toggleList();
                 } else if (viewMode === "categories") {
+                    // FILTRAGEM APENAS PARA O CINEMA
                     const cat = movieCategories[selectedIndex];
                     filteredMovies = movies.filter(f => f.genero === cat || cat === "Lançamentos");
                     viewMode = "movies";
                     selectedIndex = 0;
                     renderList();
                 } else if (viewMode === "movies") {
+                    // TOCA O FILME SELECIONADO (Seja do Cinema ou Kids)
                     playMedia(filteredMovies[selectedIndex].link);
                     toggleList();
                 }
