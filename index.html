@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>PaixãoFlix • Cinema</title>
+<title>PaixãoFlix TV</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
@@ -18,9 +18,47 @@ html, body {
     overflow: hidden;
 }
 
-/* HEADER */
+/* LAYOUT */
+#app {
+    display: flex;
+    height: 100%;
+}
+
+/* MENU */
+#menu {
+    width: 260px;
+    background: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    padding-top: 40px;
+}
+
+.menu-item {
+    padding: 22px 30px;
+    font-size: 20px;
+    border-left: 6px solid transparent;
+}
+
+.menu-item.active {
+    background: #222;
+    border-left-color: #ff9800;
+    font-weight: bold;
+}
+
+.menu-item.kids {
+    color: #ff9800;
+}
+
+/* CONTENT */
+#content {
+    flex: 1;
+    position: relative;
+    background: #111;
+}
+
+/* TOP BAR */
 #topBar {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
@@ -29,7 +67,7 @@ html, body {
     align-items: center;
     justify-content: space-between;
     padding: 0 30px;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.5);
     z-index: 10;
 }
 
@@ -42,159 +80,134 @@ html, body {
     opacity: 0.9;
 }
 
-/* GRID */
-#grid {
+/* PLAYER */
+#player {
     position: absolute;
-    top: 100px;
-    left: 0;
-    right: 0;
-    bottom: 220px;
-    padding: 20px 40px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 24px;
-    overflow: hidden;
-}
-
-.poster {
-    border-radius: 12px;
-    overflow: hidden;
-    border: 4px solid transparent;
-    transition: transform 0.2s, border 0.2s;
-}
-
-.poster img {
-    width: 100%;
-    height: 260px;
-    object-fit: cover;
-    display: block;
-}
-
-.poster.active {
-    transform: scale(1.08);
-    border-color: #ff9800;
-}
-
-/* INFO CARD */
-#info {
-    position: fixed;
+    top: 90px;
     left: 0;
     right: 0;
     bottom: 0;
-    height: 220px;
-    background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.6));
-    padding: 20px 40px;
-}
-
-#info h1 {
-    margin: 0;
-    font-size: 28px;
-}
-
-#info span {
-    display: block;
-    margin-top: 6px;
-    opacity: 0.8;
-}
-
-#info p {
-    margin-top: 10px;
-    font-size: 18px;
-    max-width: 70%;
-}
-
-/* PLAYER */
-#player {
-    position: fixed;
-    inset: 0;
     background: black;
-    display: none;
-    z-index: 20;
 }
 
 video {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    background: black;
+}
+
+/* CHANNEL LIST */
+#channelList {
+    position: absolute;
+    top: 90px;
+    left: 0;
+    width: 360px;
+    bottom: 0;
+    background: rgba(20,20,20,0.95);
+    overflow: hidden;
+}
+
+.channel {
+    padding: 16px 18px;
+    font-size: 18px;
+    border-bottom: 1px solid #222;
+}
+
+.channel.active {
+    background: #ff9800;
+    color: #000;
+    font-weight: bold;
 }
 </style>
 </head>
 
 <body>
 
-<div id="topBar">
-    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-    <div id="clock"></div>
-</div>
+<div id="app">
 
-<div id="grid"></div>
+    <!-- MENU -->
+    <div id="menu">
+        <div class="menu-item active">TV AO VIVO</div>
+        <div class="menu-item">CINEMA</div>
+        <div class="menu-item">SÉRIES</div>
+        <div class="menu-item kids">KIDS</div>
+    </div>
 
-<div id="info">
-    <h1 id="title">Carregando...</h1>
-    <span id="meta"></span>
-    <p id="desc"></p>
-</div>
+    <!-- CONTENT -->
+    <div id="content">
 
-<div id="player">
-    <video id="video" controls autoplay></video>
+        <div id="topBar">
+            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
+            <div id="clock"></div>
+        </div>
+
+        <div id="player">
+            <video id="video" autoplay controls></video>
+        </div>
+
+        <div id="channelList"></div>
+
+    </div>
+
 </div>
 
 <script>
-const grid = document.getElementById("grid");
-const titleEl = document.getElementById("title");
-const metaEl = document.getElementById("meta");
-const descEl = document.getElementById("desc");
-const player = document.getElementById("player");
 const video = document.getElementById("video");
+const channelList = document.getElementById("channelList");
 
-let filmes = [];
-let index = 0;
+let channels = [];
+let channelIndex = 0;
 let hls = null;
 
-/* RELÓGIO */
-function clock() {
+/* CLOCK */
+function updateClock() {
     const d = new Date();
     const dias = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
     const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
     document.getElementById("clock").innerText =
         `${dias[d.getDay()]}, ${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
-setInterval(clock, 1000);
-clock();
+setInterval(updateClock, 1000);
+updateClock();
 
-/* CARREGAR FILMES */
-fetch("data/filmes.json")
-.then(r => r.json())
-.then(data => {
-    filmes = data;
-    render();
-    updateInfo();
+/* LOAD M3U */
+fetch("playlists/canais.m3u")
+.then(r => r.text())
+.then(text => {
+    const lines = text.split("\n");
+    let current = null;
+
+    lines.forEach(l => {
+        l = l.trim();
+        if (l.startsWith("#EXTINF")) {
+            current = { name: l.split(",").pop(), url: "" };
+        } else if (l.startsWith("http") && current) {
+            current.url = l;
+            channels.push(current);
+            current = null;
+        }
+    });
+
+    renderChannels();
+    playChannel(0);
 });
 
-/* RENDER */
-function render() {
-    grid.innerHTML = "";
-    filmes.forEach((f, i) => {
+/* RENDER CHANNELS */
+function renderChannels() {
+    channelList.innerHTML = "";
+    channels.forEach((c, i) => {
         const div = document.createElement("div");
-        div.className = "poster" + (i === index ? " active" : "");
-        div.innerHTML = `<img src="${f.poster}">`;
-        grid.appendChild(div);
+        div.className = "channel" + (i === channelIndex ? " active" : "");
+        div.innerText = c.name;
+        channelList.appendChild(div);
     });
 }
 
-/* INFO */
-function updateInfo() {
-    const f = filmes[index];
-    titleEl.innerText = f.titulo;
-    metaEl.innerText = `${f.ano} • ${f.genero}`;
-    descEl.innerText = f.descricao || "";
-    render();
-}
-
 /* PLAY */
-function playMovie() {
-    const src = filmes[index].video;
-    player.style.display = "block";
+function playChannel(i) {
+    channelIndex = i;
+    const src = channels[i].url;
 
     if (hls) {
         hls.destroy();
@@ -212,31 +225,35 @@ function playMovie() {
     }
 
     video.play().catch(()=>{});
+    renderChannels();
 }
 
-/* CONTROLE */
+/* CONTROLE REMOTO */
 document.addEventListener("keydown", e => {
-    if (player.style.display === "block") {
-        if (e.key === "Escape" || e.key === "Backspace") {
-            video.pause();
-            player.style.display = "none";
-        }
-        return;
-    }
-
     switch (e.key) {
-        case "ArrowRight":
-            if (index < filmes.length - 1) index++;
-            updateInfo();
+
+        case "ArrowUp":
+            channelIndex = (channelIndex - 1 + channels.length) % channels.length;
+            renderChannels();
         break;
 
-        case "ArrowLeft":
-            if (index > 0) index--;
-            updateInfo();
+        case "ArrowDown":
+            channelIndex = (channelIndex + 1) % channels.length;
+            renderChannels();
         break;
 
         case "Enter":
-            playMovie();
+            playChannel(channelIndex);
+        break;
+
+        case "ChannelUp":
+            channelIndex = (channelIndex + 1) % channels.length;
+            playChannel(channelIndex);
+        break;
+
+        case "ChannelDown":
+            channelIndex = (channelIndex - 1 + channels.length) % channels.length;
+            playChannel(channelIndex);
         break;
     }
 });
