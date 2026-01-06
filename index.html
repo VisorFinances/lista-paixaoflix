@@ -120,7 +120,7 @@ video {
     </div>
 
     <div id="content">
-        <video id="video" autoplay muted="false"></video>
+        <video id="video" autoplay></video>
         <div id="channelList"></div>
     </div>
 
@@ -166,7 +166,7 @@ fetch("playlists/canais.m3u")
     });
 
     renderChannels();
-    playChannel(0, true); // AUTOPLAY PRIMEIRO CANAL
+    playChannel(0, true); // AUTOPLAY PRIMEIRO CANAL COM SOM
 });
 
 /* RENDER COM SCROLL INFINITO */
@@ -214,8 +214,8 @@ function playChannel(i, autoplay=false) {
         hls.loadSource(src);
         hls.attachMedia(video);
         if (autoplay) {
+            video.muted = false;
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.muted = false;
                 video.play().catch(()=>{});
             });
         }
