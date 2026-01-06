@@ -156,6 +156,7 @@ const menuItems = document.querySelectorAll(".menu-item");
 let channels = [];
 let movies = []; 
 let kidsMovies = []; 
+let kidsSeries = []; // Adicionado para Séries Kids
 let filteredMovies = []; 
 let viewMode = "channels"; 
 
@@ -196,6 +197,7 @@ fetch("data/canais.m3u").then(r => r.text()).then(text => {
 
 fetch("data/filmes.json").then(r => r.json()).then(data => { movies = data; });
 fetch("data/kids_filmes.json").then(r => r.json()).then(data => { kidsMovies = data; });
+fetch("data/kids_series.json").then(r => r.json()).then(data => { kidsSeries = data; }); // Carga Séries Kids
 
 function renderList() {
     channelList.innerHTML = "";
@@ -252,6 +254,7 @@ function toggleList() {
         menuFocused = false;
         if (menuIndex === 1) viewMode = "categories";
         else if (menuIndex === 4) { viewMode = "movies"; filteredMovies = kidsMovies; }
+        else if (menuIndex === 5) { viewMode = "movies"; filteredMovies = kidsSeries; } // Lógica Séries Kids
         else viewMode = "channels";
         renderList();
     } else {
