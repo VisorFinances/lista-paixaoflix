@@ -82,6 +82,7 @@ video {
     height: 100%;
     background: rgba(20,20,20,0.96);
     display: none;
+    z-index: 10;
     overflow-y: auto;
     scrollbar-width: none; 
     -ms-overflow-style: none;
@@ -101,6 +102,23 @@ video {
     background: #ff9800;
     color: #000;
     font-weight: bold;
+}
+
+/* POSTER PREVIEW */
+#posterPreview {
+    position: absolute;
+    top: 50%;
+    left: 200px; /* Logo após a lista lateral */
+    transform: translateY(-50%);
+    width: 250px;
+    height: 375px;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    display: none;
+    z-index: 5;
+    background: #222;
+    object-fit: cover;
+    border: 2px solid #ff9800;
 }
 </style>
 </head>
@@ -123,6 +141,7 @@ video {
 
     <div id="content">
         <video id="video" autoplay></video>
+        <img id="posterPreview" src="" alt="Poster">
         <div id="channelList"></div>
     </div>
 </div>
@@ -130,6 +149,7 @@ video {
 <script>
 const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
+const posterPreview = document.getElementById("posterPreview");
 const menuItems = document.querySelectorAll(".menu-item");
 
 let channels = [];
@@ -194,6 +214,19 @@ function renderList() {
         channelList.appendChild(div);
     });
     
+    // FUNÇÃO DA CAPA (POSTER)
+    if (listOpen && viewMode === "movies" && filteredMovies[selectedIndex]) {
+        const currentMovie = filteredMovies[selectedIndex];
+        if (currentMovie.poster) {
+            posterPreview.src = currentMovie.poster;
+            posterPreview.style.display = "block";
+        } else {
+            posterPreview.style.display = "none";
+        }
+    } else {
+        posterPreview.style.display = "none";
+    }
+    
     const activeItem = channelList.querySelector(".active");
     if (activeItem) activeItem.scrollIntoView({ block: "center" });
 }
@@ -208,7 +241,6 @@ function playMedia(url) {
     if (!url) return;
     if (hls) { hls.destroy(); hls = null; }
     
-    // Verifica se é HLS ou MP4 (Archive.org costuma ser MP4 direto)
     if (Hls.isSupported() && url.includes(".m3u8")) {
         hls = new Hls();
         hls.loadSource(url);
@@ -227,17 +259,18 @@ function toggleList() {
         selectedIndex = 0;
         menuFocused = false;
         
-        if (menuIndex === 1) { // Cinema
+        if (menuIndex === 1) { 
             viewMode = "categories";
-        } else if (menuIndex === 4) { // Filmes Kids
+        } else if (menuIndex === 4) { 
             viewMode = "movies";
-            filteredMovies = kidsMovies; // Aqui garantimos que carrega os Filmes Kids
+            filteredMovies = kidsMovies; 
         } else {
             viewMode = "channels";
         }
         renderList();
     } else {
         menuFocused = true;
+        posterPreview.style.display = "none";
     }
 }
 
@@ -251,7 +284,6 @@ document.addEventListener("keydown", e => {
         case "ArrowRight": if (menuFocused && !listOpen) toggleList(); break;
         case "ArrowLeft": 
             if (listOpen) {
-                // Se estiver nos filmes do Cinema, volta para categorias. Se for Kids, fecha a lista.
                 if (viewMode === "movies" && menuIndex === 1) { 
                     viewMode = "categories";
                     selectedIndex = 0;
@@ -277,14 +309,12 @@ document.addEventListener("keydown", e => {
                     playMedia(channels[selectedIndex].url);
                     toggleList();
                 } else if (viewMode === "categories") {
-                    // FILTRAGEM APENAS PARA O CINEMA
                     const cat = movieCategories[selectedIndex];
                     filteredMovies = movies.filter(f => f.genero === cat || cat === "Lançamentos");
                     viewMode = "movies";
                     selectedIndex = 0;
                     renderList();
                 } else if (viewMode === "movies") {
-                    // TOCA O FILME SELECIONADO (Seja do Cinema ou Kids)
                     playMedia(filteredMovies[selectedIndex].link);
                     toggleList();
                 }
