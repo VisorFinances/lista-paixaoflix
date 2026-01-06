@@ -20,10 +20,7 @@ html, body {
 
 #player {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: black;
 }
 
@@ -36,21 +33,24 @@ video {
 
 #channelList {
     position: fixed;
-    top: 100px;
+    top: 0;
     left: 0;
-    width: 280px; /* Reduzida para mais espaço */
-    height: calc(100% - 100px);
+    width: 360px;
+    height: 100%;
     background: rgba(20,20,20,0.95);
-    overflow-y: hidden; /* barra de rolagem removida */
+    overflow: hidden;
     transform: translateX(-100%);
     transition: transform 0.25s ease;
+}
+
+#channelList.show {
+    transform: translateX(0);
 }
 
 .channel {
     padding: 14px 16px;
     border-bottom: 1px solid #222;
     font-size: 18px;
-    white-space: nowrap;
 }
 
 .channel.active {
@@ -62,37 +62,25 @@ video {
 #topBar {
     position: fixed;
     top: 0;
-    left: 0;
-    width: 100%;
+    right: 0;
     padding: 12px 20px;
     font-size: 18px;
-    opacity: 0.95;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-#topBar img {
-    height: 72px;
-}
-
-#topBar #clock {
-    font-size: 18px;
-    margin-left: 20px;
+    opacity: 0.9;
+    z-index: 10;
 }
 </style>
 </head>
 
-<body>
+<body tabindex="0">
 
 <div id="player">
-    <video id="video" controls autoplay></video>
+    <video id="video" autoplay></video>
 </div>
 
 <div id="channelList"></div>
 
 <div id="topBar">
-    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" alt="Logo">
+    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" style="height:72px; vertical-align:middle;">
     <span id="clock"></span>
 </div>
 
@@ -105,18 +93,18 @@ let currentIndex = 0;
 let menuOpen = false;
 let hls = null;
 
-// RELÓGIO
+// ================= RELÓGIO =================
 function updateClock() {
     const now = new Date();
     const dias = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
     const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
     document.getElementById("clock").innerText =
-        `${dias[now.getDay()]}, ${String(now.getDate()).padStart(2,"0")} ${meses[now.getMonth()]} ${now.getFullYear()} | ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+        ` ${dias[now.getDay()]}, ${String(now.getDate()).padStart(2,"0")} ${meses[now.getMonth()]} ${now.getFullYear()} | ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-// CARREGAR M3U
+// ================= CARREGAR M3U =================
 fetch("playlists/canais.m3u")
 .then(r => r.text())
 .then(text => {
@@ -126,22 +114,19 @@ fetch("playlists/canais.m3u")
     lines.forEach(l => {
         l = l.trim();
         if (l.startsWith("#EXTINF")) {
-            const name = l.split(",").pop();
-            current = { name, url: "" };
-        } else if (l.startsWith("http")) {
-            if (current) {
-                current.url = l;
-                channels.push(current);
-                current = null;
-            }
+            current = { name: l.split(",").pop(), url: "" };
+        } else if (l.startsWith("http") && current) {
+            current.url = l;
+            channels.push(current);
+            current = null;
         }
     });
 
     renderList();
-    playChannel(0); // PRIMEIRO CANAL AUTOPLAY
+    playChannel(0); // AUTOPLAY PRIMEIRO CANAL
 });
 
-// LISTA
+// ================= LISTA =================
 function renderList() {
     listEl.innerHTML = "";
     channels.forEach((c, i) => {
@@ -150,12 +135,16 @@ function renderList() {
         div.innerText = c.name;
         listEl.appendChild(div);
     });
+
+    const active = listEl.children[currentIndex];
+    if (active) {
+        active.scrollIntoView({ block: "center" });
+    }
 }
 
-// PLAY CHANNEL
 function playChannel(index) {
-    currentIndex = index;
-    const src = channels[index].url;
+    currentIndex = (index + channels.length) % channels.length;
+    const src = channels[currentIndex].url;
 
     if (hls) {
         hls.destroy();
@@ -176,55 +165,42 @@ function playChannel(index) {
     renderList();
 }
 
-// CONTROLE REMOTO
+// ================= CONTROLE REMOTO =================
 document.addEventListener("keydown", e => {
-    switch (e.key) {
+    const key = e.key;
+    const code = e.keyCode;
 
-        // Direcional ↑↓ → rolagem infinita da lista
-        case "ArrowUp":
-            if(menuOpen) scrollList(-1);
-            break;
-        case "ArrowDown":
-            if(menuOpen) scrollList(1);
-            break;
+    // SETA PARA CIMA
+    if (key === "ArrowUp") {
+        if (!menuOpen) openMenu();
+        currentIndex = (currentIndex - 1 + channels.length) % channels.length;
+        renderList();
+    }
 
-        // Direcional ←→ → abrir/fechar menu
-        case "ArrowLeft":
-            closeMenu();
-            break;
-        case "ArrowRight":
-            openMenu();
-            break;
+    // SETA PARA BAIXO
+    if (key === "ArrowDown") {
+        if (!menuOpen) openMenu();
+        currentIndex = (currentIndex + 1) % channels.length;
+        renderList();
+    }
 
-        // Enter → reproduz canal selecionado se menu aberto
-        case "Enter":
-            if(menuOpen) {
-                playChannel(currentIndex);
-                closeMenu();
-            }
-            break;
+    // OK
+    if (key === "Enter") {
+        playChannel(currentIndex);
+        closeMenu();
+    }
 
-        // CH+ → próximo canal
-        case "ChannelUp":
-            nextChannel();
-            break;
+    // CH+
+    if (key === "ChannelUp" || code === 427 || code === 33) {
+        playChannel(currentIndex - 1);
+    }
 
-        // CH- → canal anterior
-        case "ChannelDown":
-            prevChannel();
-            break;
+    // CH-
+    if (key === "ChannelDown" || code === 428 || code === 34) {
+        playChannel(currentIndex + 1);
     }
 });
 
-// ROLAR LISTA INFINITA
-function scrollList(dir) {
-    currentIndex += dir;
-    if(currentIndex < 0) currentIndex = channels.length - 1;
-    if(currentIndex >= channels.length) currentIndex = 0;
-    renderList();
-}
-
-// ABRIR FECHAR MENU
 function openMenu() {
     menuOpen = true;
     listEl.classList.add("show");
@@ -235,16 +211,11 @@ function closeMenu() {
     listEl.classList.remove("show");
 }
 
-// CH + CH -
-function nextChannel() {
-    currentIndex = (currentIndex + 1) % channels.length;
-    playChannel(currentIndex);
-}
-
-function prevChannel() {
-    currentIndex = (currentIndex - 1 + channels.length) % channels.length;
-    playChannel(currentIndex);
-}
+// ================= FOCO AUTOMÁTICO =================
+window.addEventListener("load", () => {
+    document.body.focus();
+    video.focus();
+});
 </script>
 
 </body>
