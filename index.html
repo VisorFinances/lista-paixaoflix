@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<title>PaixãoFlix TV</title>
+<meta charset="UTF-8">
+<title>PaixãoFlix • Cinema</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
@@ -18,133 +18,183 @@ html, body {
     overflow: hidden;
 }
 
+/* HEADER */
+#topBar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    background: rgba(0,0,0,0.6);
+    z-index: 10;
+}
+
+#topBar img {
+    height: 72px;
+}
+
+#clock {
+    font-size: 18px;
+    opacity: 0.9;
+}
+
+/* GRID */
+#grid {
+    position: absolute;
+    top: 100px;
+    left: 0;
+    right: 0;
+    bottom: 220px;
+    padding: 20px 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 24px;
+    overflow: hidden;
+}
+
+.poster {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 4px solid transparent;
+    transition: transform 0.2s, border 0.2s;
+}
+
+.poster img {
+    width: 100%;
+    height: 260px;
+    object-fit: cover;
+    display: block;
+}
+
+.poster.active {
+    transform: scale(1.08);
+    border-color: #ff9800;
+}
+
+/* INFO CARD */
+#info {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 220px;
+    background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.6));
+    padding: 20px 40px;
+}
+
+#info h1 {
+    margin: 0;
+    font-size: 28px;
+}
+
+#info span {
+    display: block;
+    margin-top: 6px;
+    opacity: 0.8;
+}
+
+#info p {
+    margin-top: 10px;
+    font-size: 18px;
+    max-width: 70%;
+}
+
+/* PLAYER */
 #player {
     position: fixed;
     inset: 0;
     background: black;
+    display: none;
+    z-index: 20;
 }
 
 video {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    background: black;
-}
-
-#channelList {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 360px;
-    height: 100%;
-    background: rgba(20,20,20,0.95);
-    overflow: hidden;
-    transform: translateX(-100%);
-    transition: transform 0.25s ease;
-}
-
-#channelList.show {
-    transform: translateX(0);
-}
-
-.channel {
-    padding: 14px 16px;
-    border-bottom: 1px solid #222;
-    font-size: 18px;
-}
-
-.channel.active {
-    background: #ff9800;
-    color: #000;
-    font-weight: bold;
-}
-
-#topBar {
-    position: fixed;
-    top: 0;
-    right: 0;
-    padding: 12px 20px;
-    font-size: 18px;
-    opacity: 0.9;
-    z-index: 10;
 }
 </style>
 </head>
 
-<body tabindex="0">
-
-<div id="player">
-    <video id="video" autoplay></video>
-</div>
-
-<div id="channelList"></div>
+<body>
 
 <div id="topBar">
-    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" style="height:72px; vertical-align:middle;">
-    <span id="clock"></span>
+    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
+    <div id="clock"></div>
+</div>
+
+<div id="grid"></div>
+
+<div id="info">
+    <h1 id="title">Carregando...</h1>
+    <span id="meta"></span>
+    <p id="desc"></p>
+</div>
+
+<div id="player">
+    <video id="video" controls autoplay></video>
 </div>
 
 <script>
+const grid = document.getElementById("grid");
+const titleEl = document.getElementById("title");
+const metaEl = document.getElementById("meta");
+const descEl = document.getElementById("desc");
+const player = document.getElementById("player");
 const video = document.getElementById("video");
-const listEl = document.getElementById("channelList");
 
-let channels = [];
-let currentIndex = 0;
-let menuOpen = false;
+let filmes = [];
+let index = 0;
 let hls = null;
 
-// ================= RELÓGIO =================
-function updateClock() {
-    const now = new Date();
+/* RELÓGIO */
+function clock() {
+    const d = new Date();
     const dias = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
     const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
     document.getElementById("clock").innerText =
-        ` ${dias[now.getDay()]}, ${String(now.getDate()).padStart(2,"0")} ${meses[now.getMonth()]} ${now.getFullYear()} | ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+        `${dias[d.getDay()]}, ${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
-setInterval(updateClock, 1000);
-updateClock();
+setInterval(clock, 1000);
+clock();
 
-// ================= CARREGAR M3U =================
-fetch("playlists/canais.m3u")
-.then(r => r.text())
-.then(text => {
-    const lines = text.split("\n");
-    let current = null;
-
-    lines.forEach(l => {
-        l = l.trim();
-        if (l.startsWith("#EXTINF")) {
-            current = { name: l.split(",").pop(), url: "" };
-        } else if (l.startsWith("http") && current) {
-            current.url = l;
-            channels.push(current);
-            current = null;
-        }
-    });
-
-    renderList();
-    playChannel(0); // AUTOPLAY PRIMEIRO CANAL
+/* CARREGAR FILMES */
+fetch("data/filmes.json")
+.then(r => r.json())
+.then(data => {
+    filmes = data;
+    render();
+    updateInfo();
 });
 
-// ================= LISTA =================
-function renderList() {
-    listEl.innerHTML = "";
-    channels.forEach((c, i) => {
+/* RENDER */
+function render() {
+    grid.innerHTML = "";
+    filmes.forEach((f, i) => {
         const div = document.createElement("div");
-        div.className = "channel" + (i === currentIndex ? " active" : "");
-        div.innerText = c.name;
-        listEl.appendChild(div);
+        div.className = "poster" + (i === index ? " active" : "");
+        div.innerHTML = `<img src="${f.poster}">`;
+        grid.appendChild(div);
     });
-
-    const active = listEl.children[currentIndex];
-    if (active) {
-        active.scrollIntoView({ block: "center" });
-    }
 }
 
-function playChannel(index) {
-    currentIndex = (index + channels.length) % channels.length;
-    const src = channels[currentIndex].url;
+/* INFO */
+function updateInfo() {
+    const f = filmes[index];
+    titleEl.innerText = f.titulo;
+    metaEl.innerText = `${f.ano} • ${f.genero}`;
+    descEl.innerText = f.descricao || "";
+    render();
+}
+
+/* PLAY */
+function playMovie() {
+    const src = filmes[index].video;
+    player.style.display = "block";
 
     if (hls) {
         hls.destroy();
@@ -162,59 +212,33 @@ function playChannel(index) {
     }
 
     video.play().catch(()=>{});
-    renderList();
 }
 
-// ================= CONTROLE REMOTO =================
+/* CONTROLE */
 document.addEventListener("keydown", e => {
-    const key = e.key;
-    const code = e.keyCode;
-
-    // SETA PARA CIMA
-    if (key === "ArrowUp") {
-        if (!menuOpen) openMenu();
-        currentIndex = (currentIndex - 1 + channels.length) % channels.length;
-        renderList();
+    if (player.style.display === "block") {
+        if (e.key === "Escape" || e.key === "Backspace") {
+            video.pause();
+            player.style.display = "none";
+        }
+        return;
     }
 
-    // SETA PARA BAIXO
-    if (key === "ArrowDown") {
-        if (!menuOpen) openMenu();
-        currentIndex = (currentIndex + 1) % channels.length;
-        renderList();
+    switch (e.key) {
+        case "ArrowRight":
+            if (index < filmes.length - 1) index++;
+            updateInfo();
+        break;
+
+        case "ArrowLeft":
+            if (index > 0) index--;
+            updateInfo();
+        break;
+
+        case "Enter":
+            playMovie();
+        break;
     }
-
-    // OK
-    if (key === "Enter") {
-        playChannel(currentIndex);
-        closeMenu();
-    }
-
-    // CH+
-    if (key === "ChannelUp" || code === 427 || code === 33) {
-        playChannel(currentIndex - 1);
-    }
-
-    // CH-
-    if (key === "ChannelDown" || code === 428 || code === 34) {
-        playChannel(currentIndex + 1);
-    }
-});
-
-function openMenu() {
-    menuOpen = true;
-    listEl.classList.add("show");
-}
-
-function closeMenu() {
-    menuOpen = false;
-    listEl.classList.remove("show");
-}
-
-// ================= FOCO AUTOMÁTICO =================
-window.addEventListener("load", () => {
-    document.body.focus();
-    video.focus();
 });
 </script>
 
