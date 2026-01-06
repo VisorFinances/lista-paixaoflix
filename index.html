@@ -54,8 +54,8 @@ html, body {
 
 /* BOTÕES 3D AJUSTADOS */
 .menu-item {
-    padding: 12px 12px; /* Reduzido para não vazar */
-    font-size: 15px;    /* Reduzido para melhor encaixe */
+    padding: 12px 12px; 
+    font-size: 15px;    
     margin-bottom: 10px;
     border-radius: 8px;
     background: #222;
@@ -66,7 +66,7 @@ html, body {
     color: #ccc;
     box-shadow: 0 3px 0 #000;
     box-sizing: border-box;
-    width: 100%; /* Garante que respeite o limite do pai */
+    width: 100%; 
 }
 
 .menu-item i {
@@ -75,11 +75,11 @@ html, body {
     text-align: center;
 }
 
-/* ESTADO SELECIONADO - Sem vazar lateralmente */
+/* ESTADO SELECIONADO */
 .menu-item.active {
     background: #333;
     color: #fff;
-    transform: scale(1.02); /* Escala menor para não bater nas bordas */
+    transform: scale(1.02); 
     border: 1px solid #ff9800;
     box-shadow: 0 0 10px rgba(255, 152, 0, 0.4), 0 3px 0 #b36b00;
     font-weight: bold;
@@ -192,6 +192,7 @@ const posterPreview = document.getElementById("posterPreview");
 const menuItems = document.querySelectorAll(".menu-item");
 
 let channels = [];
+let kidsChannels = []; // Variável para canais kids
 let movies = []; 
 let kidsMovies = []; 
 let kidsSeries = []; 
@@ -217,21 +218,26 @@ setInterval(updateClock, 1000);
 updateClock();
 
 /* CARGA DE DADOS */
-fetch("data/canais.m3u").then(r => r.text()).then(text => {
-    const lines = text.split("\n");
-    let temp = null;
-    lines.forEach(l => {
-        l = l.trim();
-        if (l.startsWith("#EXTINF")) {
-            temp = { name: l.split(",").pop(), url: "" };
-        } else if (l.startsWith("http") && temp) {
-            temp.url = l;
-            channels.push(temp);
-            temp = null;
-        }
+function loadM3U(path, targetArray) {
+    fetch(path).then(r => r.text()).then(text => {
+        const lines = text.split("\n");
+        let temp = null;
+        lines.forEach(l => {
+            l = l.trim();
+            if (l.startsWith("#EXTINF")) {
+                temp = { name: l.split(",").pop(), url: "" };
+            } else if (l.startsWith("http") && temp) {
+                temp.url = l;
+                targetArray.push(temp);
+                temp = null;
+            }
+        });
+        if(channels.length > 0 && targetArray === channels) playMedia(channels[0].url); 
     });
-    if(channels.length > 0) playMedia(channels[0].url); 
-});
+}
+
+loadM3U("data/canais.m3u", channels);
+loadM3U("data/kids_canais.m3u", kidsChannels); // Carga do Canal Kids
 
 fetch("data/filmes.json").then(r => r.json()).then(data => { movies = data; });
 fetch("data/kids_filmes.json").then(r => r.json()).then(data => { kidsMovies = data; });
@@ -242,6 +248,7 @@ function renderList() {
     let currentData = [];
     
     if (viewMode === "channels") currentData = channels;
+    else if (viewMode === "kids_channels") currentData = kidsChannels; // Modo Kids
     else if (viewMode === "categories") currentData = movieCategories;
     else if (viewMode === "movies") currentData = filteredMovies;
 
@@ -290,7 +297,9 @@ function toggleList() {
     if (listOpen) {
         selectedIndex = 0;
         menuFocused = false;
-        if (menuIndex === 1) viewMode = "categories";
+        if (menuIndex === 0) viewMode = "channels";
+        else if (menuIndex === 1) viewMode = "categories";
+        else if (menuIndex === 3) viewMode = "kids_channels"; // Lógica Canal Kids
         else if (menuIndex === 4) { viewMode = "movies"; filteredMovies = kidsMovies; }
         else if (menuIndex === 5) { viewMode = "movies"; filteredMovies = kidsSeries; }
         else viewMode = "channels";
@@ -303,6 +312,7 @@ function toggleList() {
 
 document.addEventListener("keydown", e => {
     let count = (viewMode === "channels") ? channels.length : 
+                (viewMode === "kids_channels") ? kidsChannels.length :
                 (viewMode === "categories") ? movieCategories.length : filteredMovies.length;
 
     switch (e.key) {
@@ -334,6 +344,9 @@ document.addEventListener("keydown", e => {
             } else if (listOpen) {
                 if (viewMode === "channels") {
                     playMedia(channels[selectedIndex].url);
+                    toggleList(); 
+                } else if (viewMode === "kids_channels") { // Seleção Canal Kids
+                    playMedia(kidsChannels[selectedIndex].url);
                     toggleList(); 
                 } else if (viewMode === "categories") {
                     const cat = movieCategories[selectedIndex];
