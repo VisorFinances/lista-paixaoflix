@@ -212,7 +212,6 @@ function renderList() {
         channelList.appendChild(div);
     });
     
-    // ATUALIZA POSTER AO NAVEGAR
     if (listOpen && viewMode === "movies" && filteredMovies[selectedIndex]) {
         posterPreview.src = filteredMovies[selectedIndex].poster;
         posterPreview.style.display = "block";
@@ -276,7 +275,7 @@ document.addEventListener("keydown", e => {
                     selectedIndex = 0;
                     renderList();
                 } else {
-                    toggleList(); // Fecha a lista e volta o foco para o MENU
+                    toggleList(); 
                 }
             }
             break;
@@ -294,7 +293,7 @@ document.addEventListener("keydown", e => {
             } else if (listOpen) {
                 if (viewMode === "channels") {
                     playMedia(channels[selectedIndex].url);
-                    toggleList(); // Fecha lista para o vídeo ser tela cheia
+                    toggleList(); 
                 } else if (viewMode === "categories") {
                     const cat = movieCategories[selectedIndex];
                     filteredMovies = movies.filter(f => f.genero === cat || cat === "Lançamentos");
@@ -304,7 +303,7 @@ document.addEventListener("keydown", e => {
                 } else if (viewMode === "movies") {
                     const videoUrl = filteredMovies[selectedIndex].url || filteredMovies[selectedIndex].link;
                     playMedia(videoUrl);
-                    toggleList(); // ESCONDE LISTA E POSTER NO PLAY
+                    toggleList(); 
                 }
             }
             break;
