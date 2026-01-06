@@ -2,11 +2,10 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV</title>
+<title>PaixãoFlix</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
-
 <style>
 html, body {
     margin: 0;
@@ -17,12 +16,10 @@ html, body {
     height: 100%;
     overflow: hidden;
 }
-
 #app {
     display: flex;
     height: 100%;
 }
-
 /* MENU */
 #menu {
     width: 220px;
@@ -30,51 +27,43 @@ html, body {
     display: flex;
     flex-direction: column;
 }
-
 #menuHeader {
     padding: 16px;
     border-bottom: 1px solid #222;
 }
-
 #menuHeader img {
     height: 72px;
 }
-
 #clock {
     margin-top: 8px;
     font-size: 15px;
 }
-
 .menu-item {
     padding: 18px 20px;
     font-size: 18px;
 }
-
 .menu-item.active {
     background: #222;
     border-left: 5px solid #ff9800;
     font-weight: bold;
 }
-
 .menu-item.kids {
     color: #ff9800;
 }
-
 /* CONTENT */
 #content {
     flex: 1;
     position: relative;
     background: black;
+    overflow: hidden;
 }
-
 /* PLAYER */
 video {
     width: 100%;
-    height: 100%;
+    height: 60%;
     object-fit: contain;
     background: black;
 }
-
 /* CHANNEL LIST */
 #channelList {
     position: absolute;
@@ -86,65 +75,58 @@ video {
     display: none;
     overflow: hidden;
 }
-
 .channel {
     padding: 14px 16px;
     font-size: 18px;
     border-bottom: 1px solid #222;
 }
-
 .channel.active {
     background: #ff9800;
     color: #000;
     font-weight: bold;
 }
-
 /* CINEMA */
-#cinema {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-    display: none;
+.category {
+    margin: 10px 0;
+}
+.category-title {
+    font-size: 20px;
+    margin-left: 10px;
+    margin-bottom: 6px;
+}
+.carousel {
+    display: flex;
     overflow-x: auto;
-    white-space: nowrap;
+    scroll-behavior: smooth;
+    padding: 0 10px;
 }
-
-.movie-card {
-    display: inline-block;
-    width: 200px;
-    margin-right: 16px;
-    vertical-align: top;
-    cursor: pointer;
-}
-
-.movie-card img {
-    width: 100%;
+.carousel::-webkit-scrollbar { display: none; }
+.card {
+    flex: 0 0 auto;
+    width: 160px;
+    margin-right: 10px;
+    background: #222;
     border-radius: 6px;
-}
-
-.movie-title {
-    font-weight: bold;
-    margin-top: 8px;
-}
-
-.movie-genres {
-    font-size: 14px;
-    color: #ccc;
-}
-
-.movie-desc {
-    font-size: 13px;
-    margin-top: 4px;
-    height: 40px;
     overflow: hidden;
+}
+.card img {
+    width: 100%;
+    display: block;
+}
+.card-info {
+    padding: 6px;
+    font-size: 14px;
+}
+.card-info h4 {
+    margin: 2px 0;
+    font-size: 14px;
+}
+.card-info p {
+    margin: 2px 0;
+    font-size: 12px;
 }
 </style>
 </head>
-
 <body>
 
 <div id="app">
@@ -166,7 +148,7 @@ video {
     <div id="content">
         <video id="video" autoplay></video>
         <div id="channelList"></div>
-        <div id="cinema"></div>
+        <div id="cinemaContent"></div>
     </div>
 
 </div>
@@ -174,8 +156,7 @@ video {
 <script>
 const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
-const cinemaEl = document.getElementById("cinema");
-const menuItems = document.querySelectorAll(".menu-item");
+const cinemaContent = document.getElementById("cinemaContent");
 
 let channels = [];
 let currentIndex = 0;
@@ -187,36 +168,28 @@ let hls = null;
 function updateClock() {
     const d = new Date();
     const dias = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-    const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov"];
+    const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
     clock.innerText =
         `${dias[d.getDay()]}, ${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-/* LOAD M3U */
+/* LOAD M3U - TV AO VIVO */
 fetch("playlists/canais.m3u")
 .then(r => r.text())
 .then(text => {
     const lines = text.split("\n");
     let temp = null;
-
     lines.forEach(l => {
         l = l.trim();
-        if (l.startsWith("#EXTINF")) {
-            temp = { name: l.split(",").pop(), url: "" };
-        } else if (l.startsWith("http") && temp) {
-            temp.url = l;
-            channels.push(temp);
-            temp = null;
-        }
+        if (l.startsWith("#EXTINF")) temp = { name: l.split(",").pop(), url: "" };
+        else if (l.startsWith("http") && temp) { temp.url = l; channels.push(temp); temp = null; }
     });
-
     renderChannels();
     playChannel(0);
 });
 
-/* RENDER CHANNELS */
 function renderChannels() {
     channelList.innerHTML = "";
     channels.forEach((c, i) => {
@@ -227,129 +200,88 @@ function renderChannels() {
     });
 }
 
-/* PLAY CHANNEL */
 function playChannel(i) {
     currentIndex = (i + channels.length) % channels.length;
     selectedIndex = currentIndex;
-
-    if (hls) {
-        hls.destroy();
-        hls = null;
-    }
-
+    if (hls) { hls.destroy(); hls = null; }
     const src = channels[currentIndex].url;
-
     if (Hls.isSupported()) {
         hls = new Hls();
         hls.loadSource(src);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            video.play().catch(()=>{});
-        });
-    } else {
-        video.src = src;
-        video.play().catch(()=>{});
-    }
-
+        hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(()=>{}); });
+    } else { video.src = src; video.play().catch(()=>{}); }
     renderChannels();
 }
 
-/* SHOW/HIDE LIST */
 function showList(open) {
     listOpen = open;
     channelList.style.display = open ? "block" : "none";
 }
 
-/* MENU NAVIGATION */
-let menuIndex = 0;
-
+/* CONTROLE TV */
 document.addEventListener("keydown", e => {
-
     switch(e.key) {
-
-        case "ArrowRight":
-            if(menuIndex === 1) showCinema();
-            else showList(true);
-        break;
-
-        case "ArrowLeft":
-            showList(false);
-            cinemaEl.style.display = "none";
-        break;
-
+        case "ArrowRight": showList(true); break;
+        case "ArrowLeft": showList(false); break;
         case "ArrowUp":
-            if(menuIndex > 0) {
-                menuIndex--;
-                updateMenu();
-            } else if(listOpen) {
-                selectedIndex = (selectedIndex - 1 + channels.length) % channels.length;
-                renderChannels();
-            }
-        break;
-
+            if(listOpen) { selectedIndex = (selectedIndex - 1 + channels.length) % channels.length; renderChannels(); }
+            break;
         case "ArrowDown":
-            if(menuIndex < menuItems.length - 1) {
-                menuIndex++;
-                updateMenu();
-            } else if(listOpen) {
-                selectedIndex = (selectedIndex + 1) % channels.length;
-                renderChannels();
-            }
-        break;
-
+            if(listOpen) { selectedIndex = (selectedIndex + 1) % channels.length; renderChannels(); }
+            break;
         case "Enter":
-            if(listOpen) {
-                playChannel(selectedIndex);
-                showList(false);
-            } else if(menuIndex === 1) {
-                showCinema();
-            }
-        break;
-
-        case "ChannelUp":
-            playChannel(currentIndex + 1);
-        break;
-
-        case "ChannelDown":
-            playChannel(currentIndex - 1);
-        break;
+            if(listOpen) { playChannel(selectedIndex); showList(false); }
+            break;
+        case "ChannelUp": playChannel(currentIndex + 1); break;
+        case "ChannelDown": playChannel(currentIndex - 1); break;
     }
 });
 
-function updateMenu() {
-    menuItems.forEach((item, idx) => item.classList.toggle("active", idx === menuIndex));
-}
-
-/* SHOW CINEMA */
+/* LOAD CINEMA */
 fetch("data/filmes.json")
 .then(r => r.json())
 .then(data => {
-    cinemaEl.innerHTML = "";
+    // Agrupa por gênero (categorias)
+    const categories = {};
     data.forEach(f => {
-        const card = document.createElement("div");
-        card.className = "movie-card";
-        card.innerHTML = `
-            <img src="${f.poster}" alt="${f.titulo}">
-            <div class="movie-title">${f.titulo}</div>
-            <div class="movie-genres">${f.genero} | ${f.year || f.lançamento}</div>
-            <div class="movie-desc">${f.desc}</div>
-        `;
-        card.addEventListener("click", () => {
-            cinemaEl.style.display = "none";
-            showList(false);
-            if(hls){hls.destroy(); hls=null;}
-            video.src = f.link;
-            video.play();
-        });
-        cinemaEl.appendChild(card);
+        const cat = f.genero || "Outros";
+        if(!categories[cat]) categories[cat] = [];
+        categories[cat].push(f);
     });
-});
 
-/* SHOW CINEMA FUNCTION */
-function showCinema() {
-    cinemaEl.style.display = "block";
-    channelList.style.display = "none";
-}
+    for(const cat in categories){
+        const divCat = document.createElement("div");
+        divCat.className = "category";
+        const title = document.createElement("div");
+        title.className = "category-title";
+        title.innerText = cat;
+        divCat.appendChild(title);
+
+        const carousel = document.createElement("div");
+        carousel.className = "carousel";
+
+        categories[cat].forEach(f => {
+            const card = document.createElement("div");
+            card.className = "card";
+            const img = document.createElement("img");
+            img.src = f.poster;
+            const info = document.createElement("div");
+            info.className = "card-info";
+            info.innerHTML = `<h4>${f.titulo}</h4><p>${f.desc}</p><p>${f.lançamento || f.year}</p>`;
+            card.appendChild(img);
+            card.appendChild(info);
+            card.addEventListener("click", () => {
+                video.src = f.link;
+                video.play().catch(()=>{});
+            });
+            carousel.appendChild(card);
+        });
+
+        divCat.appendChild(carousel);
+        cinemaContent.appendChild(divCat);
+    }
+});
 </script>
 
 </body>
