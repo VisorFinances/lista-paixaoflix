@@ -129,10 +129,12 @@ video {
 <script>
 const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
+const menuItems = document.querySelectorAll("#menu .menu-item");
 
 let channels = [];
 let currentIndex = 0;
 let selectedIndex = 0;
+let menuSelectedIndex = 0;
 let listOpen = false;
 let hls = null;
 
@@ -169,7 +171,7 @@ fetch("playlists/canais.m3u")
     playChannel(0, true); // AUTOPLAY PRIMEIRO CANAL COM SOM
 });
 
-/* RENDER COM SCROLL INFINITO */
+/* RENDER CHANNELS COM SCROLL INFINITO */
 function renderChannels() {
     channelList.innerHTML = "";
     channels.forEach((c, i) => {
@@ -179,7 +181,6 @@ function renderChannels() {
         channelList.appendChild(div);
     });
 
-    // SCROLL INFINITO
     if (listOpen) {
         const activeEl = channelList.children[selectedIndex];
         if (activeEl) {
@@ -237,6 +238,14 @@ function showList(open) {
     renderChannels(); // atualiza scroll ao abrir
 }
 
+/* MENU NAVIGATION */
+function updateMenu() {
+    menuItems.forEach((item, i) => {
+        if (i === menuSelectedIndex) item.classList.add("active");
+        else item.classList.remove("active");
+    });
+}
+
 /* CONTROLE */
 document.addEventListener("keydown", e => {
 
@@ -254,6 +263,10 @@ document.addEventListener("keydown", e => {
             if (listOpen) {
                 selectedIndex = (selectedIndex - 1 + channels.length) % channels.length;
                 renderChannels();
+            } else {
+                // navegação menu
+                menuSelectedIndex = (menuSelectedIndex - 1 + menuItems.length) % menuItems.length;
+                updateMenu();
             }
         break;
 
@@ -261,6 +274,10 @@ document.addEventListener("keydown", e => {
             if (listOpen) {
                 selectedIndex = (selectedIndex + 1) % channels.length;
                 renderChannels();
+            } else {
+                // navegação menu
+                menuSelectedIndex = (menuSelectedIndex + 1) % menuItems.length;
+                updateMenu();
             }
         break;
 
