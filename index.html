@@ -104,21 +104,21 @@ video {
     font-weight: bold;
 }
 
-/* POSTER PREVIEW */
+/* POSTER PREVIEW - FIXO */
 #posterPreview {
     position: absolute;
     top: 50%;
-    left: 200px; /* Logo após a lista lateral */
+    left: 200px; /* Posicionado ao lado da lista */
     transform: translateY(-50%);
-    width: 250px;
-    height: 375px;
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    display: none;
-    z-index: 5;
+    width: 280px;
+    height: 400px;
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    display: none; /* Inicia oculto */
+    z-index: 20;
     background: #222;
     object-fit: cover;
-    border: 2px solid #ff9800;
+    border: 3px solid #ff9800;
 }
 </style>
 </head>
@@ -166,7 +166,6 @@ let listOpen = false;
 let menuFocused = true; 
 let hls = null;
 
-/* CLOCK */
 function updateClock() {
     const d = new Date();
     const dias = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
@@ -214,11 +213,11 @@ function renderList() {
         channelList.appendChild(div);
     });
     
-    // FUNÇÃO DA CAPA (POSTER)
+    // LOGICA DA CAPA (POSTER)
     if (listOpen && viewMode === "movies" && filteredMovies[selectedIndex]) {
-        const currentMovie = filteredMovies[selectedIndex];
-        if (currentMovie.poster) {
-            posterPreview.src = currentMovie.poster;
+        const movie = filteredMovies[selectedIndex];
+        if (movie.poster) {
+            posterPreview.src = movie.poster;
             posterPreview.style.display = "block";
         } else {
             posterPreview.style.display = "none";
@@ -263,7 +262,7 @@ function toggleList() {
             viewMode = "categories";
         } else if (menuIndex === 4) { 
             viewMode = "movies";
-            filteredMovies = kidsMovies; 
+            filteredMovies = kidsMovies; // Carrega os dados do JSON Kids
         } else {
             viewMode = "channels";
         }
@@ -315,7 +314,9 @@ document.addEventListener("keydown", e => {
                     selectedIndex = 0;
                     renderList();
                 } else if (viewMode === "movies") {
-                    playMedia(filteredMovies[selectedIndex].link);
+                    // Compatibilidade entre "link" (Cinema) e "url" (Kids)
+                    const videoUrl = filteredMovies[selectedIndex].url || filteredMovies[selectedIndex].link;
+                    playMedia(videoUrl);
                     toggleList();
                 }
             }
