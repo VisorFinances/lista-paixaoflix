@@ -36,19 +36,21 @@ video {
 
 #channelList {
     position: fixed;
-    top: 100px; /* abaixo de logotipo/data */
+    top: 100px;
     left: 0;
-    width: 280px; /* menu mais estreito */
+    width: 280px; /* Reduzida para mais espaço */
     height: calc(100% - 100px);
     background: rgba(20,20,20,0.95);
-    overflow: hidden; /* barra não visível */
+    overflow-y: hidden; /* barra de rolagem removida */
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
 }
 
 .channel {
     padding: 14px 16px;
     border-bottom: 1px solid #222;
     font-size: 18px;
-    cursor: pointer;
+    white-space: nowrap;
 }
 
 .channel.active {
@@ -62,23 +64,21 @@ video {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100px;
+    padding: 12px 20px;
+    font-size: 18px;
+    opacity: 0.95;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
-    background: rgba(15,15,15,0.95);
-    z-index: 10;
 }
 
 #topBar img {
     height: 72px;
-    vertical-align: middle;
 }
 
-#topBar span {
+#topBar #clock {
     font-size: 18px;
-    opacity: 0.9;
+    margin-left: 20px;
 }
 </style>
 </head>
@@ -92,7 +92,7 @@ video {
 <div id="channelList"></div>
 
 <div id="topBar">
-    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
+    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" alt="Logo">
     <span id="clock"></span>
 </div>
 
@@ -102,6 +102,7 @@ const listEl = document.getElementById("channelList");
 
 let channels = [];
 let currentIndex = 0;
+let menuOpen = false;
 let hls = null;
 
 // RELÓGIO
@@ -110,7 +111,7 @@ function updateClock() {
     const dias = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
     const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
     document.getElementById("clock").innerText =
-        ` ${dias[now.getDay()]}, ${String(now.getDate()).padStart(2,"0")} ${meses[now.getMonth()]} ${now.getFullYear()} | ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+        `${dias[now.getDay()]}, ${String(now.getDate()).padStart(2,"0")} ${meses[now.getMonth()]} ${now.getFullYear()} | ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
 }
 setInterval(updateClock, 1000);
 updateClock();
@@ -137,10 +138,10 @@ fetch("playlists/canais.m3u")
     });
 
     renderList();
-    playChannel(0); // AUTOPLAY PRIMEIRO CANAL
+    playChannel(0); // PRIMEIRO CANAL AUTOPLAY
 });
 
-// RENDER LISTA COM SCROLL INFINITO
+// LISTA
 function renderList() {
     listEl.innerHTML = "";
     channels.forEach((c, i) => {
@@ -149,30 +150,17 @@ function renderList() {
         div.innerText = c.name;
         listEl.appendChild(div);
     });
-    scrollToActive();
 }
 
-function scrollToActive() {
-    const items = document.querySelectorAll(".channel");
-    if(items.length === 0) return;
-
-    const active = items[currentIndex];
-    const offsetTop = active.offsetTop;
-    const offsetHeight = active.offsetHeight;
-    const containerHeight = listEl.offsetHeight;
-
-    // rolagem infinita vertical
-    if(offsetTop < listEl.scrollTop) listEl.scrollTop = offsetTop;
-    else if(offsetTop + offsetHeight > listEl.scrollTop + containerHeight) 
-        listEl.scrollTop = offsetTop + offsetHeight - containerHeight;
-}
-
-// PLAYER
+// PLAY CHANNEL
 function playChannel(index) {
     currentIndex = index;
     const src = channels[index].url;
 
-    if (hls) { hls.destroy(); hls = null; }
+    if (hls) {
+        hls.destroy();
+        hls = null;
+    }
 
     if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = src;
@@ -190,41 +178,73 @@ function playChannel(index) {
 
 // CONTROLE REMOTO
 document.addEventListener("keydown", e => {
-    switch(e.key) {
+    switch (e.key) {
+
+        // Direcional ↑↓ → rolagem infinita da lista
         case "ArrowUp":
-            currentIndex = (currentIndex - 1 + channels.length) % channels.length;
-            renderList();
-        break;
-
+            if(menuOpen) scrollList(-1);
+            break;
         case "ArrowDown":
-            currentIndex = (currentIndex + 1) % channels.length;
-            renderList();
-        break;
+            if(menuOpen) scrollList(1);
+            break;
 
-        case "Enter":
-            playChannel(currentIndex);
-        break;
-
-        case "ChannelUp":
-            currentIndex = (currentIndex + 1) % channels.length;
-            playChannel(currentIndex);
-        break;
-
-        case "ChannelDown":
-            currentIndex = (currentIndex - 1 + channels.length) % channels.length;
-            playChannel(currentIndex);
-        break;
-
+        // Direcional ←→ → abrir/fechar menu
         case "ArrowLeft":
-            // opcional: abrir/fechar menu lateral
-            listEl.style.transform = "translateX(-100%)";
-        break;
-
+            closeMenu();
+            break;
         case "ArrowRight":
-            listEl.style.transform = "translateX(0)";
-        break;
+            openMenu();
+            break;
+
+        // Enter → reproduz canal selecionado se menu aberto
+        case "Enter":
+            if(menuOpen) {
+                playChannel(currentIndex);
+                closeMenu();
+            }
+            break;
+
+        // CH+ → próximo canal
+        case "ChannelUp":
+            nextChannel();
+            break;
+
+        // CH- → canal anterior
+        case "ChannelDown":
+            prevChannel();
+            break;
     }
 });
+
+// ROLAR LISTA INFINITA
+function scrollList(dir) {
+    currentIndex += dir;
+    if(currentIndex < 0) currentIndex = channels.length - 1;
+    if(currentIndex >= channels.length) currentIndex = 0;
+    renderList();
+}
+
+// ABRIR FECHAR MENU
+function openMenu() {
+    menuOpen = true;
+    listEl.classList.add("show");
+}
+
+function closeMenu() {
+    menuOpen = false;
+    listEl.classList.remove("show");
+}
+
+// CH + CH -
+function nextChannel() {
+    currentIndex = (currentIndex + 1) % channels.length;
+    playChannel(currentIndex);
+}
+
+function prevChannel() {
+    currentIndex = (currentIndex - 1 + channels.length) % channels.length;
+    playChannel(currentIndex);
+}
 </script>
 
 </body>
