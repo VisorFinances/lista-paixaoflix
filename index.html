@@ -79,11 +79,18 @@ video {
     position: absolute;
     top: 0;
     left: 0;
-    width: 280px;
+    width: 220px; /* Reduzido conforme solicitado para alinhar com o menu */
     height: 100%;
     background: rgba(20,20,20,0.96);
     display: none;
     overflow-y: auto;
+    /* Remove a barra de rolagem visualmente mas mantém a função */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+#channelList::-webkit-scrollbar {
+    display: none; /* Chrome, Safari e Opera */
 }
 
 .channel {
@@ -170,7 +177,6 @@ fetch("playlists/canais.m3u")
 /* RENDER LIST (Canais ou Categorias) */
 function renderList() {
     channelList.innerHTML = "";
-    // Se o menu selecionado for "Cinema" (índice 1)
     let currentData = (menuIndex === 1) ? movieCategories : channels;
     
     currentData.forEach((item, i) => {
@@ -179,12 +185,11 @@ function renderList() {
         div.innerText = (menuIndex === 1) ? item : item.name;
         channelList.appendChild(div);
     });
-    // Scroll automático para idosos
+    
     const activeItem = channelList.querySelector(".active");
     if (activeItem) activeItem.scrollIntoView({ block: "center" });
 }
 
-// Mantendo compatibilidade com seu código original
 function renderChannels() { renderList(); }
 
 /* RENDER MENU */
@@ -196,7 +201,7 @@ function renderMenu() {
 
 /* PLAY */
 function playChannel(i) {
-    if (menuIndex !== 0) return; // Só toca se for TV ao vivo
+    if (menuIndex !== 0) return; 
     currentIndex = (i + channels.length) % channels.length;
     selectedIndex = currentIndex;
     if (hls) { hls.destroy(); hls = null; }
@@ -261,15 +266,14 @@ document.addEventListener("keydown", e => {
 
         case "Enter":
             if (menuFocused) {
-                toggleList(); // Abre/Fecha menu Cinema ou TV
+                toggleList(); 
             } else if (listOpen) {
-                if (menuIndex === 0) { // Se estiver na TV
+                if (menuIndex === 0) { 
                     playChannel(selectedIndex);
                     toggleList();
                 } else {
-                    // Aqui você colocaria a lógica para abrir a categoria de filmes
                     console.log("Abriu categoria: " + movieCategories[selectedIndex]);
-                    toggleList(); // Fecha ao selecionar (conforme pedido)
+                    toggleList(); 
                 }
             }
         break;
