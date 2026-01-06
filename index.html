@@ -38,7 +38,6 @@ html, body {
 
 #menuHeader img {
     height: 72px;
-    display: block;
 }
 
 #clock {
@@ -88,7 +87,7 @@ video {
     position: absolute;
     top: 0;
     left: 0;
-    width: 280px; /* REDUZIDO */
+    width: 260px;
     height: 100%;
     background: rgba(20,20,20,0.96);
     display: none;
@@ -96,12 +95,8 @@ video {
 }
 
 /* REMOVE SCROLLBAR */
-#channelList::-webkit-scrollbar {
-    display: none;
-}
-#channelList {
-    scrollbar-width: none;
-}
+#channelList::-webkit-scrollbar { display: none; }
+#channelList { scrollbar-width: none; }
 
 .channel {
     padding: 14px 16px;
@@ -136,14 +131,12 @@ video {
     </div>
 
     <div id="content">
-
         <div id="player">
-            <video id="video" autoplay></video>
+            <video id="video" autoplay muted></video>
         </div>
-
         <div id="channelList"></div>
-
     </div>
+
 </div>
 
 <script>
@@ -151,7 +144,8 @@ const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
 
 let channels = [];
-let channelIndex = 0;
+let currentIndex = 0;
+let selectedIndex = 0;
 let listVisible = false;
 let hls = null;
 
@@ -193,7 +187,7 @@ function renderChannels() {
     channelList.innerHTML = "";
     channels.forEach((c, i) => {
         const div = document.createElement("div");
-        div.className = "channel" + (i === channelIndex ? " active" : "");
+        div.className = "channel" + (i === selectedIndex ? " active" : "");
         div.innerText = c.name;
         channelList.appendChild(div);
     });
@@ -204,28 +198,32 @@ function renderChannels() {
 
 /* PLAY */
 function playChannel(i) {
-    channelIndex = (i + channels.length) % channels.length;
+    currentIndex = (i + channels.length) % channels.length;
+    selectedIndex = currentIndex;
 
     if (hls) {
         hls.destroy();
         hls = null;
     }
 
-    const src = channels[channelIndex].url;
+    const src = channels[currentIndex].url;
 
     if (Hls.isSupported()) {
         hls = new Hls();
         hls.loadSource(src);
         hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play().catch(()=>{});
+        });
     } else {
         video.src = src;
+        video.play().catch(()=>{});
     }
 
-    video.play().catch(()=>{});
     renderChannels();
 }
 
-/* LIST VISIBILITY */
+/* LIST */
 function showList(show) {
     listVisible = show;
     channelList.style.display = show ? "block" : "none";
@@ -233,44 +231,35 @@ function showList(show) {
 
 /* CONTROLE */
 document.addEventListener("keydown", e => {
-    switch (e.key) {
 
-        case "ArrowRight":
-            showList(true);
-        break;
+    const key = e.key;
+    const code = e.keyCode;
 
-        case "ArrowLeft":
-            showList(false);
-        break;
+    if (key === "ArrowRight") showList(true);
+    if (key === "ArrowLeft") showList(false);
 
-        case "ArrowUp":
-            if (listVisible) {
-                playChannel(channelIndex - 1);
-            }
-        break;
+    if (key === "ArrowUp" && listVisible) {
+        selectedIndex = (selectedIndex - 1 + channels.length) % channels.length;
+        renderChannels();
+    }
 
-        case "ArrowDown":
-            if (listVisible) {
-                playChannel(channelIndex + 1);
-            }
-        break;
+    if (key === "ArrowDown" && listVisible) {
+        selectedIndex = (selectedIndex + 1) % channels.length;
+        renderChannels();
+    }
 
-        case "Enter":
-            if (listVisible) {
-                playChannel(channelIndex);
-                showList(false);
-            } else {
-                showList(true);
-            }
-        break;
+    if (key === "Enter" && listVisible) {
+        playChannel(selectedIndex);
+        showList(false);
+    }
 
-        case "ChannelUp":
-            playChannel(channelIndex + 1);
-        break;
+    /* CH + / - */
+    if (key === "ChannelUp" || key === "MediaChannelUp" || code === 427) {
+        playChannel(currentIndex + 1);
+    }
 
-        case "ChannelDown":
-            playChannel(channelIndex - 1);
-        break;
+    if (key === "ChannelDown" || key === "MediaChannelDown" || code === 428) {
+        playChannel(currentIndex - 1);
     }
 });
 </script>
