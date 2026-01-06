@@ -30,62 +30,64 @@ html, body {
     display: flex;
     flex-direction: column;
     z-index: 30;
-    padding: 10px;
+    padding: 12px;
     box-sizing: border-box;
     border-right: 1px solid #333;
 }
 
 #menuHeader {
-    padding: 16px;
+    padding: 10px;
     text-align: center;
     border-bottom: 1px solid #222;
     margin-bottom: 15px;
 }
 
 #menuHeader img {
-    height: 60px;
+    height: 50px;
 }
 
 #clock {
     margin-top: 8px;
-    font-size: 13px;
+    font-size: 12px;
     color: #aaa;
 }
 
-/* BOTÕES 3D */
+/* BOTÕES 3D AJUSTADOS */
 .menu-item {
-    padding: 15px 15px;
-    font-size: 17px;
-    margin-bottom: 12px;
+    padding: 12px 12px; /* Reduzido para não vazar */
+    font-size: 15px;    /* Reduzido para melhor encaixe */
+    margin-bottom: 10px;
     border-radius: 8px;
     background: #222;
     border: 1px solid #333;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.2s ease-in-out;
     display: flex;
     align-items: center;
     color: #ccc;
-    box-shadow: 0 4px 0 #000; /* Efeito de profundidade 3D */
+    box-shadow: 0 3px 0 #000;
+    box-sizing: border-box;
+    width: 100%; /* Garante que respeite o limite do pai */
 }
 
 .menu-item i {
-    margin-right: 15px;
-    width: 20px;
+    margin-right: 12px;
+    width: 18px;
     text-align: center;
 }
 
-/* ESTADO ATIVO / SELECIONADO */
+/* ESTADO SELECIONADO - Sem vazar lateralmente */
 .menu-item.active {
     background: #333;
     color: #fff;
-    transform: scale(1.08) translateX(10px);
+    transform: scale(1.02); /* Escala menor para não bater nas bordas */
     border: 1px solid #ff9800;
-    box-shadow: 0 6px 15px rgba(255, 152, 0, 0.3), 0 4px 0 #b36b00;
+    box-shadow: 0 0 10px rgba(255, 152, 0, 0.4), 0 3px 0 #b36b00;
     font-weight: bold;
 }
 
-/* ESTILO KIDS 3D */
+/* ESTILO KIDS */
 .menu-item.kids {
-    border-left: 4px solid #ffeb3b;
+    border-left: 3px solid #ffeb3b;
     color: #ffeb3b;
 }
 
@@ -93,14 +95,14 @@ html, body {
     background: linear-gradient(145deg, #ff9800, #f44336);
     color: #fff;
     border: 1px solid #fff;
-    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.5), 0 4px 0 #9e5d00;
+    box-shadow: 0 0 15px rgba(255, 152, 0, 0.6), 0 3px 0 #9e5d00;
     animation: pulseKids 1.5s infinite;
 }
 
 @keyframes pulseKids {
-    0% { transform: scale(1.08) translateX(10px); }
-    50% { transform: scale(1.12) translateX(15px); }
-    100% { transform: scale(1.08) translateX(10px); }
+    0% { transform: scale(1.02); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1.02); }
 }
 
 /* CONTENT */
