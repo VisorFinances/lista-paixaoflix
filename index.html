@@ -83,7 +83,6 @@ video {
     height: 100%;
     background: rgba(20,20,20,0.96);
     display: none;
-    overflow-y: auto;
 }
 
 .channel {
@@ -173,9 +172,6 @@ function renderChannels() {
         div.innerText = c.name;
         channelList.appendChild(div);
     });
-    // Scroll ativo sempre visível
-    const activeDiv = channelList.children[selectedIndex];
-    if (activeDiv) activeDiv.scrollIntoView({block:"nearest"});
 }
 
 /* PLAY */
