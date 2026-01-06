@@ -84,7 +84,7 @@ video {
     height: 100%;
     background: rgba(20,20,20,0.96);
     display: none;
-    overflow-y: hidden; /* REMOVIDA BARRA */
+    overflow-y: hidden; /* sem barra de rolagem */
 }
 
 .channel {
@@ -120,7 +120,7 @@ video {
     </div>
 
     <div id="content">
-        <video id="video" autoplay></video>
+        <video id="video" autoplay muted="false"></video>
         <div id="channelList"></div>
     </div>
 
@@ -166,10 +166,10 @@ fetch("playlists/canais.m3u")
     });
 
     renderChannels();
-    playChannel(0);
+    playChannel(0, true); // AUTOPLAY PRIMEIRO CANAL AO ABRIR
 });
 
-/* RENDER COM ROLAGEM INFINITA */
+/* RENDER COM SCROLL INFINITO */
 function renderChannels() {
     channelList.innerHTML = "";
     channels.forEach((c, i) => {
@@ -198,7 +198,7 @@ function renderChannels() {
 }
 
 /* PLAY */
-function playChannel(i) {
+function playChannel(i, autoplay=false) {
     currentIndex = (i + channels.length) % channels.length;
     selectedIndex = currentIndex;
 
@@ -213,12 +213,18 @@ function playChannel(i) {
         hls = new Hls();
         hls.loadSource(src);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            video.play().catch(()=>{});
-        });
+        if (autoplay) {
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                video.muted = false;
+                video.play().catch(()=>{});
+            });
+        }
     } else {
         video.src = src;
-        video.play().catch(()=>{});
+        if (autoplay) {
+            video.muted = false;
+            video.play().catch(()=>{});
+        }
     }
 
     renderChannels();
