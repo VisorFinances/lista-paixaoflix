@@ -79,7 +79,7 @@ video {
     position: absolute;
     top: 0;
     left: 0;
-    width: 180px; /* Reduzido de 220px para 180px conforme solicitado */
+    width: 180px; 
     height: 100%;
     background: rgba(20,20,20,0.96);
     display: none;
@@ -94,7 +94,7 @@ video {
 
 .channel {
     padding: 14px 16px;
-    font-size: 16px; /* Ajuste leve na fonte para caber na largura menor */
+    font-size: 16px; 
     border-bottom: 1px solid #222;
 }
 
@@ -133,7 +133,11 @@ const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
 const menuItems = document.querySelectorAll(".menu-item");
 let channels = [];
-let movieCategories = ["Lançamentos","Ação", "Aventura", "Anime", "Animação", "Comédia", "Drama", "Dorama", "Suspense", "Policial", "Terror", "Documentários", "Ficção", "Clássicos", "Faroeste", "Nacional", "Romance", "Religioso", "Adulto"];
+let movies = []; // Armazena os filmes do JSON
+let filteredMovies = []; // Armazena os filmes filtrados por categoria
+let viewMode = "channels"; // "channels", "categories", "movies"
+
+let movieCategories = ["Lançamentos","AÇÃO", "AVENTURA", "ANIME", "ANIMAÇÃO", "COMÉDIA", "DRAMA", "DORAMA", "SUSPENSE", "POLICIAL", "TERROR", "DOCUMENTÁRIOS", "FICÇÃO CIENTÍFICA", "CLÁSSICOS", "FAROESTE", "NACIONAL", "ROMANCE", "RELIGIOSO", "ADULTO"];
 
 let currentIndex = 0;
 let selectedIndex = 0;
@@ -153,7 +157,8 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-/* LOAD M3U (Caminho atualizado para data/canais.m3u) */
+/* LOAD DATA */
+// Canais
 fetch("data/canais.m3u")
 .then(r => r.text())
 .then(text => {
@@ -170,17 +175,26 @@ fetch("data/canais.m3u")
         }
     });
     renderChannels();
-    playChannel(0); 
+    playMedia(channels[0]?.url); 
 });
+
+// Filmes
+fetch("data/filmes.json")
+.then(r => r.json())
+.then(data => { movies = data; });
 
 function renderList() {
     channelList.innerHTML = "";
-    let currentData = (menuIndex === 1) ? movieCategories : channels;
+    let currentData = [];
     
+    if (viewMode === "channels") currentData = channels;
+    else if (viewMode === "categories") currentData = movieCategories;
+    else if (viewMode === "movies") currentData = filteredMovies;
+
     currentData.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = "channel" + (i === selectedIndex ? " active" : "");
-        div.innerText = (menuIndex === 1) ? item : item.name;
+        div.innerText = item.titulo || item.name || item;
         channelList.appendChild(div);
     });
     
@@ -196,22 +210,18 @@ function renderMenu() {
     });
 }
 
-function playChannel(i) {
-    if (menuIndex !== 0) return; 
-    currentIndex = (i + channels.length) % channels.length;
-    selectedIndex = currentIndex;
+function playMedia(url) {
+    if (!url) return;
     if (hls) { hls.destroy(); hls = null; }
-    const src = channels[currentIndex].url;
-    if (Hls.isSupported()) {
+    if (Hls.isSupported() && url.includes(".m3u8")) {
         hls = new Hls();
-        hls.loadSource(src);
+        hls.loadSource(url);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(()=>{}); });
     } else {
-        video.src = src;
+        video.src = url;
         video.play().catch(()=>{});
     }
-    renderList();
 }
 
 function toggleList() {
@@ -220,6 +230,7 @@ function toggleList() {
     if (listOpen) {
         selectedIndex = 0;
         menuFocused = false;
+        viewMode = (menuIndex === 0) ? "channels" : "categories";
         renderList();
     } else {
         menuFocused = true;
@@ -227,7 +238,10 @@ function toggleList() {
 }
 
 document.addEventListener("keydown", e => {
-    let currentDataCount = (menuIndex === 1) ? movieCategories.length : channels.length;
+    let currentDataCount = 0;
+    if (viewMode === "channels") currentDataCount = channels.length;
+    else if (viewMode === "categories") currentDataCount = movieCategories.length;
+    else if (viewMode === "movies") currentDataCount = filteredMovies.length;
 
     switch (e.key) {
         case "ArrowRight":
@@ -235,7 +249,15 @@ document.addEventListener("keydown", e => {
         break;
 
         case "ArrowLeft":
-            if (listOpen) toggleList();
+            if (listOpen) {
+                if (viewMode === "movies") {
+                    viewMode = "categories";
+                    selectedIndex = 0;
+                    renderList();
+                } else {
+                    toggleList();
+                }
+            }
         break;
 
         case "ArrowUp":
@@ -262,18 +284,21 @@ document.addEventListener("keydown", e => {
             if (menuFocused) {
                 toggleList(); 
             } else if (listOpen) {
-                if (menuIndex === 0) { 
-                    playChannel(selectedIndex);
+                if (viewMode === "channels") {
+                    playMedia(channels[selectedIndex].url);
                     toggleList();
-                } else {
-                    console.log("Abriu categoria: " + movieCategories[selectedIndex]);
-                    toggleList(); 
+                } else if (viewMode === "categories") {
+                    const cat = movieCategories[selectedIndex];
+                    filteredMovies = movies.filter(f => f.genero === cat || cat === "Lançamentos");
+                    viewMode = "movies";
+                    selectedIndex = 0;
+                    renderList();
+                } else if (viewMode === "movies") {
+                    playMedia(filteredMovies[selectedIndex].link);
+                    toggleList();
                 }
             }
         break;
-
-        case "ChannelUp": playChannel(currentIndex + 1); break;
-        case "ChannelDown": playChannel(currentIndex - 1); break;
     }
 });
 </script>
