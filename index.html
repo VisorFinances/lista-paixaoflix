@@ -79,23 +79,22 @@ video {
     position: absolute;
     top: 0;
     left: 0;
-    width: 220px; /* Reduzido conforme solicitado para alinhar com o menu */
+    width: 180px; /* Reduzido de 220px para 180px conforme solicitado */
     height: 100%;
     background: rgba(20,20,20,0.96);
     display: none;
     overflow-y: auto;
-    /* Remove a barra de rolagem visualmente mas mantém a função */
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none; 
+    -ms-overflow-style: none;
 }
 
 #channelList::-webkit-scrollbar {
-    display: none; /* Chrome, Safari e Opera */
+    display: none;
 }
 
 .channel {
     padding: 14px 16px;
-    font-size: 18px;
+    font-size: 16px; /* Ajuste leve na fonte para caber na largura menor */
     border-bottom: 1px solid #222;
 }
 
@@ -154,8 +153,8 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-/* LOAD M3U (TV AO VIVO) */
-fetch("playlists/canais.m3u")
+/* LOAD M3U (Caminho atualizado para data/canais.m3u) */
+fetch("data/canais.m3u")
 .then(r => r.text())
 .then(text => {
     const lines = text.split("\n");
@@ -174,7 +173,6 @@ fetch("playlists/canais.m3u")
     playChannel(0); 
 });
 
-/* RENDER LIST (Canais ou Categorias) */
 function renderList() {
     channelList.innerHTML = "";
     let currentData = (menuIndex === 1) ? movieCategories : channels;
@@ -192,14 +190,12 @@ function renderList() {
 
 function renderChannels() { renderList(); }
 
-/* RENDER MENU */
 function renderMenu() {
     menuItems.forEach((item, i) => {
         item.classList.toggle("active", i === menuIndex);
     });
 }
 
-/* PLAY */
 function playChannel(i) {
     if (menuIndex !== 0) return; 
     currentIndex = (i + channels.length) % channels.length;
@@ -218,7 +214,6 @@ function playChannel(i) {
     renderList();
 }
 
-/* LIST TOGGLE */
 function toggleList() {
     listOpen = !listOpen;
     channelList.style.display = listOpen ? "block" : "none";
@@ -231,7 +226,6 @@ function toggleList() {
     }
 }
 
-/* CONTROLE */
 document.addEventListener("keydown", e => {
     let currentDataCount = (menuIndex === 1) ? movieCategories.length : channels.length;
 
