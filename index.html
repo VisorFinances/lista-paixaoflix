@@ -4,127 +4,40 @@
 <meta charset="UTF-8" />
 <title>PaixãoFlix</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 <style>
-html, body {
-    margin: 0;
-    padding: 0;
-    background: #111;
-    color: #fff;
-    font-family: Arial, sans-serif;
-    height: 100%;
-    overflow: hidden;
-}
-#app {
-    display: flex;
-    height: 100%;
-}
+html, body { margin:0; padding:0; background:#111; color:#fff; font-family:Arial,sans-serif; height:100%; overflow:hidden; }
+#app { display:flex; height:100%; }
 /* MENU */
-#menu {
-    width: 220px;
-    background: #1a1a1a;
-    display: flex;
-    flex-direction: column;
-}
-#menuHeader {
-    padding: 16px;
-    border-bottom: 1px solid #222;
-}
-#menuHeader img {
-    height: 72px;
-}
-#clock {
-    margin-top: 8px;
-    font-size: 15px;
-}
-.menu-item {
-    padding: 18px 20px;
-    font-size: 18px;
-}
-.menu-item.active {
-    background: #222;
-    border-left: 5px solid #ff9800;
-    font-weight: bold;
-}
-.menu-item.kids {
-    color: #ff9800;
-}
+#menu { width:220px; background:#1a1a1a; display:flex; flex-direction:column; }
+#menuHeader { padding:16px; border-bottom:1px solid #222; }
+#menuHeader img { height:72px; }
+#clock { margin-top:8px; font-size:15px; }
+.menu-item { padding:18px 20px; font-size:18px; }
+.menu-item.active { background:#222; border-left:5px solid #ff9800; font-weight:bold; }
+.menu-item.kids { color:#ff9800; }
 /* CONTENT */
-#content {
-    flex: 1;
-    position: relative;
-    background: black;
-    overflow: hidden;
-}
+#content { flex:1; position:relative; background:black; overflow:hidden; }
 /* PLAYER */
-video {
-    width: 100%;
-    height: 60%;
-    object-fit: contain;
-    background: black;
-}
+video { width:100%; height:60%; object-fit:contain; background:black; }
 /* CHANNEL LIST */
-#channelList {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 260px;
-    height: 100%;
-    background: rgba(20,20,20,0.96);
-    display: none;
-    overflow: hidden;
-}
-.channel {
-    padding: 14px 16px;
-    font-size: 18px;
-    border-bottom: 1px solid #222;
-}
-.channel.active {
-    background: #ff9800;
-    color: #000;
-    font-weight: bold;
-}
+#channelList { position:absolute; top:0; left:0; width:260px; height:100%; background:rgba(20,20,20,0.96); display:none; overflow:hidden; }
+.channel { padding:14px 16px; font-size:18px; border-bottom:1px solid #222; }
+.channel.active { background:#ff9800; color:#000; font-weight:bold; }
 /* CINEMA */
-.category {
-    margin: 10px 0;
-}
-.category-title {
-    font-size: 20px;
-    margin-left: 10px;
-    margin-bottom: 6px;
-}
-.carousel {
-    display: flex;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    padding: 0 10px;
-}
-.carousel::-webkit-scrollbar { display: none; }
-.card {
-    flex: 0 0 auto;
-    width: 160px;
-    margin-right: 10px;
-    background: #222;
-    border-radius: 6px;
-    overflow: hidden;
-}
-.card img {
-    width: 100%;
-    display: block;
-}
-.card-info {
-    padding: 6px;
-    font-size: 14px;
-}
-.card-info h4 {
-    margin: 2px 0;
-    font-size: 14px;
-}
-.card-info p {
-    margin: 2px 0;
-    font-size: 12px;
-}
+.category { margin:15px 0; position:relative; }
+.category-title { font-size:20px; margin-left:10px; margin-bottom:6px; }
+.carousel-container { position:relative; }
+.carousel { display:flex; overflow-x:hidden; scroll-behavior:smooth; padding:0 40px; }
+.card { flex:0 0 160px; margin-right:10px; background:#222; border-radius:6px; overflow:hidden; cursor:pointer; }
+.card img { width:100%; height:220px; object-fit:cover; display:block; }
+.card-info { padding:6px; font-size:13px; }
+.card-info h4 { margin:2px 0; font-size:14px; }
+.card-info p { margin:2px 0; font-size:12px; }
+/* ARROWS */
+.arrow { position:absolute; top:50%; transform:translateY(-50%); font-size:30px; color:#fff; background:rgba(0,0,0,0.5); padding:10px; cursor:pointer; border-radius:50%; z-index:10; user-select:none; }
+.arrow.left { left:5px; }
+.arrow.right { right:5px; }
 </style>
 </head>
 <body>
@@ -172,114 +85,93 @@ function updateClock() {
     clock.innerText =
         `${dias[d.getDay()]}, ${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
-setInterval(updateClock, 1000);
+setInterval(updateClock,1000);
 updateClock();
 
-/* LOAD M3U - TV AO VIVO */
+/* TV AO VIVO */
 fetch("playlists/canais.m3u")
 .then(r => r.text())
 .then(text => {
-    const lines = text.split("\n");
-    let temp = null;
-    lines.forEach(l => {
-        l = l.trim();
-        if (l.startsWith("#EXTINF")) temp = { name: l.split(",").pop(), url: "" };
-        else if (l.startsWith("http") && temp) { temp.url = l; channels.push(temp); temp = null; }
+    const lines = text.split("\n"); let temp=null;
+    lines.forEach(l=>{
+        l=l.trim();
+        if(l.startsWith("#EXTINF")) temp={name:l.split(",").pop(), url:""};
+        else if(l.startsWith("http")&&temp){ temp.url=l; channels.push(temp); temp=null; }
     });
-    renderChannels();
-    playChannel(0);
+    renderChannels(); playChannel(0);
 });
 
-function renderChannels() {
-    channelList.innerHTML = "";
-    channels.forEach((c, i) => {
-        const div = document.createElement("div");
-        div.className = "channel" + (i === selectedIndex ? " active" : "");
-        div.innerText = c.name;
+function renderChannels(){
+    channelList.innerHTML="";
+    channels.forEach((c,i)=>{
+        const div=document.createElement("div");
+        div.className="channel"+(i===selectedIndex?" active":"");
+        div.innerText=c.name;
         channelList.appendChild(div);
     });
 }
 
-function playChannel(i) {
-    currentIndex = (i + channels.length) % channels.length;
-    selectedIndex = currentIndex;
-    if (hls) { hls.destroy(); hls = null; }
-    const src = channels[currentIndex].url;
-    if (Hls.isSupported()) {
-        hls = new Hls();
+function playChannel(i){
+    currentIndex=(i+channels.length)%channels.length;
+    selectedIndex=currentIndex;
+    if(hls){hls.destroy(); hls=null;}
+    const src=channels[currentIndex].url;
+    if(Hls.isSupported()){
+        hls=new Hls();
         hls.loadSource(src);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(()=>{}); });
-    } else { video.src = src; video.play().catch(()=>{}); }
+        hls.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{});});
+    } else { video.src=src; video.play().catch(()=>{});}
     renderChannels();
 }
 
-function showList(open) {
-    listOpen = open;
-    channelList.style.display = open ? "block" : "none";
-}
+function showList(open){ listOpen=open; channelList.style.display=open?"block":"none"; }
 
 /* CONTROLE TV */
-document.addEventListener("keydown", e => {
-    switch(e.key) {
+document.addEventListener("keydown", e=>{
+    switch(e.key){
         case "ArrowRight": showList(true); break;
         case "ArrowLeft": showList(false); break;
-        case "ArrowUp":
-            if(listOpen) { selectedIndex = (selectedIndex - 1 + channels.length) % channels.length; renderChannels(); }
-            break;
-        case "ArrowDown":
-            if(listOpen) { selectedIndex = (selectedIndex + 1) % channels.length; renderChannels(); }
-            break;
-        case "Enter":
-            if(listOpen) { playChannel(selectedIndex); showList(false); }
-            break;
-        case "ChannelUp": playChannel(currentIndex + 1); break;
-        case "ChannelDown": playChannel(currentIndex - 1); break;
+        case "ArrowUp": if(listOpen){selectedIndex=(selectedIndex-1+channels.length)%channels.length; renderChannels();} break;
+        case "ArrowDown": if(listOpen){selectedIndex=(selectedIndex+1)%channels.length; renderChannels();} break;
+        case "Enter": if(listOpen){playChannel(selectedIndex); showList(false);} break;
+        case "ChannelUp": playChannel(currentIndex+1); break;
+        case "ChannelDown": playChannel(currentIndex-1); break;
     }
 });
 
-/* LOAD CINEMA */
-fetch("data/filmes.json")
-.then(r => r.json())
-.then(data => {
-    // Agrupa por gênero (categorias)
-    const categories = {};
-    data.forEach(f => {
-        const cat = f.genero || "Outros";
-        if(!categories[cat]) categories[cat] = [];
-        categories[cat].push(f);
-    });
+/* CINEMA */
+fetch("data/filmes.json").then(r=>r.json()).then(data=>{
+    const categories={};
+    data.forEach(f=>{const cat=f.genero||"Outros"; if(!categories[cat]) categories[cat]=[]; categories[cat].push(f); });
 
     for(const cat in categories){
-        const divCat = document.createElement("div");
-        divCat.className = "category";
-        const title = document.createElement("div");
-        title.className = "category-title";
-        title.innerText = cat;
+        const divCat=document.createElement("div"); divCat.className="category";
+        const title=document.createElement("div"); title.className="category-title"; title.innerText=cat;
         divCat.appendChild(title);
 
-        const carousel = document.createElement("div");
-        carousel.className = "carousel";
+        const container=document.createElement("div"); container.className="carousel-container";
+        const carousel=document.createElement("div"); carousel.className="carousel";
 
-        categories[cat].forEach(f => {
-            const card = document.createElement("div");
-            card.className = "card";
-            const img = document.createElement("img");
-            img.src = f.poster;
-            const info = document.createElement("div");
-            info.className = "card-info";
-            info.innerHTML = `<h4>${f.titulo}</h4><p>${f.desc}</p><p>${f.lançamento || f.year}</p>`;
-            card.appendChild(img);
-            card.appendChild(info);
-            card.addEventListener("click", () => {
-                video.src = f.link;
-                video.play().catch(()=>{});
-            });
+        categories[cat].forEach(f=>{
+            const card=document.createElement("div"); card.className="card";
+            const img=document.createElement("img"); img.src=f.poster;
+            const info=document.createElement("div"); info.className="card-info";
+            info.innerHTML=`<h4>${f.titulo}</h4><p>${f.desc}</p><p>${f.lançamento||f.year}</p>`;
+            card.appendChild(img); card.appendChild(info);
+            card.addEventListener("click",()=>{ video.src=f.link; video.play().catch(()=>{}); });
             carousel.appendChild(card);
         });
 
-        divCat.appendChild(carousel);
-        cinemaContent.appendChild(divCat);
+        // setas
+        const leftArrow=document.createElement("div"); leftArrow.className="arrow left"; leftArrow.innerHTML="&#10094;";
+        const rightArrow=document.createElement("div"); rightArrow.className="arrow right"; rightArrow.innerHTML="&#10095;";
+
+        leftArrow.addEventListener("click",()=>{carousel.scrollBy({left:-850, behavior:"smooth"});});
+        rightArrow.addEventListener("click",()=>{carousel.scrollBy({left:850, behavior:"smooth"});});
+
+        container.appendChild(leftArrow); container.appendChild(carousel); container.appendChild(rightArrow);
+        divCat.appendChild(container); cinemaContent.appendChild(divCat);
     }
 });
 </script>
