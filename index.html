@@ -20,10 +20,7 @@ html, body {
 
 #player {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: black;
 }
 
@@ -41,7 +38,7 @@ video {
     width: 360px;
     height: 100%;
     background: rgba(20,20,20,0.95);
-    overflow-y: auto;
+    overflow: hidden; /* REMOVE SCROLLBAR */
     transform: translateX(-100%);
     transition: transform 0.25s ease;
 }
@@ -69,6 +66,7 @@ video {
     padding: 12px 20px;
     font-size: 18px;
     opacity: 0.9;
+    z-index: 10;
 }
 </style>
 </head>
@@ -76,7 +74,7 @@ video {
 <body>
 
 <div id="player">
-    <video id="video" controls autoplay></video>
+    <video id="video" autoplay></video>
 </div>
 
 <div id="channelList"></div>
@@ -116,19 +114,16 @@ fetch("playlists/canais.m3u")
     lines.forEach(l => {
         l = l.trim();
         if (l.startsWith("#EXTINF")) {
-            const name = l.split(",").pop();
-            current = { name, url: "" };
-        } else if (l.startsWith("http")) {
-            if (current) {
-                current.url = l;
-                channels.push(current);
-                current = null;
-            }
+            current = { name: l.split(",").pop(), url: "" };
+        } else if (l.startsWith("http") && current) {
+            current.url = l;
+            channels.push(current);
+            current = null;
         }
     });
 
     renderList();
-    playChannel(0); // AUTOPLAY PRIMEIRO CANAL
+    playChannel(0);
 });
 
 // LISTA
@@ -140,11 +135,17 @@ function renderList() {
         div.innerText = c.name;
         listEl.appendChild(div);
     });
+
+    // GARANTE FOCO VISUAL SEM SCROLLBAR
+    const active = listEl.children[currentIndex];
+    if (active) {
+        active.scrollIntoView({ block: "center" });
+    }
 }
 
 function playChannel(index) {
-    currentIndex = index;
-    const src = channels[index].url;
+    currentIndex = (index + channels.length) % channels.length;
+    const src = channels[currentIndex].url;
 
     if (hls) {
         hls.destroy();
@@ -165,40 +166,40 @@ function playChannel(index) {
     renderList();
 }
 
-// CONTROLE REMOTO
+// CONTROLE REMOTO (COMPATÍVEL COM TVs)
 document.addEventListener("keydown", e => {
-    switch (e.key) {
 
-        case "ArrowUp":
-            if (!menuOpen) openMenu();
-            else if (currentIndex > 0) {
-                currentIndex--;
-                renderList();
-            }
-        break;
+    const key = e.key;
+    const code = e.keyCode;
 
-        case "ArrowDown":
-            if (!menuOpen) openMenu();
-            else if (currentIndex < channels.length - 1) {
-                currentIndex++;
-                renderList();
-            }
-        break;
+    // UP
+    if (key === "ArrowUp") {
+        if (!menuOpen) openMenu();
+        currentIndex = (currentIndex - 1 + channels.length) % channels.length;
+        renderList();
+    }
 
-        case "Enter":
-            if (menuOpen) {
-                playChannel(currentIndex);
-                closeMenu();
-            }
-        break;
+    // DOWN
+    if (key === "ArrowDown") {
+        if (!menuOpen) openMenu();
+        currentIndex = (currentIndex + 1) % channels.length;
+        renderList();
+    }
 
-        case "ChannelUp":
-            nextChannel();
-        break;
+    // OK
+    if (key === "Enter") {
+        playChannel(currentIndex);
+        closeMenu();
+    }
 
-        case "ChannelDown":
-            prevChannel();
-        break;
+    // CH+ (vários padrões de TV)
+    if (key === "ChannelUp" || code === 427 || code === 33) {
+        playChannel(currentIndex + 1);
+    }
+
+    // CH-
+    if (key === "ChannelDown" || code === 428 || code === 34) {
+        playChannel(currentIndex - 1);
     }
 });
 
@@ -210,16 +211,6 @@ function openMenu() {
 function closeMenu() {
     menuOpen = false;
     listEl.classList.remove("show");
-}
-
-function nextChannel() {
-    currentIndex = (currentIndex + 1) % channels.length;
-    playChannel(currentIndex);
-}
-
-function prevChannel() {
-    currentIndex = (currentIndex - 1 + channels.length) % channels.length;
-    playChannel(currentIndex);
 }
 </script>
 
