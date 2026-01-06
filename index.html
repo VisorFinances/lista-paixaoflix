@@ -27,7 +27,24 @@ html, body {
 #menu {
     width: 260px;
     background: #1a1a1a;
-    padding-top: 40px;
+    display: flex;
+    flex-direction: column;
+}
+
+#menuHeader {
+    padding: 20px;
+    border-bottom: 1px solid #222;
+}
+
+#menuHeader img {
+    height: 72px;
+    display: block;
+}
+
+#clock {
+    margin-top: 10px;
+    font-size: 16px;
+    opacity: 0.9;
 }
 
 .menu-item {
@@ -50,38 +67,13 @@ html, body {
 #content {
     flex: 1;
     position: relative;
-}
-
-/* TOP BAR */
-#topBar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 90px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 30px;
-    background: rgba(0,0,0,0.5);
-    z-index: 10;
-}
-
-#topBar img {
-    height: 72px;
-}
-
-#clock {
-    font-size: 18px;
+    background: black;
 }
 
 /* PLAYER */
 #player {
     position: absolute;
-    top: 90px;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
 }
 
 video {
@@ -94,12 +86,13 @@ video {
 /* CHANNEL LIST */
 #channelList {
     position: absolute;
-    top: 90px;
+    top: 0;
     left: 0;
     width: 360px;
-    bottom: 0;
+    height: 100%;
     background: rgba(20,20,20,0.96);
     display: none;
+    overflow-y: auto;
 }
 
 .channel {
@@ -121,18 +114,20 @@ video {
 <div id="app">
 
     <div id="menu">
-        <div class="menu-item active">TV AO VIVO</div>
-        <div class="menu-item">CINEMA</div>
-        <div class="menu-item">SÉRIES</div>
-        <div class="menu-item kids">KIDS</div>
-    </div>
-
-    <div id="content">
-
-        <div id="topBar">
+        <div id="menuHeader">
             <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
             <div id="clock"></div>
         </div>
+
+        <div class="menu-item active">TV ao vivo</div>
+        <div class="menu-item">Cinema</div>
+        <div class="menu-item">Séries</div>
+        <div class="menu-item kids">Canal Kids</div>
+        <div class="menu-item kids">Filmes Kids</div>
+        <div class="menu-item kids">Séries Kids</div>
+    </div>
+
+    <div id="content">
 
         <div id="player">
             <video id="video" autoplay></video>
@@ -219,9 +214,9 @@ function playChannel(i) {
     renderChannels();
 }
 
-/* TOGGLE LIST */
-function toggleList(show) {
-    listVisible = show !== undefined ? show : !listVisible;
+/* LIST VISIBILITY */
+function showList(show) {
+    listVisible = show;
     channelList.style.display = listVisible ? "block" : "none";
 }
 
@@ -229,12 +224,12 @@ function toggleList(show) {
 document.addEventListener("keydown", e => {
     switch (e.key) {
 
-        case "ArrowLeft":
-            toggleList(true);
+        case "ArrowRight": // ABRE
+            showList(true);
         break;
 
-        case "ArrowRight":
-            toggleList(false);
+        case "ArrowLeft": // FECHA
+            showList(false);
         break;
 
         case "ArrowUp":
@@ -254,9 +249,9 @@ document.addEventListener("keydown", e => {
         case "Enter":
             if (listVisible) {
                 playChannel(channelIndex);
-                toggleList(false);
+                showList(false);
             } else {
-                toggleList(true);
+                showList(true);
             }
         break;
 
