@@ -1,187 +1,226 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>PaixãoFlix TV</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
+
 <style>
-/* RESET */
-* {
+html, body {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-}
-html, body {
-    width: 100%;
-    height: 100%;
-    background: #000;
+    background: #111;
     color: #fff;
-    font-family: Arial, Helvetica, sans-serif;
-    overflow: hidden;
-}
-
-/* TOPO */
-#topo {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 20px;
-    background: linear-gradient(to bottom, #000, transparent);
-    position: absolute;
-    width: 100%;
-    z-index: 10;
-}
-#logo {
-    height: 72px;
-}
-#hora {
-    font-size: 16px;
-    opacity: 0.9;
-}
-
-/* CONTAINER */
-#container {
-    display: flex;
+    font-family: Arial, sans-serif;
     height: 100%;
-    padding-top: 90px;
-}
-
-/* LISTA DE CANAIS */
-#lista {
-    width: 340px;
-    background: rgba(0,0,0,0.85);
     overflow: hidden;
 }
-#canais {
-    list-style: none;
+
+#player {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
 }
-.canal {
-    padding: 14px 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    cursor: pointer;
+
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: black;
 }
-.canal.ativo {
-    background: #1db954;
+
+#channelList {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 360px;
+    height: 100%;
+    background: rgba(20,20,20,0.95);
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+}
+
+#channelList.show {
+    transform: translateX(0);
+}
+
+.channel {
+    padding: 14px 16px;
+    border-bottom: 1px solid #222;
+    font-size: 18px;
+}
+
+.channel.active {
+    background: #ff9800;
     color: #000;
     font-weight: bold;
 }
 
-/* PLAYER */
-#player-container {
-    flex: 1;
-    background: #000;
-}
-video {
-    width: 100%;
-    height: 100%;
-    background: #000;
+#topBar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    padding: 12px 20px;
+    font-size: 18px;
+    opacity: 0.9;
 }
 </style>
 </head>
 
 <body>
 
-<div id="topo">
-    <img id="logo" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-    <div id="hora"></div>
+<div id="player">
+    <video id="video" controls autoplay></video>
 </div>
 
-<div id="container">
-    <div id="lista">
-        <ul id="canais"></ul>
-    </div>
-    <div id="player-container">
-        <video id="player" autoplay controls></video>
-    </div>
+<div id="channelList"></div>
+
+<div id="topBar">
+    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" style="height:72px; vertical-align:middle;">
+    <span id="clock"></span>
 </div>
 
 <script>
-/* DATA / HORA */
-function atualizarHora() {
-    const agora = new Date();
+const video = document.getElementById("video");
+const listEl = document.getElementById("channelList");
+
+let channels = [];
+let currentIndex = 0;
+let menuOpen = false;
+let hls = null;
+
+// RELÓGIO
+function updateClock() {
+    const now = new Date();
     const dias = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
     const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-    document.getElementById("hora").innerText =
-        `${dias[agora.getDay()]}, ${String(agora.getDate()).padStart(2,'0')} ${meses[agora.getMonth()]} ${agora.getFullYear()} | ${agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`;
+    document.getElementById("clock").innerText =
+        ` ${dias[now.getDay()]}, ${String(now.getDate()).padStart(2,"0")} ${meses[now.getMonth()]} ${now.getFullYear()} | ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
 }
-setInterval(atualizarHora, 1000);
-atualizarHora();
+setInterval(updateClock, 1000);
+updateClock();
 
-/* VARIÁVEIS */
-let canais = [];
-let indiceAtual = 0;
-const lista = document.getElementById("canais");
-const player = document.getElementById("player");
-
-/* CARREGAR M3U */
-fetch("playlist/canais.m3u")
+// CARREGAR M3U
+fetch("playlists/canais.m3u")
 .then(r => r.text())
-.then(texto => {
-    const linhas = texto.split("\n");
-    for (let i = 0; i < linhas.length; i++) {
-        if (linhas[i].startsWith("#EXTINF")) {
-            const nome = linhas[i].split(",")[1];
-            const url = linhas[i+1];
-            canais.push({ nome, url });
+.then(text => {
+    const lines = text.split("\n");
+    let current = null;
+
+    lines.forEach(l => {
+        l = l.trim();
+        if (l.startsWith("#EXTINF")) {
+            const name = l.split(",").pop();
+            current = { name, url: "" };
+        } else if (l.startsWith("http")) {
+            if (current) {
+                current.url = l;
+                channels.push(current);
+                current = null;
+            }
         }
-    }
-    montarLista();
-    tocarCanal(0);
+    });
+
+    renderList();
+    playChannel(0); // AUTOPLAY PRIMEIRO CANAL
 });
 
-/* MONTAR LISTA */
-function montarLista() {
-    lista.innerHTML = "";
-    canais.forEach((canal, i) => {
-        const li = document.createElement("li");
-        li.className = "canal";
-        li.innerText = canal.nome;
-        li.onclick = () => tocarCanal(i);
-        lista.appendChild(li);
+// LISTA
+function renderList() {
+    listEl.innerHTML = "";
+    channels.forEach((c, i) => {
+        const div = document.createElement("div");
+        div.className = "channel" + (i === currentIndex ? " active" : "");
+        div.innerText = c.name;
+        listEl.appendChild(div);
     });
 }
 
-/* TOCAR CANAL */
-function tocarCanal(i) {
-    indiceAtual = (i + canais.length) % canais.length;
-    document.querySelectorAll(".canal").forEach((c, idx) => {
-        c.classList.toggle("ativo", idx === indiceAtual);
-    });
-    player.src = canais[indiceAtual].url;
-    player.play();
-    manterItemVisivel();
+function playChannel(index) {
+    currentIndex = index;
+    const src = channels[index].url;
+
+    if (hls) {
+        hls.destroy();
+        hls = null;
+    }
+
+    if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = src;
+    } else if (Hls.isSupported()) {
+        hls = new Hls();
+        hls.loadSource(src);
+        hls.attachMedia(video);
+    } else {
+        video.src = src;
+    }
+
+    video.play().catch(()=>{});
+    renderList();
 }
 
-/* SCROLL INVISÍVEL */
-function manterItemVisivel() {
-    const ativo = document.querySelector(".canal.ativo");
-    if (ativo) ativo.scrollIntoView({ block: "center" });
-}
-
-/* CONTROLE REMOTO */
+// CONTROLE REMOTO
 document.addEventListener("keydown", e => {
     switch (e.key) {
-        case "ArrowDown":
-            tocarCanal(indiceAtual + 1);
-            break;
-        case "ArrowUp":
-            tocarCanal(indiceAtual - 1);
-            break;
-        case "ChannelUp":
-        case "MediaTrackNext":
-            tocarCanal(indiceAtual + 1);
-            break;
-        case "ChannelDown":
-        case "MediaTrackPrevious":
-            tocarCanal(indiceAtual - 1);
-            break;
-    }
 
-    if (e.keyCode === 427) tocarCanal(indiceAtual + 1); // Samsung CH+
-    if (e.keyCode === 428) tocarCanal(indiceAtual - 1); // Samsung CH-
+        case "ArrowUp":
+            if (!menuOpen) openMenu();
+            else if (currentIndex > 0) {
+                currentIndex--;
+                renderList();
+            }
+        break;
+
+        case "ArrowDown":
+            if (!menuOpen) openMenu();
+            else if (currentIndex < channels.length - 1) {
+                currentIndex++;
+                renderList();
+            }
+        break;
+
+        case "Enter":
+            if (menuOpen) {
+                playChannel(currentIndex);
+                closeMenu();
+            }
+        break;
+
+        case "ChannelUp":
+            nextChannel();
+        break;
+
+        case "ChannelDown":
+            prevChannel();
+        break;
+    }
 });
+
+function openMenu() {
+    menuOpen = true;
+    listEl.classList.add("show");
+}
+
+function closeMenu() {
+    menuOpen = false;
+    listEl.classList.remove("show");
+}
+
+function nextChannel() {
+    currentIndex = (currentIndex + 1) % channels.length;
+    playChannel(currentIndex);
+}
+
+function prevChannel() {
+    currentIndex = (currentIndex - 1 + channels.length) % channels.length;
+    playChannel(currentIndex);
+}
 </script>
 
 </body>
