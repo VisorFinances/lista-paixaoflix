@@ -66,7 +66,6 @@ html, body {
     background: black;
 }
 
-/* PLAYER */
 video {
     width: 100%;
     height: 100%;
@@ -132,15 +131,15 @@ video {
 const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
 const menuItems = document.querySelectorAll(".menu-item");
+
 let channels = [];
 let movies = []; 
-let kidsMovies = []; // Novo banco de dados para Filmes Kids
+let kidsMovies = []; 
 let filteredMovies = []; 
 let viewMode = "channels"; 
 
-let movieCategories = ["Lançamentos","AÇÃO", "AVENTURA", "ANIME", "ANIMAÇÃO", "COMÉDIA", "DRAMA", "DORAMA", "SUSPENSE", "POLICIAL", "TERROR", "DOCUMENTÁRIOS", "FICÇÃO CIENTÍFICA", "CLÁSSICOS", "FAROESTE", "NACIONAL", "ROMANCE", "RELIGIOSO", "ADULTO"];
+const movieCategories = ["Lançamentos","AÇÃO", "AVENTURA", "ANIME", "ANIMAÇÃO", "COMÉDIA", "DRAMA", "DORAMA", "SUSPENSE", "POLICIAL", "TERROR", "DOCUMENTÁRIOS", "FICÇÃO CIENTÍFICA", "CLÁSSICOS", "FAROESTE", "NACIONAL", "ROMANCE", "RELIGIOSO", "ADULTO"];
 
-let currentIndex = 0;
 let selectedIndex = 0;
 let menuIndex = 0; 
 let listOpen = false;
@@ -174,18 +173,11 @@ fetch("data/canais.m3u")
             temp = null;
         }
     });
-    renderChannels();
     playMedia(channels[0]?.url); 
 });
 
-fetch("data/filmes.json")
-.then(r => r.json())
-.then(data => { movies = data; });
-
-// Carregando o banco de dados Kids
-fetch("data/kids_filmes.json")
-.then(r => r.json())
-.then(data => { kidsMovies = data; });
+fetch("data/filmes.json").then(r => r.json()).then(data => { movies = data; });
+fetch("data/kids_filmes.json").then(r => r.json()).then(data => { kidsMovies = data; });
 
 function renderList() {
     channelList.innerHTML = "";
@@ -206,8 +198,6 @@ function renderList() {
     if (activeItem) activeItem.scrollIntoView({ block: "center" });
 }
 
-function renderChannels() { renderList(); }
-
 function renderMenu() {
     menuItems.forEach((item, i) => {
         item.classList.toggle("active", i === menuIndex);
@@ -217,7 +207,7 @@ function renderMenu() {
 function playMedia(url) {
     if (!url) return;
     if (hls) { hls.destroy(); hls = null; }
-    if (Hls.isSupported() && url.includes(".m3u8")) {
+    if (Hls.isSupported() && (url.includes(".m3u8") || url.includes("archive.org"))) {
         hls = new Hls();
         hls.loadSource(url);
         hls.attachMedia(video);
@@ -234,8 +224,15 @@ function toggleList() {
     if (listOpen) {
         selectedIndex = 0;
         menuFocused = false;
-        // Se menu for Cinema (1) ou Filmes Kids (4), vai para categorias
-        viewMode = (menuIndex === 1 || menuIndex === 4) ? "categories" : "channels";
+        
+        if (menuIndex === 1) {
+            viewMode = "categories"; // Menu Cinema: Abre Categorias
+        } else if (menuIndex === 4) {
+            viewMode = "movies";     // Menu Filmes Kids: Abre direto os Filmes
+            filteredMovies = kidsMovies;
+        } else {
+            viewMode = "channels";   // Outros: Abre Canais
+        }
         renderList();
     } else {
         menuFocused = true;
@@ -243,19 +240,16 @@ function toggleList() {
 }
 
 document.addEventListener("keydown", e => {
-    let currentDataCount = 0;
-    if (viewMode === "channels") currentDataCount = channels.length;
-    else if (viewMode === "categories") currentDataCount = movieCategories.length;
-    else if (viewMode === "movies") currentDataCount = filteredMovies.length;
+    let count = 0;
+    if (viewMode === "channels") count = channels.length;
+    else if (viewMode === "categories") count = movieCategories.length;
+    else if (viewMode === "movies") count = filteredMovies.length;
 
     switch (e.key) {
-        case "ArrowRight":
-            if (menuFocused && !listOpen) toggleList();
-        break;
-
-        case "ArrowLeft":
+        case "ArrowRight": if (menuFocused && !listOpen) toggleList(); break;
+        case "ArrowLeft": 
             if (listOpen) {
-                if (viewMode === "movies") {
+                if (viewMode === "movies" && menuIndex === 1) { // Só volta para categorias se for no Cinema
                     viewMode = "categories";
                     selectedIndex = 0;
                     renderList();
@@ -263,28 +257,15 @@ document.addEventListener("keydown", e => {
                     toggleList();
                 }
             }
-        break;
-
+            break;
         case "ArrowUp":
-            if (listOpen) {
-                selectedIndex = (selectedIndex - 1 + currentDataCount) % currentDataCount;
-                renderList();
-            } else if (menuFocused) {
-                menuIndex = (menuIndex - 1 + menuItems.length) % menuItems.length;
-                renderMenu();
-            }
-        break;
-
+            if (listOpen) { selectedIndex = (selectedIndex - 1 + count) % count; renderList(); }
+            else if (menuFocused) { menuIndex = (menuIndex - 1 + menuItems.length) % menuItems.length; renderMenu(); }
+            break;
         case "ArrowDown":
-            if (listOpen) {
-                selectedIndex = (selectedIndex + 1) % currentDataCount;
-                renderList();
-            } else if (menuFocused) {
-                menuIndex = (menuIndex + 1) % menuItems.length;
-                renderMenu();
-            }
-        break;
-
+            if (listOpen) { selectedIndex = (selectedIndex + 1) % count; renderList(); }
+            else if (menuFocused) { menuIndex = (menuIndex + 1) % menuItems.length; renderMenu(); }
+            break;
         case "Enter":
             if (menuFocused) {
                 toggleList(); 
@@ -294,10 +275,7 @@ document.addEventListener("keydown", e => {
                     toggleList();
                 } else if (viewMode === "categories") {
                     const cat = movieCategories[selectedIndex];
-                    // Escolhe o banco de dados baseado no menu
-                    let dataBase = (menuIndex === 4) ? kidsMovies : movies;
-                    
-                    filteredMovies = dataBase.filter(f => f.genero === cat || cat === "Lançamentos");
+                    filteredMovies = movies.filter(f => f.genero === cat || cat === "Lançamentos");
                     viewMode = "movies";
                     selectedIndex = 0;
                     renderList();
@@ -306,7 +284,7 @@ document.addEventListener("keydown", e => {
                     toggleList();
                 }
             }
-        break;
+            break;
     }
 });
 </script>
