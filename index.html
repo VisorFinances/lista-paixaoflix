@@ -124,10 +124,13 @@ video {
 <script>
 const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
+const menuItems = document.querySelectorAll(".menu-item");
 let channels = [];
 let currentIndex = 0;
 let selectedIndex = 0;
+let menuIndex = 0; // Índice do menu lateral
 let listOpen = false;
+let menuFocused = true; // Inicia com foco no menu
 let hls = null;
 
 /* CLOCK */
@@ -135,7 +138,7 @@ function updateClock() {
     const d = new Date();
     const dias = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
     const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov"];
-    clock.innerText =
+    document.getElementById("clock").innerText =
         `${dias[d.getDay()]}, ${String(d.getDate()).padStart(2,"0")} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
 setInterval(updateClock, 1000);
@@ -160,10 +163,10 @@ fetch("playlists/canais.m3u")
     });
 
     renderChannels();
-    playChannel(0); // AUTOPLAY PRIMEIRO CANAL COM SOM
+    playChannel(0); 
 });
 
-/* RENDER */
+/* RENDER CHANNELS */
 function renderChannels() {
     channelList.innerHTML = "";
     channels.forEach((c, i) => {
@@ -171,6 +174,13 @@ function renderChannels() {
         div.className = "channel" + (i === selectedIndex ? " active" : "");
         div.innerText = c.name;
         channelList.appendChild(div);
+    });
+}
+
+/* RENDER MENU */
+function renderMenu() {
+    menuItems.forEach((item, i) => {
+        item.classList.toggle("active", i === menuIndex);
     });
 }
 
@@ -211,17 +221,26 @@ function showList(open) {
 document.addEventListener("keydown", e => {
     switch (e.key) {
         case "ArrowRight":
-            showList(true);
+            if (menuFocused) {
+                menuFocused = false;
+                showList(true);
+            }
         break;
 
         case "ArrowLeft":
-            showList(false);
+            if (listOpen) {
+                showList(false);
+                menuFocused = true;
+            }
         break;
 
         case "ArrowUp":
             if (listOpen) {
                 selectedIndex = (selectedIndex - 1 + channels.length) % channels.length;
                 renderChannels();
+            } else if (menuFocused) {
+                menuIndex = (menuIndex - 1 + menuItems.length) % menuItems.length;
+                renderMenu();
             }
         break;
 
@@ -229,6 +248,9 @@ document.addEventListener("keydown", e => {
             if (listOpen) {
                 selectedIndex = (selectedIndex + 1) % channels.length;
                 renderChannels();
+            } else if (menuFocused) {
+                menuIndex = (menuIndex + 1) % menuItems.length;
+                renderMenu();
             }
         break;
 
@@ -239,7 +261,6 @@ document.addEventListener("keydown", e => {
             }
         break;
 
-        /* CH+ / CH- */
         case "ChannelUp":
             playChannel(currentIndex + 1);
         break;
