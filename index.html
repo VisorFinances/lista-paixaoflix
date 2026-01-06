@@ -38,7 +38,7 @@ video {
     width: 360px;
     height: 100%;
     background: rgba(20,20,20,0.95);
-    overflow: hidden; /* REMOVE SCROLLBAR */
+    overflow: hidden;
     transform: translateX(-100%);
     transition: transform 0.25s ease;
 }
@@ -71,7 +71,7 @@ video {
 </style>
 </head>
 
-<body>
+<body tabindex="0">
 
 <div id="player">
     <video id="video" autoplay></video>
@@ -93,7 +93,7 @@ let currentIndex = 0;
 let menuOpen = false;
 let hls = null;
 
-// RELÓGIO
+// ================= RELÓGIO =================
 function updateClock() {
     const now = new Date();
     const dias = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
@@ -104,7 +104,7 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// CARREGAR M3U
+// ================= CARREGAR M3U =================
 fetch("playlists/canais.m3u")
 .then(r => r.text())
 .then(text => {
@@ -123,10 +123,10 @@ fetch("playlists/canais.m3u")
     });
 
     renderList();
-    playChannel(0);
+    playChannel(0); // AUTOPLAY PRIMEIRO CANAL
 });
 
-// LISTA
+// ================= LISTA =================
 function renderList() {
     listEl.innerHTML = "";
     channels.forEach((c, i) => {
@@ -136,7 +136,6 @@ function renderList() {
         listEl.appendChild(div);
     });
 
-    // GARANTE FOCO VISUAL SEM SCROLLBAR
     const active = listEl.children[currentIndex];
     if (active) {
         active.scrollIntoView({ block: "center" });
@@ -166,20 +165,19 @@ function playChannel(index) {
     renderList();
 }
 
-// CONTROLE REMOTO (COMPATÍVEL COM TVs)
+// ================= CONTROLE REMOTO =================
 document.addEventListener("keydown", e => {
-
     const key = e.key;
     const code = e.keyCode;
 
-    // UP
+    // SETA PARA CIMA
     if (key === "ArrowUp") {
         if (!menuOpen) openMenu();
         currentIndex = (currentIndex - 1 + channels.length) % channels.length;
         renderList();
     }
 
-    // DOWN
+    // SETA PARA BAIXO
     if (key === "ArrowDown") {
         if (!menuOpen) openMenu();
         currentIndex = (currentIndex + 1) % channels.length;
@@ -192,7 +190,7 @@ document.addEventListener("keydown", e => {
         closeMenu();
     }
 
-    // CH+ (vários padrões de TV)
+    // CH+
     if (key === "ChannelUp" || code === 427 || code === 33) {
         playChannel(currentIndex + 1);
     }
@@ -212,6 +210,12 @@ function closeMenu() {
     menuOpen = false;
     listEl.classList.remove("show");
 }
+
+// ================= FOCO AUTOMÁTICO =================
+window.addEventListener("load", () => {
+    document.body.focus();
+    video.focus();
+});
 </script>
 
 </body>
