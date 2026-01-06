@@ -192,8 +192,9 @@ const posterPreview = document.getElementById("posterPreview");
 const menuItems = document.querySelectorAll(".menu-item");
 
 let channels = [];
-let kidsChannels = []; // Variável para canais kids
+let kidsChannels = []; 
 let movies = []; 
+let series = []; // Nova variável para Séries
 let kidsMovies = []; 
 let kidsSeries = []; 
 let filteredMovies = []; 
@@ -237,9 +238,10 @@ function loadM3U(path, targetArray) {
 }
 
 loadM3U("data/canais.m3u", channels);
-loadM3U("data/kids_canais.m3u", kidsChannels); // Carga do Canal Kids
+loadM3U("data/kids_canais.m3u", kidsChannels);
 
 fetch("data/filmes.json").then(r => r.json()).then(data => { movies = data; });
+fetch("data/series.json").then(r => r.json()).then(data => { series = data; }); // Carga de Séries
 fetch("data/kids_filmes.json").then(r => r.json()).then(data => { kidsMovies = data; });
 fetch("data/kids_series.json").then(r => r.json()).then(data => { kidsSeries = data; });
 
@@ -248,7 +250,7 @@ function renderList() {
     let currentData = [];
     
     if (viewMode === "channels") currentData = channels;
-    else if (viewMode === "kids_channels") currentData = kidsChannels; // Modo Kids
+    else if (viewMode === "kids_channels") currentData = kidsChannels;
     else if (viewMode === "categories") currentData = movieCategories;
     else if (viewMode === "movies") currentData = filteredMovies;
 
@@ -299,7 +301,8 @@ function toggleList() {
         menuFocused = false;
         if (menuIndex === 0) viewMode = "channels";
         else if (menuIndex === 1) viewMode = "categories";
-        else if (menuIndex === 3) viewMode = "kids_channels"; // Lógica Canal Kids
+        else if (menuIndex === 2) { viewMode = "movies"; filteredMovies = series; } // Lógica para Séries
+        else if (menuIndex === 3) viewMode = "kids_channels"; 
         else if (menuIndex === 4) { viewMode = "movies"; filteredMovies = kidsMovies; }
         else if (menuIndex === 5) { viewMode = "movies"; filteredMovies = kidsSeries; }
         else viewMode = "channels";
@@ -345,7 +348,7 @@ document.addEventListener("keydown", e => {
                 if (viewMode === "channels") {
                     playMedia(channels[selectedIndex].url);
                     toggleList(); 
-                } else if (viewMode === "kids_channels") { // Seleção Canal Kids
+                } else if (viewMode === "kids_channels") {
                     playMedia(kidsChannels[selectedIndex].url);
                     toggleList(); 
                 } else if (viewMode === "categories") {
