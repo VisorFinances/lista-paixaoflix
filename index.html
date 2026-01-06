@@ -192,12 +192,12 @@ document.addEventListener("keydown", e => {
 
     // CH+
     if (key === "ChannelUp" || code === 427 || code === 33) {
-        playChannel(currentIndex + 1);
+        playChannel(currentIndex - 1);
     }
 
     // CH-
     if (key === "ChannelDown" || code === 428 || code === 34) {
-        playChannel(currentIndex - 1);
+        playChannel(currentIndex + 1);
     }
 });
 
