@@ -16,26 +16,16 @@
     html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: Arial, sans-serif; height: 100%; overflow: hidden; width: 100%; }
     #app { display: flex; height: 100%; width: 100%; position: relative; }
 
-    /* MENU LATERAL CONGELADO */
-    #menu { 
-        width: 280px; background: #1a1a1a; display: flex; flex-direction: column; 
-        z-index: 100; padding: 12px; box-sizing: border-box; border-right: 1px solid #333; height: 100%;
-    }
+    /* MENU LATERAL ORIGINAL */
+    #menu { width: 280px; background: #1a1a1a; display: flex; flex-direction: column; z-index: 100; padding: 12px; box-sizing: border-box; border-right: 1px solid #333; height: 100%; }
     #menuHeader { padding: 15px 10px; text-align: center; border-bottom: 1px solid #222; margin-bottom: 15px; }
     #menuHeader img { height: 95px; width: auto; object-fit: contain; }
     #clock { margin-top: 10px; font-size: 13px; color: #aaa; }
     
-    /* ASSISTINDO AGORA */
     #nowPlaying { margin: 15px 0; text-align: center; }
     #nowPlaying span { display: block; font-size: 13px; color: #fff; font-weight: 700; margin-bottom: 5px; }
-    #currentTitle { 
-        display: inline-block; padding: 4px 10px; color: #fff; 
-        font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 400;
-        background: rgba(0,0,0,0.6); border-radius: 4px;
-        max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
-    }
+    #currentTitle { display: inline-block; padding: 4px 10px; color: #fff; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 400; background: rgba(0,0,0,0.6); border-radius: 4px; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    /* PESQUISA */
     #searchBox { margin-bottom: 15px; }
     #searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; outline: none; box-sizing: border-box; font-size: 14px; }
     #searchInput.focused { border-color: #ff9800; background: #222; }
@@ -45,14 +35,13 @@
     .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; }
     .menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
 
-    /* VÍDEO E LISTA */
     #content { position: absolute; top: 0; left: 280px; width: calc(100% - 280px); height: 100%; z-index: 10; background: black; display: flex; justify-content: center; align-items: center; }
     #videoContainer { width: 100%; height: 56.25vw; max-height: 100vh; background: #000; }
     video { width: 100%; height: 100%; object-fit: contain; }
 
     #channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: auto; border-right: 1px solid #ff9800; }
     .channel { padding: 15px 20px; font-size: 16px; border-bottom: 1px solid #222; color: #fff; display: flex; justify-content: space-between; align-items: center; }
-    .channel.active { background: #ff9800; color: #000; font-weight: bold; }
+    .channel.active { background: #ff9800 !important; color: #000 !important; font-weight: bold; }
     #posterPreview { position: absolute; top: 50%; left: 360px; transform: translateY(-50%); width: 300px; height: 450px; border-radius: 12px; z-index: 120; display: none; background: #222; object-fit: cover; border: 3px solid #ff9800; }
 </style>
 </head>
@@ -103,26 +92,46 @@ function updateClock() {
 setInterval(updateClock, 1000); updateClock();
 
 function playMedia(item) {
-    if (!item) return;
+    if (!item || (!item.url && !item.link)) return;
     const url = item.url || item.link;
-    if(!url) return;
-
+    
     currentTitleDisplay.innerText = item.titulo || item.name;
     
-    // Limpeza radical para evitar tela preta
+    // FECHA TUDO IMEDIATAMENTE AO DAR PLAY
+    listOpen = false;
+    channelList.style.display = "none";
+    posterPreview.style.display = "none";
+
     if (hls) { hls.destroy(); hls = null; }
     video.pause();
-    video.removeAttribute('src'); 
+    video.src = "";
     video.load();
 
     setTimeout(() => {
-        if (Hls.isSupported() && (url.includes(".m3u8") || url.includes("stream") || url.includes(".ts"))) {
+        if (Hls.isSupported() && (url.includes(".m3u8") || url.includes("stream"))) {
             hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
         } else {
-            video.src = url; video.play().catch(()=>{});
+            video.src = url;
+            video.play().catch(e => console.log("Erro Play:", e));
         }
-    }, 50);
+    }, 100);
+}
+
+async function loadEpisodes(serie) {
+    currentTitleDisplay.innerText = "Carregando...";
+    try {
+        const id = serie.identificador_archive;
+        const r = await fetch(`https://archive.org/metadata/${id}`);
+        const d = await r.json();
+        filteredList = d.files.filter(f => f.name.endsWith(".mp4") || f.name.endsWith(".mkv")).map(f => ({
+            titulo: f.title || f.name,
+            link: `https://archive.org/download/${id}/${f.name}`,
+            poster: serie.poster,
+            type: "episode"
+        }));
+        viewMode = "list"; selectedIndex = 0; renderList();
+    } catch(e) { console.error(e); }
 }
 
 function renderList() {
@@ -133,21 +142,21 @@ function renderList() {
         const div = document.createElement("div");
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
         const isFav = favorites.some(f => (f.url||f.link||f.identificador_archive) === (item.url||item.link||item.identificador_archive));
-        div.innerHTML = `<span>${item.titulo || item.name || item}</span> ${isFav ? '<i class="fas fa-star" style="color:#ffeb3b; font-size:12px"></i>' : ''}`;
+        div.innerHTML = `<span>${item.titulo || item.name || item}</span> ${isFav ? '<i class="fas fa-star" style="color:#ffeb3b"></i>' : ''}`;
         channelList.appendChild(div);
     });
 
     const cur = data[selectedIndex];
     if (listOpen && cur?.poster) { posterPreview.src = cur.poster; posterPreview.style.display = "block"; } 
     else { posterPreview.style.display = "none"; }
+    
+    const active = channelList.querySelector(".active");
+    if (active) active.scrollIntoView({ block: "center" });
 }
 
 document.addEventListener("keydown", e => {
     if (searchActive) {
-        if (e.key === "ArrowDown") { 
-            searchActive = false; searchInput.blur(); searchInput.value = ""; 
-            searchInput.classList.remove("focused"); menuFocused = true; channelList.style.display = "none"; 
-        }
+        if (e.key === "ArrowDown") { searchActive = false; searchInput.blur(); menuFocused = true; channelList.style.display = "none"; }
         return;
     }
     let data = (viewMode === "categories") ? movieCats : (viewMode === "fav" ? favorites : (viewMode === "channels" ? channels : filteredList));
@@ -175,45 +184,34 @@ document.addEventListener("keydown", e => {
                 else if (type === "fav") viewMode = "fav";
                 else if (type === "categories") viewMode = "categories";
                 else if (type === "series") { viewMode = "list"; filteredList = series; }
-                else if (type.includes("kids")) { 
-                    viewMode = "list"; 
-                    filteredList = (type === "kids_channels") ? kidsChannels : (type === "kids_movies") ? kidsMovies : kidsSeries;
-                }
+                else if (type.includes("kids")) { viewMode = "list"; filteredList = (type === "kids_channels") ? kidsChannels : (type === "kids_movies") ? kidsMovies : kidsSeries; }
                 renderList();
             } else if (listOpen) {
                 const item = data[selectedIndex];
                 if (viewMode === "categories") {
-                    // Lógica para evitar duplicados nos lançamentos
-                    if (item === "Lançamentos 2025") {
-                        const seen = new Set();
-                        filteredList = movies.filter(m => {
-                            if (m.year === "2025" && !seen.has(m.titulo)) { seen.add(m.titulo); return true; }
-                            return false;
-                        });
-                    } else if (item === "Lançamentos 2026") {
-                        const seen = new Set();
-                        filteredList = movies.filter(m => {
-                            if (m.year === "2026" && !seen.has(m.titulo)) { seen.add(m.titulo); return true; }
-                            return false;
-                        });
-                    } else {
-                        filteredList = movies.filter(m => m.genero === item);
-                    }
+                    const seen = new Set();
+                    if (item.includes("2025")) filteredList = movies.filter(m => m.year === "2025" && !seen.has(m.titulo) && seen.add(m.titulo));
+                    else if (item.includes("2026")) filteredList = movies.filter(m => m.year === "2026" && !seen.has(m.titulo) && seen.add(m.titulo));
+                    else filteredList = movies.filter(m => m.genero === item);
                     viewMode = "list"; selectedIndex = 0; renderList();
-                } else playMedia(item);
-            }
-            break;
-        case "f":
-        case "F":
-            if (!menuFocused && data[selectedIndex]) {
-                const item = data[selectedIndex];
-                const idx = favorites.findIndex(f => (f.url||f.link||f.identificador_archive) === (item.url||item.link||item.identificador_archive));
-                if(idx > -1) favorites.splice(idx,1); else favorites.push(item);
-                renderList();
+                } else if (item.type === "serie") {
+                    loadEpisodes(item); // CARREGA EPISÓDIOS IMEDIATAMENTE
+                } else {
+                    playMedia(item); // PLAY E FECHA TELA
+                }
             }
             break;
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex && !searchActive));
+});
+
+searchInput.addEventListener("input", e => {
+    const t = e.target.value.toLowerCase();
+    if (t.length > 0) {
+        viewMode = "search"; listOpen = true; menuFocused = false; channelList.style.display = "block";
+        filteredList = [...channels, ...movies, ...series].filter(i => (i.titulo||i.name||"").toLowerCase().includes(t));
+        selectedIndex = 0; renderList();
+    }
 });
 
 function loadM3U(path, array) {
