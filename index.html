@@ -33,14 +33,21 @@
     #menuHeader img { height: 70px; object-fit: contain; }
     #clock { margin-top: 10px; font-size: 13px; color: #aaa; }
     
-    /* ASSISTINDO AGORA - SEM BORDA, APENAS SOMBRA */
+    /* ASSISTINDO AGORA - AJUSTE DE FONTES SOLICITADO */
     #nowPlaying { margin: 15px 0; text-align: center; }
-    #nowPlaying span { display: block; font-size: 9px; color: #ff9800; text-transform: uppercase; }
+    #nowPlaying span { 
+        display: block; 
+        font-size: 15px; 
+        color: #fff; 
+        font-weight: 700; 
+        text-transform: none; 
+        margin-bottom: 5px;
+    }
     #currentTitle { 
         display: inline-block;
         padding: 4px 10px;
-        font-size: 14px; 
-        font-weight: bold; 
+        font-size: 13px; 
+        font-weight: normal; /* Sem negrito */
         color: #fff; 
         background: rgba(0,0,0,0.6);
         box-shadow: 0 4px 15px rgba(0,0,0,0.8);
@@ -55,7 +62,6 @@
     .menu-item i { margin-right: 12px; width: 20px; text-align: center; }
     .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; }
 
-    /* ESTILO KIDS CONGELADO */
     .menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
     .menu-item.kids.active { background: linear-gradient(145deg, #ff9800, #f44336); color: #fff; }
 
@@ -94,7 +100,7 @@
             <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" alt="Logo">
             <div id="clock"></div>
             <div id="nowPlaying">
-                <span>Assistindo:</span>
+                <span>Assistindo agora</span>
                 <div id="currentTitle">...</div>
             </div>
         </div>
@@ -213,14 +219,6 @@ document.addEventListener("keydown", e => {
                     filteredList = movies.filter(m => m.genero === item || (item === "Lançamentos 2025" && m.ano == "2025"));
                     viewMode = "list"; selectedIndex = 0; renderList();
                 } else { playMedia(item); }
-            }
-            break;
-        case "f": // Tecla F para favoritar o item selecionado
-            if (listOpen && viewMode !== "categories") {
-                const item = currentData[selectedIndex];
-                if (!favorites.find(f => (f.url || f.link) === (item.url || item.link))) {
-                    favorites.push(item); alert("Adicionado aos Favoritos");
-                }
             }
             break;
     }
