@@ -8,7 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-    /* REMOVE BARRAS DE ROLAGEM GLOBALMENTE */
+    /* REMOÇÃO DE BARRAS DE ROLAGEM - TODOS OS DISPOSITIVOS */
     * { overflow: -moz-scrollbars-none; -ms-overflow-style: none; scrollbar-width: none; }
     *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; background: transparent; }
 
@@ -160,7 +160,6 @@ function openCategory() {
 }
 
 document.addEventListener("keydown", e => {
-    // Mantém o vídeo ativo para evitar que a TV entre em standby
     if (video.paused && listOpen) video.play().catch(()=>{});
 
     let data = (viewMode === "channels") ? channels : (viewMode === "kids_channels") ? kidsChannels : (viewMode === "fav") ? favorites : (viewMode === "categories") ? movieCategories : filteredList;
@@ -200,10 +199,10 @@ document.addEventListener("keydown", e => {
                     filteredList = movies.filter(f => f.genero === item || (item.includes("Lançamentos") && f.genero === "Lançamentos" && f.year === item.split(" ")[1]));
                     viewMode = "movies"; selectedIndex = 0; renderList();
                 } else if (item) {
-                    const mediaUrl = item.link || item.url;
+                    // CONFERÊNCIA: Aqui ele tenta pegar a URL do seu JSON
+                    const mediaUrl = item.url || item.link;
                     if (mediaUrl) {
                         playMedia(mediaUrl);
-                        // AQUI: Mantemos menuFocused = false e listOpen = true para evitar travamento da navegação
                     }
                 }
             }
