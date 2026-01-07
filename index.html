@@ -16,10 +16,10 @@
     
     #app { display: flex; height: 100%; width: 100%; position: relative; }
 
-    /* MENU LATERAL FIXO */
+    /* MENU LATERAL FIXO (ESTÁTICO) */
     #menu { 
         width: 260px; 
-        background: rgba(26, 26, 26, 0.9); 
+        background: #1a1a1a; 
         display: flex; 
         flex-direction: column; 
         z-index: 100; 
@@ -35,27 +35,30 @@
     
     .menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #222; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
     .menu-item i { margin-right: 12px; width: 20px; text-align: center; }
-    .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; transform: scale(1.02); }
+    .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; }
 
-    /* VÍDEO AJUSTADO PARA 16:9 NO PADRÃO DE TV */
+    /* ESTILO KIDS RESTAURADO */
+    .menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
+    .menu-item.kids.active { background: linear-gradient(145deg, #ff9800, #f44336); color: #fff; }
+
+    /* VÍDEO EM TELA CHEIA - AJUSTADO À DIREITA DO MENU */
     #content { 
         position: absolute; 
         top: 0; 
-        left: 0; 
+        left: 0; /* Começa do zero para tela cheia */
         width: 100%; 
         height: 100%; 
         z-index: 10; 
         background: black; 
         display: flex;
-        justify-content: center;
+        justify-content: flex-end; /* VÍDEO PARA O LADO DIREITO */
         align-items: center;
     }
     
     #videoContainer { 
-        width: 100vw; 
-        height: 56.25vw; /* Proporção 16:9 exata */
+        width: calc(100vw - 260px); /* Ocupa o resto da tela fora o menu */
+        height: calc((100vw - 260px) * 0.5625); /* Mantém 16:9 */
         max-height: 100vh;
-        max-width: 177.78vh; /* 16/9 * 100 */
         background: #000;
     }
 
@@ -68,7 +71,7 @@
         left: 260px; 
         width: 320px; 
         height: 100%; 
-        background: rgba(0, 0, 0, 0.85); 
+        background: rgba(0, 0, 0, 0.9); 
         display: none; 
         z-index: 110; 
         overflow-y: auto; 
@@ -126,7 +129,9 @@ const menuItems = document.querySelectorAll(".menu-item");
 
 let channels = [], movies = [], series = [], kidsMovies = [], kidsSeries = [], favorites = [];
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0;
-let listOpen = false, menuFocused = true, episodesMode = false, hls = null;
+let listOpen = false, menuFocused = true, hls = null;
+
+const movieCats = ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICCIÓN CIENTÍFICA","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
 
 function updateClock() {
     const d = new Date();
@@ -137,8 +142,6 @@ setInterval(updateClock, 1000); updateClock();
 
 function playMedia(url) {
     if (!url) return;
-    
-    // FECHA A INTERFACE PARA DAR FOCO AO VÍDEO, MAS NÃO TRAVA O SISTEMA
     listOpen = false;
     channelList.style.display = "none";
     posterPreview.style.display = "none";
@@ -157,14 +160,10 @@ function playMedia(url) {
 function renderList() {
     channelList.innerHTML = "";
     let data = [];
-    
-    if (viewMode === "categories") {
-        data = ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICCIÓN CIENTÍFICA","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
-    } else if (viewMode === "channels") {
-        data = channels;
-    } else {
-        data = filteredList;
-    }
+    if (viewMode === "categories") data = movieCats;
+    else if (viewMode === "channels") data = channels;
+    else if (viewMode === "fav") data = favorites;
+    else data = filteredList;
 
     data.forEach((item, i) => {
         const div = document.createElement("div");
@@ -174,52 +173,57 @@ function renderList() {
     });
 
     const currentItem = data[selectedIndex];
-    posterPreview.style.display = (listOpen && currentItem?.poster) ? "block" : "none";
-    if (currentItem?.poster) posterPreview.src = currentItem.poster;
+    if (listOpen && currentItem?.poster) {
+        posterPreview.src = currentItem.poster;
+        posterPreview.style.display = "block";
+    } else {
+        posterPreview.style.display = "none";
+    }
     
     const activeItem = channelList.querySelector(".active");
-    if (activeItem) activeItem.scrollIntoView({ block: "center", behavior: "smooth" });
+    if (activeItem) activeItem.scrollIntoView({ block: "center" });
 }
 
 function openCategory() {
     const type = menuItems[menuIndex].getAttribute("data-type");
-    listOpen = true; menuFocused = false; episodesMode = false;
+    listOpen = true; menuFocused = false; 
     channelList.style.display = "block";
     selectedIndex = 0;
 
     if (type === "channels") viewMode = "channels";
     else if (type === "categories") viewMode = "categories";
-    else if (type === "series") { viewMode = "series_list"; filteredList = series; }
+    else if (type === "series") { viewMode = "movies_list"; filteredList = series; }
+    else if (type === "kids_channels") { 
+        fetch("data/kids_canais.m3u").then(r => r.text()).then(t => {
+            filteredList = []; 
+            const lines = t.split("\n");
+            let temp = null;
+            lines.forEach(l => {
+                if (l.startsWith("#EXTINF")) temp = { titulo: l.split(",").pop(), url: "" };
+                else if (l.startsWith("http") && temp) { temp.url = l; filteredList.push(temp); temp = null; }
+            });
+            viewMode = "movies_list"; renderList();
+        });
+    }
     else if (type === "kids_movies") { viewMode = "movies_list"; filteredList = kidsMovies; }
-    else if (type === "kids_series") { viewMode = "series_list"; filteredList = kidsSeries; }
+    else if (type === "kids_series") { viewMode = "movies_list"; filteredList = kidsSeries; }
     
     renderList();
 }
 
 document.addEventListener("keydown", e => {
-    // Lista de dados para cálculo de navegação
-    let currentData = (viewMode === "categories") ? ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICCIÓN CIENTÍFICA","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"] : (viewMode === "channels" ? channels : filteredList);
+    let currentData = (viewMode === "categories") ? movieCats : (viewMode === "channels" ? channels : filteredList);
 
     switch (e.key) {
         case "ArrowUp":
-            if (menuFocused) {
-                menuIndex = (menuIndex - 1 + menuItems.length) % menuItems.length;
-            } else if (listOpen) {
-                selectedIndex = (selectedIndex - 1 + currentData.length) % currentData.length;
-                renderList();
-            }
+            if (menuFocused) menuIndex = (menuIndex - 1 + menuItems.length) % menuItems.length;
+            else { selectedIndex = (selectedIndex - 1 + currentData.length) % currentData.length; renderList(); }
             break;
         case "ArrowDown":
-            if (menuFocused) {
-                menuIndex = (menuIndex + 1) % menuItems.length;
-            } else if (listOpen) {
-                selectedIndex = (selectedIndex + 1) % currentData.length;
-                renderList();
-            }
+            if (menuFocused) menuIndex = (menuIndex + 1) % menuItems.length;
+            else { selectedIndex = (selectedIndex + 1) % currentData.length; renderList(); }
             break;
-        case "ArrowRight": 
-            if (menuFocused) openCategory(); 
-            break;
+        case "ArrowRight": if (menuFocused) openCategory(); break;
         case "ArrowLeft":
             if (listOpen) {
                 listOpen = false; menuFocused = true; 
@@ -227,9 +231,8 @@ document.addEventListener("keydown", e => {
             }
             break;
         case "Enter":
-            if (menuFocused) {
-                openCategory();
-            } else if (listOpen) {
+            if (menuFocused) openCategory();
+            else if (listOpen) {
                 const item = currentData[selectedIndex];
                 if (viewMode === "categories") {
                     filteredList = movies.filter(m => m.genero === item);
@@ -237,30 +240,22 @@ document.addEventListener("keydown", e => {
                 } else if (item.url || item.link) {
                     playMedia(item.url || item.link);
                 }
-            } else {
-                // Caso o vídeo esteja rodando, Enter reabre o menu
-                menuFocused = true;
-                listOpen = false;
             }
             break;
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
 
-function loadM3U(path, targetArray, isMain) {
-    fetch(path).then(r => r.text()).then(text => {
+window.onload = () => {
+    fetch("data/canais.m3u").then(r => r.text()).then(text => {
         const lines = text.split("\n");
         let temp = null;
         lines.forEach(l => {
             if (l.startsWith("#EXTINF")) temp = { titulo: l.split(",").pop(), url: "" };
-            else if (l.startsWith("http") && temp) { temp.url = l; targetArray.push(temp); temp = null; }
+            else if (l.startsWith("http") && temp) { temp.url = l; channels.push(temp); temp = null; }
         });
-        if (isMain && targetArray.length > 0) playMedia(targetArray[0].url);
+        if (channels.length > 0) playMedia(channels[0].url);
     });
-}
-
-window.onload = () => {
-    loadM3U("data/canais.m3u", channels, true);
     fetch("data/filmes.json").then(r => r.json()).then(d => movies = d);
     fetch("data/series.json").then(r => r.json()).then(d => series = d);
     fetch("data/kids_filmes.json").then(r => r.json()).then(d => kidsMovies = d);
