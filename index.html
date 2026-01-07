@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 
 <style>
     * { overflow: -moz-scrollbars-none; -ms-overflow-style: none; scrollbar-width: none; touch-action: manipulation; }
@@ -56,7 +55,7 @@
         <div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
     </div>
     <div id="content">
-        <div id="videoContainer"><video id="video" autoplay playsinline muted></video></div>
+        <div id="videoContainer"><video id="video" autoplay playsinline></video></div>
         <div id="channelList"></div>
         <img id="posterPreview">
     </div>
@@ -98,24 +97,28 @@ function playMedia(item) {
     video.load();
 
     setTimeout(() => {
+        // CONFIGURAÇÃO DE BUFFER OTIMIZADA PARA SÉRIES E CINEMA
         if (Hls.isSupported() && (url.includes(".m3u8") || url.includes("stream"))) {
-            hls = new Hls({ capLevelToPlayerSize: true, debug: false });
+            hls = new Hls({ 
+                capLevelToPlayerSize: true, 
+                maxBufferLength: 30, // Aumenta o buffer para evitar travas
+                maxMaxBufferLength: 60,
+                enableWorker: true
+            });
             hls.loadSource(url);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.muted = false;
-                video.play().catch(() => console.log("Erro Autoplay"));
+                video.play().catch(() => {});
             });
         } else {
             video.src = url;
-            video.muted = false;
             video.play().catch(() => {});
         }
-    }, 300);
+    }, 400); // Tempo para a Smart TV limpar a memória
 }
 
 async function loadEpisodes(serie) {
-    currentTitleDisplay.innerText = "Buscando episódios...";
+    currentTitleDisplay.innerText = "Sincronizando episódios...";
     try {
         const r = await fetch(`https://archive.org/metadata/${serie.identificador_archive}`);
         const d = await r.json();
@@ -171,7 +174,15 @@ function handleAction() {
 
 document.addEventListener("keydown", e => {
     if (searchActive) {
-        if (e.key === "ArrowDown") { searchActive = false; searchInput.value = ""; searchInput.blur(); menuFocused = true; channelList.style.display = "none"; }
+        if (e.key === "ArrowDown") { 
+            // LIMPEZA IMEDIATA DA PESQUISA AO SAIR
+            searchActive = false; 
+            searchInput.value = ""; 
+            searchInput.blur(); 
+            searchInput.classList.remove("focused");
+            menuFocused = true; 
+            channelList.style.display = "none"; 
+        }
         return;
     }
     switch(e.key) {
