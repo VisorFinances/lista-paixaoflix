@@ -37,7 +37,7 @@
     .menu-item i { margin-right: 12px; width: 20px; text-align: center; }
     .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; transform: scale(1.02); }
 
-    /* VÍDEO EM TELA CHEIA (OCUPA O FUNDO TODO) */
+    /* VÍDEO AJUSTADO PARA 16:9 NO PADRÃO DE TV */
     #content { 
         position: absolute; 
         top: 0; 
@@ -46,10 +46,20 @@
         height: 100%; 
         z-index: 10; 
         background: black; 
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
     
-    #videoContainer { width: 100%; height: 100%; }
-    video { width: 100%; height: 100%; object-fit: cover; } /* cover garante que preencha a TV */
+    #videoContainer { 
+        width: 100vw; 
+        height: 56.25vw; /* Proporção 16:9 exata */
+        max-height: 100vh;
+        max-width: 177.78vh; /* 16/9 * 100 */
+        background: #000;
+    }
+
+    video { width: 100%; height: 100%; object-fit: contain; }
 
     /* LISTA DE CONTEÚDO */
     #channelList { 
@@ -114,9 +124,9 @@ const channelList = document.getElementById("channelList");
 const posterPreview = document.getElementById("posterPreview");
 const menuItems = document.querySelectorAll(".menu-item");
 
-let channels = [], movies = [], series = [], kidsMovies = [], kidsSeries = [], favorites = JSON.parse(localStorage.getItem("pflix_favs") || "[]");
-let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, listOpen = false, menuFocused = true, hls = null;
-let episodesMode = false;
+let channels = [], movies = [], series = [], kidsMovies = [], kidsSeries = [], favorites = [];
+let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0;
+let listOpen = false, menuFocused = true, episodesMode = false, hls = null;
 
 function updateClock() {
     const d = new Date();
@@ -128,11 +138,11 @@ setInterval(updateClock, 1000); updateClock();
 function playMedia(url) {
     if (!url) return;
     
-    // RECOLHER INTERFACE AO DAR OK
+    // FECHA A INTERFACE PARA DAR FOCO AO VÍDEO, MAS NÃO TRAVA O SISTEMA
     listOpen = false;
     channelList.style.display = "none";
     posterPreview.style.display = "none";
-
+    
     if (hls) { hls.destroy(); hls = null; }
     video.pause();
     
@@ -144,28 +154,17 @@ function playMedia(url) {
     }
 }
 
-function fetchEpisodes(identifier, poster) {
-    episodesMode = true;
-    channelList.innerHTML = "<div class='channel'>Carregando Episódios...</div>";
-    fetch(`https://archive.org/metadata/${identifier}`)
-        .then(r => r.json())
-        .then(data => {
-            const files = data.files.filter(f => f.name.endsWith(".mp4") || f.name.endsWith(".mkv") || f.name.endsWith(".avi"));
-            filteredList = files.map(f => ({
-                titulo: f.title || f.name,
-                url: `https://archive.org/download/${identifier}/${f.name}`,
-                poster: poster
-            }));
-            selectedIndex = 0;
-            renderList();
-        });
-}
-
 function renderList() {
     channelList.innerHTML = "";
-    let data = (viewMode === "categories") ? ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICCIÓN CIENTÍFICA","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"] : (viewMode === "channels" ? channels : filteredList);
+    let data = [];
     
-    if (viewMode === "fav") data = favorites;
+    if (viewMode === "categories") {
+        data = ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICCIÓN CIENTÍFICA","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
+    } else if (viewMode === "channels") {
+        data = channels;
+    } else {
+        data = filteredList;
+    }
 
     data.forEach((item, i) => {
         const div = document.createElement("div");
@@ -179,7 +178,7 @@ function renderList() {
     if (currentItem?.poster) posterPreview.src = currentItem.poster;
     
     const activeItem = channelList.querySelector(".active");
-    if (activeItem) activeItem.scrollIntoView({ block: "center" });
+    if (activeItem) activeItem.scrollIntoView({ block: "center", behavior: "smooth" });
 }
 
 function openCategory() {
@@ -189,42 +188,59 @@ function openCategory() {
     selectedIndex = 0;
 
     if (type === "channels") viewMode = "channels";
-    else if (type === "series") { viewMode = "movies"; filteredList = series; }
     else if (type === "categories") viewMode = "categories";
-    else if (type === "kids_movies") { viewMode = "movies"; filteredList = kidsMovies; }
-    else if (type === "kids_series") { viewMode = "movies"; filteredList = kidsSeries; }
+    else if (type === "series") { viewMode = "series_list"; filteredList = series; }
+    else if (type === "kids_movies") { viewMode = "movies_list"; filteredList = kidsMovies; }
+    else if (type === "kids_series") { viewMode = "series_list"; filteredList = kidsSeries; }
     
     renderList();
 }
 
 document.addEventListener("keydown", e => {
-    let dataLength = (viewMode === "categories") ? 20 : (viewMode === "channels" ? channels.length : filteredList.length);
+    // Lista de dados para cálculo de navegação
+    let currentData = (viewMode === "categories") ? ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICCIÓN CIENTÍFICA","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"] : (viewMode === "channels" ? channels : filteredList);
 
     switch (e.key) {
         case "ArrowUp":
-            if (menuFocused) menuIndex = (menuIndex - 1 + menuItems.length) % menuItems.length;
-            else { selectedIndex = (selectedIndex - 1 + dataLength) % dataLength; renderList(); }
+            if (menuFocused) {
+                menuIndex = (menuIndex - 1 + menuItems.length) % menuItems.length;
+            } else if (listOpen) {
+                selectedIndex = (selectedIndex - 1 + currentData.length) % currentData.length;
+                renderList();
+            }
             break;
         case "ArrowDown":
-            if (menuFocused) menuIndex = (menuIndex + 1) % menuItems.length;
-            else { selectedIndex = (selectedIndex + 1) % dataLength; renderList(); }
+            if (menuFocused) {
+                menuIndex = (menuIndex + 1) % menuItems.length;
+            } else if (listOpen) {
+                selectedIndex = (selectedIndex + 1) % currentData.length;
+                renderList();
+            }
             break;
-        case "ArrowRight": if (menuFocused) openCategory(); break;
+        case "ArrowRight": 
+            if (menuFocused) openCategory(); 
+            break;
         case "ArrowLeft":
             if (listOpen) {
-                listOpen = false; menuFocused = true; channelList.style.display = "none"; posterPreview.style.display = "none";
+                listOpen = false; menuFocused = true; 
+                channelList.style.display = "none"; posterPreview.style.display = "none";
             }
             break;
         case "Enter":
-            if (menuFocused) openCategory();
-            else if (listOpen) {
-                let currentData = (viewMode === "categories") ? [] : (viewMode === "channels" ? channels : filteredList);
+            if (menuFocused) {
+                openCategory();
+            } else if (listOpen) {
                 const item = currentData[selectedIndex];
-                if (item?.identificador_archive && !episodesMode) {
-                    fetchEpisodes(item.identificador_archive, item.poster);
-                } else if (item) {
+                if (viewMode === "categories") {
+                    filteredList = movies.filter(m => m.genero === item);
+                    viewMode = "movies_list"; selectedIndex = 0; renderList();
+                } else if (item.url || item.link) {
                     playMedia(item.url || item.link);
                 }
+            } else {
+                // Caso o vídeo esteja rodando, Enter reabre o menu
+                menuFocused = true;
+                listOpen = false;
             }
             break;
     }
