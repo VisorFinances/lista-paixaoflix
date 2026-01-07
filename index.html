@@ -12,38 +12,80 @@
     * { overflow: -moz-scrollbars-none; -ms-overflow-style: none; scrollbar-width: none; }
     *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; background: transparent; }
 
-    html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: Arial, sans-serif; height: 100%; overflow: hidden; }
-    #app { display: flex; height: 100%; width: 100vw; }
-    #menu { width: 260px; background: #1a1a1a; display: flex; flex-direction: column; z-index: 30; padding: 12px; box-sizing: border-box; border-right: 1px solid #333; }
+    html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: Arial, sans-serif; height: 100%; overflow: hidden; width: 100%; }
+    
+    #app { display: flex; height: 100%; width: 100%; position: relative; }
+
+    /* MENU LATERAL FIXO */
+    #menu { 
+        width: 260px; 
+        background: rgba(26, 26, 26, 0.9); 
+        display: flex; 
+        flex-direction: column; 
+        z-index: 100; 
+        padding: 12px; 
+        box-sizing: border-box; 
+        border-right: 1px solid #333;
+        height: 100%;
+    }
+
     #menuHeader { padding: 15px 10px; text-align: center; border-bottom: 1px solid #222; margin-bottom: 15px; }
     #menuHeader img { height: 70px; object-fit: contain; }
     #clock { margin-top: 10px; font-size: 13px; color: #aaa; }
     
-    .menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #222; border: 1px solid #333; display: flex; align-items: center; color: #ccc; box-shadow: 0 3px 0 #000; cursor: pointer; }
+    .menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #222; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
     .menu-item i { margin-right: 12px; width: 20px; text-align: center; }
-    .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; box-shadow: 0 0 10px rgba(255, 152, 0, 0.4), 0 3px 0 #b36b00; font-weight: bold; transform: scale(1.02); }
+    .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; transform: scale(1.02); }
+
+    /* VÍDEO EM TELA CHEIA (OCUPA O FUNDO TODO) */
+    #content { 
+        position: absolute; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        z-index: 10; 
+        background: black; 
+    }
     
-    #content { flex: 1; position: relative; background: black; }
-    
-    /* AJUSTE TELA CHEIA: O vídeo agora ignora o espaço do menu quando ativo */
-    #videoContainer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 5; }
-    video { width: 100%; height: 100%; object-fit: contain; }
-    
-    #channelList { position: absolute; top: 0; left: 0; width: 320px; height: 100%; background: rgba(0, 0, 0, 0.92); display: none; z-index: 40; overflow-y: auto; border-right: 1px solid #ff9800; }
-    .channel { padding: 15px 20px; font-size: 16px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+    #videoContainer { width: 100%; height: 100%; }
+    video { width: 100%; height: 100%; object-fit: cover; } /* cover garante que preencha a TV */
+
+    /* LISTA DE CONTEÚDO */
+    #channelList { 
+        position: absolute; 
+        top: 0; 
+        left: 260px; 
+        width: 320px; 
+        height: 100%; 
+        background: rgba(0, 0, 0, 0.85); 
+        display: none; 
+        z-index: 110; 
+        overflow-y: auto; 
+        border-right: 1px solid #ff9800; 
+    }
+
+    .channel { padding: 15px 20px; font-size: 16px; border-bottom: 1px solid #222; color: #fff; }
     .channel.active { background: #ff9800; color: #000; font-weight: bold; }
-    
-    .fav-icon { font-size: 14px; display: none; }
-    .has-content .fav-icon { display: block; color: #888; }
-    .is-fav .fav-icon { color: #ffeb3b !important; }
-    
-    #posterPreview { position: absolute; top: 50%; left: 340px; transform: translateY(-50%); width: 300px; height: 450px; border-radius: 12px; z-index: 45; display: none; background: #222; object-fit: cover; border: 3px solid #ff9800; }
-    .menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
-    .menu-item.kids.active { background: linear-gradient(145deg, #ff9800, #f44336); color: #fff; }
+
+    #posterPreview { 
+        position: absolute; 
+        top: 50%; 
+        left: 600px; 
+        transform: translateY(-50%); 
+        width: 300px; 
+        height: 450px; 
+        border-radius: 12px; 
+        z-index: 120; 
+        display: none; 
+        background: #222; 
+        object-fit: cover; 
+        border: 3px solid #ff9800; 
+    }
 </style>
 </head>
 
-<body onclick="window.focus()">
+<body>
 <div id="app">
     <div id="menu">
         <div id="menuHeader">
@@ -71,13 +113,10 @@ const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
 const posterPreview = document.getElementById("posterPreview");
 const menuItems = document.querySelectorAll(".menu-item");
-const sideMenu = document.getElementById("menu");
 
-let channels = [], kidsChannels = [], movies = [], series = [], kidsMovies = [], kidsSeries = [], favorites = JSON.parse(localStorage.getItem("pflix_favs") || "[]");
+let channels = [], movies = [], series = [], kidsMovies = [], kidsSeries = [], favorites = JSON.parse(localStorage.getItem("pflix_favs") || "[]");
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, listOpen = false, menuFocused = true, hls = null;
 let episodesMode = false;
-
-const movieCategories = ["Lançamentos 2026","Lançamentos 2025","AÇÃO", "AVENTURA", "ANIME", "ANIMAÇÃO", "COMÉDIA", "DRAMA", "DORAMA", "SUSPENSE", "POLICIAL", "TERROR", "DOCUMENTÁRIOS", "FICCIÓN CIENTÍFICA", "CLÁSSICOS", "FAROESTE", "NACIONAL", "ROMANCE", "RELIGIOSO", "ADULTO"];
 
 function updateClock() {
     const d = new Date();
@@ -86,19 +125,17 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
-// FUNÇÃO PLAY: LIMPA TUDO E EXIBE VÍDEO FULL
 function playMedia(url) {
     if (!url) return;
     
-    // RECOLHE TUDO PARA TELA CHEIA
+    // RECOLHER INTERFACE AO DAR OK
     listOpen = false;
-    menuFocused = false;
     channelList.style.display = "none";
     posterPreview.style.display = "none";
-    sideMenu.style.display = "none"; // Esconde o menu principal
 
     if (hls) { hls.destroy(); hls = null; }
     video.pause();
+    
     if (Hls.isSupported() && (url.includes(".m3u8") || url.includes("stream"))) {
         hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
@@ -117,30 +154,23 @@ function fetchEpisodes(identifier, poster) {
             filteredList = files.map(f => ({
                 titulo: f.title || f.name,
                 url: `https://archive.org/download/${identifier}/${f.name}`,
-                poster: poster,
-                type: 'movie'
+                poster: poster
             }));
             selectedIndex = 0;
             renderList();
-        })
-        .catch(() => { channelList.innerHTML = "<div class='channel'>Erro ao conectar</div>"; });
+        });
 }
 
 function renderList() {
     channelList.innerHTML = "";
-    let data = [];
-    if (viewMode === "channels") data = channels;
-    else if (viewMode === "kids_channels") data = kidsChannels;
-    else if (viewMode === "categories") data = movieCategories;
-    else if (viewMode === "fav") data = favorites;
-    else data = filteredList;
+    let data = (viewMode === "categories") ? ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICCIÓN CIENTÍFICA","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"] : (viewMode === "channels" ? channels : filteredList);
+    
+    if (viewMode === "fav") data = favorites;
 
     data.forEach((item, i) => {
         const div = document.createElement("div");
-        const itemUrl = item.url || item.link;
-        const isFav = favorites.some(f => (f.url || f.link) === itemUrl);
-        div.className = `channel ${i === selectedIndex ? "active" : ""} ${viewMode !== "categories" ? "has-content" : ""} ${isFav ? "is-fav" : ""}`;
-        div.innerHTML = `<span>${item.titulo || item.name || item}</span> <i class="fas fa-star fav-icon"></i>`;
+        div.className = `channel ${i === selectedIndex ? "active" : ""}`;
+        div.innerHTML = `<span>${item.titulo || item.name || item}</span>`;
         channelList.appendChild(div);
     });
 
@@ -155,59 +185,46 @@ function renderList() {
 function openCategory() {
     const type = menuItems[menuIndex].getAttribute("data-type");
     listOpen = true; menuFocused = false; episodesMode = false;
-    sideMenu.style.display = "flex";
     channelList.style.display = "block";
     selectedIndex = 0;
+
     if (type === "channels") viewMode = "channels";
-    else if (type === "fav") viewMode = "fav";
-    else if (type === "categories") viewMode = "categories";
     else if (type === "series") { viewMode = "movies"; filteredList = series; }
-    else if (type === "kids_channels") viewMode = "kids_channels";
+    else if (type === "categories") viewMode = "categories";
     else if (type === "kids_movies") { viewMode = "movies"; filteredList = kidsMovies; }
     else if (type === "kids_series") { viewMode = "movies"; filteredList = kidsSeries; }
+    
     renderList();
 }
 
 document.addEventListener("keydown", e => {
-    let data = (viewMode === "channels") ? channels : (viewMode === "kids_channels") ? kidsChannels : (viewMode === "fav") ? favorites : (viewMode === "categories") ? movieCategories : filteredList;
+    let dataLength = (viewMode === "categories") ? 20 : (viewMode === "channels" ? channels.length : filteredList.length);
 
     switch (e.key) {
         case "ArrowUp":
             if (menuFocused) menuIndex = (menuIndex - 1 + menuItems.length) % menuItems.length;
-            else { selectedIndex = (selectedIndex - 1 + data.length) % data.length; renderList(); }
+            else { selectedIndex = (selectedIndex - 1 + dataLength) % dataLength; renderList(); }
             break;
         case "ArrowDown":
             if (menuFocused) menuIndex = (menuIndex + 1) % menuItems.length;
-            else { selectedIndex = (selectedIndex + 1) % data.length; renderList(); }
+            else { selectedIndex = (selectedIndex + 1) % dataLength; renderList(); }
             break;
         case "ArrowRight": if (menuFocused) openCategory(); break;
         case "ArrowLeft":
             if (listOpen) {
-                if (episodesMode) { episodesMode = false; filteredList = series; renderList(); }
-                else if (viewMode === "movies" && menuItems[menuIndex].getAttribute("data-type") === "categories") { viewMode = "categories"; renderList(); }
-                else { listOpen = false; menuFocused = true; channelList.style.display = "none"; posterPreview.style.display = "none"; }
-            } else {
-                sideMenu.style.display = "flex";
-                menuFocused = true; 
+                listOpen = false; menuFocused = true; channelList.style.display = "none"; posterPreview.style.display = "none";
             }
             break;
         case "Enter":
             if (menuFocused) openCategory();
             else if (listOpen) {
-                const item = data[selectedIndex];
-                if (viewMode === "categories") {
-                    filteredList = movies.filter(f => f.genero === item || (item.includes("Lançamentos") && f.genero === "Lançamentos" && f.year === item.split(" ")[1]));
-                    viewMode = "movies"; selectedIndex = 0; renderList();
-                } else if (item?.identificador_archive && !episodesMode) {
+                let currentData = (viewMode === "categories") ? [] : (viewMode === "channels" ? channels : filteredList);
+                const item = currentData[selectedIndex];
+                if (item?.identificador_archive && !episodesMode) {
                     fetchEpisodes(item.identificador_archive, item.poster);
                 } else if (item) {
                     playMedia(item.url || item.link);
                 }
-            } else {
-                sideMenu.style.display = "flex";
-                channelList.style.display = "block";
-                listOpen = true;
-                renderList();
             }
             break;
     }
@@ -219,21 +236,19 @@ function loadM3U(path, targetArray, isMain) {
         const lines = text.split("\n");
         let temp = null;
         lines.forEach(l => {
-            l = l.trim();
             if (l.startsWith("#EXTINF")) temp = { titulo: l.split(",").pop(), url: "" };
             else if (l.startsWith("http") && temp) { temp.url = l; targetArray.push(temp); temp = null; }
         });
         if (isMain && targetArray.length > 0) playMedia(targetArray[0].url);
-    }).catch(e => console.error("Erro M3U:", path));
+    });
 }
 
 window.onload = () => {
     loadM3U("data/canais.m3u", channels, true);
-    loadM3U("data/kids_canais.m3u", kidsChannels, false);
-    fetch("data/filmes.json").then(r => r.json()).then(d => movies = d).catch(() => {});
-    fetch("data/series.json").then(r => r.json()).then(d => series = d).catch(() => {});
-    fetch("data/kids_filmes.json").then(r => r.json()).then(d => kidsMovies = d).catch(() => {});
-    fetch("data/kids_series.json").then(r => r.json()).then(d => kidsSeries = d).catch(() => {});
+    fetch("data/filmes.json").then(r => r.json()).then(d => movies = d);
+    fetch("data/series.json").then(r => r.json()).then(d => series = d);
+    fetch("data/kids_filmes.json").then(r => r.json()).then(d => kidsMovies = d);
+    fetch("data/kids_series.json").then(r => r.json()).then(d => kidsSeries = d);
 };
 </script>
 </body>
