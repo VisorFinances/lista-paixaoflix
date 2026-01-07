@@ -29,7 +29,7 @@
     .menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
     #content { position: absolute; top: 0; left: 280px; width: calc(100% - 280px); height: 100%; z-index: 10; background: black; display: flex; justify-content: center; align-items: center; }
     #videoContainer { width: 100%; height: 56.25vw; max-height: 100vh; background: #000; }
-    video { width: 100%; height: 100%; object-fit: contain; }
+    video { width: 100%; height: 100%; object-fit: contain; background: #000; }
     #channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: auto; border-right: 1px solid #ff9800; }
     .channel { padding: 15px 20px; font-size: 16px; border-bottom: 1px solid #222; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
     .channel.active { background: #ff9800 !important; color: #000 !important; font-weight: bold; }
@@ -91,34 +91,37 @@ function playMedia(item) {
     channelList.style.display = "none";
     posterPreview.style.display = "none";
 
+    // RESET TOTAL DO PLAYER (Prevenção de Tela Preta)
     if (hls) { hls.destroy(); hls = null; }
     video.pause();
+    video.src = "";
     video.removeAttribute("src");
     video.load();
 
+    // SAFE START: Delay necessário para Smart TVs limparem o cache de vídeo
     setTimeout(() => {
-        // CONFIGURAÇÃO DE BUFFER OTIMIZADA PARA SÉRIES E CINEMA
         if (Hls.isSupported() && (url.includes(".m3u8") || url.includes("stream"))) {
             hls = new Hls({ 
-                capLevelToPlayerSize: true, 
-                maxBufferLength: 30, // Aumenta o buffer para evitar travas
-                maxMaxBufferLength: 60,
-                enableWorker: true
+                enableWorker: true,
+                lowLatencyMode: false,
+                backBufferLength: 0 // Limpa buffer antigo para liberar RAM
             });
             hls.loadSource(url);
             hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.play().catch(() => {});
-            });
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
         } else {
+            // Para MP4 de Cinema: Força o recarregamento do elemento
             video.src = url;
-            video.play().catch(() => {});
+            video.play().catch(e => {
+                console.log("Erro Play, tentando recarregar...");
+                video.load(); video.play();
+            });
         }
-    }, 400); // Tempo para a Smart TV limpar a memória
+    }, 500); 
 }
 
 async function loadEpisodes(serie) {
-    currentTitleDisplay.innerText = "Sincronizando episódios...";
+    currentTitleDisplay.innerText = "Sincronizando...";
     try {
         const r = await fetch(`https://archive.org/metadata/${serie.identificador_archive}`);
         const d = await r.json();
@@ -175,13 +178,8 @@ function handleAction() {
 document.addEventListener("keydown", e => {
     if (searchActive) {
         if (e.key === "ArrowDown") { 
-            // LIMPEZA IMEDIATA DA PESQUISA AO SAIR
-            searchActive = false; 
-            searchInput.value = ""; 
-            searchInput.blur(); 
-            searchInput.classList.remove("focused");
-            menuFocused = true; 
-            channelList.style.display = "none"; 
+            searchActive = false; searchInput.value = ""; searchInput.blur(); 
+            searchInput.classList.remove("focused"); menuFocused = true; channelList.style.display = "none"; 
         }
         return;
     }
