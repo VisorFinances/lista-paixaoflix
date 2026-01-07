@@ -8,9 +8,9 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-    /* REMOÇÃO TOTAL DE BARRAS DE ROLAGEM */
+    /* CONGELADO: REMOÇÃO DE BARRAS DE ROLAGEM */
     * { overflow: -moz-scrollbars-none; -ms-overflow-style: none; scrollbar-width: none; }
-    *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+    *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; background: transparent; }
 
     html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: Arial, sans-serif; height: 100%; overflow: hidden; }
     #app { display: flex; height: 100%; }
@@ -90,31 +90,40 @@ function playMedia(url) {
     }
 }
 
-function loadEpisodes(id, poster) {
+// FUNÇÃO DE BUSCA AUTOMÁTICA NAS SÉRIES (VIA IDENTIFICADOR)
+function fetchEpisodes(identifier, poster) {
     episodesMode = true;
-    channelList.innerHTML = "<div class='channel'>Buscando episódios...</div>";
-    fetch(`https://archive.org/metadata/${id}`)
+    channelList.innerHTML = "<div class='channel'>Carregando Episódios...</div>";
+    fetch(`https://archive.org/metadata/${identifier}`)
         .then(r => r.json())
         .then(data => {
-            const files = data.files.filter(f => f.name.endsWith(".mp4") || f.name.endsWith(".mkv"));
+            const files = data.files.filter(f => f.name.endsWith(".mp4") || f.name.endsWith(".mkv") || f.name.endsWith(".avi"));
             filteredList = files.map(f => ({
                 titulo: f.title || f.name,
-                url: `https://archive.org/download/${id}/${f.name}`,
-                poster: poster
+                url: `https://archive.org/download/${identifier}/${f.name}`,
+                poster: poster,
+                type: 'movie'
             }));
             selectedIndex = 0;
             renderList();
-        });
+        })
+        .catch(() => { channelList.innerHTML = "<div class='channel'>Erro ao conectar</div>"; });
 }
 
 function renderList() {
     channelList.innerHTML = "";
-    let data = (viewMode === "channels") ? channels : (viewMode === "kids_channels") ? kidsChannels : (viewMode === "categories") ? movieCategories : (viewMode === "fav") ? favorites : filteredList;
+    let data = [];
+    if (viewMode === "channels") data = channels;
+    else if (viewMode === "kids_channels") data = kidsChannels;
+    else if (viewMode === "categories") data = movieCategories;
+    else if (viewMode === "fav") data = favorites;
+    else data = filteredList; // Para filmes e séries filtrados
 
     data.forEach((item, i) => {
         const div = document.createElement("div");
-        const isFav = favorites.some(f => (f.url || f.link) === (item.url || item.link));
-        div.className = `channel ${i === selectedIndex ? "active" : ""} ${isFav ? "is-fav" : ""}`;
+        const itemUrl = item.url || item.link;
+        const isFav = favorites.some(f => (f.url || f.link) === itemUrl);
+        div.className = `channel ${i === selectedIndex ? "active" : ""} ${viewMode !== "categories" ? "has-content" : ""} ${isFav ? "is-fav" : ""}`;
         div.innerHTML = `<span>${item.titulo || item.name || item}</span> <i class="fas fa-star fav-icon"></i>`;
         channelList.appendChild(div);
     });
@@ -122,6 +131,7 @@ function renderList() {
     const currentItem = data[selectedIndex];
     posterPreview.style.display = (listOpen && currentItem?.poster) ? "block" : "none";
     if (currentItem?.poster) posterPreview.src = currentItem.poster;
+    
     const activeItem = channelList.querySelector(".active");
     if (activeItem) activeItem.scrollIntoView({ block: "center" });
 }
@@ -142,7 +152,7 @@ function openCategory() {
 }
 
 document.addEventListener("keydown", e => {
-    let data = (viewMode === "channels") ? channels : (viewMode === "kids_channels") ? kidsChannels : (viewMode === "categories") ? movieCategories : (viewMode === "fav") ? favorites : filteredList;
+    let data = (viewMode === "channels") ? channels : (viewMode === "kids_channels") ? kidsChannels : (viewMode === "fav") ? favorites : (viewMode === "categories") ? movieCategories : filteredList;
 
     switch (e.key) {
         case "ArrowUp":
@@ -163,13 +173,13 @@ document.addEventListener("keydown", e => {
             break;
         case "Enter":
             if (menuFocused) openCategory();
-            else {
+            else if (listOpen) {
                 const item = data[selectedIndex];
                 if (viewMode === "categories") {
                     filteredList = movies.filter(f => f.genero === item || (item.includes("Lançamentos") && f.genero === "Lançamentos" && f.year === item.split(" ")[1]));
                     viewMode = "movies"; selectedIndex = 0; renderList();
                 } else if (item?.identificador_archive && !episodesMode) {
-                    loadEpisodes(item.identificador_archive, item.poster);
+                    fetchEpisodes(item.identificador_archive, item.poster);
                 } else if (item) {
                     playMedia(item.url || item.link);
                 }
@@ -178,6 +188,19 @@ document.addEventListener("keydown", e => {
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
+
+function loadM3U(path, targetArray, isMain) {
+    fetch(path).then(r => r.text()).then(text => {
+        const lines = text.split("\n");
+        let temp = null;
+        lines.forEach(l => {
+            l = l.trim();
+            if (l.startsWith("#EXTINF")) temp = { titulo: l.split(",").pop(), url: "" };
+            else if (l.startsWith("http") && temp) { temp.url = l; targetArray.push(temp); temp = null; }
+        });
+        if (isMain && targetArray.length > 0) playMedia(targetArray[0].url);
+    }).catch(e => console.error("Erro M3U:", path));
+}
 
 window.onload = () => {
     loadM3U("data/canais.m3u", channels, true);
