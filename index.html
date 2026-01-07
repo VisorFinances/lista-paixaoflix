@@ -78,8 +78,16 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
+// AJUSTE: RECOLHER TUDO AO DAR PLAY
 function playMedia(url) {
     if (!url) return;
+    
+    // Esconde a lista e o poster para focar no vídeo
+    listOpen = false;
+    menuFocused = false; 
+    channelList.style.display = "none";
+    posterPreview.style.display = "none";
+
     if (hls) { hls.destroy(); hls = null; }
     video.pause();
     if (Hls.isSupported() && (url.includes(".m3u8") || url.includes("stream"))) {
@@ -90,7 +98,6 @@ function playMedia(url) {
     }
 }
 
-// FUNÇÃO DE BUSCA AUTOMÁTICA NAS SÉRIES (VIA IDENTIFICADOR)
 function fetchEpisodes(identifier, poster) {
     episodesMode = true;
     channelList.innerHTML = "<div class='channel'>Carregando Episódios...</div>";
@@ -117,7 +124,7 @@ function renderList() {
     else if (viewMode === "kids_channels") data = kidsChannels;
     else if (viewMode === "categories") data = movieCategories;
     else if (viewMode === "fav") data = favorites;
-    else data = filteredList; // Para filmes e séries filtrados
+    else data = filteredList;
 
     data.forEach((item, i) => {
         const div = document.createElement("div");
@@ -169,6 +176,8 @@ document.addEventListener("keydown", e => {
                 if (episodesMode) { episodesMode = false; filteredList = series; renderList(); }
                 else if (viewMode === "movies" && menuItems[menuIndex].getAttribute("data-type") === "categories") { viewMode = "categories"; renderList(); }
                 else { listOpen = false; menuFocused = true; channelList.style.display = "none"; posterPreview.style.display = "none"; }
+            } else {
+                menuFocused = true; // Abre o menu se apertar esquerda com vídeo rodando
             }
             break;
         case "Enter":
@@ -183,6 +192,10 @@ document.addEventListener("keydown", e => {
                 } else if (item) {
                     playMedia(item.url || item.link);
                 }
+            } else {
+                listOpen = true; // Reabre a lista se apertar Enter no vídeo
+                channelList.style.display = "block";
+                renderList();
             }
             break;
     }
