@@ -22,11 +22,9 @@
     }
     #menuHeader { padding: 15px 10px; text-align: center; border-bottom: 1px solid #222; margin-bottom: 15px; }
     #menuHeader img { height: 70px; object-fit: contain; }
-    
-    /* DATA/HORA VOLTADO AO ORIGINAL */
     #clock { margin-top: 10px; font-size: 13px; color: #aaa; }
     
-    /* ASSISTINDO AGORA - FONTES RESTAURADAS (15px/13px) */
+    /* ASSISTINDO AGORA - FONTES 15px/13px */
     #nowPlaying { margin: 15px 0; text-align: center; }
     #nowPlaying span { display: block; font-size: 15px; color: #fff; font-weight: 700; margin-bottom: 5px; }
     #currentTitle { 
@@ -35,39 +33,24 @@
         max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
     }
 
-    /* CAIXA DE PESQUISA */
     #searchBox { margin-bottom: 15px; }
-    #searchInput { 
-        width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; 
-        background: #000; color: #fff; outline: none; box-sizing: border-box; font-size: 14px;
-    }
+    #searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; outline: none; box-sizing: border-box; font-size: 14px; }
     #searchInput.focused { border-color: #ff9800; background: #222; }
 
-    /* ITENS DO MENU - ESPAÇAMENTO RESTAURADO */
     .menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #222; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
     .menu-item i { margin-right: 12px; width: 20px; text-align: center; }
     .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; }
     .menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
-    .menu-item.kids.active { background: linear-gradient(145deg, #ff9800, #f44336); color: #fff; }
 
-    /* VÍDEO 16:9 À DIREITA */
     #content { position: absolute; top: 0; left: 260px; width: calc(100% - 260px); height: 100%; z-index: 10; background: black; display: flex; justify-content: center; align-items: center; }
     #videoContainer { width: 100%; height: 56.25vw; max-height: 100vh; background: #000; }
     video { width: 100%; height: 100%; object-fit: contain; }
 
-    /* LISTAS E CARDS RESTAURADOS */
-    #channelList { 
-        position: absolute; top: 0; left: 0; width: 320px; height: 100%; 
-        background: rgba(0, 0, 0, 0.95); display: none; z-index: 110; overflow-y: auto; border-right: 1px solid #ff9800; 
-    }
+    #channelList { position: absolute; top: 0; left: 0; width: 320px; height: 100%; background: rgba(0, 0, 0, 0.95); display: none; z-index: 110; overflow-y: auto; border-right: 1px solid #ff9800; }
     .channel { padding: 15px 20px; font-size: 16px; border-bottom: 1px solid #222; color: #fff; display: flex; justify-content: space-between; align-items: center; }
     .channel.active { background: #ff9800; color: #000; font-weight: bold; }
 
-    #posterPreview { 
-        position: absolute; top: 50%; left: 340px; transform: translateY(-50%); 
-        width: 300px; height: 450px; border-radius: 12px; z-index: 120; 
-        display: none; background: #222; object-fit: cover; border: 3px solid #ff9800; 
-    }
+    #posterPreview { position: absolute; top: 50%; left: 340px; transform: translateY(-50%); width: 300px; height: 450px; border-radius: 12px; z-index: 120; display: none; background: #222; object-fit: cover; border: 3px solid #ff9800; }
 </style>
 </head>
 
@@ -75,29 +58,23 @@
 <div id="app">
     <div id="menu">
         <div id="menuHeader">
-            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" alt="Logo">
+            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
             <div id="clock"></div>
-            <div id="nowPlaying">
-                <span>Assistindo agora</span>
-                <div id="currentTitle">...</div>
-            </div>
+            <div id="nowPlaying"><span>Assistindo agora</span><div id="currentTitle">...</div></div>
         </div>
-
         <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
-
         <div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
-        <div class="menu-item" data-type="fav"><i class="fas fa-star" style="color: #ffeb3b;"></i> Favoritos</div>
+        <div class="menu-item" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
         <div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
         <div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
         <div class="menu-item kids" data-type="kids_channels"><i class="fas fa-child"></i> Canal Kids</div>
         <div class="menu-item kids" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
         <div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
     </div>
-
     <div id="content">
         <div id="videoContainer"><video id="video" autoplay playsinline></video></div>
         <div id="channelList"></div>
-        <img id="posterPreview" src="" alt="Poster">
+        <img id="posterPreview">
     </div>
 </div>
 
@@ -113,7 +90,7 @@ let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [],
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0;
 let listOpen = false, menuFocused = true, hls = null, searchActive = false;
 
-const movieCats = ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICCIÓN CIENTÍFICA","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
+const movieCats = ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","SUSPENSE","TERROR","DOCUMENTÁRIOS","FICCIÓN CIENTÍFICA","NACIONAL"];
 
 function updateClock() {
     const d = new Date();
@@ -124,52 +101,65 @@ setInterval(updateClock, 1000); updateClock();
 
 function playMedia(item) {
     if (!item) return;
-    const url = item.url || item.link || (item.episodios && item.episodios[0] ? item.episodios[0].link : null);
-    if(!url) { console.error("URL não encontrada"); return; }
+    const url = item.url || item.link; // Pega URL de filmes ou link de episódios
+    if(!url) return;
 
-    currentTitleDisplay.innerText = item.titulo || item.name || "Conteúdo";
+    currentTitleDisplay.innerText = item.titulo || item.name;
     listOpen = false; channelList.style.display = "none"; posterPreview.style.display = "none";
     
-    // Limpeza da pesquisa ao dar play
-    if(searchActive) { searchInput.value = ""; searchActive = false; searchInput.classList.remove("focused"); menuFocused = true; }
-
     if (hls) { hls.destroy(); hls = null; }
     video.pause();
     
     if (Hls.isSupported() && (url.includes(".m3u8") || url.includes("stream"))) {
         hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(e => console.log("Erro Play:", e)));
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
     } else {
-        video.src = url; video.load(); video.play().catch(e => console.log("Erro Play:", e));
+        video.src = url; video.load(); video.play().catch(()=>{});
     }
+}
+
+async function loadEpisodes(serie) {
+    currentTitleDisplay.innerText = "Carregando episódios...";
+    const id = serie.identificador_archive;
+    try {
+        const resp = await fetch(`https://archive.org/metadata/${id}`);
+        const data = await resp.json();
+        const eps = data.files.filter(f => f.name.endsWith(".mp4") || f.name.endsWith(".mkv")).map(f => ({
+            titulo: f.title || f.name,
+            link: `https://archive.org/download/${id}/${f.name}`,
+            poster: serie.poster
+        }));
+        filteredList = eps;
+        viewMode = "episodes";
+        selectedIndex = 0;
+        renderList();
+    } catch(e) { console.error("Erro Archive", e); }
 }
 
 function renderList() {
     channelList.innerHTML = "";
-    let data = (viewMode === "categories") ? movieCats : (viewMode === "fav" ? favorites : (viewMode === "search" ? filteredList : (viewMode === "channels" ? channels : filteredList)));
+    let data = (viewMode === "categories") ? movieCats : (viewMode === "fav") ? favorites : (viewMode === "search" || viewMode === "list" || viewMode === "episodes") ? filteredList : channels;
 
     data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
-        const isFav = favorites.some(f => (f.url||f.link) === (item.url||item.link));
+        const isFav = favorites.some(f => (f.url||f.link||f.identificador_archive) === (item.url||item.link||item.identificador_archive));
         div.innerHTML = `<span>${item.titulo || item.name || item}</span> ${isFav ? '<i class="fas fa-star" style="color:#ffeb3b; font-size:12px"></i>' : ''}`;
         channelList.appendChild(div);
     });
 
-    const currentItem = data[selectedIndex];
-    if (listOpen && currentItem?.poster) {
-        posterPreview.src = currentItem.poster; posterPreview.style.display = "block";
-    } else { posterPreview.style.display = "none"; }
+    const cur = data[selectedIndex];
+    if (listOpen && cur?.poster) { posterPreview.src = cur.poster; posterPreview.style.display = "block"; } 
+    else { posterPreview.style.display = "none"; }
     
-    const activeItem = channelList.querySelector(".active");
-    if (activeItem) activeItem.scrollIntoView({ block: "center" });
+    const active = channelList.querySelector(".active");
+    if (active) active.scrollIntoView({ block: "center" });
 }
 
 function openCategory() {
     const type = menuItems[menuIndex].getAttribute("data-type");
     listOpen = true; menuFocused = false; selectedIndex = 0;
     channelList.style.display = "block";
-
     if (type === "channels") viewMode = "channels";
     else if (type === "fav") viewMode = "fav";
     else if (type === "categories") viewMode = "categories";
@@ -183,70 +173,55 @@ function openCategory() {
 document.addEventListener("keydown", e => {
     if (searchActive) {
         if (e.key === "ArrowDown") { 
-            searchActive = false; searchInput.blur(); searchInput.classList.remove("focused"); 
-            searchInput.value = ""; menuFocused = true; channelList.style.display = "none";
+            searchActive = false; searchInput.blur(); searchInput.value = ""; 
+            searchInput.classList.remove("focused"); menuFocused = true; channelList.style.display = "none"; 
         }
         return;
     }
+    let data = (viewMode === "categories") ? movieCats : (viewMode === "fav") ? favorites : (viewMode === "channels") ? channels : filteredList;
 
-    let data = (viewMode === "categories") ? movieCats : (viewMode === "fav" ? favorites : (viewMode === "channels" ? channels : filteredList));
-
-    switch (e.key) {
-        case "ArrowUp":
-            if (menuFocused) {
-                if (menuIndex === 0) { searchActive = true; menuFocused = false; searchInput.focus(); searchInput.classList.add("focused"); }
-                else menuIndex--;
-            } else { selectedIndex = (selectedIndex - 1 + data.length) % data.length; renderList(); }
-            break;
-        case "ArrowDown":
-            if (menuFocused) menuIndex = (menuIndex + 1) % menuItems.length;
-            else { selectedIndex = (selectedIndex + 1) % data.length; renderList(); }
-            break;
-        case "ArrowRight": if (menuFocused) openCategory(); break;
-        case "ArrowLeft":
-            if (listOpen) { listOpen = false; menuFocused = true; channelList.style.display = "none"; posterPreview.style.display = "none"; }
-            break;
-        case "Enter":
-            if (menuFocused) openCategory();
-            else if (listOpen) {
-                const item = data[selectedIndex];
-                if (viewMode === "categories") {
-                    filteredList = movies.filter(m => m.genero === item || (item === "Lançamentos 2025" && m.ano == "2025"));
-                    viewMode = "list"; selectedIndex = 0; renderList();
-                } else playMedia(item);
+    if (menuFocused) {
+        if (e.key === "ArrowUp") {
+            if (menuIndex === 0) { searchActive = true; menuFocused = false; searchInput.focus(); searchInput.classList.add("focused"); }
+            else menuIndex--;
+        }
+        if (e.key === "ArrowDown") menuIndex = (menuIndex + 1) % menuItems.length;
+        if (e.key === "Enter" || e.key === "ArrowRight") openCategory();
+    } else if (listOpen) {
+        if (e.key === "ArrowUp") { selectedIndex = (selectedIndex - 1 + data.length) % data.length; renderList(); }
+        if (e.key === "ArrowDown") { selectedIndex = (selectedIndex + 1) % data.length; renderList(); }
+        if (e.key === "ArrowLeft") { listOpen = false; menuFocused = true; channelList.style.display = "none"; posterPreview.style.display = "none"; }
+        if (e.key === "Enter") {
+            const item = data[selectedIndex];
+            if (viewMode === "categories") {
+                filteredList = movies.filter(m => m.genero === item || (item === "Lançamentos 2025" && m.year == "2025"));
+                viewMode = "list"; selectedIndex = 0; renderList();
+            } else if (item.type === "serie") {
+                loadEpisodes(item);
+            } else {
+                playMedia(item);
             }
-            break;
-        case "f": // TECLA PARA FAVORITAR CONTEÚDO
-            if (listOpen && data[selectedIndex]) {
-                const item = data[selectedIndex];
-                const idx = favorites.findIndex(f => (f.url||f.link) === (item.url||item.link));
-                if(idx > -1) favorites.splice(idx,1); else favorites.push(item);
-                renderList();
-            }
-            break;
+        }
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex && !searchActive));
 });
 
-searchInput.addEventListener("input", (e) => {
-    const term = e.target.value.toLowerCase();
-    if (term.length > 0) {
+searchInput.addEventListener("input", e => {
+    const t = e.target.value.toLowerCase();
+    if (t.length > 0) {
         viewMode = "search"; listOpen = true; menuFocused = false; channelList.style.display = "block";
-        const all = [...channels, ...movies, ...series, ...kidsChannels, ...kidsMovies, ...kidsSeries];
-        filteredList = all.filter(i => (i.titulo || i.name || "").toLowerCase().includes(term));
+        filteredList = [...channels, ...movies, ...series].filter(i => (i.titulo||i.name||"").toLowerCase().includes(t));
         selectedIndex = 0; renderList();
     }
 });
 
 function loadM3U(path, array) {
     fetch(path).then(r => r.text()).then(text => {
-        const lines = text.split("\n");
-        let temp = null;
+        const lines = text.split("\n"); let temp = null;
         lines.forEach(l => {
-            if (l.startsWith("#EXTINF")) temp = { titulo: l.split(",").pop(), url: "" };
+            if (l.startsWith("#EXTINF")) temp = { titulo: l.split(",").pop(), url: "", type: "channel" };
             else if (l.startsWith("http") && temp) { temp.url = l; array.push(temp); temp = null; }
         });
-        // AUTO-PLAY DO PRIMEIRO CANAL RESTAURADO
         if (array === channels && channels.length > 0) playMedia(channels[0]);
     });
 }
@@ -254,6 +229,7 @@ function loadM3U(path, array) {
 window.onload = () => {
     loadM3U("data/canais.m3u", channels);
     loadM3U("data/kids_canais.m3u", kidsChannels);
+    // Aqui os JSONs de filmes e séries carregam normalmente
     fetch("data/filmes.json").then(r => r.json()).then(d => movies = d);
     fetch("data/series.json").then(r => r.json()).then(d => series = d);
     fetch("data/kids_filmes.json").then(r => r.json()).then(d => kidsMovies = d);
