@@ -8,6 +8,10 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
+    /* REMOVE BARRAS DE ROLAGEM GLOBALMENTE */
+    * { overflow: -moz-scrollbars-none; -ms-overflow-style: none; scrollbar-width: none; }
+    *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; background: transparent; }
+
     html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: Arial, sans-serif; height: 100%; overflow: hidden; }
     #app { display: flex; height: 100%; }
     #menu { width: 260px; background: #1a1a1a; display: flex; flex-direction: column; z-index: 30; padding: 12px; box-sizing: border-box; border-right: 1px solid #333; }
@@ -64,7 +68,7 @@ const menuItems = document.querySelectorAll(".menu-item");
 let channels = [], kidsChannels = [], movies = [], series = [], kidsMovies = [], kidsSeries = [], favorites = JSON.parse(localStorage.getItem("pflix_favs") || "[]");
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, listOpen = false, menuFocused = true, hls = null;
 
-const movieCategories = ["Lançamentos 2026","Lançamentos 2025","AÇÃO", "AVENTURA", "ANIME", "ANIMAÇÃO", "COMÉDIA", "DRAMA", "DORAMA", "SUSPENSE", "POLICIAL", "TERROR", "DOCUMENTÁRIOS", "FICÇÃO CIENTÍFICA", "CLÁSSICOS", "FAROESTE", "NACIONAL", "ROMANCE", "RELIGIOSO", "ADULTO"];
+const movieCategories = ["Lançamentos 2026","Lançamentos 2025","AÇÃO", "AVENTURA", "ANIME", "ANIMAÇÃO", "COMÉDIA", "DRAMA", "DORAMA", "SUSPENSE", "POLICIAL", "TERROR", "DOCUMENTÁRIOS", "FICCIÓN CIENTÍFICA", "CLÁSSICOS", "FAROESTE", "NACIONAL", "ROMANCE", "RELIGIOSO", "ADULTO"];
 
 function updateClock() {
     const d = new Date();
@@ -76,6 +80,9 @@ setInterval(updateClock, 1000); updateClock();
 function playMedia(url) {
     if (!url) return;
     if (hls) { hls.destroy(); hls = null; }
+    video.pause();
+    video.innerHTML = "";
+    
     if (Hls.isSupported() && (url.includes(".m3u8") || url.includes("stream"))) {
         hls = new Hls();
         hls.loadSource(url);
@@ -83,7 +90,7 @@ function playMedia(url) {
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
     } else {
         video.src = url;
-        video.load(); // Importante para trocar de filmes/séries
+        video.load();
         video.play().catch(() => {});
     }
 }
@@ -153,8 +160,8 @@ function openCategory() {
 }
 
 document.addEventListener("keydown", e => {
-    // Garante que o sistema está acordado para WebOS
-    if (video.paused) video.play().catch(()=>{});
+    // Mantém o vídeo ativo para evitar que a TV entre em standby
+    if (video.paused && listOpen) video.play().catch(()=>{});
 
     let data = (viewMode === "channels") ? channels : (viewMode === "kids_channels") ? kidsChannels : (viewMode === "fav") ? favorites : (viewMode === "categories") ? movieCategories : filteredList;
 
@@ -185,19 +192,18 @@ document.addEventListener("keydown", e => {
             }
             break;
         case "Enter":
-            if (menuFocused) openCategory();
-            else if (listOpen) {
+            if (menuFocused) {
+                openCategory();
+            } else if (listOpen) {
                 const item = data[selectedIndex];
                 if (viewMode === "categories") {
-                    const cat = item;
-                    filteredList = movies.filter(f => f.genero === cat || (cat.includes("Lançamentos") && f.genero === "Lançamentos" && f.year === cat.split(" ")[1]));
+                    filteredList = movies.filter(f => f.genero === item || (item.includes("Lançamentos") && f.genero === "Lançamentos" && f.year === item.split(" ")[1]));
                     viewMode = "movies"; selectedIndex = 0; renderList();
                 } else if (item) {
-                    // AJUSTE: Prioriza .link para filmes/séries e .url para canais
                     const mediaUrl = item.link || item.url;
                     if (mediaUrl) {
                         playMedia(mediaUrl);
-                        // Mantém a lista aberta para não travar a UI, apenas oculta visualmente se quiser
+                        // AQUI: Mantemos menuFocused = false e listOpen = true para evitar travamento da navegação
                     }
                 }
             }
@@ -209,10 +215,10 @@ document.addEventListener("keydown", e => {
 window.onload = () => {
     loadM3U("data/canais.m3u", channels, true);
     loadM3U("data/kids_canais.m3u", kidsChannels, false);
-    fetch("data/filmes.json").then(r => r.json()).then(d => movies = d).catch(e => console.error("Erro Filmes:", e));
-    fetch("data/series.json").then(r => r.json()).then(d => series = d).catch(e => console.error("Erro Series:", e));
-    fetch("data/kids_filmes.json").then(r => r.json()).then(d => kidsMovies = d).catch(e => console.error("Erro Kids Filmes:", e));
-    fetch("data/kids_series.json").then(r => r.json()).then(d => kidsSeries = d).catch(e => console.error("Erro Kids Series:", e));
+    fetch("data/filmes.json").then(r => r.json()).then(d => movies = d).catch(e => {});
+    fetch("data/series.json").then(r => r.json()).then(d => series = d).catch(e => {});
+    fetch("data/kids_filmes.json").then(r => r.json()).then(d => kidsMovies = d).catch(e => {});
+    fetch("data/kids_series.json").then(r => r.json()).then(d => kidsSeries = d).catch(e => {});
     window.focus();
 };
 </script>
