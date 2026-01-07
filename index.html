@@ -13,23 +13,30 @@
     *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; background: transparent; }
 
     html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: Arial, sans-serif; height: 100%; overflow: hidden; }
-    #app { display: flex; height: 100%; }
+    #app { display: flex; height: 100%; width: 100vw; }
     #menu { width: 260px; background: #1a1a1a; display: flex; flex-direction: column; z-index: 30; padding: 12px; box-sizing: border-box; border-right: 1px solid #333; }
     #menuHeader { padding: 15px 10px; text-align: center; border-bottom: 1px solid #222; margin-bottom: 15px; }
     #menuHeader img { height: 70px; object-fit: contain; }
     #clock { margin-top: 10px; font-size: 13px; color: #aaa; }
+    
     .menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #222; border: 1px solid #333; display: flex; align-items: center; color: #ccc; box-shadow: 0 3px 0 #000; cursor: pointer; }
     .menu-item i { margin-right: 12px; width: 20px; text-align: center; }
     .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; box-shadow: 0 0 10px rgba(255, 152, 0, 0.4), 0 3px 0 #b36b00; font-weight: bold; transform: scale(1.02); }
+    
     #content { flex: 1; position: relative; background: black; }
-    #videoContainer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5; }
+    
+    /* AJUSTE TELA CHEIA: O vídeo agora ignora o espaço do menu quando ativo */
+    #videoContainer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 5; }
     video { width: 100%; height: 100%; object-fit: contain; }
+    
     #channelList { position: absolute; top: 0; left: 0; width: 320px; height: 100%; background: rgba(0, 0, 0, 0.92); display: none; z-index: 40; overflow-y: auto; border-right: 1px solid #ff9800; }
     .channel { padding: 15px 20px; font-size: 16px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
     .channel.active { background: #ff9800; color: #000; font-weight: bold; }
+    
     .fav-icon { font-size: 14px; display: none; }
     .has-content .fav-icon { display: block; color: #888; }
     .is-fav .fav-icon { color: #ffeb3b !important; }
+    
     #posterPreview { position: absolute; top: 50%; left: 340px; transform: translateY(-50%); width: 300px; height: 450px; border-radius: 12px; z-index: 45; display: none; background: #222; object-fit: cover; border: 3px solid #ff9800; }
     .menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
     .menu-item.kids.active { background: linear-gradient(145deg, #ff9800, #f44336); color: #fff; }
@@ -64,6 +71,7 @@ const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
 const posterPreview = document.getElementById("posterPreview");
 const menuItems = document.querySelectorAll(".menu-item");
+const sideMenu = document.getElementById("menu");
 
 let channels = [], kidsChannels = [], movies = [], series = [], kidsMovies = [], kidsSeries = [], favorites = JSON.parse(localStorage.getItem("pflix_favs") || "[]");
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, listOpen = false, menuFocused = true, hls = null;
@@ -78,15 +86,16 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
-// AJUSTE: RECOLHER TUDO AO DAR PLAY
+// FUNÇÃO PLAY: LIMPA TUDO E EXIBE VÍDEO FULL
 function playMedia(url) {
     if (!url) return;
     
-    // Esconde a lista e o poster para focar no vídeo
+    // RECOLHE TUDO PARA TELA CHEIA
     listOpen = false;
-    menuFocused = false; 
+    menuFocused = false;
     channelList.style.display = "none";
     posterPreview.style.display = "none";
+    sideMenu.style.display = "none"; // Esconde o menu principal
 
     if (hls) { hls.destroy(); hls = null; }
     video.pause();
@@ -146,6 +155,7 @@ function renderList() {
 function openCategory() {
     const type = menuItems[menuIndex].getAttribute("data-type");
     listOpen = true; menuFocused = false; episodesMode = false;
+    sideMenu.style.display = "flex";
     channelList.style.display = "block";
     selectedIndex = 0;
     if (type === "channels") viewMode = "channels";
@@ -177,7 +187,8 @@ document.addEventListener("keydown", e => {
                 else if (viewMode === "movies" && menuItems[menuIndex].getAttribute("data-type") === "categories") { viewMode = "categories"; renderList(); }
                 else { listOpen = false; menuFocused = true; channelList.style.display = "none"; posterPreview.style.display = "none"; }
             } else {
-                menuFocused = true; // Abre o menu se apertar esquerda com vídeo rodando
+                sideMenu.style.display = "flex";
+                menuFocused = true; 
             }
             break;
         case "Enter":
@@ -193,8 +204,9 @@ document.addEventListener("keydown", e => {
                     playMedia(item.url || item.link);
                 }
             } else {
-                listOpen = true; // Reabre a lista se apertar Enter no vídeo
+                sideMenu.style.display = "flex";
                 channelList.style.display = "block";
+                listOpen = true;
                 renderList();
             }
             break;
