@@ -47,7 +47,7 @@ video { width: 100%; height: 100%; object-fit: contain; background: #000; }
 <div id="clock"></div>
 <div id="nowPlaying"><span>Assistindo agora</span><div id="currentTitle">...</div></div>
 </div>
-<div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
+<div id="searchBox"><input type="text" id="searchInput" inputmode="text" placeholder="Pesquisar..."></div>
 <div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
 <div class="menu-item" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
 <div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
@@ -96,13 +96,7 @@ function playMedia(item) {
     if (!item || (!item.url && !item.link)) return;
     const url = item.url || item.link;
     currentTitleDisplay.innerText = item.titulo || item.name;
-    
-    if(viewMode === "search") {
-        searchInput.value = ""; 
-        searchInput.blur(); 
-        searchInput.classList.remove("focused");
-    }
-    
+    if(viewMode === "search") { searchInput.value = ""; searchInput.blur(); searchInput.classList.remove("focused"); }
     channelList.style.display = "none"; posterPreview.style.display = "none";
     try { if (hls) { hls.destroy(); hls = null; } } catch(e){}
     video.pause(); video.src = url; video.load(); video.play().catch(()=>{});
@@ -126,20 +120,15 @@ function renderList() {
     else { posterPreview.style.display = "none"; }
 }
 
-// BUSCA GLOBAL EM TEMPO REAL
 searchInput.addEventListener("input", () => {
     const term = searchInput.value.toLowerCase().trim();
     if (term.length > 0) {
-        viewMode = "search";
-        menuFocused = false; 
-        channelList.style.display = "block";
+        viewMode = "search"; menuFocused = false; channelList.style.display = "block";
         const allContent = [...channels, ...movies, ...series, ...kidsChannels, ...kidsMovies, ...kidsSeries];
         filteredList = allContent.filter(item => (item.titulo || item.name || "").toLowerCase().includes(term));
-        selectedIndex = 0;
-        renderList();
+        selectedIndex = 0; renderList();
     } else if (viewMode === "search") {
-        filteredList = [];
-        renderList();
+        filteredList = []; renderList();
     }
 });
 
@@ -147,7 +136,6 @@ function handleAction() {
     let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     let data = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
     const item = data[selectedIndex];
-    
     if (viewMode === "categories" || viewMode === "series") {
         const isMovie = viewMode === "categories";
         const sourceData = isMovie ? movies : series;
@@ -159,9 +147,7 @@ function handleAction() {
             if (match && !seen.has(m.titulo)) { seen.add(m.titulo); return true; }
             return false;
         });
-        viewMode = isMovie ? "list" : "series_list"; 
-        selectedIndex = 0; 
-        renderList();
+        viewMode = isMovie ? "list" : "series_list"; selectedIndex = 0; renderList();
     } else playMedia(item);
 }
 
@@ -180,21 +166,28 @@ document.addEventListener("keydown", e => {
             if (menuFocused) {
                 if (menuIndex === 0) { 
                     menuIndex = -1; 
-                    searchInput.classList.add("focused");
-                    searchInput.focus(); // Teclado aparece automaticamente
-                } else if (menuIndex > 0) menuIndex--;
+                    searchInput.classList.add("focused"); 
+                    setTimeout(() => { searchInput.focus(); searchInput.select(); }, 10);
+                } else if (menuIndex === -1) { 
+                    menuIndex = menuItems.length - 1; 
+                    searchInput.classList.remove("focused"); 
+                    searchInput.blur();
+                } else menuIndex--;
             } else { selectedIndex = (selectedIndex - 1 + dataLen) % dataLen; renderList(); }
             break;
         case "ArrowDown":
             if (menuFocused) {
                 if (menuIndex === -1) { 
+                    menuIndex = 0; 
                     searchInput.value = ""; 
                     searchInput.blur(); 
                     searchInput.classList.remove("focused"); 
                     if(viewMode === "search") { channelList.style.display = "none"; viewMode = "channels"; }
-                    menuIndex = 0; 
-                }
-                else menuIndex = (menuIndex + 1) % menuItems.length;
+                } else if (menuIndex === menuItems.length - 1) { 
+                    menuIndex = -1; 
+                    searchInput.classList.add("focused"); 
+                    setTimeout(() => { searchInput.focus(); searchInput.select(); }, 10);
+                } else menuIndex++;
             } else { selectedIndex = (selectedIndex + 1) % dataLen; renderList(); }
             break;
         case "ArrowLeft":
@@ -218,11 +211,8 @@ document.addEventListener("keydown", e => {
             }
             break;
         case "Enter":
-            if (menuIndex === -1 && menuFocused) {
-                if (filteredList.length > 0) menuFocused = false;
-            } else if (!menuFocused) {
-                handleAction();
-            }
+            if (menuIndex === -1 && menuFocused) { if (filteredList.length > 0) menuFocused = false; }
+            else if (!menuFocused) handleAction();
             break;
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
@@ -240,8 +230,7 @@ function loadM3U(path, array) {
 }
 
 window.onload = () => {
-    loadM3U("data/canais.m3u", channels);
-    loadM3U("data/kids_canais.m3u", kidsChannels);
+    loadM3U("data/canais.m3u", channels); loadM3U("data/kids_canais.m3u", kidsChannels);
     fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d);
     fetch("data/series.json").then(r=>r.json()).then(d=>series=d);
     fetch("data/kids_filmes.json").then(r=>r.json()).then(d=>kidsMovies=d);
