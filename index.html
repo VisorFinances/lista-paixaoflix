@@ -9,10 +9,14 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
+    /* RESET E PERFORMANCE */
     * { overflow: -moz-scrollbars-none; -ms-overflow-style: none; scrollbar-width: none; touch-action: manipulation; }
     *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
     html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: Arial, sans-serif; height: 100%; overflow: hidden; width: 100%; }
+    
     #app { display: flex; height: 100%; width: 100%; position: relative; }
+    
+    /* MENU CONGELADO */
     #menu { width: 280px; background: #1a1a1a; display: flex; flex-direction: column; z-index: 100; padding: 12px; box-sizing: border-box; border-right: 1px solid #333; height: 100%; }
     #menuHeader { padding: 15px 10px; text-align: center; border-bottom: 1px solid #222; margin-bottom: 15px; }
     #menuHeader img { height: 95px; width: auto; object-fit: contain; }
@@ -20,20 +24,26 @@
     #nowPlaying { margin: 15px 0; text-align: center; }
     #nowPlaying span { display: block; font-size: 13px; color: #fff; font-weight: 700; margin-bottom: 5px; }
     #currentTitle { display: inline-block; padding: 4px 10px; color: #fff; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 400; background: rgba(0,0,0,0.6); border-radius: 4px; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    
     #searchBox { margin-bottom: 15px; }
     #searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; outline: none; box-sizing: border-box; font-size: 14px; }
     #searchInput.focused { border-color: #ff9800; background: #222; }
+
     .menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #222; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
     .menu-item i { margin-right: 12px; width: 20px; text-align: center; }
     .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; }
     .menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
+
+    /* ÁREA DE VÍDEO E CARDS */
     #content { position: absolute; top: 0; left: 280px; width: calc(100% - 280px); height: 100%; z-index: 10; background: black; display: flex; justify-content: center; align-items: center; }
-    #videoContainer { width: 100%; height: 56.25vw; max-height: 100vh; background: #000; }
+    #videoContainer { width: 100%; height: 100%; background: #000; position: relative; }
     video { width: 100%; height: 100%; object-fit: contain; background: #000; }
-    #channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: auto; border-right: 1px solid #ff9800; }
+
+    #channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: auto; border-right: 1px solid #ff9800; contain: strict; }
     .channel { padding: 15px 20px; font-size: 16px; border-bottom: 1px solid #222; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
     .channel.active { background: #ff9800 !important; color: #000 !important; font-weight: bold; }
-    #posterPreview { position: absolute; top: 50%; left: 360px; transform: translateY(-50%); width: 300px; height: 450px; border-radius: 12px; z-index: 120; display: none; background: #222; object-fit: cover; border: 3px solid #ff9800; pointer-events: none; }
+    
+    #posterPreview { position: absolute; top: 50%; left: 360px; transform: translateY(-50%); width: 300px; height: 450px; border-radius: 12px; z-index: 120; display: none; background: #222; object-fit: cover; border: 3px solid #ff9800; pointer-events: none; contain: strict; }
 </style>
 </head>
 
@@ -41,11 +51,11 @@
 <div id="app">
     <div id="menu">
         <div id="menuHeader">
-            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
+            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" loading="eager">
             <div id="clock"></div>
             <div id="nowPlaying"><span>Assistindo agora</span><div id="currentTitle">...</div></div>
         </div>
-        <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
+        <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..." autocomplete="off"></div>
         <div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
         <div class="menu-item" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
         <div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
@@ -55,9 +65,9 @@
         <div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
     </div>
     <div id="content">
-        <div id="videoContainer"><video id="video" autoplay playsinline></video></div>
+        <div id="videoContainer"><video id="video" autoplay playsinline crossorigin="anonymous"></video></div>
         <div id="channelList"></div>
-        <img id="posterPreview">
+        <img id="posterPreview" loading="lazy">
     </div>
 </div>
 
@@ -82,6 +92,7 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
+// ATO 2: PLAYER BLINDADO PARA CINEMA E SÉRIES PESADAS
 function playMedia(item) {
     if (!item || (!item.url && !item.link)) return;
     const url = item.url || item.link;
@@ -91,37 +102,37 @@ function playMedia(item) {
     channelList.style.display = "none";
     posterPreview.style.display = "none";
 
-    // RESET TOTAL DO PLAYER (Prevenção de Tela Preta)
+    // Destruição total para liberar RAM
     if (hls) { hls.destroy(); hls = null; }
     video.pause();
     video.src = "";
-    video.removeAttribute("src");
     video.load();
 
-    // SAFE START: Delay necessário para Smart TVs limparem o cache de vídeo
     setTimeout(() => {
         if (Hls.isSupported() && (url.includes(".m3u8") || url.includes("stream"))) {
             hls = new Hls({ 
                 enableWorker: true,
-                lowLatencyMode: false,
-                backBufferLength: 0 // Limpa buffer antigo para liberar RAM
+                maxBufferLength: 60, // Aumentado para 60 segundos de "gordura"
+                maxMaxBufferLength: 120,
+                startLevel: -1, 
+                abandonNextLevelRetry: 3
             });
             hls.loadSource(url);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
         } else {
-            // Para MP4 de Cinema: Força o recarregamento do elemento
+            // Para MP4/Cinema: Força o browser a ignorar cache e focar no stream
             video.src = url;
-            video.play().catch(e => {
-                console.log("Erro Play, tentando recarregar...");
-                video.load(); video.play();
+            video.play().catch(() => {
+                video.muted = true; // Chrome às vezes exige mudo para destravar tela preta
+                video.play();
             });
         }
-    }, 500); 
+    }, 600); // Delay maior para a TV LG limpar o buffer anterior
 }
 
 async function loadEpisodes(serie) {
-    currentTitleDisplay.innerText = "Sincronizando...";
+    currentTitleDisplay.innerText = "Carregando...";
     try {
         const r = await fetch(`https://archive.org/metadata/${serie.identificador_archive}`);
         const d = await r.json();
@@ -142,17 +153,23 @@ function renderList() {
     else if (viewMode === "fav") data = favorites;
     else data = filteredList;
 
+    const fragment = document.createDocumentFragment();
     data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
         div.innerHTML = `<span>${item.titulo || item.name || item}</span>`;
         div.onclick = () => { selectedIndex = i; handleAction(); };
-        channelList.appendChild(div);
+        fragment.appendChild(div);
     });
+    channelList.appendChild(fragment);
 
     const cur = data[selectedIndex];
-    if (listOpen && cur?.poster) { posterPreview.src = cur.poster; posterPreview.style.display = "block"; } 
-    else { posterPreview.style.display = "none"; }
+    if (listOpen && cur?.poster) { 
+        posterPreview.src = cur.poster; 
+        posterPreview.style.display = "block"; 
+    } else { 
+        posterPreview.style.display = "none"; 
+    }
     
     const active = channelList.querySelector(".active");
     if (active) active.scrollIntoView({ block: "center" });
@@ -161,7 +178,6 @@ function renderList() {
 function handleAction() {
     let data = (viewMode === "categories") ? movieCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList));
     const item = data[selectedIndex];
-
     if (viewMode === "categories") {
         const seen = new Set();
         if (item.includes("2025")) filteredList = movies.filter(m => m.year === "2025" && !seen.has(m.titulo) && seen.add(m.titulo));
