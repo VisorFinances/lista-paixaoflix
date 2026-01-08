@@ -30,7 +30,7 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 #content { position: absolute; top: 0; left: 280px; width: calc(100% - 280px); height: 100%; z-index: 10; background: black; display: flex; justify-content: center; align-items: center; }
 #videoContainer { width: 100%; height: 56.25vw; max-height: 100vh; background: #000; }
 video { width: 100%; height: 100%; object-fit: contain; background: #000; }
-#channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: auto; border-right: 1px solid #ff9800; }
+#channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: scroll; border-right: 1px solid #ff9800; }
 .channel { padding: 15px 20px; font-size: 16px; border-bottom: 1px solid #222; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
 .channel.active { background: #ff9800 !important; color: #000 !important; font-weight: bold; }
 .fav-btn { color: #555; transition: 0.3s; }
@@ -114,6 +114,18 @@ function renderList() {
         const favIcon = (viewMode !== "categories" && viewMode !== "series") ? `<i class="fas fa-star fav-btn ${isFav?'active':''}"></i>` : "";
         div.innerHTML = `<span>${item.titulo || item.name || item}</span> ${favIcon}`;
         channelList.appendChild(div);
+        
+        if (i === selectedIndex && !menuFocused) {
+            // CÁLCULO DE ROLAGEM FORÇADA
+            const containerHeight = channelList.offsetHeight;
+            const itemTop = div.offsetTop;
+            const itemHeight = div.offsetHeight;
+            if (itemTop < channelList.scrollTop) {
+                channelList.scrollTop = itemTop;
+            } else if (itemTop + itemHeight > channelList.scrollTop + containerHeight) {
+                channelList.scrollTop = itemTop - containerHeight + itemHeight;
+            }
+        }
     });
     const cur = data[selectedIndex];
     if (!menuFocused && cur?.poster) { posterPreview.src = cur.poster; posterPreview.style.display = "block"; } 
@@ -155,38 +167,26 @@ document.addEventListener("keydown", e => {
     let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     let dataLen = (viewMode === "categories" ? movieCats.length : (viewMode === "series" ? seriesCats.length : (viewMode === "channels" ? channels.length : (viewMode === "fav" ? favorites.length : filteredList.length))));
     
-    if(e.key.toLowerCase() === 'f') { 
-        let data = (viewMode === "categories" || viewMode === "series") ? null : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList));
-        if(data && data[selectedIndex]) toggleFav(data[selectedIndex]);
-        return;
-    }
-
     switch(e.key){
         case "ArrowUp":
             if (menuFocused) {
                 if (menuIndex === 0) { 
-                    menuIndex = -1; 
-                    searchInput.classList.add("focused"); 
-                    setTimeout(() => { searchInput.focus(); searchInput.select(); }, 10);
+                    menuIndex = -1; searchInput.classList.add("focused"); 
+                    setTimeout(() => { searchInput.focus(); }, 10);
                 } else if (menuIndex === -1) { 
                     menuIndex = menuItems.length - 1; 
-                    searchInput.classList.remove("focused"); 
-                    searchInput.blur();
+                    searchInput.classList.remove("focused"); searchInput.blur();
                 } else menuIndex--;
             } else { selectedIndex = (selectedIndex - 1 + dataLen) % dataLen; renderList(); }
             break;
         case "ArrowDown":
             if (menuFocused) {
                 if (menuIndex === -1) { 
-                    menuIndex = 0; 
-                    searchInput.value = ""; 
-                    searchInput.blur(); 
-                    searchInput.classList.remove("focused"); 
+                    menuIndex = 0; searchInput.value = ""; searchInput.blur(); searchInput.classList.remove("focused"); 
                     if(viewMode === "search") { channelList.style.display = "none"; viewMode = "channels"; }
                 } else if (menuIndex === menuItems.length - 1) { 
-                    menuIndex = -1; 
-                    searchInput.classList.add("focused"); 
-                    setTimeout(() => { searchInput.focus(); searchInput.select(); }, 10);
+                    menuIndex = -1; searchInput.classList.add("focused"); 
+                    setTimeout(() => { searchInput.focus(); }, 10);
                 } else menuIndex++;
             } else { selectedIndex = (selectedIndex + 1) % dataLen; renderList(); }
             break;
