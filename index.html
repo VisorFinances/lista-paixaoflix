@@ -8,15 +8,15 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-    * { overflow: none; -ms-overflow-style: none; scrollbar-width: none; touch-action: manipulation; box-sizing: border-box; }
+    * { overflow: hidden; -ms-overflow-style: none; scrollbar-width: none; touch-action: manipulation; box-sizing: border-box; }
     *::-webkit-scrollbar { display: none !important; }
-    html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: Arial, sans-serif; height: 100vh; width: 100vw; overflow: hidden; }
+    html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: Arial, sans-serif; height: 100vh; width: 100vw; }
     
     #app { display: flex; height: 100%; width: 100%; }
     
     #menu { width: 280px; background: #1a1a1a; display: flex; flex-direction: column; z-index: 100; padding: 12px; border-right: 1px solid #333; height: 100%; }
     #menuHeader { padding: 15px 10px; text-align: center; }
-    #menuHeader img { width: 160px; height: auto; object-fit: contain; }
+    #menuHeader img { width: 160px; height: auto; }
     #clock { margin-top: 10px; font-size: 13px; color: #aaa; }
     
     #nowPlaying { margin: 15px 0; text-align: center; }
@@ -25,14 +25,14 @@
 
     #searchBox { margin-bottom: 15px; }
     #searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; outline: none; }
-    #searchInput.focused { border-color: #ff9800; }
+    #searchInput.focused { border-color: #ff9800; background: #222; }
 
     .menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #222; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
     .menu-item i { margin-right: 12px; width: 20px; text-align: center; }
-    .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; }
+    .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; }
     
-    /* CATEGORIAS KIDS */
-    .menu-item.kids { color: #ffeb3b; }
+    /* CORES KIDS ORIGINAIS */
+    .menu-item.kids { color: #ffeb3b; border-left: 3px solid #ffeb3b; }
     .menu-item.kids i { color: #ffeb3b; }
 
     #content { flex-grow: 1; height: 100vh; background: black; position: relative; }
@@ -41,9 +41,9 @@
 
     #channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0,0,0,0.98); display: none; z-index: 110; overflow-y: auto; border-right: 1px solid #ff9800; }
     .channel { padding: 15px 20px; font-size: 16px; border-bottom: 1px solid #222; color: #fff; cursor: pointer; }
-    .channel.active { background: #ff9800 !important; color: #000 !important; }
+    .channel.active { background: #ff9800 !important; color: #000 !important; font-weight: bold; }
     
-    #posterPreview { position: absolute; top: 50%; left: 360px; transform: translateY(-50%); width: 280px; height: 400px; border-radius: 12px; z-index: 120; display: none; background: #222; object-fit: cover; border: 3px solid #ff9800; pointer-events: none; }
+    #posterPreview { position: absolute; top: 50%; left: 360px; transform: translateY(-50%); width: 300px; height: 450px; border-radius: 12px; z-index: 120; display: none; background: #222; object-fit: cover; border: 3px solid #ff9800; pointer-events: none; }
 </style>
 </head>
 
@@ -65,7 +65,7 @@
         <div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
     </div>
     <div id="content">
-        <div id="videoContainer"><video id="video" autoplay playsinline></video></div>
+        <div id="videoContainer"><video id="video" autoplay playsinline preload="auto"></video></div>
         <div id="channelList"></div>
         <img id="posterPreview">
     </div>
@@ -83,9 +83,12 @@ let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [],
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0;
 let listOpen = false, menuFocused = true, hls = null, searchActive = false;
 
+// CATEGORIAS DE CINEMA ORIGINAIS (RECUPERADAS)
+const movieCats = ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICCIÓN CIENTÍFICA","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
+
 function updateClock() {
     const d = new Date();
-    document.getElementById("clock").innerText = d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}) + " | " + d.toLocaleDateString('pt-BR');
+    document.getElementById("clock").innerText = d.toLocaleString('pt-BR');
 }
 setInterval(updateClock, 1000); updateClock();
 
@@ -94,7 +97,7 @@ function playMedia(item) {
     const url = item.url || item.link;
     currentTitleDisplay.innerText = item.titulo || item.name;
     
-    // FECHA TUDO PARA NÃO TRAVAR O CARD NA TELA
+    // FECHA TUDO IMEDIATAMENTE PARA NÃO TRAVAR
     listOpen = false;
     channelList.style.display = "none";
     posterPreview.style.display = "none";
@@ -106,31 +109,34 @@ function playMedia(item) {
 
     setTimeout(() => {
         if (Hls.isSupported() && (url.includes(".m3u8") || url.includes("stream"))) {
-            hls = new Hls();
+            hls = new Hls({ maxBufferLength: 60, maxMaxBufferLength: 120 });
             hls.loadSource(url);
             hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => { video.muted = false; video.play(); });
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
         } else {
             video.src = url;
-            video.muted = false;
             video.play().catch(() => { video.muted = true; video.play(); });
         }
-    }, 300);
+    }, 400);
 }
 
 function renderList() {
     channelList.innerHTML = "";
-    let data = (viewMode === "categories") ? ["AÇÃO","COMÉDIA","DRAMA","TERROR","Lançamentos 2025"] : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList));
+    let data;
+    if (viewMode === "categories") data = movieCats;
+    else if (viewMode === "channels") data = channels;
+    else if (viewMode === "fav") data = favorites;
+    else data = filteredList;
 
     data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
         div.innerText = item.titulo || item.name || item;
         
-        // TOQUE CELULAR E CLIQUE MOUSE
-        const action = (e) => { e.preventDefault(); selectedIndex = i; handleAction(); };
-        div.addEventListener("click", action);
-        div.addEventListener("touchstart", action);
+        // TOQUE E CLIQUE
+        const handle = (e) => { e.preventDefault(); selectedIndex = i; handleAction(); };
+        div.addEventListener("click", handle);
+        div.addEventListener("touchstart", handle);
         
         channelList.appendChild(div);
     });
@@ -144,11 +150,11 @@ function renderList() {
 }
 
 async function handleAction() {
-    let data = (viewMode === "categories") ? ["AÇÃO","COMÉDIA","DRAMA","TERROR","Lançamentos 2025"] : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList));
+    let data = (viewMode === "categories") ? movieCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList));
     const item = data[selectedIndex];
 
     if (viewMode === "categories") {
-        filteredList = movies.filter(m => m.genero === item);
+        filteredList = movies.filter(m => m.genero === item || (item.includes("20") && m.year === item.split(" ").pop()));
         viewMode = "list"; selectedIndex = 0; renderList();
     } else if (item.identificador_archive) {
         const r = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
@@ -164,23 +170,23 @@ async function handleAction() {
     }
 }
 
-// PESQUISA E NAVEGAÇÃO
+// NAVEGAÇÃO E PESQUISA ORIGINAL
 document.addEventListener("keydown", e => {
     if (searchActive) {
         if (e.key === "ArrowDown") { 
             searchActive = false; searchInput.value = ""; searchInput.blur(); 
-            searchInput.classList.remove("focused"); menuFocused = true; channelList.style.display = "none"; 
+            searchInput.classList.remove("focused"); menuFocused = true; 
         }
         return;
     }
     switch(e.key) {
         case "ArrowUp":
             if (menuFocused) { if(menuIndex == 0){ searchActive=true; searchInput.focus(); searchInput.classList.add("focused"); } else menuIndex--; }
-            else { selectedIndex = (selectedIndex - 1 + 100) % 100; renderList(); }
+            else { selectedIndex = (selectedIndex - 1 + filteredList.length) % filteredList.length; renderList(); }
             break;
         case "ArrowDown":
             if (menuFocused) menuIndex = (menuIndex + 1) % menuItems.length;
-            else { selectedIndex = (selectedIndex + 1) % 100; renderList(); }
+            else { selectedIndex = (selectedIndex + 1) % filteredList.length; renderList(); }
             break;
         case "ArrowLeft": if(!menuFocused){ listOpen=false; menuFocused=true; channelList.style.display="none"; posterPreview.style.display="none"; } break;
         case "Enter":
@@ -189,19 +195,17 @@ document.addEventListener("keydown", e => {
                 const type = menuItems[menuIndex].getAttribute("data-type");
                 listOpen=true; menuFocused=false; selectedIndex=0; channelList.style.display="block";
                 if(type=="channels") viewMode="channels";
+                else if(type=="fav") viewMode="fav";
                 else if(type=="categories") viewMode="categories";
                 else if(type=="series") { viewMode="list"; filteredList=series; }
-                else if(type.includes("kids")) { viewMode="list"; filteredList=kidsChannels; }
+                else if(type=="kids_channels") { viewMode="list"; filteredList=kidsChannels; }
+                else if(type=="kids_movies") { viewMode="list"; filteredList=kidsMovies; }
+                else if(type=="kids_series") { viewMode="list"; filteredList=kidsSeries; }
                 renderList();
             } else handleAction();
             break;
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex && !searchActive));
-});
-
-// TOQUE NO MENU LATERAL
-menuItems.forEach((item, i) => {
-    item.addEventListener("click", () => { menuIndex = i; menuFocused = true; });
 });
 
 function loadM3U(path, array) {
@@ -217,8 +221,11 @@ function loadM3U(path, array) {
 
 window.onload = () => {
     loadM3U("data/canais.m3u", channels);
+    loadM3U("data/kids_canais.m3u", kidsChannels);
     fetch("data/filmes.json").then(r => r.json()).then(d => movies = d);
     fetch("data/series.json").then(r => r.json()).then(d => series = d);
+    fetch("data/kids_filmes.json").then(r => r.json()).then(d => kidsMovies = d);
+    fetch("data/kids_series.json").then(r => r.json()).then(d => kidsSeries = d);
 };
 </script>
 </body>
