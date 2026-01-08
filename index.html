@@ -124,7 +124,12 @@ function handleAction() {
     if (viewMode === "categories") {
         const seen = new Set();
         filteredList = movies.filter(m => {
-            const match = item.includes("2025") ? m.year==="2025" : item.includes("2026") ? m.year==="2026" : m.genero===item;
+            // CORREÇÃO: Compara os nomes ignorando maiúsculas e minúsculas e remove espaços.
+            let catName = item.toUpperCase().trim();
+            let movieGen = (m.genero || "").toUpperCase().trim();
+            
+            const match = catName.includes("2025") ? m.year==="2025" : catName.includes("2026") ? m.year==="2026" : movieGen === catName;
+            
             if (match && !seen.has(m.titulo)) { seen.add(m.titulo); return true; }
             return false;
         });
@@ -135,7 +140,7 @@ function handleAction() {
 document.addEventListener("keydown", e => {
     let dataLen = (viewMode === "categories" ? movieCats.length : (viewMode === "channels" ? channels.length : (viewMode === "fav" ? favorites.length : filteredList.length)));
     
-    if(e.key.toLowerCase() === 'f') { // Tecla F para favoritar
+    if(e.key.toLowerCase() === 'f') { 
         let data = viewMode === "categories" ? null : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList));
         if(data && data[selectedIndex]) toggleFav(data[selectedIndex]);
         return;
@@ -182,9 +187,11 @@ function loadM3U(path, array) {
     fetch(path).then(r=>r.text()).then(text=>{
         let temp=null;
         text.split("\n").forEach(l=>{
-            if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop()};
-            else if(l.startsWith("http") && temp){ temp.url=l; array.push(temp); temp=null; }
+            if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop().trim()};
+            else if(l.startsWith("http") && temp){ temp.url=l.trim(); array.push(temp); temp=null; }
         });
+        // AUTOPLAY: Ao carregar canais, se for o primeiro carregamento, toca o primeiro canal.
+        if(array === channels && channels.length > 0 && !video.src) playMedia(channels[0]);
     });
 }
 
