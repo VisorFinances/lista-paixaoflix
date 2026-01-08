@@ -97,8 +97,11 @@ function playMedia(item) {
     const url = item.url || item.link;
     currentTitleDisplay.innerText = item.titulo || item.name;
     
-    // Limpeza da busca ao dar OK (Play)
-    searchInput.value = ""; searchInput.blur(); searchInput.classList.remove("focused");
+    if(viewMode === "search") {
+        searchInput.value = ""; 
+        searchInput.blur(); 
+        searchInput.classList.remove("focused");
+    }
     
     channelList.style.display = "none"; posterPreview.style.display = "none";
     try { if (hls) { hls.destroy(); hls = null; } } catch(e){}
@@ -108,7 +111,7 @@ function playMedia(item) {
 function renderList() {
     channelList.innerHTML = "";
     let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    let data = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : (viewMode === "search" ? filteredList : filteredList))));
+    let data = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
     
     data.forEach((item, i) => {
         const div = document.createElement("div");
@@ -123,7 +126,7 @@ function renderList() {
     else { posterPreview.style.display = "none"; }
 }
 
-// Lógica de Busca Global em Tempo Real
+// BUSCA GLOBAL EM TEMPO REAL
 searchInput.addEventListener("input", () => {
     const term = searchInput.value.toLowerCase().trim();
     if (term.length > 0) {
@@ -134,7 +137,7 @@ searchInput.addEventListener("input", () => {
         filteredList = allContent.filter(item => (item.titulo || item.name || "").toLowerCase().includes(term));
         selectedIndex = 0;
         renderList();
-    } else {
+    } else if (viewMode === "search") {
         filteredList = [];
         renderList();
     }
@@ -159,14 +162,7 @@ function handleAction() {
         viewMode = isMovie ? "list" : "series_list"; 
         selectedIndex = 0; 
         renderList();
-    } else {
-        playMedia(item);
-        // Reseta busca ao selecionar
-        if(viewMode === "search") {
-            searchInput.value = "";
-            viewMode = "channels";
-        }
-    }
+    } else playMedia(item);
 }
 
 document.addEventListener("keydown", e => {
@@ -184,19 +180,18 @@ document.addEventListener("keydown", e => {
             if (menuFocused) {
                 if (menuIndex === 0) { 
                     menuIndex = -1; 
-                    searchInput.focus(); 
-                    searchInput.classList.add("focused"); 
+                    searchInput.classList.add("focused");
+                    searchInput.focus(); // Teclado aparece automaticamente
                 } else if (menuIndex > 0) menuIndex--;
             } else { selectedIndex = (selectedIndex - 1 + dataLen) % dataLen; renderList(); }
             break;
         case "ArrowDown":
             if (menuFocused) {
                 if (menuIndex === -1) { 
-                    // Saindo da caixa de pesquisa para baixo: Limpa tudo
                     searchInput.value = ""; 
                     searchInput.blur(); 
                     searchInput.classList.remove("focused"); 
-                    channelList.style.display = "none";
+                    if(viewMode === "search") { channelList.style.display = "none"; viewMode = "channels"; }
                     menuIndex = 0; 
                 }
                 else menuIndex = (menuIndex + 1) % menuItems.length;
@@ -208,7 +203,7 @@ document.addEventListener("keydown", e => {
                 else if (viewMode === "series_list") { viewMode = "series"; selectedIndex = 0; renderList(); }
                 else {
                     menuFocused = true; channelList.style.display = "none"; posterPreview.style.display = "none";
-                    if(viewMode === "search") { searchInput.value = ""; searchInput.blur(); searchInput.classList.remove("focused"); }
+                    if(viewMode === "search") { searchInput.value = ""; searchInput.blur(); searchInput.classList.remove("focused"); viewMode = "channels"; }
                 }
             }
             break;
@@ -216,12 +211,14 @@ document.addEventListener("keydown", e => {
             if (menuFocused && menuIndex !== -1) {
                 menuFocused = false; channelList.style.display = "block";
                 viewMode = menuItems[menuIndex].dataset.type;
+                if(viewMode === "kids_channels") filteredList = kidsChannels;
+                else if(viewMode === "kids_movies") filteredList = kidsMovies;
+                else if(viewMode === "kids_series") filteredList = kidsSeries;
                 selectedIndex = 0; renderList();
             }
             break;
         case "Enter":
             if (menuIndex === -1 && menuFocused) {
-                // Ao apertar OK na busca, se houver algo na lista, foca na lista
                 if (filteredList.length > 0) menuFocused = false;
             } else if (!menuFocused) {
                 handleAction();
