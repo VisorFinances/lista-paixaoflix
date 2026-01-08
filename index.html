@@ -113,22 +113,25 @@ function renderList() {
 
 function handleAction() {
     let data = viewMode === "categories" ? movieCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList));
-    const item = data[selectedIndex];
+    const catSelecionada = data[selectedIndex];
 
     if (viewMode === "categories") {
         const seen = new Set();
         filteredList = movies.filter(m => {
-            // Lógica de Filtro Corrigida para bater com o seu JSON
             let match = false;
-            if (item === "Lançamentos 2025") match = (m.year === "2025");
-            else if (item === "Lançamentos 2026") match = (m.year === "2026");
-            else match = (m.genero === item);
+            const itemCat = catSelecionada.toUpperCase().trim();
+            const movieGen = (m.genero || "").toUpperCase().trim();
+            const movieYear = String(m.year || "").trim();
+
+            if (itemCat === "LANÇAMENTOS 2025") match = (movieYear === "2025");
+            else if (itemCat === "LANÇAMENTOS 2026") match = (movieYear === "2026");
+            else match = (movieGen === itemCat);
 
             if (match && !seen.has(m.titulo)) { seen.add(m.titulo); return true; }
             return false;
         });
         viewMode = "list"; selectedIndex = 0; renderList();
-    } else playMedia(item);
+    } else playMedia(catSelecionada);
 }
 
 document.addEventListener("keydown", e => {
@@ -178,16 +181,16 @@ function loadM3U(path, array) {
             else if(l.startsWith("http") && temp){ temp.url=l; array.push(temp); temp=null; }
         });
         if(array===channels && channels.length) playMedia(channels[0]);
-    }).catch(e => console.error("Erro M3U:", path));
+    }).catch(e => console.log("M3U off:", path));
 }
 
 window.onload = () => {
     loadM3U("data/canais.m3u", channels);
     loadM3U("data/kids_canais.m3u", kidsChannels);
-    fetch("data/filmes.json").then(r=>r.json()).then(d => { movies = d; }).catch(e => console.error("Erro Filmes:", e));
-    fetch("data/series.json").then(r=>r.json()).then(d => { series = d; });
-    fetch("data/kids_filmes.json").then(r=>r.json()).then(d => { kidsMovies = d; });
-    fetch("data/kids_series.json").then(r=>r.json()).then(d => { kidsSeries = d; });
+    fetch("data/filmes.json").then(r=>r.json()).then(d => { movies = d; }).catch(e => console.log("Erro JSON Filmes:", e));
+    fetch("data/series.json").then(r=>r.json()).then(d => { series = d; }).catch(e => {});
+    fetch("data/kids_filmes.json").then(r=>r.json()).then(d => { kidsMovies = d; }).catch(e => {});
+    fetch("data/kids_series.json").then(r=>r.json()).then(d => { kidsSeries = d; }).catch(e => {});
 };
 </script>
 </body>
