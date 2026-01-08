@@ -9,90 +9,115 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-* { overflow: -moz-scrollbars-none; -ms-overflow-style: none; scrollbar-width: none; touch-action: manipulation; }
-*::-webkit-scrollbar { display: none !important; }
-html, body { margin:0; padding:0; background:#000; color:#fff; height:100%; overflow:hidden; }
-#app { display:flex; height:100%; }
-#menu { width:280px; background:#1a1a1a; padding:12px; box-sizing:border-box; }
-#content { position:absolute; left:280px; width:calc(100% - 280px); height:100%; display:flex; justify-content:center; align-items:center; }
-#videoContainer { width:100%; height:56.25vw; max-height:100vh; background:#000; }
-video { width:100%; height:100%; background:#000; object-fit:contain; }
-#channelList { position:absolute; width:340px; height:100%; background:#000; display:none; overflow-y:auto; }
-.channel { padding:15px; cursor:pointer; }
-.channel.active { background:#ff9800; color:#000; }
-#posterPreview { position:absolute; width:300px; height:450px; display:none; }
+* { overflow: -moz-scrollbars-none; scrollbar-width: none; }
+*::-webkit-scrollbar { display:none; }
+html,body{margin:0;padding:0;background:#000;color:#fff;height:100%;overflow:hidden}
+#app{display:flex;height:100%}
+#menu{width:280px;background:#1a1a1a;padding:12px}
+#content{position:absolute;left:280px;width:calc(100% - 280px);height:100%;display:flex;justify-content:center;align-items:center}
+#videoContainer{width:100%;height:56.25vw;max-height:100vh;background:#000}
+video{width:100%;height:100%;background:#000;object-fit:contain}
+#channelList{position:absolute;width:340px;height:100%;background:#000;display:none;overflow-y:auto}
+.channel{padding:15px;cursor:pointer}
+.channel.active{background:#ff9800;color:#000}
 </style>
 </head>
 
 <body>
 <div id="app">
-    <div id="menu">
-        <div id="menuHeader">
-            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" height="95">
-            <div id="clock"></div>
-            <div id="nowPlaying">
-                <span>Assistindo agora</span>
-                <div id="currentTitle">...</div>
-            </div>
-        </div>
-        <input id="searchInput" placeholder="Pesquisar...">
-        <div class="menu-item active" data-type="channels">TV ao vivo</div>
-        <div class="menu-item" data-type="fav">Favoritos</div>
-        <div class="menu-item" data-type="categories">Cinema</div>
-        <div class="menu-item" data-type="series">Séries</div>
-    </div>
+<div id="menu">
+<img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" height="90">
+<div id="currentTitle">...</div>
+</div>
 
-    <div id="content">
-        <div id="videoContainer">
-            <!-- CONTROLS ADICIONADO (ESSENCIAL PARA MP4 EM TV) -->
-            <video id="video" autoplay playsinline controls></video>
-        </div>
-        <div id="channelList"></div>
-        <img id="posterPreview">
-    </div>
+<div id="content">
+<div id="videoContainer">
+<video id="video" autoplay playsinline></video>
+</div>
+<div id="channelList"></div>
+</div>
 </div>
 
 <script>
+/* ================= PLAYER CONTROLLER ================= */
+
 const video = document.getElementById("video");
 let hls = null;
+let playState = "idle";
+let retryCount = 0;
 
-function playMedia(item) {
-    const url = item.url || item.link;
-    if (!url) return;
+function requestFullscreen() {
+    if (video.requestFullscreen) video.requestFullscreen();
+    else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+}
 
+function resetPlayer() {
     if (hls) { hls.destroy(); hls = null; }
     video.pause();
-    video.src = "";
+    video.removeAttribute("src");
     video.load();
+    retryCount = 0;
+}
 
-    const isHLS = url.includes(".m3u8");
+function safePlay() {
+    video.play().then(() => {
+        playState = "playing";
+    }).catch(() => {
+        if (retryCount < 3) {
+            retryCount++;
+            setTimeout(() => video.play(), 400);
+        }
+    });
+}
+
+function playMedia(item) {
+    if (!item || (!item.url && !item.link)) return;
+    const url = item.url || item.link;
+    document.getElementById("currentTitle").innerText = item.titulo || item.name;
+
+    resetPlayer();
+    playState = "loading";
 
     setTimeout(() => {
-        if (isHLS && Hls.isSupported()) {
+        if (url.includes(".m3u8") && Hls.isSupported()) {
             hls = new Hls();
             hls.loadSource(url);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.play();
-                requestFS();
+                safePlay();
+                requestFullscreen();
             });
         } else {
             video.src = url;
-
-            // GARANTIA ABSOLUTA CONTRA TELA PRETA
             video.oncanplay = () => {
-                video.play();
-                requestFS();
+                safePlay();
+                requestFullscreen();
             };
         }
     }, 300);
 }
 
-function requestFS() {
-    if (video.requestFullscreen) video.requestFullscreen();
-    else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
-    else if (video.msRequestFullscreen) video.msRequestFullscreen();
-}
+/* ================= CONTROLE REMOTO ================= */
+
+document.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+        if (playState === "playing") {
+            video.pause();
+            playState = "paused";
+        } else {
+            safePlay();
+        }
+    }
+});
+
+/* ================= DEMO AUTOMÁTICO ================= */
+/* Remova depois: apenas para validar funcionamento */
+setTimeout(() => {
+    playMedia({
+        titulo: "Teste Cinema",
+        link: "https://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4"
+    });
+}, 2000);
 </script>
 </body>
 </html>
