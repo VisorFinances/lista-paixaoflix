@@ -1,136 +1,152 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>PaixãoFlix TV</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-*{overflow:-moz-scrollbars-none;-ms-overflow-style:none;scrollbar-width:none;touch-action:manipulation}
-*::-webkit-scrollbar{display:none!important}
-html,body{margin:0;padding:0;background:#000;color:#fff;font-family:Arial,sans-serif;height:100%;overflow:hidden;width:100%}
-#app{display:flex;height:100%;width:100%;position:relative}
-#menu{width:280px;background:#1a1a1a;display:flex;flex-direction:column;z-index:100;padding:12px;box-sizing:border-box;border-right:1px solid #333;height:100%}
-#menuHeader{padding:15px 10px;text-align:center;border-bottom:1px solid #222;margin-bottom:15px}
-#menuHeader img{height:95px}
-#clock{margin-top:10px;font-size:13px;color:#aaa}
-#nowPlaying{margin:15px 0;text-align:center}
-#nowPlaying span{display:block;font-size:13px;font-weight:700}
-#currentTitle{display:inline-block;padding:4px 10px;font-family:'Poppins',sans-serif;font-size:15px;background:rgba(0,0,0,.6);border-radius:4px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#searchBox{margin-bottom:15px}
-#searchInput{width:100%;padding:12px;border-radius:8px;border:2px solid #333;background:#000;color:#fff;font-size:14px}
-#searchInput.focused{border-color:#ff9800;background:#222}
-.menu-item{padding:12px 15px;font-size:15px;margin-bottom:8px;border-radius:8px;background:#222;border:1px solid #333;display:flex;align-items:center;color:#ccc;cursor:pointer}
-.menu-item.active{background:#333;color:#fff;border:1px solid #ff9800;font-weight:bold}
-.menu-item.kids{border-left:3px solid #ffeb3b;color:#ffeb3b}
-#content{position:absolute;top:0;left:280px;width:calc(100% - 280px);height:100%;display:flex;justify-content:center;align-items:center}
-#videoContainer{width:100%;height:56.25vw;max-height:100vh;background:#000}
+html,body{margin:0;padding:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;height:100%;overflow:hidden}
+#app{display:flex;height:100%}
+#menu{width:300px;background:#111;padding:15px;box-sizing:border-box}
+.menu-item{padding:14px;margin-bottom:10px;border-radius:8px;background:#222}
+.menu-item.active{background:#ff9800;color:#000;font-weight:bold}
+#content{flex:1;position:relative;background:#000}
 video{width:100%;height:100%;object-fit:contain;background:#000}
-#channelList{position:absolute;top:0;left:0;width:340px;height:100%;background:rgba(0,0,0,.98);display:none;z-index:110;overflow-y:auto;border-right:1px solid #ff9800}
-.channel{padding:15px 20px;font-size:16px;border-bottom:1px solid #222;cursor:pointer}
-.channel.active{background:#ff9800;color:#000;font-weight:bold}
-#posterPreview{position:absolute;top:50%;left:360px;transform:translateY(-50%);width:300px;height:450px;display:none;border:3px solid #ff9800}
+#list{position:absolute;left:0;top:0;width:360px;height:100%;background:rgba(0,0,0,.96);display:none;overflow-y:auto}
+.item{padding:18px;border-bottom:1px solid #222}
+.item.active{background:#ff9800;color:#000;font-weight:bold}
+#overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px;background:rgba(0,0,0,.6);display:none}
 </style>
 </head>
 
 <body>
 <div id="app">
-<div id="menu">
-<div id="menuHeader">
-<img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-<div id="clock"></div>
-<div id="nowPlaying"><span>Assistindo agora</span><div id="currentTitle">...</div></div>
-</div>
-<div id="searchBox"><input id="searchInput" placeholder="Pesquisar..."></div>
-<div class="menu-item active" data-type="channels">TV ao vivo</div>
-<div class="menu-item" data-type="fav">Favoritos</div>
-<div class="menu-item" data-type="categories">Cinema</div>
-<div class="menu-item" data-type="series">Séries</div>
-</div>
+  <div id="menu">
+    <div class="menu-item active">TV AO VIVO</div>
+    <div class="menu-item">CINEMA</div>
+    <div class="menu-item">SÉRIES</div>
+  </div>
 
-<div id="content">
-<div id="videoContainer"><video id="video" autoplay playsinline></video></div>
-<div id="channelList"></div>
-<img id="posterPreview">
-</div>
+  <div id="content">
+    <video id="video" autoplay playsinline></video>
+    <div id="list"></div>
+    <div id="overlay">Carregando…</div>
+  </div>
 </div>
 
 <script>
+/* ================= PLAYER CONTROLLER ================= */
+class PlayerController {
+  constructor(video){
+    this.video = video;
+    this.hls = null;
+    this.retry = 0;
+    this.maxRetry = 5;
+  }
+
+  load(url){
+    this.cleanup();
+    UI.showLoading(true);
+
+    if(url.includes(".m3u8") && Hls.isSupported()){
+      this.hls = new Hls({ enableWorker:true, lowLatencyMode:true });
+      this.hls.loadSource(url);
+      this.hls.attachMedia(this.video);
+      this.hls.on(Hls.Events.MANIFEST_PARSED,()=>this.play());
+      this.hls.on(Hls.Events.ERROR,()=>this.retryPlay(url));
+    } else {
+      this.video.src = url;
+      this.video.oncanplay = ()=>this.play();
+      this.video.onerror = ()=>this.retryPlay(url);
+    }
+  }
+
+  play(){
+    this.video.play().then(()=>{
+      UI.showLoading(false);
+      this.retry = 0;
+    }).catch(()=>this.retryPlay(this.video.src));
+  }
+
+  retryPlay(url){
+    if(this.retry++ < this.maxRetry){
+      setTimeout(()=>this.load(url),500);
+    } else {
+      UI.showError("Erro ao reproduzir");
+    }
+  }
+
+  cleanup(){
+    if(this.hls){ this.hls.destroy(); this.hls=null }
+    this.video.pause();
+    this.video.removeAttribute("src");
+    this.video.load();
+  }
+}
+
+/* ================= UI ================= */
+const UI = {
+  overlay:document.getElementById("overlay"),
+  showLoading(v){ this.overlay.style.display = v?"flex":"none"; this.overlay.innerText="Carregando…"; },
+  showError(t){ this.overlay.style.display="flex"; this.overlay.innerText=t; }
+};
+
+/* ================= INPUT ================= */
+class InputController {
+  constructor(){
+    this.index = 0;
+    document.addEventListener("keydown",e=>this.handle(e));
+  }
+  handle(e){
+    if(e.key==="ArrowDown") navigate(1);
+    if(e.key==="ArrowUp") navigate(-1);
+    if(e.key==="Enter") selectItem();
+  }
+}
+
+/* ================= DATA ================= */
+const listEl=document.getElementById("list");
 const video=document.getElementById("video");
-const channelList=document.getElementById("channelList");
-const posterPreview=document.getElementById("posterPreview");
-const searchInput=document.getElementById("searchInput");
-const menuItems=document.querySelectorAll(".menu-item");
-const currentTitleDisplay=document.getElementById("currentTitle");
+const player=new PlayerController(video);
+new InputController();
 
-let channels=[],movies=[],series=[],filteredList=[],viewMode="channels";
-let selectedIndex=0,menuIndex=0,listOpen=false,menuFocused=true,hls=null;
+let items=[],selected=0;
 
-function updateClock(){
-const d=new Date(),m=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-clock.innerText=`${d.getDate()} ${m[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+function render(){
+  listEl.innerHTML="";
+  items.forEach((i,idx)=>{
+    const d=document.createElement("div");
+    d.className="item"+(idx===selected?" active":"");
+    d.textContent=i.titulo;
+    listEl.appendChild(d);
+  });
 }
-setInterval(updateClock,1000);updateClock();
 
-/* ===== PLAYMEDIA CORRIGIDO ===== */
-function playMedia(item){
-if(!item||!item.url)return;
-currentTitleDisplay.innerText=item.titulo;
-if(hls){hls.destroy();hls=null}
-video.pause();video.removeAttribute("src");video.load();
+function navigate(dir){
+  selected=(selected+dir+items.length)%items.length;
+  render();
+}
 
-let started=false,tries=0;
-function tryPlay(){
-video.play().then(()=>started=true).catch(()=>{
-if(tries++<3)setTimeout(tryPlay,400);
+function selectItem(){
+  player.load(items[selected].url);
+  listEl.style.display="none";
+}
+
+/* ================= LOAD M3U ================= */
+fetch("data/canais.m3u")
+.then(r=>r.text())
+.then(t=>{
+  let temp=null;
+  t.split("\n").forEach(l=>{
+    if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop()};
+    else if(l.startsWith("http") && temp){ temp.url=l; items.push(temp); temp=null; }
+  });
+  render();
+  listEl.style.display="block";
+  player.load(items[0].url);
 });
-}
-
-setTimeout(()=>{
-if(item.url.includes(".m3u8")&&Hls.isSupported()){
-hls=new Hls();hls.loadSource(item.url);hls.attachMedia(video);
-hls.on(Hls.Events.MANIFEST_PARSED,tryPlay);
-}else{
-video.src=item.url;
-video.oncanplay=()=>!started&&tryPlay();
-video.onloadeddata=()=>!started&&tryPlay();
-}
-},300);
-}
-
-/* ===== LISTA / NAVEGAÇÃO ===== */
-function renderList(){
-channelList.innerHTML="";
-filteredList.forEach((c,i)=>{
-const d=document.createElement("div");
-d.className="channel"+(i===selectedIndex?" active":"");
-d.textContent=c.titulo;
-d.onclick=()=>{selectedIndex=i;playMedia(c)};
-channelList.appendChild(d);
-});
-}
-
-document.addEventListener("keydown",e=>{
-if(e.key==="ArrowDown"){selectedIndex=(selectedIndex+1)%filteredList.length;renderList()}
-if(e.key==="ArrowUp"){selectedIndex=(selectedIndex-1+filteredList.length)%filteredList.length;renderList()}
-if(e.key==="Enter"){playMedia(filteredList[selectedIndex])}
-});
-
-/* ===== LOAD M3U ===== */
-function loadM3U(path){
-fetch(path).then(r=>r.text()).then(t=>{
-t.split("\n").forEach(l=>{
-if(l.startsWith("#EXTINF"))temp={titulo:l.split(",").pop()};
-else if(l.startsWith("http")&&temp){temp.url=l;channels.push(temp);temp=null}
-});
-filteredList=channels;renderList();playMedia(channels[0]);
-});
-}
-
-window.onload=()=>loadM3U("data/canais.m3u");
 </script>
 </body>
 </html>
