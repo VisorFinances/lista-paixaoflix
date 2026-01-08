@@ -89,7 +89,16 @@ function playMedia(item) {
     if (!item || (!item.url && !item.link)) return;
     const url = item.url || item.link;
     currentTitleDisplay.innerText = item.titulo || item.name;
-    listOpen = false; channelList.style.display = "none"; posterPreview.style.display = "none";
+    
+    // Limpeza da Pesquisa ao dar OK
+    searchInput.value = "";
+    searchInput.blur();
+    searchInput.classList.remove("focused");
+    
+    listOpen = false; 
+    channelList.style.display = "none"; 
+    posterPreview.style.display = "none";
+
     try { if (hls) { hls.detachMedia(); hls.destroy(); hls = null; } } catch(e){}
     video.pause(); video.removeAttribute("src"); video.load();
     setTimeout(() => {
@@ -103,9 +112,38 @@ function playMedia(item) {
     }, 300);
 }
 
+// PESQUISA EM TEMPO REAL
+searchInput.oninput = () => {
+    const term = searchInput.value.toLowerCase();
+    if (term.length > 0) {
+        filteredList = [...channels, ...movies, ...series].filter(x => (x.titulo || x.name || "").toLowerCase().includes(term));
+        viewMode = "search";
+        selectedIndex = 0;
+        listOpen = true;
+        menuFocused = false;
+        channelList.style.display = "block";
+        renderList();
+    } else {
+        closeSearch();
+    }
+};
+
+function closeSearch() {
+    searchInput.value = "";
+    searchInput.blur();
+    searchInput.classList.remove("focused");
+    listOpen = false;
+    channelList.style.display = "none";
+    posterPreview.style.display = "none";
+    menuFocused = true;
+    menuIndex = 0;
+    renderList();
+}
+
 function renderList() {
     channelList.innerHTML = "";
-    let data = viewMode === "categories" ? movieCats : viewMode === "channels" ? channels : viewMode === "fav" ? favorites : filteredList;
+    let data = (viewMode === "categories") ? movieCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : (viewMode === "search" ? filteredList : filteredList)));
+    
     data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
@@ -119,7 +157,7 @@ function renderList() {
 }
 
 function handleAction() {
-    let data = viewMode === "categories" ? movieCats : viewMode === "channels" ? channels : viewMode === "fav" ? favorites : filteredList;
+    let data = (viewMode === "categories") ? movieCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : (viewMode === "search" ? filteredList : filteredList)));
     const item = data[selectedIndex];
     if (viewMode === "categories") {
         filteredList = movies.filter(m => item.includes("2025") ? m.year==="2025" : item.includes("2026") ? m.year==="2026" : m.genero===item);
@@ -133,7 +171,8 @@ function handleAction() {
 }
 
 document.addEventListener("keydown", e => {
-    let dataLen = viewMode === "categories" ? movieCats.length : viewMode === "channels" ? channels.length : viewMode === "fav" ? favorites.length : filteredList.length;
+    let currentData = (viewMode === "categories") ? movieCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : (viewMode === "search" ? filteredList : filteredList)));
+    let dataLen = currentData.length;
     
     switch(e.key){
         case "ArrowUp":
@@ -148,7 +187,7 @@ document.addEventListener("keydown", e => {
             break;
         case "ArrowDown":
             if (menuFocused) {
-                if (menuIndex === -1) { searchInput.blur(); searchInput.classList.remove("focused"); menuIndex = 0; }
+                if (menuIndex === -1) { closeSearch(); menuIndex = 0; }
                 else menuIndex = (menuIndex + 1) % menuItems.length;
             } else {
                 selectedIndex = (selectedIndex + 1) % dataLen;
