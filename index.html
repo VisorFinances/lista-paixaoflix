@@ -26,7 +26,6 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 .menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #222; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
 .menu-item i { margin-right: 12px; width: 20px; text-align: center; }
 .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; }
-.menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
 #content { position: relative; flex-grow: 1; height: 100vh; background: black; display: flex; justify-content: center; align-items: center; overflow: hidden; }
 #videoContainer { width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; }
 video { width: 100%; height: 100%; object-fit: contain; background: #000; }
@@ -39,19 +38,23 @@ video { width: 100%; height: 100%; object-fit: contain; background: #000; }
 
 <body>
 <div id="app">
-<div id="menu">
-<div id="menuHeader"><img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png"><div id="clock"></div><div id="nowPlaying"><span>Assistindo agora</span><div id="currentTitle">...</div></div></div>
-<div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
-<div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
-<div class="menu-item" data-type="fav"><i class="fas fa-star"></i> Favoritos</div>
-<div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
-<div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
-</div>
-<div id="content">
-<div id="videoContainer"><video id="video" autoplay playsinline></video></div>
-<div id="channelList"></div>
-<img id="posterPreview">
-</div>
+    <div id="menu">
+        <div id="menuHeader">
+            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
+            <div id="clock"></div>
+            <div id="nowPlaying"><span>Assistindo agora</span><div id="currentTitle">...</div></div>
+        </div>
+        <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
+        <div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
+        <div class="menu-item" data-type="fav"><i class="fas fa-star"></i> Favoritos</div>
+        <div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
+        <div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
+    </div>
+    <div id="content">
+        <div id="videoContainer"><video id="video" autoplay playsinline></video></div>
+        <div id="channelList"></div>
+        <img id="posterPreview">
+    </div>
 </div>
 
 <script>
@@ -59,56 +62,96 @@ const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
 const posterPreview = document.getElementById("posterPreview");
 const menuItems = document.querySelectorAll(".menu-item");
+const currentTitleDisplay = document.getElementById("currentTitle");
+
 let channels = [], movies = [], filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true;
 
-const movieCats = ["Lançamentos", "AÇÃO", "AVENTURA", "ANIME", "TERROR", "DRAMA", "DOCUMENTÁRIOS"];
+const movieCats = ["LANÇAMENTOS", "AÇÃO", "AVENTURA", "ANIME", "ANIMAÇÃO", "COMÉDIA", "DRAMA", "DORAMA", "SUSPENSE", "POLICIAL", "TERROR", "DOCUMENTÁRIOS"];
+
+function updateClock() {
+    const d = new Date();
+    document.getElementById("clock").innerText = d.toLocaleTimeString();
+}
+setInterval(updateClock, 1000);
 
 function renderList() {
     channelList.innerHTML = "";
     let data = viewMode === "categories" ? movieCats : (viewMode === "channels" ? channels : filteredList);
+    
     data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
         div.innerHTML = `<span>${item.titulo || item.name || item}</span>`;
         channelList.appendChild(div);
     });
+    
     const cur = data[selectedIndex];
-    posterPreview.style.display = (!menuFocused && cur?.poster) ? "block" : "none";
-    if (cur?.poster) posterPreview.src = cur.poster;
+    if (!menuFocused && cur?.poster) {
+        posterPreview.src = cur.poster;
+        posterPreview.style.display = "block";
+    } else {
+        posterPreview.style.display = "none";
+    }
 }
 
 function handleAction() {
     let data = viewMode === "categories" ? movieCats : (viewMode === "channels" ? channels : filteredList);
     const item = data[selectedIndex];
+
     if (viewMode === "categories") {
-        filteredList = movies.filter(m => m.genero.toUpperCase() === item.toUpperCase());
-        viewMode = "list"; selectedIndex = 0; renderList();
-    } else if (item.url) {
-        video.src = item.url; video.play();
+        // Filtro para Cinema
+        filteredList = movies.filter(m => {
+            return m.genero && m.genero.toUpperCase() === item.toUpperCase();
+        });
+        viewMode = "list";
+        selectedIndex = 0;
+        renderList();
+    } else if (item.url || item.link) {
+        const path = item.url || item.link;
+        currentTitleDisplay.innerText = item.titulo || item.name;
+        video.src = path;
+        video.play();
     }
 }
 
 document.addEventListener("keydown", e => {
-    if (e.key === "ArrowRight" && menuFocused) {
-        menuFocused = false; channelList.style.display = "block";
-        viewMode = menuItems[menuIndex].dataset.type;
-        selectedIndex = 0; renderList();
-    } else if (e.key === "ArrowLeft") {
-        menuFocused = true; channelList.style.display = "none"; posterPreview.style.display = "none";
-    } else if (e.key === "ArrowUp") {
-        if (menuFocused) menuIndex = Math.max(0, menuIndex - 1);
-        else selectedIndex = Math.max(0, selectedIndex - 1);
-    } else if (e.key === "ArrowDown") {
-        if (menuFocused) menuIndex = Math.min(menuItems.length - 1, menuIndex + 1);
-        else selectedIndex = Math.min((viewMode === "categories" ? movieCats.length : (viewMode === "channels" ? channels.length : filteredList.length)) - 1, selectedIndex + 1);
-    } else if (e.key === "Enter" && !menuFocused) handleAction();
+    let dataLen = (viewMode === "categories" ? movieCats.length : (viewMode === "channels" ? channels.length : filteredList.length));
+    
+    switch(e.key){
+        case "ArrowUp":
+            if (menuFocused) menuIndex = Math.max(0, menuIndex - 1);
+            else selectedIndex = (selectedIndex - 1 + dataLen) % dataLen;
+            break;
+        case "ArrowDown":
+            if (menuFocused) menuIndex = Math.min(menuItems.length - 1, menuIndex + 1);
+            else selectedIndex = (selectedIndex + 1) % dataLen;
+            break;
+        case "ArrowLeft":
+            menuFocused = true;
+            channelList.style.display = "none";
+            posterPreview.style.display = "none";
+            break;
+        case "ArrowRight":
+            if (menuFocused) {
+                menuFocused = false;
+                channelList.style.display = "block";
+                viewMode = menuItems[menuIndex].dataset.type;
+                selectedIndex = 0;
+            }
+            break;
+        case "Enter":
+            if (!menuFocused) handleAction();
+            break;
+    }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
-    if (!menuFocused) renderList();
+    renderList();
 });
 
 window.onload = () => {
-    fetch("data/filmes.json").then(r => r.json()).then(d => { movies = d; });
-    setInterval(() => { document.getElementById("clock").innerText = new Date().toLocaleTimeString(); }, 1000);
+    fetch("data/filmes.json")
+        .then(r => r.json())
+        .then(d => { movies = d; })
+        .catch(e => console.log("Erro ao ler filmes"));
 };
 </script>
 </body>
