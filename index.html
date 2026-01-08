@@ -74,145 +74,104 @@ const currentTitleDisplay = document.getElementById("currentTitle");
 
 let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [], kidsSeries = [], favorites = [];
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0;
-let listOpen = false, menuFocused = true, hls = null, searchActive = false;
+let listOpen = false, menuFocused = true, hls = null;
 
 const movieCats = ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICCIÓN CIENTÍFICA","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
 
 function updateClock() {
     const d = new Date();
     const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-    document.getElementById("clock").innerText =
-      `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+    document.getElementById("clock").innerText = `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
 setInterval(updateClock, 1000); updateClock();
 
-/* ================== ÚNICA FUNÇÃO CORRIGIDA ================== */
 function playMedia(item) {
     if (!item || (!item.url && !item.link)) return;
     const url = item.url || item.link;
     currentTitleDisplay.innerText = item.titulo || item.name;
-
-    listOpen = false;
-    channelList.style.display = "none";
-    posterPreview.style.display = "none";
-
-    try {
-        if (hls) {
-            hls.detachMedia();
-            hls.destroy();
-            hls = null;
-        }
-    } catch(e){}
-
-    video.pause();
-    video.removeAttribute("src");
-    video.load();
-
+    listOpen = false; channelList.style.display = "none"; posterPreview.style.display = "none";
+    try { if (hls) { hls.detachMedia(); hls.destroy(); hls = null; } } catch(e){}
+    video.pause(); video.removeAttribute("src"); video.load();
     setTimeout(() => {
         if (Hls.isSupported() && url.includes(".m3u8")) {
-            hls = new Hls({ enableWorker: true, backBufferLength: 0 });
-            hls.loadSource(url);
-            hls.attachMedia(video);
+            hls = new Hls({ enableWorker: true });
+            hls.loadSource(url); hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
         } else {
-            video.src = url;
-            video.load();
-            video.play().catch(() => {
-                setTimeout(() => video.play().catch(()=>{}), 300);
-            });
+            video.src = url; video.load(); video.play().catch(()=>{});
         }
     }, 300);
-}
-/* ============================================================ */
-
-async function loadEpisodes(serie) {
-    currentTitleDisplay.innerText = "Sincronizando...";
-    const r = await fetch(`https://archive.org/metadata/${serie.identificador_archive}`);
-    const d = await r.json();
-    filteredList = d.files
-      .filter(f => f.name.endsWith(".mp4") || f.name.endsWith(".mkv"))
-      .map(f => ({
-        titulo: f.title || f.name,
-        link: `https://archive.org/download/${serie.identificador_archive}/${f.name}`,
-        poster: serie.poster
-      }));
-    viewMode = "list"; selectedIndex = 0; renderList();
 }
 
 function renderList() {
     channelList.innerHTML = "";
-    let data =
-      viewMode === "categories" ? movieCats :
-      viewMode === "channels" ? channels :
-      viewMode === "fav" ? favorites :
-      filteredList;
-
+    let data = viewMode === "categories" ? movieCats : viewMode === "channels" ? channels : viewMode === "fav" ? favorites : filteredList;
     data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
         div.innerHTML = `<span>${item.titulo || item.name || item}</span>`;
-        div.onclick = () => { selectedIndex = i; handleAction(); };
         channelList.appendChild(div);
     });
-
     const cur = data[selectedIndex];
-    if (listOpen && cur?.poster) {
-        posterPreview.src = cur.poster;
-        posterPreview.style.display = "block";
-    } else posterPreview.style.display = "none";
-
+    if (listOpen && cur?.poster) { posterPreview.src = cur.poster; posterPreview.style.display = "block"; } 
+    else { posterPreview.style.display = "none"; }
     channelList.querySelector(".active")?.scrollIntoView({ block: "center" });
 }
 
 function handleAction() {
-    let data =
-      viewMode === "categories" ? movieCats :
-      viewMode === "channels" ? channels :
-      viewMode === "fav" ? favorites :
-      filteredList;
-
+    let data = viewMode === "categories" ? movieCats : viewMode === "channels" ? channels : viewMode === "fav" ? favorites : filteredList;
     const item = data[selectedIndex];
-
     if (viewMode === "categories") {
-        filteredList = movies.filter(m =>
-          item.includes("2025") ? m.year==="2025" :
-          item.includes("2026") ? m.year==="2026" :
-          m.genero===item
-        );
+        filteredList = movies.filter(m => item.includes("2025") ? m.year==="2025" : item.includes("2026") ? m.year==="2026" : m.genero===item);
         viewMode = "list"; selectedIndex = 0; renderList();
     } else if (item.identificador_archive) {
-        loadEpisodes(item);
-    } else {
-        playMedia(item);
-    }
+        fetch(`https://archive.org/metadata/${item.identificador_archive}`).then(r=>r.json()).then(d=>{
+            filteredList = d.files.filter(f=>f.name.endsWith(".mp4")||f.name.endsWith(".mkv")).map(f=>({titulo:f.title||f.name, link:`https://archive.org/download/${item.identificador_archive}/${f.name}`, poster:item.poster}));
+            viewMode="list"; selectedIndex=0; renderList();
+        });
+    } else playMedia(item);
 }
 
 document.addEventListener("keydown", e => {
-    if (searchActive) return;
+    let dataLen = viewMode === "categories" ? movieCats.length : viewMode === "channels" ? channels.length : viewMode === "fav" ? favorites.length : filteredList.length;
+    
     switch(e.key){
         case "ArrowUp":
-            menuFocused ? menuIndex-- : selectedIndex--;
+            if (menuFocused) {
+                if (menuIndex === 0) { searchInput.focus(); searchInput.classList.add("focused"); menuIndex = -1; }
+                else if (menuIndex > 0) menuIndex--;
+                else if (menuIndex === -1) { menuIndex = menuItems.length - 1; searchInput.blur(); searchInput.classList.remove("focused"); }
+            } else {
+                selectedIndex = (selectedIndex - 1 + dataLen) % dataLen;
+                renderList();
+            }
             break;
         case "ArrowDown":
-            menuFocused ? menuIndex++ : selectedIndex++;
+            if (menuFocused) {
+                if (menuIndex === -1) { searchInput.blur(); searchInput.classList.remove("focused"); menuIndex = 0; }
+                else menuIndex = (menuIndex + 1) % menuItems.length;
+            } else {
+                selectedIndex = (selectedIndex + 1) % dataLen;
+                renderList();
+            }
             break;
         case "ArrowLeft":
-            menuFocused=true; listOpen=false;
-            channelList.style.display="none";
-            posterPreview.style.display="none";
+            if (!menuFocused) { menuFocused = true; listOpen = false; channelList.style.display = "none"; posterPreview.style.display = "none"; }
             break;
         case "ArrowRight":
         case "Enter":
-            if(menuFocused){
-                menuFocused=false;
-                listOpen=true;
-                channelList.style.display="block";
-                viewMode=menuItems[menuIndex].dataset.type;
-                renderList();
-            } else handleAction();
+            if (menuFocused && menuIndex !== -1) {
+                menuFocused = false; listOpen = true; channelList.style.display = "block";
+                viewMode = menuItems[menuIndex].dataset.type;
+                if(viewMode==="series") filteredList = series;
+                if(viewMode.includes("kids_channels")) filteredList = kidsChannels;
+                if(viewMode.includes("kids_movies")) filteredList = kidsMovies;
+                if(viewMode.includes("kids_series")) filteredList = kidsSeries;
+                selectedIndex = 0; renderList();
+            } else if (!menuFocused) handleAction();
             break;
     }
-    menuItems.forEach((m,i)=>m.classList.toggle("active",i===menuIndex));
+    menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
 
 function loadM3U(path, array) {
