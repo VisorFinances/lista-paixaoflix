@@ -9,58 +9,64 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-* { overflow: -moz-scrollbars-none; -ms-overflow-style: none; scrollbar-width: none; touch-action: manipulation; }
+* { overflow: hidden; -ms-overflow-style: none; scrollbar-width: none; touch-action: manipulation; box-sizing: border-box; }
 *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
-html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: Arial, sans-serif; height: 100%; overflow: hidden; width: 100%; }
-#app { display: flex; height: 100%; width: 100%; position: relative; }
-#menu { width: 280px; background: #1a1a1a; display: flex; flex-direction: column; z-index: 100; padding: 12px; box-sizing: border-box; border-right: 1px solid #333; height: 100%; }
-#menuHeader { padding: 15px 10px; text-align: center; border-bottom: 1px solid #222; margin-bottom: 15px; }
+html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: Arial, sans-serif; height: 100vh; width: 100vw; }
+#app { display: flex; height: 100vh; width: 100vw; position: relative; }
+
+/* Menu Lateral sempre visível */
+#menu { width: 280px; background: #1a1a1a; display: flex; flex-direction: column; z-index: 100; padding: 12px; border-right: 1px solid #333; height: 100%; flex-shrink: 0; }
+#menuHeader { padding: 15px 10px; text-align: center; border-bottom: 1px solid #222; margin-bottom: 10px; }
 #menuHeader img { height: 95px; width: auto; object-fit: contain; }
 #clock { margin-top: 10px; font-size: 13px; color: #aaa; }
 #nowPlaying { margin: 15px 0; text-align: center; }
 #nowPlaying span { display: block; font-size: 13px; color: #fff; font-weight: 700; margin-bottom: 5px; }
 #currentTitle { display: inline-block; padding: 4px 10px; color: #fff; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 400; background: rgba(0,0,0,0.6); border-radius: 4px; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 #searchBox { margin-bottom: 15px; }
-#searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; outline: none; box-sizing: border-box; font-size: 14px; }
+#searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; outline: none; font-size: 14px; }
 #searchInput.focused { border-color: #ff9800; background: #222; }
+
 .menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #222; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
 .menu-item i { margin-right: 12px; width: 20px; text-align: center; }
 .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; }
 .menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
-#content { position: absolute; top: 0; left: 280px; width: calc(100% - 280px); height: 100%; z-index: 10; background: black; display: flex; justify-content: center; align-items: center; }
-#videoContainer { width: 100%; height: 56.25vw; max-height: 100vh; background: #000; }
-video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+
+/* Área de Vídeo ocupando o restante da tela */
+#content { position: relative; flex-grow: 1; height: 100vh; background: black; display: flex; justify-content: center; align-items: center; }
+#videoContainer { width: 100%; height: 100%; background: #000; }
+video { width: 100%; height: 100%; object-fit: contain; }
+
+/* Listas e Poster */
 #channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: auto; border-right: 1px solid #ff9800; }
 .channel { padding: 15px 20px; font-size: 16px; border-bottom: 1px solid #222; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
 .channel.active { background: #ff9800 !important; color: #000 !important; font-weight: bold; }
-.fav-btn { color: #555; transition: 0.3s; }
-.fav-btn.active { color: #ffeb3b; }
 #posterPreview { position: absolute; top: 50%; left: 360px; transform: translateY(-50%); width: 300px; height: 450px; border-radius: 12px; z-index: 120; display: none; background: #222; object-fit: cover; border: 3px solid #ff9800; pointer-events: none; }
 </style>
 </head>
 
 <body>
 <div id="app">
-<div id="menu">
-<div id="menuHeader">
-<img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-<div id="clock"></div>
-<div id="nowPlaying"><span>Assistindo agora</span><div id="currentTitle">...</div></div>
-</div>
-<div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
-<div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
-<div class="menu-item" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
-<div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
-<div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
-<div class="menu-item kids" data-type="kids_channels"><i class="fas fa-child"></i> Canal Kids</div>
-<div class="menu-item kids" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
-<div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
-</div>
-<div id="content">
-<div id="videoContainer"><video id="video" autoplay playsinline></video></div>
-<div id="channelList"></div>
-<img id="posterPreview">
-</div>
+    <div id="menu">
+        <div id="menuHeader">
+            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
+            <div id="clock"></div>
+            <div id="nowPlaying"><span>Assistindo agora</span><div id="currentTitle">...</div></div>
+        </div>
+        <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
+        <div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
+        <div class="menu-item" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
+        <div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
+        <div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
+        <div class="menu-item kids" data-type="kids_channels"><i class="fas fa-child"></i> Canal Kids</div>
+        <div class="menu-item kids" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
+    </div>
+    
+    <div id="content">
+        <div id="videoContainer"><video id="video" autoplay playsinline controls></video></div>
+        <div id="channelList"></div>
+        <img id="posterPreview">
+    </div>
 </div>
 
 <script>
@@ -71,137 +77,120 @@ const searchInput = document.getElementById("searchInput");
 const menuItems = document.querySelectorAll(".menu-item");
 const currentTitleDisplay = document.getElementById("currentTitle");
 
-let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [], kidsSeries = [];
+let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [];
 let favorites = JSON.parse(localStorage.getItem("paixaoflix_favs") || "[]");
-let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true, hls = null;
+let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true;
 
-const movieCats = ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICCIÓN CIENTÍFICA","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
+const movieCats = ["LANÇAMENTOS", "AÇÃO", "AVENTURA", "ANIME", "ANIMAÇÃO", "COMÉDIA", "DRAMA", "TERROR", "DOCUMENTÁRIOS"];
 
-function updateClock() {
-    const d = new Date();
-    const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-    document.getElementById("clock").innerText = `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
-}
-setInterval(updateClock, 1000); updateClock();
-
-function toggleFav(item) {
-    const idx = favorites.findIndex(f => (f.url || f.link) === (item.url || item.link));
-    if (idx > -1) favorites.splice(idx, 1);
-    else favorites.push(item);
-    localStorage.setItem("paixaoflix_favs", JSON.stringify(favorites));
-    renderList();
-}
-
-function playMedia(item) {
-    if (!item || (!item.url && !item.link)) return;
-    const url = item.url || item.link;
-    currentTitleDisplay.innerText = item.titulo || item.name;
-    searchInput.value = ""; searchInput.blur(); searchInput.classList.remove("focused");
-    channelList.style.display = "none"; posterPreview.style.display = "none";
-    try { if (hls) { hls.destroy(); hls = null; } } catch(e){}
-    video.pause(); video.src = url; video.load(); video.play().catch(()=>{});
-}
+// 1. BUSCA EM TEMPO REAL
+searchInput.addEventListener("input", (e) => {
+    const term = e.target.value.toLowerCase();
+    if (term.length > 0) {
+        viewMode = "search";
+        const allMedia = [...channels, ...movies, ...series, ...kidsChannels, ...kidsMovies];
+        filteredList = allMedia.filter(m => (m.titulo || m.name || "").toLowerCase().includes(term));
+        channelList.style.display = "block";
+        selectedIndex = 0;
+        renderList();
+    } else {
+        channelList.style.display = "none";
+    }
+});
 
 function renderList() {
     channelList.innerHTML = "";
-    let data = viewMode === "categories" ? movieCats : viewMode === "channels" ? channels : viewMode === "fav" ? favorites : filteredList;
+    let data = viewMode === "categories" ? movieCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList));
+    
     data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
-        const isFav = favorites.some(f => (f.url || f.link) === (item.url || item.link));
-        const favIcon = (viewMode !== "categories") ? `<i class="fas fa-star fav-btn ${isFav?'active':''}"></i>` : "";
-        div.innerHTML = `<span>${item.titulo || item.name || item}</span> ${favIcon}`;
+        div.innerHTML = `<span>${item.titulo || item.name || item}</span>`;
         channelList.appendChild(div);
     });
-    const cur = data[selectedIndex];
-    if (!menuFocused && cur?.poster) { posterPreview.src = cur.poster; posterPreview.style.display = "block"; } 
-    else { posterPreview.style.display = "none"; }
-}
-
-function handleAction() {
-    let data = viewMode === "categories" ? movieCats : viewMode === "channels" ? channels : viewMode === "fav" ? favorites : filteredList;
-    const item = data[selectedIndex];
-    if (viewMode === "categories") {
-        const seen = new Set();
-        filteredList = movies.filter(m => {
-            // CORREÇÃO: Compara os nomes ignorando maiúsculas e minúsculas e remove espaços.
-            let catName = item.toUpperCase().trim();
-            let movieGen = (m.genero || "").toUpperCase().trim();
-            
-            const match = catName.includes("2025") ? m.year==="2025" : catName.includes("2026") ? m.year==="2026" : movieGen === catName;
-            
-            if (match && !seen.has(m.titulo)) { seen.add(m.titulo); return true; }
-            return false;
-        });
-        viewMode = "list"; selectedIndex = 0; renderList();
-    } else playMedia(item);
-}
-
-document.addEventListener("keydown", e => {
-    let dataLen = (viewMode === "categories" ? movieCats.length : (viewMode === "channels" ? channels.length : (viewMode === "fav" ? favorites.length : filteredList.length)));
     
-    if(e.key.toLowerCase() === 'f') { 
-        let data = viewMode === "categories" ? null : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList));
-        if(data && data[selectedIndex]) toggleFav(data[selectedIndex]);
-        return;
-    }
+    const cur = data[selectedIndex];
+    posterPreview.style.display = (!menuFocused && cur?.poster) ? "block" : "none";
+    if (cur?.poster) posterPreview.src = cur.poster;
+}
 
-    switch(e.key){
+function playMedia(item) {
+    if (!item) return;
+    currentTitleDisplay.innerText = item.titulo || item.name;
+    video.src = item.url || item.link;
+    video.play();
+    // Limpeza após OK
+    if (viewMode === "search") {
+        searchInput.value = "";
+        channelList.style.display = "none";
+    }
+}
+
+// 2. CONTROLES DO VÍDEO (Pause, Avançar, Voltar)
+document.addEventListener("keydown", (e) => {
+    const step = 10; // segundos
+    switch(e.key) {
+        case "MediaPlayPause": case " ": 
+            video.paused ? video.play() : video.pause(); break;
+        case "MediaStop": video.pause(); video.currentTime = 0; break;
+        case "MediaFastForward": video.currentTime += step; break;
+        case "MediaRewind": video.currentTime -= step; break;
+        
         case "ArrowUp":
             if (menuFocused) {
-                if (menuIndex === 0) { 
-                    menuIndex = -1; searchInput.focus(); searchInput.click(); searchInput.classList.add("focused"); 
-                } else if (menuIndex > 0) menuIndex--;
-            } else { selectedIndex = (selectedIndex - 1 + dataLen) % dataLen; renderList(); }
+                if (menuIndex === 0) { searchInput.focus(); menuIndex = -1; searchInput.classList.add("focused"); }
+                else if (menuIndex > 0) menuIndex--;
+            } else { selectedIndex = Math.max(0, selectedIndex - 1); renderList(); }
             break;
+            
         case "ArrowDown":
             if (menuFocused) {
-                if (menuIndex === -1) { searchInput.blur(); searchInput.classList.remove("focused"); menuIndex = 0; }
-                else menuIndex = (menuIndex + 1) % menuItems.length;
-            } else { selectedIndex = (selectedIndex + 1) % dataLen; renderList(); }
+                if (menuIndex === -1) { searchInput.blur(); menuIndex = 0; searchInput.classList.remove("focused"); }
+                else menuIndex = Math.min(menuItems.length - 1, menuIndex + 1);
+            } else { selectedIndex = Math.min(renderData().length - 1, selectedIndex + 1); renderList(); }
             break;
+
         case "ArrowLeft":
-            menuFocused = true; channelList.style.display = "none"; posterPreview.style.display = "none";
+            menuFocused = true;
+            channelList.style.display = "none";
+            // Limpa busca ao sair
+            if (viewMode === "search") { searchInput.value = ""; searchInput.blur(); }
             break;
+
         case "ArrowRight":
             if (menuFocused && menuIndex !== -1) {
-                menuFocused = false; channelList.style.display = "block";
+                menuFocused = false;
                 viewMode = menuItems[menuIndex].dataset.type;
-                if(viewMode === "series") filteredList = series;
-                if(viewMode.includes("kids")) {
-                    if(viewMode.includes("channels")) filteredList = kidsChannels;
-                    else if(viewMode.includes("movies")) filteredList = kidsMovies;
-                    else filteredList = kidsSeries;
-                }
-                selectedIndex = 0; renderList();
+                channelList.style.display = "block";
+                selectedIndex = 0;
+                renderList();
             }
             break;
+
         case "Enter":
-            if (!menuFocused) handleAction();
+            if (!menuFocused) {
+                let d = renderData();
+                if (viewMode === "categories") {
+                    filteredList = movies.filter(m => m.genero?.toUpperCase() === d[selectedIndex].toUpperCase());
+                    viewMode = "list"; selectedIndex = 0; renderList();
+                } else { playMedia(d[selectedIndex]); }
+            }
             break;
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
 
-function loadM3U(path, array) {
-    fetch(path).then(r=>r.text()).then(text=>{
-        let temp=null;
-        text.split("\n").forEach(l=>{
-            if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop().trim()};
-            else if(l.startsWith("http") && temp){ temp.url=l.trim(); array.push(temp); temp=null; }
-        });
-        // AUTOPLAY: Ao carregar canais, se for o primeiro carregamento, toca o primeiro canal.
-        if(array === channels && channels.length > 0 && !video.src) playMedia(channels[0]);
-    });
+function renderData() {
+    return viewMode === "categories" ? movieCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList));
 }
 
 window.onload = () => {
-    loadM3U("data/canais.m3u", channels);
-    loadM3U("data/kids_canais.m3u", kidsChannels);
-    fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d);
-    fetch("data/series.json").then(r=>r.json()).then(d=>series=d);
-    fetch("data/kids_filmes.json").then(r=>r.json()).then(d=>kidsMovies=d);
-    fetch("data/kids_series.json").then(r=>r.json()).then(d=>kidsSeries=d);
+    fetch("data/filmes.json").then(r => r.json()).then(d => { movies = d; });
+    // Carregar outros dados aqui...
+    setInterval(() => {
+        const d = new Date();
+        document.getElementById("clock").innerText = d.toLocaleTimeString();
+    }, 1000);
 };
 </script>
 </body>
