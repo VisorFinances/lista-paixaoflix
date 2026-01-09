@@ -97,7 +97,6 @@ const currentTitleDisplay = document.getElementById("currentTitle");
 
 let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [], kidsSeries = [];
 let favorites = JSON.parse(localStorage.getItem("paixaoflix_favs") || "[]");
-let history = JSON.parse(localStorage.getItem("paixaoflix_history") || "{}");
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true, hls = null;
 
 const movieCats = ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICCIÓN CIENTÍFICA","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
@@ -136,9 +135,7 @@ function renderList() {
     data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
-        const isFav = favorites.some(f => (f.url || f.link) === (item.url || item.link));
-        const favIcon = (viewMode.includes("list") || viewMode === "channels") ? `<i class="fas fa-star fav-btn ${isFav?'active':''}"></i>` : "";
-        div.innerHTML = `<span>${item.titulo || item.name || item}</span> ${favIcon}`;
+        div.innerHTML = `<span>${item.titulo || item.name || item}</span>`;
         channelList.appendChild(div);
         if (i === selectedIndex && !menuFocused) div.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
@@ -181,19 +178,28 @@ document.addEventListener("keydown", e => {
     
     if (menuFocused) {
         if (e.key === "ArrowUp") {
-            if (menuIndex === 0) { menuIndex = -1; searchInput.focus(); searchInput.classList.add("focused"); }
-            else if (menuIndex > 0) menuIndex--;
+            if (menuIndex === 0) { 
+                menuIndex = -1; 
+                searchInput.focus(); 
+                searchInput.classList.add("focused");
+            } else if (menuIndex > 0) menuIndex--;
         } else if (e.key === "ArrowDown") {
-            if (menuIndex === -1) { menuIndex = 0; searchInput.blur(); searchInput.classList.remove("focused"); }
-            else if (menuIndex < menuItems.length - 1) menuIndex++;
-        } else if (e.key === "ArrowRight" && menuIndex !== -1) {
-            menuFocused = false; channelList.style.display = "block";
+            if (menuIndex === -1) { 
+                menuIndex = 0; 
+                searchInput.blur(); 
+                searchInput.classList.remove("focused");
+            } else if (menuIndex < menuItems.length - 1) menuIndex++;
+        } else if (e.key === "ArrowRight" || e.key === "Enter") {
+            if(menuIndex === -1) return;
+            menuFocused = false; 
+            channelList.style.display = "block";
             viewMode = menuItems[menuIndex].dataset.type;
-            selectedIndex = 0; renderList();
-        } else if (e.key === "Enter" && menuIndex !== -1) {
-            menuFocused = false; channelList.style.display = "block";
-            viewMode = menuItems[menuIndex].dataset.type;
-            selectedIndex = 0; renderList();
+            // Carregar listas específicas de Kids se selecionado
+            if (viewMode === "kids_channels") filteredList = kidsChannels;
+            else if (viewMode === "kids_movies") filteredList = kidsMovies;
+            else if (viewMode === "kids_series") filteredList = kidsSeries;
+            selectedIndex = 0; 
+            renderList();
         }
     } else {
         if (e.key === "ArrowUp") { selectedIndex = (selectedIndex - 1 + dataLen) % dataLen; renderList(); }
@@ -223,8 +229,11 @@ function loadM3U(path, array, isMain) {
 
 window.onload = () => {
     loadM3U("data/canais.m3u", channels, true);
+    loadM3U("data/kids_canais.m3u", kidsChannels, false);
     fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d);
     fetch("data/series.json").then(r=>r.json()).then(d=>series=d);
+    fetch("data/kids_filmes.json").then(r=>r.json()).then(d=>kidsMovies=d);
+    fetch("data/kids_series.json").then(r=>r.json()).then(d=>kidsSeries=d);
 };
 </script>
 </body>
