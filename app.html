@@ -2,192 +2,44 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    
-    <title>PaixãoFlix TV</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        /* Estilização Poppins e Reset */
-        * { 
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif !important;
-            margin: 0; padding: 0;
-            overflow: hidden;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        body {
-            background-color: #000;
-            color: #fff;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-        }
-
-        /* Layout do Aplicativo */
-        #app { display: flex; width: 100%; height: 100%; }
-
-        /* Menu Lateral Estilo PaixãoFlix */
-        #menu {
-            width: 280px;
-            background: #0d0d0d;
-            border-right: 2px solid #ff9800; /* Laranja da Logo */
-            display: flex;
-            flex-direction: column;
-            padding: 20px 15px;
-            z-index: 10;
-        }
-
-        #menuHeader { text-align: center; margin-bottom: 25px; }
-        #menuHeader img { width: 150px; height: auto; margin-bottom: 10px; }
-        
-        #clock { color: #ff9800; font-size: 14px; font-weight: 300; }
-
-        .menu-item {
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            background: #1a1a1a;
-            color: #ccc;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            transition: 0.3s;
-            font-size: 14px;
-        }
-
-        .menu-item i { margin-right: 12px; width: 20px; text-align: center; }
-        
-        /* Item Ativo Laranja */
-        .menu-item.active {
-            background: #ff9800;
-            color: #000;
-            font-weight: 700;
-        }
-
-        .menu-item.kids { border-left: 4px solid #ffeb3b; }
-
-        /* Área de Conteúdo */
-        #content {
-            flex: 1;
-            background: #000;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #videoContainer {
-            width: 100%;
-            height: 100%;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        video { width: 100%; height: 100%; object-fit: contain; }
-
-        /* Lista de Canais (Overlay) */
-        #channelList {
-            position: absolute;
-            left: 0; top: 0;
-            width: 320px; height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            border-right: 1px solid #ff9800;
-            display: none;
-            overflow-y: auto;
-            z-index: 20;
-        }
-
-        .channel-item {
-            padding: 15px 20px;
-            border-bottom: 1px solid #222;
-            cursor: pointer;
-            font-size: 15px;
-        }
-
-        .channel-item.active {
-            background: #ff9800;
-            color: #000;
-            font-weight: bold;
-        }
-
-        #currentPlaying {
-            position: absolute;
-            bottom: 20px; left: 20px;
-            background: rgba(0,0,0,0.7);
-            padding: 10px 20px;
-            border-radius: 5px;
-            border-left: 4px solid #ff9800;
-            font-size: 14px;
-        }
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; overflow: hidden; }
+        body { background: #000; color: #fff; height: 100vh; display: flex; }
+        #menu { width: 250px; background: #0d0d0d; border-right: 2px solid #ff9800; display: flex; flex-direction: column; padding: 20px; }
+        #menu img { width: 100%; margin-bottom: 20px; }
+        .btn { padding: 12px; margin-bottom: 10px; background: #1a1a1a; border-radius: 8px; cursor: pointer; text-align: center; border: 1px solid #333; }
+        .btn.active { background: #ff9800; color: #000; font-weight: bold; }
+        #content { flex: 1; position: relative; background: #000; }
+        video { width: 100%; height: 100%; background: #000; }
+        #status { position: absolute; bottom: 20px; left: 20px; background: rgba(0,0,0,0.8); padding: 5px 15px; border-radius: 20px; font-size: 12px; border: 1px solid #ff9800; }
     </style>
 </head>
 <body>
-
-<div id="app">
     <div id="menu">
-        <div id="menuHeader">
-            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" alt="Logo">
-            <div id="clock">00:00</div>
-        </div>
-        
-        <div class="menu-item active" data-type="live"><i class="fas fa-tv"></i> TV ao Vivo</div>
-        <div class="menu-item" data-type="movies"><i class="fas fa-film"></i> Cinema</div>
-        <div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
-        <div class="menu-item kids" data-type="kids"><i class="fas fa-child"></i> Kids</div>
-        <div class="menu-item" data-type="fav"><i class="fas fa-star"></i> Favoritos</div>
+        <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
+        <div class="btn active">TV AO VIVO</div>
+        <div class="btn">FILMES</div>
+        <div class="btn">SÉRIES</div>
     </div>
-
     <div id="content">
-        <div id="videoContainer">
-            <video id="mainVideo" autoplay playsinline controls></video>
-        </div>
-        <div id="channelList"></div>
-        <div id="currentPlaying">Pronto para assistir</div>
+        <video id="video" autoplay controls playsinline></video>
+        <div id="status">PaixãoFlix | Pronto</div>
     </div>
-</div>
-
-<script>
-    const video = document.getElementById('mainVideo');
-    const clockElement = document.getElementById('clock');
-    const currentTitle = document.getElementById('currentPlaying');
-
-    // Atualiza Relógio
-    function updateTime() {
-        const now = new Date();
-        clockElement.innerText = now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-    }
-    setInterval(updateTime, 1000);
-    updateTime();
-
-    // Função para rodar vídeos HLS (TV ao Vivo)
-    function loadStream(url, title) {
-        currentTitle.innerText = "Assistindo: " + title;
-        if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(url);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = url;
-            video.addEventListener('loadedmetadata', () => video.play());
+    <script>
+        const video = document.getElementById('video');
+        function playHLS(url) {
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(video);
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+            }
         }
-    }
-
-    // Exemplo de uso: loadStream('URL_DO_STREAM', 'Nome do Canal');
-
-    // Prevenção de Menu de Contexto (Botão direito)
-    document.addEventListener('contextmenu', event => event.preventDefault());
-</script>
-
+        // Exemplo: playHLS('SUA_URL_M3U8_AQUI');
+    </script>
 </body>
 </html>
