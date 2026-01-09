@@ -170,7 +170,9 @@ function handleAction() {
     let data = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
     const item = data[selectedIndex];
 
-    // CORREÇÃO: Diferenciar Categoria de Título (Séries/Filmes)
+    if (!item) return;
+
+    // 1. Entrar em Categorias (Cinema ou Séries)
     if ((viewMode === "categories" || viewMode === "series") && typeof item === 'string') {
         const isMovie = viewMode === "categories";
         const sourceData = isMovie ? movies : series;
@@ -184,8 +186,16 @@ function handleAction() {
         });
         viewMode = isMovie ? "movie_list" : "series_list"; 
         selectedIndex = 0; renderList();
-    } else {
-        // Se já for um objeto com URL/Link (Filme ou Episódio de Série), dá o Play
+    } 
+    // 2. Selecionar Série para ver Episódios
+    else if ((viewMode === "series_list" || viewMode === "kids_series") && item.titulo && !item.url && !item.link) {
+        const source = viewMode === "kids_series" ? kidsSeries : series;
+        filteredList = source.filter(s => s.titulo === item.titulo && (s.url || s.link));
+        viewMode = "episode_list";
+        selectedIndex = 0; renderList();
+    }
+    // 3. Play direto (Canais, Filmes ou Episódios)
+    else {
         playMedia(item);
     }
 }
@@ -198,21 +208,20 @@ document.addEventListener("keydown", e => {
         if (e.key === "ArrowUp") {
             if (menuIndex === 0) { 
                 menuIndex = -1; 
-                searchInput.focus(); // TECLADO VIRTUAL APARECE AUTOMATICAMENTE
+                searchInput.focus(); 
                 searchInput.classList.add("focused");
             } else if (menuIndex > 0) menuIndex--;
         } else if (e.key === "ArrowDown") {
             if (menuIndex === -1) { 
                 menuIndex = 0; 
-                searchInput.value = ""; // AUTOLIMPA AO SAIR
+                searchInput.value = ""; 
                 searchInput.blur(); 
                 searchInput.classList.remove("focused");
             } else if (menuIndex < menuItems.length - 1) menuIndex++;
         } else if (e.key === "ArrowRight" || e.key === "Enter") {
             if(menuIndex === -1) {
-                // Ao dar Enter na busca após digitar
                 if(searchInput.value !== "") {
-                   searchInput.value = ""; // LIMPA APÓS PESQUISA
+                   searchInput.value = ""; 
                    searchInput.blur();
                    searchInput.classList.remove("focused");
                 }
@@ -231,7 +240,10 @@ document.addEventListener("keydown", e => {
         if (e.key === "ArrowUp") { selectedIndex = (selectedIndex - 1 + dataLen) % dataLen; renderList(); }
         else if (e.key === "ArrowDown") { selectedIndex = (selectedIndex + 1) % dataLen; renderList(); }
         else if (e.key === "ArrowLeft") {
-            if (viewMode.includes("_list")) { 
+            if (viewMode === "episode_list") {
+                viewMode = "series_list";
+                selectedIndex = 0; renderList();
+            } else if (viewMode.includes("_list")) { 
                 viewMode = viewMode.includes("movie") ? "categories" : "series"; 
                 selectedIndex = 0; renderList(); 
             } else { menuFocused = true; channelList.style.display = "none"; }
