@@ -108,6 +108,22 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
+// BUSCA GLOBAL REAL-TIME
+searchInput.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    if (term.length > 0) {
+        menuFocused = false;
+        channelList.style.display = "block";
+        viewMode = "search_results";
+        const allContent = [...channels, ...movies, ...series, ...kidsChannels, ...kidsMovies, ...kidsSeries];
+        filteredList = allContent.filter(item => (item.titulo || item.name || "").toLowerCase().includes(term));
+        selectedIndex = 0;
+        renderList();
+    } else {
+        channelList.style.display = "none";
+    }
+});
+
 function playMedia(item) {
     if (!item || (!item.url && !item.link)) return;
     const url = item.url || item.link;
@@ -154,10 +170,11 @@ function handleAction() {
     let data = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
     const item = data[selectedIndex];
 
-    if (viewMode === "categories" || viewMode === "series") {
+    // CORREÇÃO: Diferenciar Categoria de Título (Séries/Filmes)
+    if ((viewMode === "categories" || viewMode === "series") && typeof item === 'string') {
         const isMovie = viewMode === "categories";
         const sourceData = isMovie ? movies : series;
-        const catName = typeof item === 'string' ? item.toUpperCase().trim() : "";
+        const catName = item.toUpperCase().trim();
         const uniqueTitles = new Set();
         filteredList = sourceData.filter(m => {
             let gen = (m.genero || "").toUpperCase().trim();
@@ -168,6 +185,7 @@ function handleAction() {
         viewMode = isMovie ? "movie_list" : "series_list"; 
         selectedIndex = 0; renderList();
     } else {
+        // Se já for um objeto com URL/Link (Filme ou Episódio de Série), dá o Play
         playMedia(item);
     }
 }
@@ -180,21 +198,29 @@ document.addEventListener("keydown", e => {
         if (e.key === "ArrowUp") {
             if (menuIndex === 0) { 
                 menuIndex = -1; 
-                searchInput.focus(); 
+                searchInput.focus(); // TECLADO VIRTUAL APARECE AUTOMATICAMENTE
                 searchInput.classList.add("focused");
             } else if (menuIndex > 0) menuIndex--;
         } else if (e.key === "ArrowDown") {
             if (menuIndex === -1) { 
                 menuIndex = 0; 
+                searchInput.value = ""; // AUTOLIMPA AO SAIR
                 searchInput.blur(); 
                 searchInput.classList.remove("focused");
             } else if (menuIndex < menuItems.length - 1) menuIndex++;
         } else if (e.key === "ArrowRight" || e.key === "Enter") {
-            if(menuIndex === -1) return;
+            if(menuIndex === -1) {
+                // Ao dar Enter na busca após digitar
+                if(searchInput.value !== "") {
+                   searchInput.value = ""; // LIMPA APÓS PESQUISA
+                   searchInput.blur();
+                   searchInput.classList.remove("focused");
+                }
+                return;
+            }
             menuFocused = false; 
             channelList.style.display = "block";
             viewMode = menuItems[menuIndex].dataset.type;
-            // Carregar listas específicas de Kids se selecionado
             if (viewMode === "kids_channels") filteredList = kidsChannels;
             else if (viewMode === "kids_movies") filteredList = kidsMovies;
             else if (viewMode === "kids_series") filteredList = kidsSeries;
