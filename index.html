@@ -65,7 +65,7 @@ video { width: 100%; height: 100%; object-fit: fill; background: #000; }
 <div id="clock"></div>
 <div id="nowPlaying"><span>Assistindo agora</span><div id="currentTitle">...</div></div>
 </div>
-<div id="searchBox"><input type="text" id="searchInput" inputmode="text" placeholder="Pesquisar..."></div>
+<div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
 <div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
 <div class="menu-item" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
 <div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
@@ -113,12 +113,9 @@ function playMedia(item) {
     if (!item || (!item.url && !item.link)) return;
     const url = item.url || item.link;
     currentTitleDisplay.innerText = item.titulo || item.name;
-    
     channelList.style.display = "none"; 
     posterWrapper.style.display = "none";
-    
     if (hls) { hls.destroy(); hls = null; }
-
     if (url.includes(".m3u8")) {
         if (Hls.isSupported()) {
             hls = new Hls({ capLevelToPlayerSize: true, lowLatencyMode: true });
@@ -127,26 +124,9 @@ function playMedia(item) {
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             video.src = url;
         }
-    } else {
-        video.src = url;
-    }
-
-    video.play().then(() => {
-        const savedTime = history[url];
-        if (savedTime && savedTime > 30 && (viewMode.includes("list") || viewMode === "fav")) {
-            if (confirm("Continuar de onde parou?")) video.currentTime = savedTime;
-        }
-    }).catch(e => console.log("Autoplay blocked or error"));
+    } else { video.src = url; }
+    video.play().catch(e => console.log("Erro Play"));
 }
-
-video.ontimeupdate = () => {
-    if (video.currentTime > 10 && !viewMode.includes("channels")) {
-        history[video.src] = video.currentTime;
-        if (Math.floor(video.currentTime) % 10 === 0) {
-            localStorage.setItem("paixaoflix_history", JSON.stringify(history));
-        }
-    }
-};
 
 function renderList() {
     channelList.innerHTML = "";
@@ -160,26 +140,16 @@ function renderList() {
         const favIcon = (viewMode.includes("list") || viewMode === "channels") ? `<i class="fas fa-star fav-btn ${isFav?'active':''}"></i>` : "";
         div.innerHTML = `<span>${item.titulo || item.name || item}</span> ${favIcon}`;
         channelList.appendChild(div);
-        
-        if (i === selectedIndex && !menuFocused) {
-            div.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        if (i === selectedIndex && !menuFocused) div.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
-    
+
     const cur = data[selectedIndex];
     if (!menuFocused && cur?.poster) { 
         posterPreview.src = cur.poster; 
         posterWrapper.style.display = "block";
-        if (cur.rating || cur.vote_average) {
-            ratingValue.innerText = cur.rating || cur.vote_average;
-            ratingBadge.style.display = "flex";
-        } else {
-            ratingBadge.style.display = "none";
-        }
-    } 
-    else { 
-        posterWrapper.style.display = "none"; 
-    }
+        ratingBadge.style.display = (cur.rating || cur.vote_average) ? "flex" : "none";
+        ratingValue.innerText = cur.rating || cur.vote_average || "";
+    } else { posterWrapper.style.display = "none"; }
 }
 
 function handleAction() {
@@ -191,20 +161,13 @@ function handleAction() {
         const isMovie = viewMode === "categories";
         const sourceData = isMovie ? movies : series;
         const catName = typeof item === 'string' ? item.toUpperCase().trim() : "";
-        
-        // FILTRO PARA REMOVER DUPLICIDADE POR TÍTULO
         const uniqueTitles = new Set();
         filteredList = sourceData.filter(m => {
             let gen = (m.genero || "").toUpperCase().trim();
             const match = catName.includes("202") ? m.year === catName.split(" ").pop() : gen === catName;
-            
-            if (match && !uniqueTitles.has(m.titulo)) {
-                uniqueTitles.add(m.titulo);
-                return true;
-            }
+            if (match && !uniqueTitles.has(m.titulo)) { uniqueTitles.add(m.titulo); return true; }
             return false;
         });
-
         viewMode = isMovie ? "movie_list" : "series_list"; 
         selectedIndex = 0; renderList();
     } else {
@@ -218,32 +181,32 @@ document.addEventListener("keydown", e => {
     
     if (menuFocused) {
         if (e.key === "ArrowUp") {
-            if (menuIndex === 0) { menuIndex = -1; searchInput.focus(); }
+            if (menuIndex === 0) { menuIndex = -1; searchInput.focus(); searchInput.classList.add("focused"); }
             else if (menuIndex > 0) menuIndex--;
         } else if (e.key === "ArrowDown") {
-            if (menuIndex === -1) { menuIndex = 0; searchInput.blur(); }
+            if (menuIndex === -1) { menuIndex = 0; searchInput.blur(); searchInput.classList.remove("focused"); }
             else if (menuIndex < menuItems.length - 1) menuIndex++;
         } else if (e.key === "ArrowRight" && menuIndex !== -1) {
             menuFocused = false; channelList.style.display = "block";
             viewMode = menuItems[menuIndex].dataset.type;
-            if (viewMode === "kids_channels") filteredList = kidsChannels;
-            else if (viewMode === "kids_movies") filteredList = kidsMovies;
-            else if (viewMode === "kids_series") filteredList = kidsSeries;
+            selectedIndex = 0; renderList();
+        } else if (e.key === "Enter" && menuIndex !== -1) {
+            menuFocused = false; channelList.style.display = "block";
+            viewMode = menuItems[menuIndex].dataset.type;
             selectedIndex = 0; renderList();
         }
     } else {
         if (e.key === "ArrowUp") { selectedIndex = (selectedIndex - 1 + dataLen) % dataLen; renderList(); }
         else if (e.key === "ArrowDown") { selectedIndex = (selectedIndex + 1) % dataLen; renderList(); }
         else if (e.key === "ArrowLeft") {
-            if (viewMode.includes("_list")) { viewMode = viewMode.includes("movie") ? "categories" : "series"; selectedIndex = 0; renderList(); }
-            else { menuFocused = true; channelList.style.display = "none"; }
-        } else if (e.key === "Enter") handleAction();
+            if (viewMode.includes("_list")) { 
+                viewMode = viewMode.includes("movie") ? "categories" : "series"; 
+                selectedIndex = 0; renderList(); 
+            } else { menuFocused = true; channelList.style.display = "none"; }
+        } else if (e.key === "Enter") {
+            handleAction();
+        }
     }
-    
-    if (e.key === " ") { video.paused ? video.play() : video.pause(); }
-    if (e.key === "ArrowRight" && !menuFocused && channelList.style.display === "none") video.currentTime += 30;
-    if (e.key === "ArrowLeft" && !menuFocused && channelList.style.display === "none") video.currentTime -= 10;
-
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
 
@@ -260,11 +223,8 @@ function loadM3U(path, array, isMain) {
 
 window.onload = () => {
     loadM3U("data/canais.m3u", channels, true);
-    loadM3U("data/kids_canais.m3u", kidsChannels, false);
     fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d);
     fetch("data/series.json").then(r=>r.json()).then(d=>series=d);
-    fetch("data/kids_filmes.json").then(r=>r.json()).then(d=>kidsMovies=d);
-    fetch("data/kids_series.json").then(r=>r.json()).then(d=>kidsSeries=d);
 };
 </script>
 </body>
