@@ -2,67 +2,39 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PaixãoFlix TV</title>
-    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
     <style>
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif !important; margin: 0; padding: 0; overflow: hidden; }
         body { background: #000; color: #fff; height: 100vh; width: 100vw; display: flex; }
-        
-        /* Menu Lateral Laranja e Preto */
-        #menu { 
-            width: 280px; background: #0d0d0d; border-right: 2px solid #ff9800; 
-            display: flex; flex-direction: column; padding: 20px; z-index: 10; 
-        }
+        #menu { width: 260px; background: #0d0d0d; border-right: 2px solid #ff9800; display: flex; flex-direction: column; padding: 20px; }
         #menu img { width: 100%; height: auto; margin-bottom: 20px; filter: drop-shadow(0 0 5px #ff9800); }
-        #clock { color: #ff9800; font-size: 14px; text-align: center; margin-bottom: 20px; font-weight: 300; }
-        
-        .btn { 
-            padding: 12px; margin-bottom: 10px; background: #1a1a1a; border-radius: 8px; 
-            text-align: center; border: 1px solid #333; cursor: pointer; color: #ccc; 
-            transition: 0.3s;
-        }
-        .btn.active { background: #ff9800; color: #000; font-weight: bold; border-color: #fff; }
-        
+        #clock { color: #ff9800; font-size: 14px; text-align: center; margin-bottom: 20px; }
+        .btn { padding: 12px; margin-bottom: 10px; background: #1a1a1a; border-radius: 8px; text-align: center; border: 1px solid #333; cursor: pointer; color: #ccc; }
+        .btn.active { background: #ff9800; color: #000; font-weight: bold; }
         #content { flex: 1; background: #000; position: relative; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: contain; }
     </style>
 </head>
 <body>
-
-<div id="menu">
-    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-    <div id="clock">00:00</div>
-    <div class="btn active"><i class="fas fa-tv"></i> TV AO VIVO</div>
-    <div class="btn"><i class="fas fa-film"></i> CINEMA</div>
-    <div class="btn"><i class="fas fa-clapperboard"></i> SÉRIES</div>
-</div>
-
-<div id="content">
-    <video id="video" autoplay controls playsinline></video>
-</div>
-
-<script>
-    function updateClock() {
-        const now = new Date();
-        document.getElementById('clock').innerText = now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-    }
-    setInterval(updateClock, 1000); updateClock();
-
-    // HLS Player
-    const video = document.getElementById('video');
-    const streamURL = 'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8'; // Teste
-
-    if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(streamURL);
-        hls.attachMedia(video);
-    }
-</script>
+    <div id="menu">
+        <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
+        <div id="clock">00:00</div>
+        <div class="btn active"><i class="fas fa-tv"></i> TV AO VIVO</div>
+        <div class="btn"><i class="fas fa-film"></i> CINEMA</div>
+        <div class="btn"><i class="fas fa-clapperboard"></i> SÉRIES</div>
+    </div>
+    <div id="content">
+        <video id="video" autoplay controls playsinline></video>
+    </div>
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+        }
+        setInterval(updateClock, 1000); updateClock();
+    </script>
 </body>
 </html>
