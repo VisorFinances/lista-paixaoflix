@@ -20,7 +20,6 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 #nowPlaying { margin: 15px 0; text-align: center; }
 #nowPlaying span { display: block; font-size: 13px; color: #fff; font-weight: 700; margin-bottom: 5px; }
 
-/* ATUALIZADO: QUEBRA DE LINHA NO ASSISTINDO AGORA */
 #currentTitle { 
     display: inline-block; 
     padding: 6px 10px; 
@@ -193,10 +192,19 @@ function handleAction() {
         const sourceData = isMovie ? movies : series;
         const catName = typeof item === 'string' ? item.toUpperCase().trim() : "";
         
+        // FILTRO PARA REMOVER DUPLICIDADE POR TÍTULO
+        const uniqueTitles = new Set();
         filteredList = sourceData.filter(m => {
             let gen = (m.genero || "").toUpperCase().trim();
-            return catName.includes("202") ? m.year === catName.split(" ").pop() : gen === catName;
+            const match = catName.includes("202") ? m.year === catName.split(" ").pop() : gen === catName;
+            
+            if (match && !uniqueTitles.has(m.titulo)) {
+                uniqueTitles.add(m.titulo);
+                return true;
+            }
+            return false;
         });
+
         viewMode = isMovie ? "movie_list" : "series_list"; 
         selectedIndex = 0; renderList();
     } else {
