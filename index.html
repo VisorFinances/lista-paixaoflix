@@ -108,7 +108,6 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
-// BUSCA GLOBAL REAL-TIME
 searchInput.addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase();
     if (term.length > 0) {
@@ -165,14 +164,14 @@ function renderList() {
     } else { posterWrapper.style.display = "none"; }
 }
 
-function handleAction() {
+async function handleAction() {
     let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     let data = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
     const item = data[selectedIndex];
 
     if (!item) return;
 
-    // 1. Entrar em Categorias (Cinema ou Séries)
+    // 1. Entrar em Categorias
     if ((viewMode === "categories" || viewMode === "series") && typeof item === 'string') {
         const isMovie = viewMode === "categories";
         const sourceData = isMovie ? movies : series;
@@ -187,14 +186,26 @@ function handleAction() {
         viewMode = isMovie ? "movie_list" : "series_list"; 
         selectedIndex = 0; renderList();
     } 
-    // 2. Selecionar Série para ver Episódios
-    else if ((viewMode === "series_list" || viewMode === "kids_series") && item.titulo && !item.url && !item.link) {
-        const source = viewMode === "kids_series" ? kidsSeries : series;
-        filteredList = source.filter(s => s.titulo === item.titulo && (s.url || s.link));
-        viewMode = "episode_list";
-        selectedIndex = 0; renderList();
+    // 2. Carregar episódios do Archive.org se for Série
+    else if ((viewMode === "series_list" || viewMode === "kids_series" || viewMode === "search_results") && item.type === "serie") {
+        channelList.innerHTML = "<div class='channel'>Carregando episódios...</div>";
+        try {
+            const resp = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
+            const meta = await resp.json();
+            const files = meta.files.filter(f => f.name.endsWith(".mp4") || f.name.endsWith(".mkv"));
+            filteredList = files.map(f => ({
+                titulo: f.name.split('/').pop().replace(/_/g, ' '),
+                url: `https://archive.org/download/${item.identificador_archive}/${f.name}`,
+                poster: item.poster
+            }));
+            viewMode = "episode_list";
+            selectedIndex = 0; renderList();
+        } catch (e) {
+            alert("Erro ao carregar episódios.");
+            renderList();
+        }
     }
-    // 3. Play direto (Canais, Filmes ou Episódios)
+    // 3. Play
     else {
         playMedia(item);
     }
