@@ -99,7 +99,7 @@ let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [],
 let favorites = JSON.parse(localStorage.getItem("paixaoflix_favs") || "[]");
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true, hls = null;
 
-const movieCats = ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICCIÓN CIENTÍFICA","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
+const movieCats = ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
 
 function updateClock() {
     const d = new Date();
@@ -171,7 +171,7 @@ async function handleAction() {
 
     if (!item) return;
 
-    // 1. Navegação de Categorias (Texto Simples)
+    // 1. Entrar em Categorias
     if ((viewMode === "categories" || viewMode === "series") && typeof item === 'string') {
         const isMovie = viewMode === "categories";
         const sourceData = isMovie ? movies : series;
@@ -186,8 +186,8 @@ async function handleAction() {
         viewMode = isMovie ? "movie_list" : "series_list"; 
         selectedIndex = 0; renderList();
     } 
-    // 2. Séries (Carregar do Archive)
-    else if ((viewMode === "series_list" || viewMode === "kids_series" || (viewMode === "search_results" && item.type === "serie")) && item.identificador_archive) {
+    // 2. Carregar episódios do Archive.org se for Série
+    else if ((viewMode === "series_list" || viewMode === "kids_series" || viewMode === "search_results") && item.type === "serie") {
         channelList.innerHTML = "<div class='channel'>Carregando episódios...</div>";
         try {
             const resp = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
@@ -205,7 +205,7 @@ async function handleAction() {
             renderList();
         }
     }
-    // 3. Play Direto (Canais ou Filmes com URL)
+    // 3. Play
     else {
         playMedia(item);
     }
