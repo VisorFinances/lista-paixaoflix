@@ -13,10 +13,13 @@
 *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
 html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: Arial, sans-serif; height: 100%; overflow: hidden; width: 100%; }
 #app { display: flex; height: 100%; width: 100%; position: relative; }
-#menu { width: 280px; background: #1a1a1a; display: flex; flex-direction: column; z-index: 100; padding: 12px; box-sizing: border-box; border-right: 1px solid #333; height: 100%; }
-#menuHeader { padding: 15px 10px; text-align: center; border-bottom: 1px solid #222; margin-bottom: 15px; }
+
+/* BARRA LATERAL AZUL PETRÓLEO */
+#menu { width: 280px; background: #004d4d; display: flex; flex-direction: column; z-index: 100; padding: 12px; box-sizing: border-box; border-right: 1px solid #003333; height: 100%; }
+
+#menuHeader { padding: 15px 10px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; }
 #menuHeader img { height: 95px; width: auto; object-fit: contain; }
-#clock { margin-top: 10px; font-size: 13px; color: #aaa; }
+#clock { margin-top: 10px; font-size: 13px; color: #ccc; }
 #nowPlaying { margin: 15px 0; text-align: center; }
 #nowPlaying span { display: block; font-size: 13px; color: #fff; font-weight: 700; margin-bottom: 5px; }
 
@@ -36,23 +39,56 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 }
 
 #searchBox { margin-bottom: 15px; }
-#searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; outline: none; box-sizing: border-box; font-size: 14px; }
-#searchInput.focused { border-color: #ff9800; background: #222; }
-.menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #222; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
+#searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #003333; background: #000; color: #fff; outline: none; box-sizing: border-box; font-size: 14px; }
+#searchInput.focused { border-color: #fff; background: #111; }
+
+/* BOTÕES DOS MENUS AZUL CONTRASTE E 3D */
+.menu-item { 
+    padding: 12px 15px; 
+    font-size: 15px; 
+    margin-bottom: 8px; 
+    border-radius: 8px; 
+    background: #007acc; 
+    border: none;
+    border-bottom: 4px solid #005a99; /* Efeito 3D */
+    box-shadow: inset 0 1px rgba(255,255,255,0.2); 
+    display: flex; 
+    align-items: center; 
+    color: #fff; 
+    cursor: pointer; 
+    transition: all 0.1s;
+}
+
 .menu-item i { margin-right: 12px; width: 20px; text-align: center; }
-.menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; }
-.menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
-#content { position: absolute; top: 0; left: 280px; width: calc(100% - 280px); height: 100%; z-index: 10; background: black; display: flex; justify-content: center; align-items: center; }
-#videoContainer { width: 100%; height: 100%; background: #000; }
-video { width: 100%; height: 100%; object-fit: fill; background: #000; }
-#channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: scroll; border-right: 1px solid #ff9800; }
+
+/* SELETOR BRANCO (FOCO) */
+.menu-item.active { 
+    background: #ffffff !important; 
+    color: #000 !important; 
+    border-bottom: 4px solid #cccccc !important; 
+    font-weight: bold; 
+    transform: translateY(2px); /* Efeito de apertar botão 3D */
+}
+
+.menu-item.active i { color: #000; }
+.menu-item.kids { color: #fff; } /* Removido o amarelo para manter o padrão 3D */
+
+/* ÁREA DE PLAY PRETO ABSOLUTO */
+#content { position: absolute; top: 0; left: 280px; width: calc(100% - 280px); height: 100%; z-index: 10; background: #000000; display: flex; justify-content: center; align-items: center; }
+#videoContainer { width: 100%; height: 100%; background: #000000; }
+video { width: 100%; height: 100%; object-fit: fill; background: #000000; }
+
+#channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: scroll; border-right: 1px solid #fff; }
+
+/* SELETOR DA LISTA DE CANAIS EM BRANCO */
 .channel { padding: 15px 20px; font-size: 16px; border-bottom: 1px solid #222; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-.channel.active { background: #ff9800 !important; color: #000 !important; font-weight: bold; }
+.channel.active { background: #ffffff !important; color: #000 !important; font-weight: bold; }
+
 .fav-btn { color: #555; transition: 0.3s; }
 .fav-btn.active { color: #ffeb3b; }
 
 #posterWrapper { position: absolute; top: 50%; left: 360px; transform: translateY(-50%); width: 300px; height: 450px; z-index: 120; display: none; pointer-events: none; }
-#posterPreview { width: 100%; height: 100%; border-radius: 12px; background: #222; object-fit: cover; border: 3px solid #ff9800; }
+#posterPreview { width: 100%; height: 100%; border-radius: 12px; background: #222; object-fit: cover; border: 3px solid #fff; }
 #ratingBadge { position: absolute; top: 15px; right: 15px; background: rgba(0, 0, 0, 0.75); color: #ffeb3b; padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 18px; border: 1px solid rgba(255, 235, 59, 0.3); display: flex; align-items: center; gap: 6px; }
 </style>
 </head>
@@ -171,7 +207,6 @@ async function handleAction() {
 
     if (!item) return;
 
-    // 1. Entrar em Categorias
     if ((viewMode === "categories" || viewMode === "series") && typeof item === 'string') {
         const isMovie = viewMode === "categories";
         const sourceData = isMovie ? movies : series;
@@ -186,7 +221,6 @@ async function handleAction() {
         viewMode = isMovie ? "movie_list" : "series_list"; 
         selectedIndex = 0; renderList();
     } 
-    // 2. Carregar episódios do Archive.org se for Série
     else if ((viewMode === "series_list" || viewMode === "kids_series" || viewMode === "search_results") && item.type === "serie") {
         channelList.innerHTML = "<div class='channel'>Carregando episódios...</div>";
         try {
@@ -205,7 +239,6 @@ async function handleAction() {
             renderList();
         }
     }
-    // 3. Play
     else {
         playMedia(item);
     }
@@ -277,8 +310,10 @@ function loadM3U(path, array, isMain) {
 }
 
 window.onload = () => {
-    loadM3U("data/canais.m3u", channels, true);
-    loadM3U("data/kids_canais.m3u", kidsChannels, false);
+    // URLS ATUALIZADAS PARA O REPOSITÓRIO PAIXÃOFLIX
+    loadM3U("https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u", channels, true);
+    loadM3U("https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_kids_canais.m3u", kidsChannels, false);
+    
     fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d);
     fetch("data/series.json").then(r=>r.json()).then(d=>series=d);
     fetch("data/kids_filmes.json").then(r=>r.json()).then(d=>kidsMovies=d);
