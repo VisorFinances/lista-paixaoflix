@@ -16,7 +16,7 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 
 /* BARRA LATERAL AJUSTADA À LARGURA DA ESCRITA */
 #menu { 
-    width: 165px; 
+    width: 155px; /* Reduzido para a largura exata do texto */
     background: #001a1a; 
     display: flex; 
     flex-direction: column; 
@@ -26,7 +26,7 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 }
 
 #menuHeader { padding: 10px; text-align: center; flex-shrink: 0; }
-#menuHeader img { height: 60px; width: auto; object-fit: contain; }
+#menuHeader img { height: 55px; width: auto; object-fit: contain; }
 #clock { font-size: 10px; color: #ccc; margin-top: 5px; }
 
 #searchBox { padding: 8px; flex-shrink: 0; }
@@ -36,11 +36,12 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 }
 #searchInput.focused { border-color: #fff; background: #111; }
 
-#menuItemsArea { flex: 1; overflow-y: auto !important; padding: 8px; display: flex; flex-direction: column; }
+#menuItemsArea { flex: 1; overflow-y: auto !important; padding: 5px; display: flex; flex-direction: column; }
 
+/* BOTÕES COM EFEITO PULSE */
 .menu-item { 
-    padding: 10px 10px; 
-    font-size: 12px; 
+    padding: 8px 10px; 
+    font-size: 11px; 
     margin-bottom: 8px; 
     border-radius: 6px; 
     background: #0080ff; 
@@ -53,22 +54,24 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
     cursor: pointer; 
     flex-shrink: 0;
     white-space: nowrap;
+    transition: transform 0.2s;
 }
 .menu-item i { margin-right: 8px; width: 14px; text-align: center; }
 
+/* ESTADO ATIVO COM ANIMAÇÃO PULSE */
 .menu-item.active { 
     background: #ffffff !important; 
     color: #000 !important; 
     border-bottom: 3px solid #cccccc !important; 
     font-weight: bold; 
-    transform: scale(1.05);
-    animation: pulseEffect 1.5s infinite ease-in-out;
+    transform: scale(1.03);
+    animation: pulseActive 1.5s infinite;
 }
 
-@keyframes pulseEffect {
-    0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
-    70% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+@keyframes pulseActive {
+    0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7), inset 0 1px rgba(255,255,255,0.2); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0), inset 0 1px rgba(255,255,255,0.2); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0), inset 0 1px rgba(255,255,255,0.2); }
 }
 
 #content { flex: 1; height: 100%; background: #000000; display: flex; justify-content: center; align-items: center; position: relative; }
@@ -76,14 +79,14 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 video { width: 100%; height: 100%; object-fit: contain; }
 
 #channelList { 
-    position: absolute; top: 0; left: 0; width: 280px; height: 100%; 
+    position: absolute; top: 0; left: 0; width: 260px; height: 100%; 
     background: rgba(0, 0, 0, 0.95); display: none; z-index: 110; 
     overflow-y: auto !important; border-right: 1px solid #fff; 
 }
 .channel { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid #222; color: #fff; cursor: pointer; }
 .channel.active { background: #fff !important; color: #000 !important; font-weight: bold; }
 
-#posterWrapper { position: absolute; top: 50%; left: 300px; transform: translateY(-50%); width: 220px; z-index: 120; display: none; }
+#posterWrapper { position: absolute; top: 50%; left: 280px; transform: translateY(-50%); width: 200px; z-index: 120; display: none; }
 #posterPreview { width: 100%; border-radius: 8px; border: 2px solid #fff; }
 </style>
 </head>
@@ -177,7 +180,7 @@ async function handleAction() {
     if ((viewMode === "categories" || viewMode === "series") && typeof item === 'string') {
         const isMovie = viewMode === "categories";
         const sourceData = isMovie ? movies : series;
-        filteredList = sourceData.filter(m => (m.genero || "").toUpperCase().trim() === item);
+        filteredList = sourceData.filter(m => (m.genero || "").toUpperCase().trim() === item.toUpperCase().trim());
         viewMode = isMovie ? "movie_list" : "series_list";
         selectedIndex = 0; renderList();
     } 
