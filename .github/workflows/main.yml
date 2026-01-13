@@ -1,0 +1,35 @@
+name: Atualizar Lista IPTV
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Roda todo dia à meia-noite
+  push:
+    branches:
+      - main # Roda sempre que você adicionar um canal novo
+  workflow_dispatch: # Permite que você rode manualmente
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar arquivos do repositório
+        uses: actions/checkout@v2
+
+      - name: Instalar Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Instalar dependências
+        run: pip install requests
+
+      - name: Rodar script de verificação
+        run: python verificar_lista.py
+
+      - name: Salvar alterações
+        run: |
+          git config --global user.name 'Bot de Limpeza'
+          git config --global user.email 'bot@github.com'
+          git add lista_ativa.m3u
+          git commit -m "Lista atualizada automaticamente" || exit 0
+          git push
