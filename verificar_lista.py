@@ -1,55 +1,47 @@
 import requests
 import os
 
-# Configuração exata dos seus caminhos
-arquivos_config = [
-    {"entrada": "data/canais.m3u", "saida": "data/ativa_canais.m3u"},
-    {"entrada": "data/kids_canais.m3u", "saida": "data/ativa_kids_canais.m3u"}
-]
-
-def verificar_link(url):
-    # Forçar links estáveis a passarem sempre
-    estaveis = ["pluto.tv", "ebc.com.br", "jmvstream", "nxplay", "cloudecast", "logicahost"]
-    if any(x in url.lower() for x in estaveis):
+def testar_link(url):
+    # Canais estáveis que não precisam de teste (evita erros)
+    if any(x in url.lower() for x in ["pluto.tv", "jmvstream", "ebc.com.br"]):
         return True
     try:
-        # Timeout curto para não travar o robô
-        response = requests.head(url, timeout=3, allow_redirects=True)
-        return response.status_code == 200
+        r = requests.head(url, timeout=3, allow_redirects=True)
+        return r.status_code == 200
     except:
         return False
 
-def processar():
-    for item in arquivos_config:
-        ent = item["entrada"]
-        sai = item["saida"]
-        
-        if not os.path.exists(ent):
-            print(f"PULANDO: {ent} não existe.")
+def iniciar():
+    listas = [
+        ("data/canais.m3u", "data/ativa_canais.m3u"),
+        ("data/kids_canais.m3u", "data/ativa_kids_canais.m3u")
+    ]
+
+    for arquivo_in, arquivo_out in listas:
+        if not os.path.exists(arquivo_in):
+            print(f"Arquivo não encontrado: {arquivo_in}")
             continue
 
-        print(f"PROCESSANDO: {ent}")
-        with open(ent, 'r', encoding='utf-8') as f:
+        with open(arquivo_in, 'r', encoding='utf-8', errors='ignore') as f:
             linhas = f.readlines()
 
-        nova_lista = ["#EXTM3U\n"]
+        resultado = ["#EXTM3U\n"]
         for i in range(len(linhas)):
-            if linhas[i].startswith("#EXTINF"):
+            if "#EXTINF" in linhas[i]:
                 info = linhas[i]
                 try:
                     link = linhas[i+1].strip()
-                    if verificar_link(link):
-                        nova_lista.append(info)
-                        nova_lista.append(link + "\n")
+                    if link.startswith("http"):
+                        # Se o link estiver ON, adiciona
+                        if testar_link(link):
+                            resultado.append(info)
+                            resultado.append(link + "\n")
                 except:
                     continue
 
-        # Cria a pasta data se ela não existir por algum motivo
-        os.makedirs(os.path.dirname(sai), exist_ok=True)
-        
-        with open(sai, 'w', encoding='utf-8') as f:
-            f.writelines(nova_lista)
-        print(f"SUCESSO: {sai} criado com {len(nova_lista)//2} canais.")
+        with open(arquivo_out, 'w', encoding='utf-8') as f:
+            f.writelines(resultado)
+        print(f"Finalizado: {arquivo_out}")
 
 if __name__ == "__main__":
-    processar()
+    iniciar()
