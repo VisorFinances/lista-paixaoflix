@@ -1,117 +1,254 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PaixãoFlix Universal</title>
-    <script src="cdn.jsdelivr.net"></script>
-    <link rel="stylesheet" href="cdnjs.cloudflare.com">
-    <style>
-        :root { --primary: #00d9ff; --bg: #0a0a0a; --card-bg: #1a1a1a; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body, html { margin: 0; padding: 0; background: var(--bg); color: #fff; font-family: 'Poppins', sans-serif; height: 100%; overflow: hidden; }
-        
-        /* Layout Grid Responsivo */
-        #app { display: grid; grid-template-columns: 240px 1fr; height: 100vh; }
-        @media (max-width: 768px) { #app { grid-template-columns: 1fr; } #sidebar { display: none; } }
+<meta charset="UTF-8" />
+<title>PaixãoFlix TV</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="stylesheet" href="cdnjs.cloudflare.com">
+<link href="fonts.googleapis.com" rel="stylesheet">
+<script src="cdn.jsdelivr.net"></script>
 
-        #sidebar { background: #000; border-right: 1px solid #222; padding: 20px; display: flex; flex-direction: column; }
-        #searchBox { width: 100%; padding: 12px; background: #222; border: none; color: #fff; border-radius: 8px; margin-bottom: 20px; }
+<style>
+* { overflow: hidden; -ms-overflow-style: none; scrollbar-width: none; touch-action: manipulation; box-sizing: border-box; }
+*::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100%; width: 100%; }
+#app { display: flex; height: 100vh; width: 100vw; position: relative; overflow: hidden; }
 
-        /* Grade de Conteúdo */
-        #content-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 20px; overflow-y: auto; height: 100vh; }
-        .card { background: var(--card-bg); border-radius: 10px; overflow: hidden; cursor: pointer; border: 3px solid transparent; transition: 0.2s; }
-        .card:focus, .card.active { border-color: var(--primary); transform: scale(1.05); outline: none; }
-        .card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
-        .card p { padding: 8px; font-size: 13px; text-align: center; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* MENU LATERAL */
+#menu { 
+    width: 220px; 
+    background: #001a1a; 
+    display: flex; 
+    flex-direction: column; 
+    z-index: 100; 
+    height: 100%; 
+    border-right: 1px solid #003333;
+    transition: transform 0.3s ease;
+}
 
-        /* Player Overlay */
-        #player-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; display: none; }
-        video { width: 100%; height: 100%; }
-        .close-btn { position: absolute; top: 20px; right: 20px; background: rgba(255,0,0,0.7); border: none; color: #fff; padding: 10px 20px; border-radius: 5px; cursor: pointer; z-index: 1001; }
-    </style>
+#menuHeader { padding: 15px 10px; text-align: center; flex-shrink: 0; }
+#menuHeader img { height: 120px; width: auto; object-fit: contain; }
+#clock { font-size: 11px; color: #ccc; margin-top: 8px; }
+
+#searchBox { padding: 10px; flex-shrink: 0; }
+#searchInput { 
+    width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #003333; 
+    background: #000; color: #fff; outline: none; font-size: 12px; 
+}
+#searchInput:focus { border-color: #0080ff; background: #111; }
+
+#menuItemsArea { flex: 1; overflow-y: auto !important; padding: 10px; }
+
+.menu-item { 
+    padding: 12px; font-size: 13px; margin-bottom: 8px; border-radius: 6px; 
+    background: #0080ff; border: none; border-bottom: 3px solid #004d99;
+    box-shadow: inset 0 1px rgba(255,255,255,0.2); display: flex; align-items: center; 
+    color: #fff; cursor: pointer; white-space: nowrap;
+}
+.menu-item i { margin-right: 10px; width: 18px; text-align: center; }
+.menu-item.active { 
+    background: #fff !important; color: #000 !important; border-bottom: 3px solid #ccc !important;
+    font-weight: bold; transform: scale(1.05); animation: pulseEffect 1.5s infinite;
+}
+
+@keyframes pulseEffect {
+    0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}
+
+#content { flex: 1; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; position: relative; }
+#videoContainer { width: 100%; height: 100%; background: #000; }
+video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+
+#channelList { 
+    position: absolute; top: 0; left: 0; width: fit-content; min-width: 200px; max-width: 300px;
+    height: 100%; background: rgba(0, 0, 0, 0.95); display: none; z-index: 110; 
+    border-right: 1px solid #fff; overflow-y: auto !important;
+}
+.channel { padding: 12px 15px; font-size: 13px; border-bottom: 1px solid #222; color: #fff; cursor: pointer; white-space: nowrap; }
+.channel.active { background: #fff !important; color: #000 !important; font-weight: bold; }
+
+#posterWrapper { 
+    position: absolute; top: 50%; right: 20px; transform: translateY(-50%); 
+    width: 250px; z-index: 120; display: none; pointer-events: none;
+}
+#posterPreview { 
+    width: 100%; border-radius: 10px; border: 3px solid #fff; 
+    box-shadow: 0 0 20px rgba(0,0,0,0.5); image-rendering: -webkit-optimize-contrast;
+}
+</style>
 </head>
+
 <body>
-
 <div id="app">
-    <aside id="sidebar">
-        <h2>PaixãoFlix</h2>
-        <input type="text" id="searchBox" placeholder="Busca global..." onkeyup="search()">
-        <nav id="menu"></nav>
-    </aside>
-    <main id="content-grid"></main>
-</div>
-
-<div id="player-wrap">
-    <button class="close-btn" onclick="closePlayer()">FECHAR (ESC)</button>
-    <video id="videoPlayer" controls autoplay></video>
+    <div id="menu">
+        <div id="menuHeader">
+            <img src="raw.githubusercontent.com" alt="Logo">
+            <div id="clock"></div>
+        </div>
+        <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar global..."></div>
+        <div id="menuItemsArea">
+            <div class="menu-item active" data-type="recent"><i class="fas fa-history"></i> Assistindo agora</div>
+            <div class="menu-item" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
+            <div class="menu-item" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
+            <div class="menu-item" data-type="movies"><i class="fas fa-film"></i> Cinema</div>
+            <div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
+            <div class="menu-item kids" data-type="kids_channels"><i class="fas fa-child"></i> Canal Kids</div>
+            <div class="menu-item kids" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
+            <div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
+        </div>
+    </div>
+    
+    <div id="content">
+        <div id="videoContainer"><video id="video" autoplay playsinline controls></video></div>
+        <div id="channelList"></div>
+        <div id="posterWrapper"><img id="posterPreview" loading="lazy"></div>
+    </div>
 </div>
 
 <script>
-    let allContent = []; // Banco de dados carregado
-    const GITHUB_URL = "SUA_URL_RAW_AQUI"; // Certifique-se que o link termina em .json ou .m3u
+// CONFIGURAÇÃO DOS LINKS DO GITHUB
+const URLS = {
+    channels: "raw.githubusercontent.com",
+    movies: "raw.githubusercontent.com",
+    series: "raw.githubusercontent.com"
+};
 
-    async function loadData() {
-        try {
-            // Se o GitHub falhar, o sistema não fica preto, ele mostra um erro visual
-            const res = await fetch(GITHUB_URL).catch(() => null);
-            if(!res) throw new Error("Erro de conexão");
-            const data = await res.json();
-            allContent = data.items || data;
-            render(allContent);
-        } catch (e) {
-            document.getElementById('content-grid').innerHTML = `<h3>Erro ao carregar lista. Verifique o link do GitHub.</h3>`;
-        }
+const video = document.getElementById("video");
+const channelList = document.getElementById("channelList");
+const searchInput = document.getElementById("searchInput");
+const menuItems = document.querySelectorAll(".menu-item");
+const posterWrapper = document.getElementById("posterWrapper");
+const posterPreview = document.getElementById("posterPreview");
+
+let db = { channels: [], movies: [], series: [], all: [] };
+let recent = JSON.parse(localStorage.getItem("recent_v1") || "[]");
+let favorites = JSON.parse(localStorage.getItem("favs_v1") || "[]");
+let displayList = [], selectedIndex = 0, menuIndex = 0, menuFocused = true, hls = null;
+
+// RELÓGIO ATUALIZADO 2026
+function updateClock() {
+    const d = new Date();
+    const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+    document.getElementById("clock").innerText = `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+setInterval(updateClock, 1000); updateClock();
+
+// CARREGAR DADOS
+async function loadData() {
+    try {
+        const fetchJSON = url => fetch(url).then(r => r.ok ? r.json() : []);
+        const [c, m, s] = await Promise.all([
+            fetchJSON(URLS.channels),
+            fetchJSON(URLS.movies),
+            fetchJSON(URLS.series)
+        ]);
+        db.channels = c; db.movies = m; db.series = s;
+        db.all = [...c, ...m, ...s];
+        renderList();
+    } catch (e) { console.error("Erro ao carregar banco de dados remoto"); }
+}
+
+// BUSCA GLOBAL REAL-TIME
+searchInput.addEventListener('input', () => {
+    const term = searchInput.value.toLowerCase();
+    if(term) {
+        displayList = db.all.filter(i => (i.titulo || i.name || "").toLowerCase().includes(term));
+        menuFocused = false;
+        renderList(true);
+    } else {
+        renderList();
+    }
+});
+
+// RENDERIZAR LISTA LATERAL
+function renderList(isSearch = false) {
+    channelList.innerHTML = "";
+    if (!isSearch) {
+        const type = menuItems[menuIndex].dataset.type;
+        if (type === "channels") displayList = db.channels;
+        else if (type === "movies") displayList = db.movies;
+        else if (type === "series") displayList = db.series;
+        else if (type === "recent") displayList = recent;
+        else if (type === "fav") displayList = favorites;
+        else displayList = [];
     }
 
-    function render(list) {
-        const grid = document.getElementById('content-grid');
-        grid.innerHTML = list.map((item, i) => `
-            <div class="card" tabindex="${i}" onclick="play('${item.url}')" onkeydown="if(event.key==='Enter') play('${item.url}')">
-                <img src="${item.logo || 'via.placeholder.com'}" alt="${item.name}">
-                <p>${item.name}</p>
-            </div>
-        `).join('');
-    }
-
-    function search() {
-        const term = document.getElementById('searchBox').value.toLowerCase();
-        const filtered = allContent.filter(i => i.name.toLowerCase().includes(term));
-        render(filtered);
-    }
-
-    function play(url) {
-        const wrap = document.getElementById('player-wrap');
-        const video = document.getElementById('videoPlayer');
-        wrap.style.display = 'block';
-        
-        if (Hls.isSupported() && url.includes('m3u8')) {
-            const hls = new Hls();
-            hls.loadSource(url);
-            hls.attachMedia(video);
-        } else {
-            video.src = url;
-        }
-    }
-
-    function closePlayer() {
-        const video = document.getElementById('videoPlayer');
-        video.pause();
-        video.src = "";
-        document.getElementById('player-wrap').style.display = 'none';
-    }
-
-    // Navegação por Teclado/Controle Remoto
-    document.addEventListener('keydown', (e) => {
-        const active = document.activeElement;
-        if (e.key === "Escape") closePlayer();
-        if (active.classList.contains('card')) {
-            if (e.key === "ArrowRight") active.nextElementSibling?.focus();
-            if (e.key === "ArrowLeft") active.previousElementSibling?.focus();
-        }
+    displayList.forEach((item, i) => {
+        const div = document.createElement("div");
+        div.className = `channel ${(!menuFocused && i === selectedIndex) ? "active" : ""}`;
+        div.innerHTML = `<span>${item.titulo || item.name}</span>`;
+        div.onclick = () => { selectedIndex = i; menuFocused = false; playMedia(item); };
+        div.onmouseover = () => { if(item.poster) { posterPreview.src = item.poster; posterWrapper.style.display = 'block'; } };
+        div.onmouseout = () => { posterWrapper.style.display = 'none'; };
+        channelList.appendChild(div);
     });
 
-    loadData();
+    channelList.style.display = displayList.length ? "block" : "none";
+}
+
+// PLAYER HLS E MP4 COM RECONEXÃO
+function playMedia(item) {
+    if (!item || !item.url) return;
+    
+    // Salvar Assistindo Agora
+    recent = [item, ...recent.filter(r => r.url !== item.url)].slice(0, 20);
+    localStorage.setItem("recent_v1", JSON.stringify(recent));
+
+    if (hls) { hls.destroy(); hls = null; }
+    const url = item.url.replace("http://", "https://");
+
+    if (url.includes(".m3u8")) {
+        if (Hls.isSupported()) {
+            hls = new Hls({ recoverMediaError: true });
+            hls.loadSource(url); hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = url;
+        }
+    } else {
+        video.src = url;
+    }
+    
+    channelList.style.display = "none";
+    video.play().catch(() => {});
+}
+
+// NAVEGAÇÃO UNIVERSAL (TV BOX / TECLADO / MOUSE)
+document.addEventListener('keydown', (e) => {
+    if (menuFocused) {
+        if (e.key === "ArrowDown") {
+            menuIndex = (menuIndex + 1) % menuItems.length;
+            updateMenuFocus();
+        } else if (e.key === "ArrowUp") {
+            menuIndex = (menuIndex - 1 + menuItems.length) % menuItems.length;
+            updateMenuFocus();
+        } else if (e.key === "ArrowRight" || e.key === "Enter") {
+            if (displayList.length) { menuFocused = false; selectedIndex = 0; renderList(); }
+        }
+    } else {
+        if (e.key === "ArrowDown") {
+            selectedIndex = Math.min(selectedIndex + 1, displayList.length - 1);
+            renderList(searchInput.value.length > 0);
+        } else if (e.key === "ArrowUp") {
+            if (selectedIndex === 0) { menuFocused = true; updateMenuFocus(); }
+            else { selectedIndex--; renderList(searchInput.value.length > 0); }
+        } else if (e.key === "ArrowLeft") {
+            menuFocused = true; updateMenuFocus();
+        } else if (e.key === "Enter") {
+            playMedia(displayList[selectedIndex]);
+        }
+    }
+});
+
+function updateMenuFocus() {
+    menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
+    renderList();
+}
+
+// INICIALIZAÇÃO
+loadData();
 </script>
 </body>
 </html>
