@@ -1,58 +1,55 @@
 import requests
 import os
 
-# Configuração dos caminhos (Ambos dentro da pasta data)
+# Configuração exata dos seus caminhos
 arquivos_config = [
     {"entrada": "data/canais.m3u", "saida": "data/ativa_canais.m3u"},
     {"entrada": "data/kids_canais.m3u", "saida": "data/ativa_kids_canais.m3u"}
 ]
 
 def verificar_link(url):
+    # Forçar links estáveis a passarem sempre
+    estaveis = ["pluto.tv", "ebc.com.br", "jmvstream", "nxplay", "cloudecast", "logicahost"]
+    if any(x in url.lower() for x in estaveis):
+        return True
     try:
-        # Testa o link. Se demorar mais de 5s, considera fora do ar.
-        response = requests.head(url, timeout=5, allow_redirects=True)
+        # Timeout curto para não travar o robô
+        response = requests.head(url, timeout=3, allow_redirects=True)
         return response.status_code == 200
     except:
         return False
 
-def processar_listas():
+def processar():
     for item in arquivos_config:
-        arquivo_entrada = item["entrada"]
-        arquivo_saida = item["saida"]
+        ent = item["entrada"]
+        sai = item["saida"]
         
-        if not os.path.exists(arquivo_entrada):
-            print(f"⚠️ Arquivo não encontrado: {arquivo_entrada}")
+        if not os.path.exists(ent):
+            print(f"PULANDO: {ent} não existe.")
             continue
 
-        with open(arquivo_entrada, 'r', encoding='utf-8') as f:
+        print(f"PROCESSANDO: {ent}")
+        with open(ent, 'r', encoding='utf-8') as f:
             linhas = f.readlines()
 
         nova_lista = ["#EXTM3U\n"]
-        print(f"\n--- Analisando: {arquivo_entrada} ---")
-
         for i in range(len(linhas)):
             if linhas[i].startswith("#EXTINF"):
                 info = linhas[i]
                 try:
                     link = linhas[i+1].strip()
-                    if link.startswith("http"):
-                        # Links de plataformas conhecidas que não precisam de teste constante
-                        if any(x in link.lower() for x in ["pluto.tv", "ebc.com.br", "jmvstream", "nxplay"]):
-                            nova_lista.append(info)
-                            nova_lista.append(link + "\n")
-                        # Verifica os outros links (IPTV privada)
-                        elif verificar_link(link):
-                            nova_lista.append(info)
-                            nova_lista.append(link + "\n")
-                            print(f"✅ ON : {info.split(',')[-1].strip()}")
-                        else:
-                            print(f"❌ OFF: {info.split(',')[-1].strip()}")
-                except IndexError:
+                    if verificar_link(link):
+                        nova_lista.append(info)
+                        nova_lista.append(link + "\n")
+                except:
                     continue
 
-        with open(arquivo_saida, 'w', encoding='utf-8') as f:
+        # Cria a pasta data se ela não existir por algum motivo
+        os.makedirs(os.path.dirname(sai), exist_ok=True)
+        
+        with open(sai, 'w', encoding='utf-8') as f:
             f.writelines(nova_lista)
-        print(f"✔️ Concluído! Arquivo gerado: {arquivo_saida}")
+        print(f"SUCESSO: {sai} criado com {len(nova_lista)//2} canais.")
 
 if __name__ == "__main__":
-    processar_listas()
+    processar()
