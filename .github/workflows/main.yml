@@ -1,4 +1,4 @@
-name: Atualizador de Listas IPTV
+name: Atualizador de Listas
 
 on:
   push:
@@ -8,28 +8,27 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Permissões extras para garantir que o robô pode escrever arquivos
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Python
+      - name: Baixar Codigo
+        uses: actions/checkout@v3
+
+      - name: Instalar Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-          
-      - name: Install Dependencies
+
+      - name: Instalar Requests
         run: pip install requests
 
-      - name: Run Script
+      - name: Executar Script
         run: python verificar_listas.py
 
-      - name: Commit and Push
+      - name: Salvar Arquivos
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
           git add data/*.m3u
-          # Só faz commit se houver mudança real
-          git commit -m "Lista atualizada automaticamente" || echo "Sem mudanças para salvar"
+          git commit -m "Listas atualizadas" || echo "Sem mudanças"
           git push
