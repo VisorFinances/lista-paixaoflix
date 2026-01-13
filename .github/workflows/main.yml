@@ -1,35 +1,35 @@
 name: Atualizador de Listas IPTV
 
 on:
-  schedule:
-    - cron: '0 */6 * * *' # Roda automaticamente a cada 6 horas
   push:
-    paths:
-      - 'data/**' # Roda sempre que você mexer em qualquer lista na pasta data
-  workflow_dispatch: # Botão para rodar manualmente
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  check-links:
+  build:
     runs-on: ubuntu-latest
+    # Permissões extras para garantir que o robô pode escrever arquivos
+    permissions:
+      contents: write
     steps:
-      - name: Checkout do código
-        uses: actions/checkout@v3
-
-      - name: Configurar Python
+      - uses: actions/checkout@v3
+      
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-
-      - name: Instalar Dependências
+          
+      - name: Install Dependencies
         run: pip install requests
 
-      - name: Executar Script de Verificação
+      - name: Run Script
         run: python verificar_listas.py
 
-      - name: Salvar Mudanças no GitHub
+      - name: Commit and Push
         run: |
-          git config --global user.name 'GitHub Actions Bot'
-          git config --global user.email 'actions@github.com'
-          git add data/ativa_*.m3u
-          git commit -m "Sistema: Listas atualizadas (removido canais OFF)" || exit 0
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data/*.m3u
+          # Só faz commit se houver mudança real
+          git commit -m "Lista atualizada automaticamente" || echo "Sem mudanças para salvar"
           git push
