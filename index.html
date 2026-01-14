@@ -3,15 +3,21 @@
 <head>
 <meta charset="UTF-8" />
 <title>PaixãoFlix TV</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-/* Reset de overflow para garantir que nada escape da tela */
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body, html { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100%; width: 100%; overflow: hidden; }
+* { margin: 0; padding: 0; box-sizing: border-box; overflow: hidden; }
+body, html { 
+    background: #000; color: #fff; font-family: 'Poppins', sans-serif; 
+    height: 100%; width: 100%; position: fixed; 
+}
 
 #layout-principal { display: flex; height: 100vh; width: 100vw; }
 
@@ -26,63 +32,66 @@ body, html { background: #000; color: #fff; font-family: 'Poppins', sans-serif; 
 #header-logo { padding: 15px 10px; text-align: center; flex-shrink: 0; }
 #header-logo img { height: 120px; width: auto; max-width: 100%; object-fit: contain; }
 
-/* CAIXA DE PESQUISA - OCULTA NO MOBILE VIA MEDIA QUERY ABAIXO */
+/* BUSCA (OCULTA NO MOBILE) */
 #searchBox { padding: 0 10px 15px; flex-shrink: 0; }
 #searchInput { 
     width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #003333; 
     background: #000; color: #fff; outline: none; font-size: 12px; 
 }
 
-#itens-menu { flex: 1; padding: 10px; overflow-y: auto; }
+#itens-menu { flex: 1; padding: 10px; overflow-y: auto !important; }
 .item-clicavel { 
     padding: 12px; font-size: 13px; margin-bottom: 8px; border-radius: 8px; 
     background: #0080ff; border-bottom: 3px solid #004d99;
     display: flex; align-items: center; cursor: pointer;
 }
-.item-clicavel i { margin-right: 15px; width: 20px; text-align: center; } /* Espaçamento solicitado */
-.item-clicavel.selecionado { background: #fff !important; color: #000 !important; font-weight: bold; border-bottom: 3px solid #ccc; }
+.item-clicavel i { margin-right: 15px; width: 20px; text-align: center; }
+.item-clicavel.selecionado { background: #fff !important; color: #000 !important; font-weight: bold; }
 
-/* --- ÁREA DO PLAYER TOTALMENTE RESPONSIVA --- */
-#area-player { flex: 1; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
-#meu-video { width: 100%; height: 100%; background: #000; object-fit: fill; } /* Fill para garantir preenchimento total */
+/* --- AREA DO PLAYER (SEM ESPAÇAMENTOS) --- */
+#area-player { flex: 1; position: relative; background: #000; height: 100%; }
+#meu-video { width: 100%; height: 100%; background: #000; object-fit: contain; }
 
-/* PAINEL DE CONTEÚDO */
 #painel-conteudo { 
     position: absolute; left: 0; top: 0; height: 100%; 
     background: rgba(0,0,0,0.95); z-index: 50; display: none; align-items: center;
 }
-#lista-canais { width: 260px; height: 100%; border-right: 1px solid #444; overflow-y: auto; padding: 10px 0; }
+#lista-canais { width: 260px; height: 100%; border-right: 1px solid #444; overflow-y: auto; }
 .canal-item { padding: 12px 20px; font-size: 14px; border-bottom: 1px solid #222; cursor: pointer; }
-.canal-item.ativo { background: #fff; color: #000; font-weight: bold; }
 
-/* CAPA COLADA À LISTA */
-#container-capa { padding: 0 20px; display: none; }
+/* CAPA COLADA */
+#container-capa { padding: 0 20px; }
 #imagem-capa { height: 380px; width: auto; border-radius: 10px; border: 3px solid #fff; }
 
-/* --- AJUSTES RESPONSIVOS FINAIS (MOBILE) --- */
+/* --- RESPONSIVIDADE PARA TELA DEITADA (LANDSCAPE) --- */
 @media (max-width: 850px) {
     #barra-menu { width: 150px; }
-    #header-logo { padding: 10px 5px; }
-    #header-logo img { height: 71px; width: 71px; } /* Largura reduzida conforme ordem */
-    
-    /* ORDEM EXECUTADA: OCULTAR BUSCA NO MOBILE */
-    #searchBox { display: none; } 
-    
-    .item-clicavel { font-size: 10px; padding: 12px 8px; margin-bottom: 5px; }
-    .item-clicavel i { margin-right: 8px; font-size: 14px; }
-    
+    #header-logo img { height: 71px; width: 71px; }
+    #searchBox { display: none; } /* Ocultar busca no mobile */
+    .item-clicavel { font-size: 10px; padding: 10px 8px; }
+    .item-clicavel i { margin-right: 8px; }
     #lista-canais { width: 160px; }
     #imagem-capa { height: 200px; }
-    
-    /* Player ocupa 100% sem vãos */
-    #area-player { height: 100vh; width: calc(100vw - 150px); }
-    #meu-video { object-fit: cover; } 
+}
+
+/* AVISO PARA VIRAR O CELULAR */
+#aviso-orientacao {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; z-index: 9999; justify-content: center; align-items: center; text-align: center;
+}
+@media (orientation: portrait) and (max-width: 850px) {
+    #aviso-orientacao { display: flex; flex-direction: column; }
 }
 
 #relogio { font-size: 11px; color: #888; margin-top: 5px; text-align: center; }
 </style>
 </head>
 <body>
+
+<div id="aviso-orientacao">
+    <i class="fas fa-mobile-alt" style="font-size: 50px; transform: rotate(90deg); margin-bottom: 20px;"></i>
+    <p>Por favor, vire seu dispositivo para o modo paisagem.</p>
+</div>
 
 <div id="layout-principal">
     <div id="barra-menu">
@@ -108,26 +117,26 @@ body, html { background: #000; color: #fff; font-family: 'Poppins', sans-serif; 
 
     <div id="area-player">
         <video id="meu-video" autoplay playsinline controls></video>
-
         <div id="painel-conteudo">
             <div id="lista-canais"></div>
-            <div id="container-capa">
-                <img id="imagem-capa" src="">
-            </div>
+            <div id="container-capa"><img id="imagem-capa" src=""></div>
         </div>
     </div>
 </div>
 
 <script>
 const video = document.getElementById("meu-video");
-const listaCanais = document.getElementById("lista-canais");
 const painelConteudo = document.getElementById("painel-conteudo");
-const containerCapa = document.getElementById("container-capa");
-const imagemCapa = document.getElementById("imagem-capa");
-const botoesMenu = document.querySelectorAll(".item-clicavel");
 
-let hls = null;
-let allData = { channels: [], fav: [], categories: [], series: [], kids_channels: [], kids_movies: [], kids_series: [] };
+// Forçar Fullscreen e Orientação ao interagir
+document.addEventListener('click', () => {
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    }
+    if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock("landscape").catch(() => {});
+    }
+}, { once: true });
 
 function carregarRelogio() {
     const d = new Date();
@@ -135,51 +144,17 @@ function carregarRelogio() {
 }
 setInterval(carregarRelogio, 1000); carregarRelogio();
 
-// Comando por toque e clique unificado
-document.addEventListener('click', (e) => {
-    const btnMenu = e.target.closest('.item-clicavel');
-    const btnCanal = e.target.closest('.canal-item');
-
-    if (btnMenu) {
-        botoesMenu.forEach(b => b.classList.remove('selecionado'));
-        btnMenu.classList.add('selecionado');
-        const tipo = btnMenu.dataset.type;
-        abrirPainel(tipo);
-    }
-
-    if (btnCanal) {
-        const url = btnCanal.dataset.url;
-        playVideo(url);
-    }
+// Comportamento dos Menus
+document.querySelectorAll('.item-clicavel').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.item-clicavel').forEach(b => b.classList.remove('selecionado'));
+        btn.classList.add('selecionado');
+        painelConteudo.style.display = "flex";
+    });
 });
 
-function abrirPainel(tipo) {
-    painelConteudo.style.display = "flex";
-    // Aqui você deve popular a listaCanais baseada no 'tipo'
-    // Exemplo genérico para visualização:
-    renderizarMock(tipo);
-}
-
-function renderizarMock(tipo) {
-    listaCanais.innerHTML = `<div class="canal-item" data-url="">Carregando ${tipo}...</div>`;
-    // Simulação de preenchimento
-}
-
-function playVideo(url) {
-    if (!url) { painelConteudo.style.display = "none"; return; }
-    if (hls) hls.destroy();
-    if (url.includes(".m3u8")) {
-        if (Hls.isSupported()) {
-            hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
-        } else { video.src = url; }
-    } else { video.src = url; }
-    painelConteudo.style.display = "none";
-}
-
-// Fechar painel se clicar no player
-video.addEventListener('click', () => {
-    painelConteudo.style.display = "none";
-});
+// Fechar ao clicar no vídeo
+video.addEventListener('click', () => { painelConteudo.style.display = "none"; });
 
 </script>
 </body>
