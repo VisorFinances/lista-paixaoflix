@@ -5,7 +5,6 @@
 <title>PaixãoFlix TV</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -23,16 +22,16 @@ body, html {
 
 /* --- MENU LATERAL --- */
 #barra-menu { 
-    width: 220px; 
+    width: 220px; /* Desktop */
     background: #001a1a; 
     border-right: 2px solid #003333;
     display: flex; flex-direction: column; z-index: 100; flex-shrink: 0;
+    transition: width 0.3s ease;
 }
 
 #header-logo { padding: 15px 10px; text-align: center; flex-shrink: 0; }
 #header-logo img { height: 120px; width: auto; max-width: 100%; object-fit: contain; }
 
-/* BUSCA (OCULTA NO MOBILE) */
 #searchBox { padding: 0 10px 15px; flex-shrink: 0; }
 #searchInput { 
     width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #003333; 
@@ -48,7 +47,7 @@ body, html {
 .item-clicavel i { margin-right: 15px; width: 20px; text-align: center; }
 .item-clicavel.selecionado { background: #fff !important; color: #000 !important; font-weight: bold; }
 
-/* --- AREA DO PLAYER (SEM ESPAÇAMENTOS) --- */
+/* --- ÁREA DO PLAYER --- */
 #area-player { flex: 1; position: relative; background: #000; height: 100%; }
 #meu-video { width: 100%; height: 100%; background: #000; object-fit: contain; }
 
@@ -61,17 +60,21 @@ body, html {
 
 /* CAPA COLADA */
 #container-capa { padding: 0 20px; }
-#imagem-capa { height: 380px; width: auto; border-radius: 10px; border: 3px solid #fff; }
+#imagem-capa { height: 350px; width: auto; border-radius: 10px; border: 3px solid #fff; }
 
-/* --- RESPONSIVIDADE PARA TELA DEITADA (LANDSCAPE) --- */
+/* --- AJUSTES MOBILE (LANDSCAPE/DEITADO) --- */
 @media (max-width: 850px) {
-    #barra-menu { width: 150px; }
-    #header-logo img { height: 71px; width: 71px; }
-    #searchBox { display: none; } /* Ocultar busca no mobile */
-    .item-clicavel { font-size: 10px; padding: 10px 8px; }
-    .item-clicavel i { margin-right: 8px; }
-    #lista-canais { width: 160px; }
-    #imagem-capa { height: 200px; }
+    /* Redução solicitada: Logo 100px e Menu 120px */
+    #barra-menu { width: 120px; } 
+    #header-logo img { height: 100px; width: 100px; } 
+    
+    #searchBox { display: none; } /* Oculta busca para caber menus */
+    
+    .item-clicavel { font-size: 9px; padding: 10px 6px; margin-bottom: 5px; }
+    .item-clicavel i { margin-right: 8px; font-size: 12px; }
+    
+    #lista-canais { width: 150px; }
+    #imagem-capa { height: 180px; }
 }
 
 /* AVISO PARA VIRAR O CELULAR */
@@ -128,7 +131,7 @@ body, html {
 const video = document.getElementById("meu-video");
 const painelConteudo = document.getElementById("painel-conteudo");
 
-// Forçar Fullscreen e Orientação ao interagir
+// Forçar Fullscreen e Orientação
 document.addEventListener('click', () => {
     if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
@@ -144,7 +147,6 @@ function carregarRelogio() {
 }
 setInterval(carregarRelogio, 1000); carregarRelogio();
 
-// Comportamento dos Menus
 document.querySelectorAll('.item-clicavel').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.item-clicavel').forEach(b => b.classList.remove('selecionado'));
@@ -153,9 +155,7 @@ document.querySelectorAll('.item-clicavel').forEach(btn => {
     });
 });
 
-// Fechar ao clicar no vídeo
 video.addEventListener('click', () => { painelConteudo.style.display = "none"; });
-
 </script>
 </body>
 </html>
