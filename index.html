@@ -9,10 +9,9 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-*{overflow:hidden;-ms-overflow-style:none;scrollbar-width:none;touch-action:manipulation;box-sizing:border-box}
-*::-webkit-scrollbar{display:none!important}
-html,body{margin:0;padding:0;background:#000;color:#fff;font-family:'Poppins',sans-serif;height:100%;width:100%}
-#app{display:flex;height:100vh;width:100vw}
+*{overflow:hidden;box-sizing:border-box}
+html,body{margin:0;padding:0;background:#000;color:#fff;font-family:Poppins;height:100%}
+#app{display:flex;height:100vh}
 #menu{width:220px;background:#001a1a;display:flex;flex-direction:column;border-right:1px solid #003333}
 #menuHeader{padding:15px 10px;text-align:center}
 #menuHeader img{height:120px}
@@ -22,47 +21,26 @@ html,body{margin:0;padding:0;background:#000;color:#fff;font-family:'Poppins',sa
 #searchInput.focused{border-color:#fff;background:#111}
 #menuItemsArea{flex:1;overflow-y:auto;padding:10px}
 .menu-item{padding:12px;font-size:13px;margin-bottom:8px;border-radius:6px;background:#0a2a4a;border-bottom:3px solid #004d99;display:flex;align-items:center;cursor:pointer}
-.menu-item i{margin-right:10px;width:18px}
 .menu-item.active{background:#fff;color:#000;font-weight:bold}
-
 #content{flex:1;position:relative}
 #videoContainer{width:100%;height:100%}
 video{width:100%;height:100%;object-fit:contain}
 
 #channelList{
-position:absolute;
-top:0;
-left:0;
-min-width:160px;
-max-width:250px;
-height:100%;
-background:rgba(0,0,0,.95);
-display:none;
-overflow-y:auto;
-border-right:1px solid #fff;
-z-index:110;
+position:absolute;top:0;left:0;
+min-width:160px;max-width:250px;
+height:100%;background:rgba(0,0,0,.95);
+display:none;overflow-y:auto;border-right:1px solid #fff;z-index:110
 }
 
-.channel{padding:12px 15px;font-size:13px;border-bottom:1px solid #222;cursor:pointer;white-space:nowrap}
+.channel{padding:12px 15px;font-size:13px;border-bottom:1px solid #222;cursor:pointer}
 .channel.active{background:#fff;color:#000;font-weight:bold}
 
-/* ✅ CAPA COLADA NA BARRA */
 #posterWrapper{
-position:absolute;
-top:50%;
-transform:translateY(-50%);
-width:250px;
-display:none;
-z-index:120;
-pointer-events:none;
+position:absolute;top:50%;transform:translateY(-50%);
+width:250px;display:none;z-index:120;pointer-events:none
 }
-
-#posterPreview{
-width:100%;
-border-radius:10px;
-border:3px solid #fff;
-box-shadow:0 0 20px rgba(0,0,0,.6);
-}
+#posterPreview{width:100%;border-radius:10px;border:3px solid #fff}
 </style>
 </head>
 
@@ -79,21 +57,19 @@ box-shadow:0 0 20px rgba(0,0,0,.6);
 </div>
 
 <div id="menuItemsArea">
-<div class="menu-item active" data-type="recent"><i class="fas fa-history"></i> Assistindo agora</div>
-<div class="menu-item" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
-<div class="menu-item" data-type="fav"><i class="fas fa-star"></i> Favoritos</div>
-<div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
-<div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
-<div class="menu-item kids" data-type="kids_channels"><i class="fas fa-child"></i> Canal Kids</div>
-<div class="menu-item kids" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
-<div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
+<div class="menu-item active" data-type="recent">Assistindo agora</div>
+<div class="menu-item" data-type="channels">TV ao vivo</div>
+<div class="menu-item" data-type="fav">Favoritos</div>
+<div class="menu-item" data-type="categories">Cinema</div>
+<div class="menu-item" data-type="series">Séries</div>
+<div class="menu-item" data-type="kids_channels">Canal Kids</div>
+<div class="menu-item" data-type="kids_movies">Filmes Kids</div>
+<div class="menu-item" data-type="kids_series">Séries Kids</div>
 </div>
 </div>
 
 <div id="content">
-<div id="videoContainer">
-<video id="video" playsinline controls></video>
-</div>
+<div id="videoContainer"><video id="video" playsinline controls></video></div>
 <div id="channelList"></div>
 <div id="posterWrapper"><img id="posterPreview"></div>
 </div>
@@ -105,19 +81,81 @@ const channelList=document.getElementById("channelList");
 const posterWrapper=document.getElementById("posterWrapper");
 const posterPreview=document.getElementById("posterPreview");
 const searchInput=document.getElementById("searchInput");
-const menuItems=document.querySelectorAll(".menu-item");
+const menuItems=[...document.querySelectorAll(".menu-item")];
 
 let channels=[],movies=[],series=[],kidsChannels=[],kidsMovies=[],kidsSeries=[];
-let recent=JSON.parse(localStorage.getItem("paixaoflix_recent")||"[]");
-let favorites=JSON.parse(localStorage.getItem("paixaoflix_favs")||"[]");
-
-let filteredList=[],viewMode="recent",selectedIndex=0,menuIndex=0,menuFocused=true,hls=null;
+let recent=[],favorites=[];
+let filteredList=[],viewMode="recent",selectedIndex=0,menuIndex=0,menuFocused=true;
+let level="menu"; // menu | categories | list
 
 const movieCats=["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
 
-function normalize(t){
-return (t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
+function normalize(t){return(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase()}
+
+function hidePoster(){posterWrapper.style.display="none"}
+
+function render(){
+channelList.innerHTML="";
+const data=viewMode==="categories"?movieCats:filteredList;
+data.forEach((it,i)=>{
+const d=document.createElement("div");
+d.className="channel"+(i===selectedIndex?" active":"");
+d.textContent=it.titulo||it;
+d.onclick=()=>{selectedIndex=i;handleEnter()};
+d.ontouchstart=d.onclick;
+channelList.appendChild(d);
+});
+if(!menuFocused && data[selectedIndex]?.poster){
+posterPreview.src=data[selectedIndex].poster;
+const r=channelList.getBoundingClientRect();
+posterWrapper.style.left=r.right+"px";
+posterWrapper.style.display="block";
+}else hidePoster();
 }
+
+function handleEnter(){
+if(viewMode==="categories"){
+filteredList=movies.filter(m=>normalize(m.genero)===normalize(movieCats[selectedIndex]));
+viewMode="list";level="list";selectedIndex=0;render();
+}else if(level==="list"){
+playMedia(filteredList[selectedIndex]);
+}
+}
+
+function playMedia(item){
+if(!item?.url)return;
+hidePoster();channelList.style.display="none";
+video.src=item.url;video.play().catch(()=>{});
+}
+
+document.addEventListener("keydown",e=>{
+if(e.key==="ArrowLeft"){
+if(level==="list"){ // 1º volta categorias
+level="categories";viewMode="categories";selectedIndex=0;hidePoster();render();
+}
+else if(level==="categories"){ // 2º volta menu
+menuFocused=true;channelList.style.display="none";hidePoster();level="menu";
+}
+}
+
+if(e.key==="ArrowRight"||e.key==="Enter"){
+if(menuFocused){
+menuFocused=false;viewMode=menuItems[menuIndex].dataset.type;
+level=viewMode==="categories"?"categories":"list";
+channelList.style.display="block";selectedIndex=0;render();
+}else handleEnter();
+}
+
+if(e.key==="ArrowUp"&&!menuFocused){selectedIndex=Math.max(0,selectedIndex-1);render()}
+if(e.key==="ArrowDown"&&!menuFocused){selectedIndex++;render()}
+});
+
+searchInput.addEventListener("input",()=>{
+const q=normalize(searchInput.value);
+filteredList=[...movies,...series,...channels].filter(i=>normalize(i.titulo).includes(q));
+viewMode="list";level="list";menuFocused=false;
+channelList.style.display="block";selectedIndex=0;render();
+});
 
 function updateClock(){
 const d=new Date();
@@ -125,100 +163,6 @@ const m=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"
 clock.innerText=`${d.getDate()} ${m[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
 setInterval(updateClock,1000);updateClock();
-
-function playMedia(item){
-if(!item?.url)return;
-channelList.style.display="none";
-posterWrapper.style.display="none";
-
-if(hls){hls.destroy();hls=null}
-if(item.url.includes(".m3u8")){
-hls=new Hls();hls.loadSource(item.url);hls.attachMedia(video);
-}else video.src=item.url;
-video.play().catch(()=>{});
-}
-
-function getData(){
-if(viewMode==="categories")return movieCats;
-if(viewMode==="series")return [...new Set(series.map(s=>s.genero))];
-if(viewMode==="channels")return channels;
-if(viewMode==="kids_channels")return kidsChannels;
-if(viewMode==="kids_movies")return kidsMovies;
-if(viewMode==="kids_series")return kidsSeries;
-if(viewMode==="recent")return recent;
-if(viewMode==="fav")return favorites;
-return filteredList;
-}
-
-function render(){
-channelList.innerHTML="";
-const data=getData();
-data.forEach((it,i)=>{
-const d=document.createElement("div");
-d.className="channel"+(i===selectedIndex?" active":"");
-d.textContent=it.titulo||it;
-channelList.appendChild(d);
-if(i===selectedIndex&&!menuFocused)d.scrollIntoView({block:"center"});
-});
-
-const cur=data[selectedIndex];
-if(cur?.poster&&!menuFocused){
-posterPreview.src=cur.poster;
-
-/* ✅ posiciona a capa COLADA na barra */
-const rect=channelList.getBoundingClientRect();
-posterWrapper.style.left=rect.right+"px";
-posterWrapper.style.display="block";
-}else posterWrapper.style.display="none";
-}
-
-document.addEventListener("keydown",e=>{
-const len=channelList.children.length;
-if(menuFocused){
-if(e.key==="ArrowUp")menuIndex=Math.max(-1,menuIndex-1);
-if(e.key==="ArrowDown")menuIndex=Math.min(menuItems.length-1,menuIndex+1);
-if(e.key==="Enter"||e.key==="ArrowRight"){
-menuFocused=false;
-viewMode=menuItems[menuIndex]?.dataset.type;
-channelList.style.display="block";
-selectedIndex=0;
-render();
-}
-}else{
-if(e.key==="ArrowUp"){selectedIndex=(selectedIndex-1+len)%len;render();}
-if(e.key==="ArrowDown"){selectedIndex=(selectedIndex+1)%len;render();}
-if(e.key==="ArrowLeft"){menuFocused=true;channelList.style.display="none";}
-if(e.key==="Enter"){
-const item=getData()[selectedIndex];
-if(typeof item==="string"){
-filteredList=movies.filter(m=>normalize(m.genero)===normalize(item));
-viewMode="movie_list";
-selectedIndex=0;
-render();
-}else playMedia(item);
-}
-}
-menuItems.forEach((m,i)=>m.classList.toggle("active",i===menuIndex));
-});
-
-function loadM3U(url,target){
-fetch(url).then(r=>r.text()).then(t=>{
-let tmp=null;
-t.split("\n").forEach(l=>{
-if(l.startsWith("#EXTINF"))tmp={titulo:l.split(",").pop()};
-else if(l.startsWith("http")&&tmp){tmp.url=l;target.push(tmp);tmp=null;}
-});
-});
-}
-
-window.onload=()=>{
-loadM3U("https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u",channels);
-loadM3U("https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_kids_canais.m3u",kidsChannels);
-fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d);
-fetch("data/series.json").then(r=>r.json()).then(d=>series=d);
-fetch("data/kids_filmes.json").then(r=>r.json()).then(d=>kidsMovies=d);
-fetch("data/kids_series.json").then(r=>r.json()).then(d=>kidsSeries=d);
-};
 </script>
 </body>
 </html>
