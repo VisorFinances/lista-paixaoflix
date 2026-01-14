@@ -176,6 +176,18 @@ function renderList() {
     } else { posterWrapper.style.display = "none"; }
 }
 
+ // ===== INÍCIO PATCH LANÇAMENTOS =====
+function normalizeText(str) {
+    return (str || "")
+        .toString()
+        .normalize("NFD")                 // remove acentos
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ")             // normaliza espaços
+        .trim()
+        .toUpperCase();
+}
+// ===== FIM PATCH LANÇAMENTOS =====
+   
 async function handleAction() {
     let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     let data = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "recent" ? recent : (viewMode === "fav" ? favorites : filteredList))));
