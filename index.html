@@ -1,197 +1,120 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8" />
-<title>PaixãoFlix TV</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
-
-<style>
-*{overflow:hidden;-ms-overflow-style:none;scrollbar-width:none;touch-action:manipulation;box-sizing:border-box}
-*::-webkit-scrollbar{display:none!important}
-html,body{margin:0;padding:0;background:#000;color:#fff;font-family:'Poppins',sans-serif;height:100%;width:100%}
-#app{display:flex;height:100vh;width:100vw}
-#menu{width:220px;background:#001a1a;display:flex;flex-direction:column;border-right:1px solid #003333}
-#menuHeader{padding:15px 10px;text-align:center}
-#menuHeader img{height:120px}
-#clock{font-size:11px;color:#ccc;margin-top:8px}
-#searchBox{padding:10px}
-#searchInput{width:100%;padding:10px;border-radius:6px;border:1px solid #2a3642;background:#000;color:#fff}
-#searchInput.focused{border-color:#fff;background:#111}
-#menuItemsArea{flex:1;overflow-y:auto;padding:10px}
-.menu-item{padding:12px;font-size:13px;margin-bottom:8px;border-radius:6px;background:#0a2a4a;border-bottom:3px solid #004d99;display:flex;align-items:center;cursor:pointer}
-.menu-item i{margin-right:10px;width:18px}
-.menu-item.active{background:#fff;color:#000;font-weight:bold}
-#content{flex:1;position:relative}
-#videoContainer{width:100%;height:100%}
-video{width:100%;height:100%;object-fit:contain}
-#channelList{position:absolute;top:0;left:0;min-width:160px;max-width:250px;height:100%;background:rgba(0,0,0,.95);display:none;overflow-y:auto;border-right:1px solid #fff}
-.channel{padding:12px 15px;font-size:13px;border-bottom:1px solid #222;cursor:pointer;white-space:nowrap}
-.channel.active{background:#fff;color:#000;font-weight:bold}
-#posterWrapper{position:absolute;top:50%;right:20px;transform:translateY(-50%);width:250px;display:none}
-#posterPreview{width:100%;border-radius:10px;border:3px solid #fff}
-</style>
-</head>
-
-<body>
-<div id="app">
-<div id="menu">
-<div id="menuHeader">
-<img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-<div id="clock"></div>
-</div>
-
-<div id="searchBox">
-<input type="text" id="searchInput" placeholder="Pesquisar...">
-</div>
-
-<div id="menuItemsArea">
-<div class="menu-item active" data-type="recent"><i class="fas fa-history"></i> Assistindo agora</div>
-<div class="menu-item" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
-<div class="menu-item" data-type="fav"><i class="fas fa-star"></i> Favoritos</div>
-<div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
-<div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
-<div class="menu-item kids" data-type="kids_channels"><i class="fas fa-child"></i> Canal Kids</div>
-<div class="menu-item kids" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
-<div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
-</div>
-</div>
-
-<div id="content">
-<div id="videoContainer">
-<video id="video" playsinline controls></video>
-</div>
-<div id="channelList"></div>
-<div id="posterWrapper"><img id="posterPreview"></div>
-</div>
-</div>
-
-<script>
-const video=document.getElementById("video");
-const channelList=document.getElementById("channelList");
-const posterWrapper=document.getElementById("posterWrapper");
-const posterPreview=document.getElementById("posterPreview");
-const searchInput=document.getElementById("searchInput");
-const menuItems=document.querySelectorAll(".menu-item");
-
-let channels=[],movies=[],series=[],kidsChannels=[],kidsMovies=[],kidsSeries=[];
-let recent=JSON.parse(localStorage.getItem("paixaoflix_recent")||"[]");
-let favorites=JSON.parse(localStorage.getItem("paixaoflix_favs")||"[]");
-
-let filteredList=[],viewMode="recent",selectedIndex=0,menuIndex=0,menuFocused=true,hls=null;
-
-const movieCats=["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
-
-function normalize(t){
-return (t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
-}
-
-function updateClock(){
-const d=new Date();
-const m=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-clock.innerText=`${d.getDate()} ${m[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
-}
-setInterval(updateClock,1000);updateClock();
-
-function saveProgress(item){
-localStorage.setItem("paixaoflix_progress_"+item.url,video.currentTime);
-}
-
-function restoreProgress(item){
-const t=localStorage.getItem("paixaoflix_progress_"+item.url);
-if(t) video.currentTime=parseFloat(t);
-}
-
-function playMedia(item){
-if(!item?.url)return;
-if(!recent.find(r=>r.url===item.url)){recent.unshift(item);recent=recent.slice(0,20);localStorage.setItem("paixaoflix_recent",JSON.stringify(recent))}
-channelList.style.display="none";posterWrapper.style.display="none";
-
-if(hls){hls.destroy();hls=null}
-if(item.url.includes(".m3u8")){
-hls=new Hls();hls.loadSource(item.url);hls.attachMedia(video);
-}else video.src=item.url;
-
-video.onloadedmetadata=()=>restoreProgress(item);
-video.ontimeupdate=()=>saveProgress(item);
-video.play().catch(()=>{});
-}
-
-function getData(){
-if(viewMode==="categories")return movieCats;
-if(viewMode==="series")return [...new Set(series.map(s=>s.genero))];
-if(viewMode==="channels")return channels;
-if(viewMode==="kids_channels")return kidsChannels;
-if(viewMode==="kids_movies")return kidsMovies;
-if(viewMode==="kids_series")return kidsSeries;
-if(viewMode==="recent")return recent;
-if(viewMode==="fav")return favorites;
-return filteredList;
-}
-
-function render(){
-channelList.innerHTML="";
-const data=getData();
-data.forEach((it,i)=>{
-const d=document.createElement("div");
-d.className="channel"+(i===selectedIndex?" active":"");
-d.textContent=it.titulo||it;
-channelList.appendChild(d);
-if(i===selectedIndex&&!menuFocused)d.scrollIntoView({block:"center"});
-});
-const cur=data[selectedIndex];
-if(cur?.poster&&!menuFocused){posterPreview.src=cur.poster;posterWrapper.style.display="block"}else posterWrapper.style.display="none";
-}
-
-searchInput.addEventListener("input",()=>{
-const q=normalize(searchInput.value);
-filteredList=[...movies,...series,...channels].filter(i=>normalize(i.titulo).includes(q));
-viewMode="search";menuFocused=false;channelList.style.display="block";selectedIndex=0;render();
-});
-
-document.addEventListener("keydown",e=>{
-const len=channelList.children.length;
-if(menuFocused){
-if(e.key==="ArrowUp"){menuIndex=Math.max(-1,menuIndex-1)}
-if(e.key==="ArrowDown"){menuIndex=Math.min(menuItems.length-1,menuIndex+1)}
-if(e.key==="Enter"||e.key==="ArrowRight"){
-menuFocused=false;viewMode=menuItems[menuIndex]?.dataset.type;channelList.style.display="block";selectedIndex=0;render();
-}
-}else{
-if(e.key==="ArrowUp"){selectedIndex=(selectedIndex-1+len)%len;render()}
-if(e.key==="ArrowDown"){selectedIndex=(selectedIndex+1)%len;render()}
-if(e.key==="ArrowLeft"){menuFocused=true;channelList.style.display="none"}
-if(e.key==="Enter"){
-const item=getData()[selectedIndex];
-if(typeof item==="string"){
-filteredList=movies.filter(m=>normalize(m.genero)===normalize(item));
-viewMode="movie_list";selectedIndex=0;render();
-}else playMedia(item);
-}
-}
-menuItems.forEach((m,i)=>m.classList.toggle("active",i===menuIndex));
-});
-
-function loadM3U(url,target){
-fetch(url).then(r=>r.text()).then(t=>{
-let tmp=null;
-t.split("\n").forEach(l=>{
-if(l.startsWith("#EXTINF"))tmp={titulo:l.split(",").pop()};
-else if(l.startsWith("http")&&tmp){tmp.url=l;target.push(tmp);tmp=null;}
-});
-});
-}
-
-window.onload=()=>{
-loadM3U("https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u",channels);
-loadM3U("https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_kids_canais.m3u",kidsChannels);
-fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d);
-fetch("data/series.json").then(r=>r.json()).then(d=>series=d);
-fetch("data/kids_filmes.json").then(r=>r.json()).then(d=>kidsMovies=d);
-fetch("data/kids_series.json").then(r=>r.json()).then(d=>kidsSeries=d);
-};
-</script>
-</body>
-</html>
+{
+    "titulo": "Déjà Vu - O Primeiro Ano do NOVO Governo Lula",
+    "url": "https://ia803103.us.archive.org/26/items/dejavuoprimeiroanodonovogovernolula2023webdl1080px264nacional20-doc-paixaoflix/D%C3%A9j%C3%A0%20Vu%20-%20O%20Primeiro%20Ano%20do%20NOVO%20Governo%20Lula%202023%20WEB-DL%201080p%20x264%20NACIONAL%202.0_ready.mp4",
+    "genero": "Documentário",
+    "year": "2023",
+    "rating": "5.7",
+    "desc": "O Primeiro Ano do "Novo" Governo Lula.",
+    "poster": "https://media.themoviedb.org/t/p/w300_and_h450_face/1ESbIOki2zEDCYeYmdySdRTZvau.jpg",
+    "type": "movie"
+  },
+{
+    "titulo": "Moana 2",
+    "url": "https://ia800307.us.archive.org/34/items/moana2-paixaoflix/Moana%202_ready.mp4",
+    "genero": "Animação",
+    "year": "2024",
+    "rating": "7.0",
+    "desc": "Depois de receber uma chamada inesperada dos seus antepassados, Vaiana viaja ao lado de Maui e de uma nova tripulação para os mares.",
+    "poster": "https://media.themoviedb.org/t/p/w300_and_h450_face/A1NUWVjoKzWzOdGE01NHquyubkx.jpg",
+    "type": "movie"
+  },
+{
+    "titulo": "Na Natureza Selvagem",
+    "url": "https://ia601408.us.archive.org/5/items/nanaturezaselvagem2008720pdubladoalan680-paixaoflix/Na%20Natureza%20Selvagem%20%282008%29%20720p%20Dublado%20-%20Alan_680_ready.mp4",
+    "genero": "Drama",
+    "year": "2028",
+    "rating": "7.0",
+    "desc": "Na Natureza Selvagem.",
+    "poster": "https://m.media-amazon.com/images/I/51enAiczccL._AC_UF894,1000_QL80_.jpg",
+    "type": "movie"
+  },
+{
+    "titulo": "James Brown",
+    "url": "https://ia600307.us.archive.org/6/items/james-brown-paixaoflix/James%20Brown.mp4",
+    "genero": "Documentário",
+    "year": "2008",
+    "rating": "6.6",
+    "desc": "Em 5 de abril de 1968, a lenda da soul music James Brown fez um show em Boston que, segundo muitos, protegeu a cidade.",
+    "poster": "https://media.themoviedb.org/t/p/w300_and_h450_face/YnIS9i5JFKfrYn2wOvVyd66rUi.jpg",
+    "type": "movie"
+  },
+{
+    "titulo": "Diddy - Como Nasce Um Bad Boy",
+    "url": "https://ia803106.us.archive.org/29/items/diddycomonasceumbadboy-doc-paixaoflix/Diddy%20-%20Como%20Nasce%20Um%20Bad%20Boy_ready.mp4",
+    "genero": "Documentário",
+    "year": "2025",
+    "rating": "6.6",
+    "desc": "O documentário de 90 minutos conta a história dos primeiros anos de Sean Combs e oferece uma visão crucial sobre as forças.",
+    "poster": "https://media.themoviedb.org/t/p/w300_and_h450_face/xprVo91kJSpIY5aAXvgNkOU5p62.jpg",
+    "type": "movie"
+  },
+{
+    "titulo": "Diddy - Como Nasce Um Bad Boy",
+    "url": "https://ia803106.us.archive.org/29/items/diddycomonasceumbadboy-doc-paixaoflix/Diddy%20-%20Como%20Nasce%20Um%20Bad%20Boy_ready.mp4",
+    "genero": "Lançamento",
+    "year": "2025",
+    "rating": "6.6",
+    "desc": "O documentário de 90 minutos conta a história dos primeiros anos de Sean Combs e oferece uma visão crucial sobre as forças.",
+    "poster": "https://media.themoviedb.org/t/p/w300_and_h450_face/xprVo91kJSpIY5aAXvgNkOU5p62.jpg",
+    "type": "movie"
+  },
+{
+    "titulo": "Garrincha, Alegria do Povo",
+    "url": "https://ia801300.us.archive.org/26/items/garrinchaalegriadopovodocumentariode1963webdl-doc-paixaoflix/Garrincha%2C%20Alegria%20do%20Povo%20%28Document%C3%A1rio%20de%201963%29%20-%20Web-DL_ready.mp4",
+    "genero": "Documentário",
+    "year": "1962",
+    "rating": "6.6",
+    "desc": "Vida e carreira de um dos maiores jogadores brasileiros de todos os tempos e para muitos, simplesmente o maior.",
+    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/mM338nfJiZO8qIqniL5qjX6z087.jpg",
+    "type": "movie"
+  },
+{
+    "titulo": "O Troll da Montanha 1",
+    "url": "https://ia801704.us.archive.org/21/items/otrolldamontanha20221080pwebdldual51-paixaoflix/O%20Troll%20da%20Montanha%202022%201080p%20WEB-DL%20DUAL%205.1_ready.mp4",
+    "genero": "Aventura",
+    "year": "2022",
+    "rating": "7.6",
+    "desc": "Quando uma explosão nas montanhas norueguesas desperta um trol milenar, o governo destaca uma paleontóloga destemida.",
+    "poster": "https://media.themoviedb.org/t/p/w300_and_h450_face/u54kjux1XnJFDCHgLpfsXp58EXH.jpg",
+    "type": "movie"
+  },
+{
+    "titulo": "O Troll da Montanha 2",
+    "url": "https://ia800505.us.archive.org/17/items/otrolldamontanha220251080pwebdldual51-paixaoflix/O.Troll.da.Montanha.2.2025.1080p.WEB-DL.DUAL.5.1_ready.mp4",
+    "genero": "Aventura",
+    "year": "2025",
+    "rating": "7.6",
+    "desc": "Nora, Andreas e o Capitão Kris empreendem a missão mais arriscada das suas vidas para travar a destruição da sua terra natal.",
+    "poster": "https://media.themoviedb.org/t/p/w300_and_h450_face/fhB4lr2hs2EgcARV8cTbsXGwj4N.jpg",
+    "type": "movie"
+  },
+{
+    "titulo": "O Troll da Montanha 2",
+    "url": "https://ia800505.us.archive.org/17/items/otrolldamontanha220251080pwebdldual51-paixaoflix/O.Troll.da.Montanha.2.2025.1080p.WEB-DL.DUAL.5.1_ready.mp4",
+    "genero": "Lançamento",
+    "year": "2025",
+    "rating": "7.6",
+    "desc": "Nora, Andreas e o Capitão Kris empreendem a missão mais arriscada das suas vidas para travar a destruição da sua terra natal.",
+    "poster": "https://media.themoviedb.org/t/p/w300_and_h450_face/fhB4lr2hs2EgcARV8cTbsXGwj4N.jpg",
+    "type": "movie"
+  },
+{
+    "titulo": "Mea Culpa",
+    "url": "https://ia801300.us.archive.org/9/items/mea-culpa-paixaoflix/Mea%20Culpa.mp4",
+    "genero": "Romance",
+    "year": "2024",
+    "rating": "9.6",
+    "desc": "Mea Culpa.",
+    "poster": "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/Mea%20Culpa.jpg",
+    "type": "movie"
+  },
+{
+    "titulo": "Isto É Pelé",
+    "url": "https://ia801703.us.archive.org/20/items/istoepele1974-doc-paixaoflix/Isto%20%C3%89%20Pel%C3%A9%201974_ready.mp4",
+    "genero": "Documentário",
+    "year": "1974",
+    "rating": "5.6",
+    "desc": "Documentário brasileiro de 1974 dirigido por Eduardo Escorel e Luiz Carlos Barreto, com roteiro de Eduardo Escorel.",
+    "poster": "https://media.themoviedb.org/t/p/w300_and_h450_face/npe7MsA2rKNkjvz9xD0KukgJ7jA.jpg",
+    "type": "movie"
+  },
