@@ -3,54 +3,68 @@
 <head>
 <meta charset="UTF-8" />
 <title>PaixãoFlix TV</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
+/* --- BASE E LAYOUT --- */
 * { margin: 0; padding: 0; box-sizing: border-box; overflow: hidden; }
 body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; width: 100vw; }
 #layout-principal { display: flex; height: 100%; width: 100%; }
 
-/* --- MENU LATERAL --- */
+/* --- MENU LATERAL (ORDEM: 220px Desktop / 120px Mobile) --- */
 #barra-menu { width: 220px; background: #001a1a; border-right: 2px solid #003333; display: flex; flex-direction: column; z-index: 100; flex-shrink: 0; }
-#header-logo { padding: 15px 10px; text-align: center; }
-#header-logo img { height: 120px; width: auto; max-width: 100%; object-fit: contain; }
-#searchBox { padding: 0 10px 15px; }
-#searchInput { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #003333; background: #000; color: #fff; outline: none; font-size: 12px; }
-#itens-menu { flex: 1; padding: 10px; overflow-y: auto; }
 
-.item-clicavel { padding: 12px; font-size: 13px; margin-bottom: 8px; border-radius: 8px; background: #0080ff; border-bottom: 3px solid #004d99; display: flex; align-items: center; cursor: pointer; }
+#header-logo { padding: 15px 10px; text-align: center; flex-shrink: 0; }
+#header-logo img { height: 120px; width: auto; max-width: 100%; object-fit: contain; }
+
+/* ORDEM: Relógio no formato dia mês | hora:min */
+#relogio { font-size: 11px; color: #aaa; margin-top: 5px; text-align: center; }
+
+/* ORDEM: Caixa de pesquisa preservada */
+#searchBox { padding: 0 10px 15px; flex-shrink: 0; }
+#searchInput { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #003333; background: #000; color: #fff; outline: none; font-size: 12px; }
+
+#itens-menu { flex: 1; padding: 10px; overflow-y: auto; }
+.item-clicavel { padding: 12px; font-size: 13px; margin-bottom: 8px; border-radius: 8px; background: #0080ff; border-bottom: 3px solid #004d99; display: flex; align-items: center; cursor: pointer; color: #fff; }
 .item-clicavel i { margin-right: 15px; width: 20px; text-align: center; }
-.item-clicavel.selecionado { background: #fff !important; color: #000 !important; font-weight: bold; }
+.item-clicavel.selecionado { background: #fff !important; color: #000 !important; font-weight: bold; border-bottom: 3px solid #ccc; }
 
 /* --- AREA DO PLAYER --- */
 #area-player { flex: 1; position: relative; background: #000; }
 #meu-video { width: 100%; height: 100%; object-fit: contain; }
 
-#painel-conteudo { position: absolute; left: 0; top: 0; height: 100%; background: rgba(0,0,0,0.95); z-index: 50; display: none; align-items: center; }
-#lista-canais { width: 280px; height: 100%; border-right: 1px solid #444; overflow-y: auto; }
+#painel-conteudo { position: absolute; left: 0; top: 0; height: 100%; background: rgba(0,0,0,0.92); z-index: 50; display: none; align-items: center; width: 100%; }
+#lista-canais { width: 280px; height: 100%; border-right: 1px solid #333; overflow-y: auto; background: #000; }
 
-.canal-item { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid #222; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+/* ORDEM: Categorias mantidas (Header) */
+.canal-item { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid #222; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #ccc; }
 .canal-item.ativo { background: #fff !important; color: #000 !important; font-weight: bold; }
-.canal-item.categoria-header { background: #003333; color: #00ffcc; font-weight: bold; cursor: default; }
+.canal-item.categoria-header { background: #003333; color: #00ffcc; font-weight: bold; cursor: default; pointer-events: none; }
 
-.fav-btn { color: #888; padding: 5px; cursor: pointer; }
+.fav-btn { color: #555; padding: 5px; cursor: pointer; font-size: 18px; }
 .fav-btn.active { color: #ffeb3b !important; }
 
-#container-capa { padding: 0 20px; }
-#imagem-capa { height: 350px; width: auto; border-radius: 10px; border: 3px solid #fff; }
+#container-capa { flex: 1; display: flex; justify-content: center; align-items: center; }
+#imagem-capa { height: 350px; width: auto; border-radius: 10px; border: 3px solid #fff; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
 
+/* --- ORDEM: CONFIGURAÇÕES MOBILE (LOGO 100px / MENU 120px) --- */
 @media (max-width: 850px) {
     #barra-menu { width: 120px; }
     #header-logo img { height: 100px; width: 100px; }
-    .item-clicavel { font-size: 9px; padding: 10px 6px; }
-    .item-clicavel i { margin-right: 8px; }
+    .item-clicavel { font-size: 9px; padding: 10px 6px; margin-bottom: 5px; }
+    .item-clicavel i { margin-right: 8px; width: 15px; font-size: 12px; }
     #lista-canais { width: 160px; }
     #imagem-capa { height: 180px; }
+    #searchInput { padding: 6px; font-size: 10px; }
 }
-#relogio { font-size: 11px; color: #aaa; margin-top: 5px; text-align: center; }
 </style>
 </head>
 <body>
@@ -94,6 +108,14 @@ let rawData = [], currentDisplayData = [];
 let menuIndex = 0, itemIndex = 0, menuFocused = true, hls = null;
 let favoritos = JSON.parse(localStorage.getItem('paixaoflix_favs')) || [];
 
+// --- ORDEM: ORIENTAÇÃO E FULLSCREEN AO CLIQUE ---
+function ativarModoApp() {
+    if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen().catch(()=>{}); }
+    if (screen.orientation && screen.orientation.lock) { screen.orientation.lock("landscape").catch(()=>{}); }
+}
+document.addEventListener('click', ativarModoApp, { once: true });
+
+// --- ORDEM: RELÓGIO FORMATO EXATO ---
 function updateClock() {
     const d = new Date();
     const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
@@ -101,12 +123,11 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
+// --- LÓGICA DE CARREGAMENTO E CATEGORIAS ---
 async function carregarDados(btn) {
     const url = btn.dataset.url;
-    const type = btn.dataset.type;
     const response = await fetch(url);
-    
-    if (type === "m3u") {
+    if (btn.dataset.type === "m3u") {
         const text = await response.text();
         let items = [], temp = null;
         text.split('\n').forEach(line => {
@@ -114,26 +135,19 @@ async function carregarDados(btn) {
             else if (line.startsWith('http') && temp) { temp.url = line.trim(); items.push(temp); temp = null; }
         });
         rawData = items;
-    } else {
-        rawData = await response.json();
-    }
+    } else { rawData = await response.json(); }
     processarCategorias();
 }
 
 function processarCategorias() {
     currentDisplayData = [];
-    // Se for JSON com categorias (filmes/series)
     if (!Array.isArray(rawData) && rawData.categories) {
         rawData.categories.forEach(cat => {
             currentDisplayData.push({ isHeader: true, titulo: cat.name });
-            cat.items.forEach(item => {
-                item.categoriaPai = cat.name;
-                currentDisplayData.push(item);
-            });
+            cat.items.forEach(item => { item.categoriaPai = cat.name; currentDisplayData.push(item); });
         });
-    } else {
-        currentDisplayData = rawData;
-    }
+    } else { currentDisplayData = rawData; }
+    itemIndex = 0;
     renderLista();
 }
 
@@ -143,7 +157,6 @@ function renderLista() {
         const div = document.createElement('div');
         div.className = `canal-item ${i === itemIndex ? 'ativo' : ''} ${item.isHeader ? 'categoria-header' : ''}`;
         div.innerHTML = `<span>${item.titulo || item.name}</span>`;
-        
         if (!item.isHeader) {
             const fBtn = document.createElement('i');
             const isFav = favoritos.some(f => (f.url || f.link) === (item.url || item.link));
@@ -152,7 +165,6 @@ function renderLista() {
             div.appendChild(fBtn);
             div.onclick = () => playMedia(item);
         }
-        
         listaCanaisDiv.appendChild(div);
         if (i === itemIndex) {
             div.scrollIntoView({ block: 'center' });
@@ -180,6 +192,7 @@ function playMedia(item) {
     painelConteudo.style.display = "none";
 }
 
+// --- ORDEM: NAVEGAÇÃO POR TECLADO ---
 document.onkeydown = (e) => {
     if (menuFocused) {
         if (e.key === "ArrowDown") menuIndex = (menuIndex + 1) % menuItems.length;
@@ -188,19 +201,19 @@ document.onkeydown = (e) => {
             menuFocused = false; 
             const btn = menuItems[menuIndex];
             if (btn.dataset.type === "fav") { rawData = favoritos; processarCategorias(); }
-            else carregarDados(btn);
+            else { carregarDados(btn); }
             painelConteudo.style.display = "flex";
         }
         menuItems.forEach((m, i) => m.classList.toggle('selecionado', i === menuIndex));
     } else {
         if (e.key === "ArrowDown") { 
             itemIndex = (itemIndex + 1) % currentDisplayData.length;
-            if (currentDisplayData[itemIndex].isHeader) itemIndex = (itemIndex + 1) % currentDisplayData.length;
+            if (currentDisplayData[itemIndex]?.isHeader) itemIndex = (itemIndex + 1) % currentDisplayData.length;
             renderLista(); 
         }
         if (e.key === "ArrowUp") { 
             itemIndex = (itemIndex - 1 + currentDisplayData.length) % currentDisplayData.length;
-            if (currentDisplayData[itemIndex].isHeader) itemIndex = (itemIndex - 1 + currentDisplayData.length) % currentDisplayData.length;
+            if (currentDisplayData[itemIndex]?.isHeader) itemIndex = (itemIndex - 1 + currentDisplayData.length) % currentDisplayData.length;
             renderLista(); 
         }
         if (e.key === "ArrowLeft") { menuFocused = true; painelConteudo.style.display = "none"; }
@@ -212,21 +225,20 @@ menuItems.forEach((btn, i) => {
     btn.onclick = () => { 
         menuIndex = i; menuFocused = false; 
         if (btn.dataset.type === "fav") { rawData = favoritos; processarCategorias(); }
-        else carregarDados(btn);
-        painelConteudo.style.display = "flex";
+        else { carregarDados(btn); }
+        painelConteudo.style.display = "flex"; 
     }; 
 });
+
 video.onclick = () => { painelConteudo.style.display = "none"; menuFocused = true; };
 
 searchInput.oninput = () => {
     const term = searchInput.value.toLowerCase();
     let flatData = [];
-    if (!Array.isArray(rawData) && rawData.categories) {
-        rawData.categories.forEach(c => flatData = [...flatData, ...c.items]);
-    } else { flatData = rawData; }
+    if (!Array.isArray(rawData) && rawData.categories) { rawData.categories.forEach(c => flatData = [...flatData, ...c.items]); }
+    else { flatData = rawData; }
     currentDisplayData = flatData.filter(i => (i.titulo || i.name || "").toLowerCase().includes(term));
-    itemIndex = 0;
-    renderLista();
+    itemIndex = 0; renderLista();
 };
 </script>
 </body>
