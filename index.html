@@ -18,46 +18,47 @@
 body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; width: 100vw; }
 #layout-principal { display: flex; height: 100%; width: 100%; background: #000; }
 
-/* --- MENU LATERAL --- */
-#barra-menu { width: 180px; background: #001a1a; border-right: 2px solid #003333; display: flex; flex-direction: column; z-index: 100; flex-shrink: 0; }
-#header-logo { padding: 15px 10px; text-align: center; }
-#header-logo img { height: 80px; width: auto; max-width: 100%; object-fit: contain; }
-#relogio { font-size: 10px; color: #00ffcc; margin-top: 5px; text-align: center; }
+/* --- MENU LATERAL (ORDEM: LARGURA REDUZIDA) --- */
+#barra-menu { width: 160px; background: #001a1a; border-right: 2px solid #003333; display: flex; flex-direction: column; z-index: 100; flex-shrink: 0; }
+#header-logo { padding: 10px; text-align: center; }
+#header-logo img { height: 70px; width: auto; max-width: 100%; object-fit: contain; }
+#relogio { font-size: 11px; color: #aaa; margin-top: 5px; text-align: center; }
 
-#searchBox { padding: 0 10px 15px; }
-#searchInput { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #003333; background: #000; color: #fff; outline: none; font-size: 12px; }
+#searchBox { padding: 0 10px 10px; }
+#searchInput { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #003333; background: #000; color: #fff; outline: none; font-size: 12px; }
 
-#itens-menu { flex: 1; padding: 10px; overflow-y: auto; }
-.item-clicavel { padding: 10px; font-size: 12px; margin-bottom: 8px; border-radius: 8px; background: #0080ff; border-bottom: 3px solid #004d99; display: flex; align-items: center; cursor: pointer; color: #fff; }
-.item-clicavel.selecionado { background: #fff !important; color: #000 !important; font-weight: bold; }
+#itens-menu { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+.item-clicavel { padding: 12px 8px; font-size: 11px; border-radius: 6px; background: #0080ff; border-bottom: 3px solid #004d99; display: flex; align-items: center; cursor: pointer; color: #fff; width: 100%; justify-content: flex-start; }
+.item-clicavel i { margin-right: 8px; width: 14px; }
+.item-clicavel.selecionado { background: #fff !important; color: #000 !important; font-weight: bold; border-bottom: 3px solid #ccc; }
 
 /* --- ÁREA DO PLAYER --- */
 #area-player { flex: 1; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
 #meu-video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+#btn-sair-player { position: absolute; top: 15px; right: 15px; background: #ff0000; color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; z-index: 1000; display: none; font-size: 12px; }
 
-/* BOTÃO SAIR SOBRE O VÍDEO */
-#btn-sair-player { position: absolute; top: 20px; right: 20px; background: rgba(255, 0, 0, 0.8); color: white; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; z-index: 1000; display: none; text-transform: uppercase; font-size: 14px; }
+#painel-conteudo { position: absolute; left: 0; top: 0; height: 100%; background: rgba(0,0,0,0.95); z-index: 50; display: none; width: 100%; }
 
-#painel-conteudo { position: absolute; left: 0; top: 0; height: 100%; background: rgba(0,0,0,0.98); z-index: 50; display: none; width: 100%; }
+/* LARGURA REDUZIDA PARA NÃO OCULTAR CAPAS */
+#lista-canais { width: 220px; height: 100%; border-right: 1px solid #222; overflow-y: auto; background: #000; flex-shrink: 0; }
+.canal-item { padding: 10px 12px; font-size: 12px; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; color: #fff; background: #000; cursor: pointer; }
+.canal-item.ativo { background: #333 !important; color: #fff !important; font-weight: bold; }
+.canal-item.categoria-header { background: #002222; color: #fff; font-weight: 700; cursor: default; border-bottom: 2px solid #004444; }
 
-#lista-canais { width: 240px; height: 100%; border-right: 1px solid #111; overflow-y: auto; background: #000; flex-shrink: 0; }
-.canal-item { padding: 12px 15px; font-size: 13px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; color: #ccc; background: #000; }
-.canal-item.ativo { background: #111 !important; color: #00ffcc !important; border-left: 4px solid #00ffcc; }
-.canal-item.categoria-header { background: #002222; color: #00ffcc; font-weight: bold; }
-
-#container-capa { padding: 0 20px; display: flex; align-items: center; justify-content: center; flex: 1; background: #000; }
-#imagem-capa { height: 350px; width: auto; border-radius: 10px; border: 3px solid #00ffcc; cursor: pointer; box-shadow: 0 0 20px rgba(0,255,204,0.3); }
+#container-capa { padding: 20px; display: flex; align-items: center; justify-content: center; flex: 1; background: #000; height: 100%; }
+#imagem-capa { max-height: 80%; max-width: 90%; border-radius: 8px; border: 2px solid #fff; cursor: pointer; background: #000; }
 
 /* MODAL VOD */
-#modal-vod { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #001a1a; padding: 25px; border: 2px solid #00ffcc; z-index: 200; display: none; border-radius: 15px; text-align: center; }
-.btn-vod { padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-#btn-continuar { background: #00ffcc; color: #000; }
-#btn-recomecar { background: #ff3333; color: #fff; }
+#modal-vod { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border: 1px solid #fff; z-index: 200; display: none; border-radius: 8px; text-align: center; }
+.btn-vod { padding: 10px 15px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+#btn-continuar { background: #0080ff; color: #fff; }
+#btn-recomecar { background: #666; color: #fff; }
 
 @media (max-width: 850px) {
-    #barra-menu { width: 100px; }
-    #lista-canais { width: 140px; }
-    #imagem-capa { height: 220px; }
+    #barra-menu { width: 110px; }
+    #lista-canais { width: 130px; }
+    .item-clicavel { font-size: 10px; padding: 8px 5px; }
+    #imagem-capa { max-height: 70%; }
 }
 </style>
 </head>
@@ -69,7 +70,7 @@ body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height
             <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
             <div id="relogio"></div>
         </div>
-        <div id="searchBox"><input type="text" id="searchInput" placeholder="Busca Global..."></div>
+        <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
         <div id="itens-menu">
             <div class="item-clicavel selecionado" data-type="m3u" data-url="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u"><i class="fas fa-tv"></i> Canais</div>
             <div class="item-clicavel" data-type="fav"><i class="fas fa-star"></i> Favoritos</div>
@@ -92,8 +93,8 @@ body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height
 </div>
 
 <div id="modal-vod">
-    <h3 style="margin-bottom:15px">Continuar Assistindo?</h3>
-    <button id="btn-continuar" class="btn-vod">Continuar</button>
+    <h3 style="margin-bottom:15px; font-size: 14px;">Continuar Assistindo?</h3>
+    <button id="btn-continuar" class="btn-vod">Sim</button>
     <button id="btn-recomecar" class="btn-vod">Reiniciar</button>
 </div>
 
@@ -113,7 +114,6 @@ let favoritos = JSON.parse(localStorage.getItem('paixaoflix_favs')) || [];
 let historico = JSON.parse(localStorage.getItem('paixaoflix_history')) || {};
 let globalDB = [];
 
-// RELÓGIO EXATO: terça, 13 jan 26 | 23:21
 function updateClock() {
     const d = new Date();
     const dias = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
@@ -123,48 +123,21 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
-// CONTROLE DO BOTÃO SAIR
 let timeoutSair;
 function mostrarBotaoSair() {
-    if(video.paused && !video.currentTime) return;
+    if(!video.src && !hls) return;
     btnSair.style.display = "block";
     clearTimeout(timeoutSair);
     timeoutSair = setTimeout(() => { btnSair.style.display = "none"; }, 4000);
 }
 video.parentElement.onclick = mostrarBotaoSair;
-video.parentElement.onmousemove = mostrarBotaoSair;
 
 function fecharPlayer() {
-    video.pause();
-    video.src = "";
-    if(hls) hls.destroy();
+    video.pause(); video.src = "";
+    if(hls) { hls.destroy(); hls = null; }
     btnSair.style.display = "none";
     painelConteudo.style.display = "block";
-    menuFocused = false;
 }
-
-// BUSCA GLOBAL
-async function initGlobalSearch() {
-    const urls = Array.from(menuItems).map(i => i.dataset.url).filter(u => u);
-    for (const url of urls) {
-        try {
-            const res = await fetch(url);
-            if (url.includes('.m3u')) {
-                const text = await res.text();
-                let temp = null;
-                text.split('\n').forEach(line => {
-                    if (line.startsWith('#EXTINF')) temp = { titulo: line.split(',').pop().trim(), isLive: true };
-                    else if (line.startsWith('http') && temp) { temp.url = line.trim(); globalDB.push(temp); temp = null; }
-                });
-            } else {
-                const json = await res.json();
-                const items = json.categories ? json.categories.flatMap(c => c.items) : json;
-                items.forEach(i => { i.isLive = false; globalDB.push(i); });
-            }
-        } catch(e) {}
-    }
-}
-initGlobalSearch();
 
 async function carregarDados(btn) {
     const response = await fetch(btn.dataset.url);
@@ -187,7 +160,9 @@ function processarCategorias() {
             currentDisplayData.push({ isHeader: true, titulo: cat.name });
             cat.items.forEach(item => { item.isLive = false; currentDisplayData.push(item); });
         });
-    } else { currentDisplayData = rawData.map(i => { if(i.isLive === undefined) i.isLive = true; return i; }); }
+    } else { 
+        currentDisplayData = rawData.map(i => { if(i.isLive === undefined) i.isLive = true; return i; }); 
+    }
     itemIndex = 0; renderLista();
 }
 
@@ -198,8 +173,6 @@ function renderLista() {
         div.className = `canal-item ${i === itemIndex ? 'ativo' : ''} ${item.isHeader ? 'categoria-header' : ''}`;
         div.innerHTML = `<span>${item.titulo || item.name}</span>`;
         if (!item.isHeader) {
-            const isFav = favoritos.some(f => (f.url || f.link) === (item.url || item.link));
-            div.innerHTML += `<i class="fas fa-star fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFav(${JSON.stringify(item).replace(/"/g, '&quot;')})"></i>`;
             div.onclick = () => { itemIndex = i; renderLista(); };
         }
         listaCanaisDiv.appendChild(div);
@@ -236,51 +209,34 @@ function playMedia(item, startTime) {
         video.onloadedmetadata = () => { if(startTime) video.currentTime = startTime; video.play(); };
     }
     painelConteudo.style.display = "none";
-    if (document.body.requestFullscreen) document.body.requestFullscreen();
 }
 
-// NAVEGAÇÃO E TECLAS
 document.onkeydown = (e) => {
     const key = e.keyCode || e.which;
-    if (key == 13 && !menuFocused) { prepararPlay(currentDisplayData[itemIndex]); return; }
-    if (key == 37 && !menuFocused) {
-        let prevHeader = -1;
-        for(let i = itemIndex; i >= 0; i--) { if(currentDisplayData[i].isHeader) { prevHeader = i; break; } }
-        if (itemIndex !== prevHeader && prevHeader !== -1) { itemIndex = prevHeader; renderLista(); } 
-        else { menuFocused = true; painelConteudo.style.display = "none"; }
-        return;
-    }
     if (menuFocused) {
         if (key == 40) menuIndex = (menuIndex + 1) % menuItems.length;
         if (key == 38) menuIndex = (menuIndex - 1 + menuItems.length) % menuItems.length;
         if (key == 13 || key == 39) { 
             menuFocused = false; 
             const btn = menuItems[menuIndex];
-            if (btn.dataset.type === "fav") { rawData = favoritos; processarCategorias(); } else carregarDados(btn);
+            carregarDados(btn);
             painelConteudo.style.display = "block";
         }
         menuItems.forEach((m, i) => m.classList.toggle('selecionado', i === menuIndex));
     } else {
         if (key == 40) { itemIndex = (itemIndex + 1) % currentDisplayData.length; renderLista(); }
         if (key == 38) { itemIndex = (itemIndex - 1 + currentDisplayData.length) % currentDisplayData.length; renderLista(); }
+        if (key == 37) { 
+            let prevHeader = -1;
+            for(let i = itemIndex; i >= 0; i--) { if(currentDisplayData[i].isHeader) { prevHeader = i; break; } }
+            if (itemIndex !== prevHeader && prevHeader !== -1) { itemIndex = prevHeader; renderLista(); } 
+            else { menuFocused = true; painelConteudo.style.display = "none"; }
+        }
+        if (key == 13) imgCapa.click();
     }
 };
 
-searchInput.oninput = () => {
-    const term = searchInput.value.toLowerCase();
-    if (!term) { processarCategorias(); return; }
-    currentDisplayData = globalDB.filter(i => (i.titulo || i.name || "").toLowerCase().includes(term));
-    itemIndex = 0; renderLista();
-};
-
-video.ontimeupdate = () => {
-    if (currentItem && !currentItem.isLive && video.currentTime > 5) {
-        historico[currentItem.url || currentItem.link] = video.currentTime;
-        localStorage.setItem('paixaoflix_history', JSON.stringify(historico));
-    }
-};
-
-menuItems.forEach((btn, i) => { btn.onclick = () => { menuIndex = i; menuFocused = false; if (btn.dataset.type === "fav") { rawData = favoritos; processarCategorias(); } else carregarDados(btn); painelConteudo.style.display = "block"; }; });
+menuItems.forEach((btn, i) => { btn.onclick = () => { menuIndex = i; menuFocused = false; carregarDados(btn); painelConteudo.style.display = "block"; }; });
 </script>
 </body>
 </html>
