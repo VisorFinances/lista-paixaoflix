@@ -14,6 +14,7 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
+/* TELA DEITADA E OCULTAR NAVEGADOR */
 @media screen and (orientation: portrait) {
     body { transform: rotate(90deg); transform-origin: left top; width: 100vh; height: 100vw; position: absolute; top: 0; left: 100%; overflow: hidden; }
 }
@@ -23,25 +24,25 @@ body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height
 
 #layout-principal { display: flex; height: 100%; width: 100%; }
 
-/* BARRAS COM ROLAGEM VERTICAL INFINITA E RESPONSIVAS */
-#barra-menu { width: clamp(130px, 16vw, 220px); background: #001a1a; border-right: 2px solid #003333; display: flex; flex-direction: column; flex-shrink: 0; }
-#itens-menu { flex: 1; overflow-y: scroll; display: flex; flex-direction: column; gap: 5px; padding: 5px; scrollbar-width: none; }
+/* ROLAGEM VERTICAL INFINITA SEM BARRAS VISÍVEIS */
+#barra-menu { width: clamp(140px, 18vw, 220px); background: #001a1a; border-right: 2px solid #003333; display: flex; flex-direction: column; flex-shrink: 0; }
+#itens-menu { flex: 1; overflow-y: scroll; display: flex; flex-direction: column; gap: 5px; padding: 8px; scrollbar-width: none; }
 #itens-menu::-webkit-scrollbar { display: none; }
 
 #header-logo { padding: 10px; text-align: center; }
-#header-logo img { width: 85%; height: auto; max-height: 65px; }
-#relogio { font-size: 11px; color: #aaa; margin-bottom: 5px; text-align: center; }
+#header-logo img { width: 80%; height: auto; max-height: 60px; }
+#relogio { font-size: 11px; color: #aaa; text-align: center; margin-bottom: 5px; }
 
-#searchBox { padding: 5px; }
-#searchInput { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #003333; background: #000; color: #fff; font-size: clamp(10px, 1vw, 14px); }
+#searchBox { padding: 5px 10px; }
+#searchInput { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #003333; background: #000; color: #fff; font-size: 12px; outline: none; }
 
-.item-clicavel { padding: 12px; font-size: clamp(10px, 1.1vw, 15px); border-radius: 4px; background: #0080ff; border-bottom: 3px solid #004d99; cursor: pointer; display: flex; align-items: center; font-weight: bold; text-transform: uppercase; }
-.item-clicavel i { margin-right: 8px; width: 20px; text-align: center; }
+.item-clicavel { padding: 12px; font-size: 11px; border-radius: 4px; background: #0080ff; border-bottom: 3px solid #004d99; cursor: pointer; display: flex; align-items: center; font-weight: bold; text-transform: uppercase; }
+.item-clicavel i { margin-right: 8px; width: 18px; text-align: center; }
 .item-clicavel.selecionado { background: #fff !important; color: #000 !important; border-bottom: 3px solid #ccc; }
 
 #area-player { flex: 1; position: relative; background: #000; }
 #meu-video { width: 100%; height: 100%; object-fit: contain; }
-#btn-sair-player { position: absolute; top: 20px; right: 20px; background: #ff0000; color: #fff; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; z-index: 1000; display: none; cursor: pointer; }
+#btn-sair-player { position: absolute; top: 20px; right: 20px; background: #ff0000; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; z-index: 1000; display: none; }
 
 #painel-conteudo { position: absolute; inset: 0; background: rgba(0,0,0,0.98); z-index: 50; display: none; }
 #flex-container { display: flex; height: 100%; width: 100%; }
@@ -49,12 +50,11 @@ body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height
 #lista-canais { width: clamp(180px, 22vw, 350px); height: 100%; border-right: 1px solid #222; overflow-y: scroll; background: #000; flex-shrink: 0; scrollbar-width: none; }
 #lista-canais::-webkit-scrollbar { display: none; }
 
-/* LISTA DE CONTEÚDO SEM LOGOTIPOS */
-.canal-item { padding: 15px; font-size: clamp(12px, 1.4vw, 20px); border-bottom: 1px solid #111; color: #fff; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.canal-item.ativo { background: #333 !important; border-left: 5px solid #0080ff; font-weight: bold; }
+.canal-item { padding: 15px; font-size: 14px; border-bottom: 1px solid #111; color: #fff; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.canal-item.ativo { background: #333 !important; border-left: 5px solid #0080ff; }
 
 #container-capa { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
-#imagem-capa { max-height: 95%; max-width: 95%; border: 4px solid #fff; border-radius: 10px; display: none; box-shadow: 0 0 30px rgba(0,128,255,0.3); cursor: pointer; }
+#imagem-capa { max-height: 90%; max-width: 90%; border: 4px solid #fff; border-radius: 10px; display: none; cursor: pointer; box-shadow: 0 0 30px rgba(0,128,255,0.4); }
 </style>
 </head>
 <body onclick="document.documentElement.requestFullscreen();">
@@ -85,60 +85,73 @@ body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height
 const video = document.getElementById("meu-video"), btnSair = document.getElementById("btn-sair-player"), painelConteudo = document.getElementById("painel-conteudo");
 const listaCanaisDiv = document.getElementById("lista-canais"), imgCapa = document.getElementById("imagem-capa"), menuContainer = document.getElementById('itens-menu'), searchInput = document.getElementById("searchInput");
 
-let globalDB = [], hls = null, menuIndex = 0, itemIndex = -1, focoAtual = "menu", currentList = [], isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+let globalDB = [], hls = null, menuIndex = 0, itemIndex = -1, focoAtual = "menu", currentList = [];
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-const fontes = [
-    { n: "Canais", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u", t: "m3u", i: "fa-tv" },
+// AS CATEGORIAS LISTADAS EXATAMENTE COMO VOCÊ MANDOU
+const categoriasFilmesSeries = [
     { n: "Favoritos", t: "fav", i: "fa-star" },
-    { n: "Cinema", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", t: "json", i: "fa-film" },
-    { n: "Séries", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/series.json", t: "json", i: "fa-clapperboard" },
-    { n: "Kids TV", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_kids_canais.m3u", t: "m3u", i: "fa-child" },
-    { n: "Kids Cine", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/kids_filmes.json", t: "json", i: "fa-icons" },
-    { n: "Kids Séries", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/kids_series.json", t: "json", i: "fa-robot" }
+    { n: "TV Ao Vivo", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u", i: "fa-tv" },
+    { n: "Lançamento 2026", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-calendar-check" },
+    { n: "Lançamento 2025", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-calendar-days" },
+    { n: "Ação", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-gun" },
+    { n: "Aventura", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-mountain" },
+    { n: "Comédia", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-face-laugh" },
+    { n: "Drama", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-masks-theater" },
+    { n: "Nacional", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-flag" },
+    { n: "Romance", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-heart" },
+    { n: "Religioso", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-dove" },
+    { n: "Ficção", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-rocket" },
+    { n: "Anime", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-dragon" },
+    { n: "Animação", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-clapperboard" },
+    { n: "Clássicos", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-film" },
+    { n: "Dorama", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/series.json", i: "fa-closed-captioning" },
+    { n: "Suspense", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-user-secret" },
+    { n: "Policial", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-handcuffs" },
+    { n: "Terror", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-ghost" },
+    { n: "Documentários", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-earth-americas" },
+    { n: "Faroeste", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-hat-cowboy" },
+    { n: "Musical", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-music" },
+    { n: "Adulto", u: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", i: "fa-explicit" }
 ];
 
-async function carregarTudo() {
+async function carregarMenu() {
     menuContainer.innerHTML = "";
-    for (let f of fontes) {
-        if (!f.u && f.t !== "fav") continue;
-        const res = f.u ? await fetch(f.u) : null;
-        const data = res ? (f.t === "m3u" ? parseM3U(await res.text()) : await res.json()) : [];
-
-        if (data.categories) {
-            data.categories.forEach(cat => {
-                criarBotaoMenu(cat.name, f.i, () => renderLista(cat.items));
-                cat.items.forEach(i => globalDB.push(i));
-            });
-        } else if (f.t === "fav") {
-            criarBotaoMenu(f.n, f.i, () => renderLista(JSON.parse(localStorage.getItem('paixaoflix_favs')) || []));
-        } else {
-            criarBotaoMenu(f.n, f.i, () => renderLista(data));
-            if(Array.isArray(data)) data.forEach(i => globalDB.push(i));
-        }
-    }
+    categoriasFilmesSeries.forEach((cat) => {
+        const div = document.createElement('div');
+        div.className = "item-clicavel";
+        div.innerHTML = `<i class="fas ${cat.i}"></i> ${cat.n}`;
+        div.onclick = async () => {
+            document.querySelectorAll('.item-clicavel').forEach(m => m.classList.remove('selecionado'));
+            div.classList.add('selecionado');
+            focoAtual = "menu";
+            const data = await fetchCatData(cat);
+            renderLista(data);
+            painelConteudo.style.display = "block";
+        };
+        menuContainer.appendChild(div);
+    });
+    for(let f of categoriasFilmesSeries) { if(f.u) fetchCatData(f).then(d => d.forEach(item => globalDB.push(item))); }
 }
 
-function criarBotaoMenu(nome, icone, acao) {
-    const div = document.createElement('div');
-    div.className = "item-clicavel";
-    div.innerHTML = `<i class="fas ${icone}"></i> ${nome}`;
-    div.onclick = () => {
-        document.querySelectorAll('.item-clicavel').forEach(m => m.classList.remove('selecionado'));
-        div.classList.add('selecionado');
-        acao();
-        painelConteudo.style.display = "block";
-    };
-    menuContainer.appendChild(div);
+async function fetchCatData(cat) {
+    if(cat.t === "fav") return JSON.parse(localStorage.getItem('paixaoflix_favs')) || [];
+    try {
+        const res = await fetch(cat.u);
+        const data = cat.u.endsWith('.m3u') ? parseM3U(await res.text()) : await res.json();
+        if(data.categories) {
+            const match = data.categories.find(c => c.name.toLowerCase().includes(cat.n.toLowerCase()));
+            return match ? match.items : data.categories[0].items;
+        }
+        return data;
+    } catch(e) { return []; }
 }
 
 function parseM3U(text) {
     let items = [], temp = null;
     text.split('\n').forEach(line => {
-        if (line.startsWith('#EXTINF')) {
-            temp = { name: line.split(',').pop().trim(), poster: line.match(/tvg-logo="([^"]+)"/)?.[1] };
-        } else if (line.startsWith('http') && temp) {
-            temp.link = line.trim(); items.push(temp); temp = null;
-        }
+        if (line.startsWith('#EXTINF')) temp = { name: line.split(',').pop().trim(), poster: line.match(/tvg-logo="([^"]+)"/)?.[1] };
+        else if (line.startsWith('http') && temp) { temp.link = line.trim(); items.push(temp); temp = null; }
     });
     return items;
 }
@@ -150,11 +163,7 @@ function renderLista(items) {
         const div = document.createElement('div');
         div.className = "canal-item";
         div.innerHTML = item.name || item.titulo;
-        
-        div.onclick = () => {
-            itemIndex = i;
-            selecionarItem(i);
-        };
+        div.onclick = () => { itemIndex = i; selecionarItem(i); };
         listaCanaisDiv.appendChild(div);
     });
 }
@@ -166,7 +175,6 @@ function selecionarItem(idx) {
     if(item) {
         imgCapa.src = item.poster || item.logo || "";
         imgCapa.style.display = "block";
-        // Toque na capa inicia o player (Obrigatório Móveis)
         imgCapa.onclick = () => playMedia(item);
     }
 }
@@ -193,40 +201,27 @@ searchInput.oninput = () => {
 document.onkeydown = (e) => {
     const menus = document.querySelectorAll('.item-clicavel');
     const itens = document.querySelectorAll('.canal-item');
-
     if (e.key === "ArrowDown") {
         if (focoAtual === "menu") { menuIndex = (menuIndex + 1) % menus.length; menus[menuIndex].scrollIntoView({block:"center"}); }
         else if (focoAtual === "lista") { itemIndex = (itemIndex + 1) % itens.length; selecionarItem(itemIndex); itens[itemIndex].scrollIntoView({block:"center"}); }
         else if (focoAtual === "busca") { focoAtual = "menu"; menuIndex = 0; }
     } else if (e.key === "ArrowUp") {
-        if (focoAtual === "menu") { 
-            if (menuIndex === 0) { focoAtual = "busca"; searchInput.focus(); } 
-            else { menuIndex--; menus[menuIndex].scrollIntoView({block:"center"}); }
-        }
+        if (focoAtual === "menu") { if (menuIndex === 0) { focoAtual = "busca"; searchInput.focus(); } else { menuIndex--; menus[menuIndex].scrollIntoView({block:"center"}); } }
         else if (focoAtual === "lista") { itemIndex = (itemIndex - 1 + itens.length) % itens.length; selecionarItem(itemIndex); itens[itemIndex].scrollIntoView({block:"center"}); }
-    } else if (e.key === "ArrowRight") {
-        if (focoAtual === "menu") { focoAtual = "lista"; itemIndex = 0; if(itens[0]) selecionarItem(0); }
-    } else if (e.key === "ArrowLeft") {
-        if (focoAtual === "lista") focoAtual = "menu";
+    } else if (e.key === "ArrowRight") { if (focoAtual === "menu") { focoAtual = "lista"; itemIndex = 0; if(itens[0]) selecionarItem(0); }
+    } else if (e.key === "ArrowLeft") { if (focoAtual === "lista") focoAtual = "menu";
     } else if (e.key === "Enter") {
         if (focoAtual === "menu") menus[menuIndex].click();
-        else if (focoAtual === "lista" && itemIndex >= 0) {
-            // No TV/PC (Enter), inicia o player conforme solicitado para "os demais"
-            if(!isMobile) playMedia(currentList[itemIndex]);
-        }
+        else if (focoAtual === "lista" && itemIndex >= 0 && !isMobile) playMedia(currentList[itemIndex]);
     }
-    
-    if (focoAtual !== "busca") {
-        searchInput.blur();
-        menus.forEach((m, i) => m.classList.toggle('selecionado', i === menuIndex && focoAtual === "menu"));
-    }
+    if (focoAtual !== "busca") { searchInput.blur(); menus.forEach((m, i) => m.classList.toggle('selecionado', i === menuIndex && focoAtual === "menu")); }
 };
 
 function updateClock() {
     const d = new Date();
     document.getElementById("relogio").innerText = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
-setInterval(updateClock, 1000); updateClock(); carregarTudo();
+setInterval(updateClock, 1000); updateClock(); carregarMenu();
 </script>
 </body>
 </html>
