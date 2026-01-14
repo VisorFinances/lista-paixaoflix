@@ -14,50 +14,47 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; overflow: hidden; }
+* { margin: 0; padding: 0; box-sizing: border-box; overflow: hidden; -webkit-tap-highlight-color: transparent; }
 body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; width: 100vw; }
-#layout-principal { display: flex; height: 100%; width: 100%; }
+#layout-principal { display: flex; height: 100%; width: 100%; background: #000; }
 
-/* --- MENU LATERAL (LARGURA REDUZIDA) --- */
+/* --- MENU LATERAL --- */
 #barra-menu { width: 180px; background: #001a1a; border-right: 2px solid #003333; display: flex; flex-direction: column; z-index: 100; flex-shrink: 0; }
 #header-logo { padding: 15px 10px; text-align: center; }
 #header-logo img { height: 80px; width: auto; max-width: 100%; object-fit: contain; }
-#relogio { font-size: 11px; color: #aaa; margin-top: 5px; text-align: center; }
+#relogio { font-size: 10px; color: #00ffcc; margin-top: 5px; text-align: center; text-transform: lowercase; }
 
 #searchBox { padding: 0 10px 15px; }
 #searchInput { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #003333; background: #000; color: #fff; outline: none; font-size: 12px; }
 
 #itens-menu { flex: 1; padding: 10px; overflow-y: auto; }
 .item-clicavel { padding: 10px; font-size: 12px; margin-bottom: 8px; border-radius: 8px; background: #0080ff; border-bottom: 3px solid #004d99; display: flex; align-items: center; cursor: pointer; color: #fff; }
-.item-clicavel i { margin-right: 10px; width: 15px; text-align: center; }
 .item-clicavel.selecionado { background: #fff !important; color: #000 !important; font-weight: bold; }
 
 /* --- ÁREA DO PLAYER --- */
-#area-player { flex: 1; position: relative; background: #000; }
-#meu-video { width: 100%; height: 100%; object-fit: contain; }
+#area-player { flex: 1; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
+#meu-video { width: 100%; height: 100%; object-fit: contain; background: #000; }
 
-#painel-conteudo { position: absolute; left: 0; top: 0; height: 100%; background: rgba(0,0,0,0.95); z-index: 50; display: none; align-items: center; width: 100%; }
+#painel-conteudo { position: absolute; left: 0; top: 0; height: 100%; background: rgba(0,0,0,0.98); z-index: 50; display: none; width: 100%; }
 
-/* LARGURA REDUZIDA CONFORME ORDEM */
 #lista-canais { width: 240px; height: 100%; border-right: 1px solid #111; overflow-y: auto; background: #000; flex-shrink: 0; }
+.canal-item { padding: 12px 15px; font-size: 13px; border-bottom: 1px solid #222; cursor: default; display: flex; justify-content: space-between; align-items: center; color: #ccc; background: #000; }
+.canal-item.ativo { background: #111 !important; color: #00ffcc !important; border-left: 4px solid #00ffcc; }
+.canal-item.categoria-header { background: #002222; color: #00ffcc; font-weight: bold; }
 
-.canal-item { padding: 12px 15px; font-size: 13px; border-bottom: 1px solid #111; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #ccc; background: #000; }
-.canal-item.ativo { background: #fff !important; color: #000 !important; font-weight: bold; }
-.canal-item.categoria-header { background: #002222; color: #00ffcc; font-weight: bold; cursor: default; }
+#container-capa { padding: 0 20px; display: flex; align-items: center; justify-content: center; flex: 1; background: #000; }
+#imagem-capa { height: 350px; width: auto; border-radius: 10px; border: 3px solid #00ffcc; cursor: pointer; box-shadow: 0 0 20px rgba(0,255,204,0.3); }
 
-.fav-btn { color: #444; padding: 5px; cursor: pointer; }
-.fav-btn.active { color: #ffeb3b !important; }
+/* MODAL VOD */
+#modal-vod { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #001a1a; padding: 25px; border: 2px solid #00ffcc; z-index: 200; display: none; border-radius: 15px; text-align: center; }
+.btn-vod { padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+#btn-continuar { background: #00ffcc; color: #000; }
+#btn-recomeçar { background: #ff3333; color: #fff; }
 
-#container-capa { padding: 0 20px; display: flex; align-items: center; justify-content: center; flex: 1; }
-#imagem-capa { height: 320px; width: auto; border-radius: 10px; border: 3px solid #fff; cursor: pointer; background: #000; }
-
-/* REGRAS MOBILE / TECLADO */
 @media (max-width: 850px) {
     #barra-menu { width: 100px; }
-    #header-logo img { height: 60px !important; }
-    .item-clicavel { font-size: 9px; padding: 8px 4px; }
     #lista-canais { width: 140px; }
-    #imagem-capa { height: 180px; }
+    #imagem-capa { height: 220px; }
     body.is-searching #container-capa { display: none; }
     body.is-searching #lista-canais { width: 100%; }
 }
@@ -71,10 +68,10 @@ body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height
             <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
             <div id="relogio"></div>
         </div>
-        <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
+        <div id="searchBox"><input type="text" id="searchInput" placeholder="Busca Global..."></div>
         <div id="itens-menu">
             <div class="item-clicavel selecionado" data-type="m3u" data-url="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u"><i class="fas fa-tv"></i> Canais</div>
-            <div class="item-clicavel" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
+            <div class="item-clicavel" data-type="fav"><i class="fas fa-star"></i> Favoritos</div>
             <div class="item-clicavel" data-type="json" data-url="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json"><i class="fas fa-film"></i> Cinema</div>
             <div class="item-clicavel" data-type="json" data-url="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/series.json"><i class="fas fa-clapperboard"></i> Séries</div>
             <div class="item-clicavel" data-type="m3u" data-url="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_kids_canais.m3u"><i class="fas fa-child"></i> Kids TV</div>
@@ -92,6 +89,12 @@ body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height
     </div>
 </div>
 
+<div id="modal-vod">
+    <h3 style="margin-bottom:15px">Continuar Assistindo?</h3>
+    <button id="btn-continuar" class="btn-vod">Continuar</button>
+    <button id="btn-recomeçar" class="btn-vod">Reiniciar</button>
+</div>
+
 <script>
 const video = document.getElementById("meu-video");
 const painelConteudo = document.getElementById("painel-conteudo");
@@ -100,26 +103,52 @@ const imgCapa = document.getElementById("imagem-capa");
 const menuItems = document.querySelectorAll('.item-clicavel');
 const searchInput = document.getElementById("searchInput");
 const body = document.getElementById("body-main");
+const modalVod = document.getElementById("modal-vod");
 
 let rawData = [], currentDisplayData = [], currentItem = null;
 let menuIndex = 0, itemIndex = 0, menuFocused = true, hls = null;
 let favoritos = JSON.parse(localStorage.getItem('paixaoflix_favs')) || [];
 let historico = JSON.parse(localStorage.getItem('paixaoflix_history')) || {};
+let globalDB = []; // Banco de dados para busca global
 
-// RELÓGIO DD/MM/AA | HH:MM
 function updateClock() {
     const d = new Date();
+    const dias = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+    const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
     const pad = (n) => String(n).padStart(2, '0');
-    const rel = `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${String(d.getFullYear()).slice(-2)} | ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    document.getElementById("relogio").innerText = rel;
+    document.getElementById("relogio").innerText = `${dias[d.getDay()]}, ${pad(d.getDate())} ${meses[d.getMonth()]} ${String(d.getFullYear()).slice(-2)} | ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 setInterval(updateClock, 1000); updateClock();
 
-// LANDSCAPE AUTOMÁTICO
-function lockLandscape() {
+// FORCE LANDSCAPE & FULLSCREEN
+function enterFullScreen() {
+    if (body.requestFullscreen) body.requestFullscreen();
     if (screen.orientation && screen.orientation.lock) screen.orientation.lock("landscape").catch(()=>{});
 }
-document.addEventListener('click', lockLandscape, {once: true});
+
+// CARREGAMENTO E BUSCA GLOBAL
+async function initGlobalSearch() {
+    const urls = Array.from(menuItems).map(i => i.dataset.url).filter(u => u);
+    for (const url of urls) {
+        try {
+            const res = await fetch(url);
+            if (url.includes('.m3u')) {
+                const text = await res.text();
+                text.split('#EXTINF').forEach(line => {
+                    if (line.includes(',')) {
+                        const parts = line.split('\n');
+                        globalDB.push({ titulo: parts[0].split(',').pop().trim(), url: parts[1]?.trim(), isLive: true });
+                    }
+                });
+            } else {
+                const json = await res.json();
+                const items = json.categories ? json.categories.flatMap(c => c.items) : json;
+                items.forEach(i => { i.isLive = false; globalDB.push(i); });
+            }
+        } catch(e) {}
+    }
+}
+initGlobalSearch();
 
 async function carregarDados(btn) {
     const response = await fetch(btn.dataset.url);
@@ -131,9 +160,7 @@ async function carregarDados(btn) {
             else if (line.startsWith('http') && temp) { temp.url = line.trim(); items.push(temp); temp = null; }
         });
         rawData = items;
-    } else { 
-        rawData = await response.json();
-    }
+    } else { rawData = await response.json(); }
     processarCategorias();
 }
 
@@ -159,27 +186,25 @@ function renderLista() {
         if (!item.isHeader) {
             const isFav = favoritos.some(f => (f.url || f.link) === (item.url || item.link));
             div.innerHTML += `<i class="fas fa-star fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFav(${JSON.stringify(item).replace(/"/g, '&quot;')})"></i>`;
-            div.onclick = () => prepararPlay(item);
         }
         listaCanaisDiv.appendChild(div);
         if (i === itemIndex) {
             div.scrollIntoView({ block: 'center' });
             if (!item.isHeader) {
-                imgCapa.style.display = "block";
                 imgCapa.src = item.poster || item.logo || "";
-                imgCapa.onclick = () => prepararPlay(item);
-            } else { imgCapa.style.display = "none"; }
+                imgCapa.onclick = () => { enterFullScreen(); prepararPlay(item); };
+            }
         }
     });
 }
 
 function prepararPlay(item) {
-    if(!item || item.isHeader) return;
     const key = item.url || item.link;
-    if (!item.isLive && historico[key] && historico[key] > 10) {
-        if (confirm("Continuar de onde parou?")) playMedia(item, historico[key]);
-        else playMedia(item, 0);
-    } else playMedia(item, 0);
+    if (!item.isLive && historico[key] > 10) {
+        modalVod.style.display = "block";
+        document.getElementById("btn-continuar").onclick = () => { modalVod.style.display="none"; playMedia(item, historico[key]); };
+        document.getElementById("btn-recomeçar").onclick = () => { modalVod.style.display="none"; playMedia(item, 0); };
+    } else { playMedia(item, 0); }
 }
 
 function playMedia(item, startTime) {
@@ -190,34 +215,19 @@ function playMedia(item, startTime) {
         if (Hls.isSupported()) { 
             hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => { if(startTime) video.currentTime = startTime; video.play(); });
-        } else video.src = url;
+        }
     } else {
         video.src = url;
         video.onloadedmetadata = () => { if(startTime) video.currentTime = startTime; video.play(); };
     }
     painelConteudo.style.display = "none";
-    body.classList.remove("is-searching");
 }
 
-function zapping(dir) {
-    if (!currentDisplayData.length) return;
-    let next = itemIndex;
-    let count = 0;
-    do { 
-        next = (next + dir + currentDisplayData.length) % currentDisplayData.length;
-        count++;
-    } while (currentDisplayData[next].isHeader && count < currentDisplayData.length);
-    itemIndex = next;
-    renderLista();
-    prepararPlay(currentDisplayData[itemIndex]);
-}
-
-// NAVEGAÇÃO TV BOX / KEYBOARD
+// TECLAS E NAVEGAÇÃO
 document.onkeydown = (e) => {
     const key = e.keyCode || e.which;
-    // CH+ (33, 427) CH- (34, 428)
-    if (key == 33 || key == 427) { zapping(1); return; }
-    if (key == 34 || key == 428) { zapping(-1); return; }
+    if (key == 33 || key == 427) { zapping(1); return; } // CH+
+    if (key == 34 || key == 428) { zapping(-1); return; } // CH-
 
     if (menuFocused) {
         if (key == 40) menuIndex = (menuIndex + 1) % menuItems.length;
@@ -227,33 +237,35 @@ document.onkeydown = (e) => {
             const btn = menuItems[menuIndex];
             if (btn.dataset.type === "fav") { rawData = favoritos; processarCategorias(); }
             else carregarDados(btn);
-            painelConteudo.style.display = "flex";
+            painelConteudo.style.display = "block";
         }
         menuItems.forEach((m, i) => m.classList.toggle('selecionado', i === menuIndex));
     } else {
-        // Seletor Infinito
         if (key == 40) { itemIndex = (itemIndex + 1) % currentDisplayData.length; renderLista(); }
         if (key == 38) { itemIndex = (itemIndex - 1 + currentDisplayData.length) % currentDisplayData.length; renderLista(); }
         if (key == 37) { 
-            // 2 Etapas: Esquerda volta para Header, se já for Header volta pro Menu
             let prevHeader = -1;
             for(let i = itemIndex; i >= 0; i--) { if(currentDisplayData[i].isHeader) { prevHeader = i; break; } }
             if (itemIndex !== prevHeader && prevHeader !== -1) { itemIndex = prevHeader; renderLista(); } 
             else { menuFocused = true; painelConteudo.style.display = "none"; }
         }
-        if (key == 13) prepararPlay(currentDisplayData[itemIndex]);
+        if (key == 13) imgCapa.click();
     }
 };
 
-// BUSCA GLOBAL E MOBILE
-searchInput.onfocus = () => { body.classList.add("is-searching"); painelConteudo.style.display = "flex"; };
+function zapping(dir) {
+    let next = itemIndex;
+    do { next = (next + dir + currentDisplayData.length) % currentDisplayData.length; } 
+    while (currentDisplayData[next].isHeader);
+    itemIndex = next; renderLista(); prepararPlay(currentDisplayData[itemIndex]);
+}
+
+// BUSCA GLOBAL REALTIME
+searchInput.onfocus = () => { body.classList.add("is-searching"); painelConteudo.style.display = "block"; };
 searchInput.oninput = () => {
     const term = searchInput.value.toLowerCase();
-    let flat = [];
-    if (!Array.isArray(rawData) && rawData.categories) {
-        rawData.categories.forEach(c => flat = [...flat, ...c.items]);
-    } else { flat = rawData; }
-    currentDisplayData = flat.filter(i => (i.titulo || i.name || "").toLowerCase().includes(term));
+    if (!term) { processarCategorias(); return; }
+    currentDisplayData = globalDB.filter(i => (i.titulo || i.name || "").toLowerCase().includes(term));
     itemIndex = 0; renderLista();
 };
 
@@ -264,15 +276,7 @@ video.ontimeupdate = () => {
     }
 };
 
-function toggleFav(item) {
-    const key = item.url || item.link;
-    const idx = favoritos.findIndex(f => (f.url || f.link) === key);
-    idx > -1 ? favoritos.splice(idx, 1) : favoritos.push(item);
-    localStorage.setItem('paixaoflix_favs', JSON.stringify(favoritos));
-    renderLista();
-}
-
-menuItems.forEach((btn, i) => { btn.onclick = () => { menuIndex = i; menuFocused = false; if (btn.dataset.type === "fav") { rawData = favoritos; processarCategorias(); } else carregarDados(btn); painelConteudo.style.display = "flex"; }; });
+menuItems.forEach((btn, i) => { btn.onclick = () => { menuIndex = i; menuFocused = false; if (btn.dataset.type === "fav") { rawData = favoritos; processarCategorias(); } else carregarDados(btn); painelConteudo.style.display = "block"; }; });
 video.onclick = () => { painelConteudo.style.display = "none"; menuFocused = true; body.classList.remove("is-searching"); };
 </script>
 </body>
