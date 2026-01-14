@@ -34,7 +34,8 @@
             background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
         }
 
-        .logo { height: 50px; }
+        /* AJUSTE: Logo aumentada para 100px */
+        .logo { height: 100px; width: auto; }
 
         #search-container { padding: 0 20px; }
         #search-box {
@@ -86,8 +87,9 @@
         /* --- GRID DE CONTEÚDO --- */
         .content-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
+            /* AJUSTE: Reduzido minmax para 140px para logos menores */
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
             padding: 20px;
         }
 
@@ -98,6 +100,8 @@
             aspect-ratio: 2/3;
             cursor: pointer;
             border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
         }
 
         .card:focus {
@@ -105,7 +109,14 @@
             transform: scale(1.05);
         }
 
-        .card img { width: 100%; height: 100%; object-fit: cover; }
+        /* AJUSTE: Imagem interna contida para não estourar */
+        .card img { 
+            width: 100%; 
+            height: 80%; 
+            object-fit: contain; 
+            background: #000;
+            padding: 5px;
+        }
 
         /* --- PLAYER --- */
         #player-overlay {
@@ -131,7 +142,7 @@
 
         /* Mobile Vertical */
         @media (max-width: 600px) {
-            .content-grid { grid-template-columns: repeat(2, 1fr); }
+            .content-grid { grid-template-columns: repeat(3, 1fr); }
             .nav-bar { flex-direction: column; }
         }
     </style>
@@ -149,6 +160,7 @@
 
 <nav class="nav-bar" id="main-nav">
     <button class="btn-nav" onclick="loadContent('tv')">TV AO VIVO</button>
+    <button class="btn-nav" onclick="loadContent('filmes')">CINEMA</button>
     <button class="btn-nav" onclick="loadContent('series')">SÉRIES</button>
     <button class="btn-nav" onclick="loadContent('favoritos')">FAVORITOS</button>
     <button class="btn-nav" onclick="openKids()">ÁREA KIDS</button>
@@ -170,6 +182,7 @@
 <script>
     const API = {
         tv: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u",
+        filmes: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json", // Link padrão para cinema
         series: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/series.json",
         favoritos: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/favoritos.json",
         kids_canais: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_kids_canais.m3u",
@@ -179,7 +192,6 @@
 
     let currentData = [];
 
-    // --- CARREGAMENTO DE DADOS ---
     async function loadContent(type) {
         const grid = document.getElementById('grid');
         grid.innerHTML = "Carregando...";
@@ -208,7 +220,7 @@
                 const url = lines[i+1];
                 const name = info.split(',')[1];
                 const logo = info.match(/tvg-logo="([^"]+)"/)?.[1] || '';
-                items.push({ name, url, logo });
+                if(url) items.push({ name, url, logo });
             }
         }
         return items;
@@ -218,28 +230,24 @@
         const grid = document.getElementById('grid');
         grid.innerHTML = data.map((item, index) => `
             <div class="card" tabindex="0" onclick="playVideo('${item.url}')" onkeypress="if(event.key==='Enter') playVideo('${item.url}')">
-                <img src="${item.logo || 'https://via.placeholder.com/200x300?text=Sem+Foto'}" alt="${item.name}">
-                <div style="padding:10px; font-size:12px;">${item.name}</div>
+                <img src="${item.logo || 'https://via.placeholder.com/150x200?text=PaixãoFlix'}" alt="${item.name}">
+                <div style="padding:5px; font-size:11px; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.name}</div>
             </div>
         `).join('');
     }
 
-    // --- FILTRO EM TEMPO REAL ---
     function filterContent() {
         const term = document.getElementById('search-box').value.toLowerCase();
         const filtered = currentData.filter(i => i.name.toLowerCase().includes(term));
         renderGrid(filtered);
     }
 
-    // --- PLAYER ---
     function playVideo(url) {
         const overlay = document.getElementById('player-overlay');
         const video = document.getElementById('video-player');
         overlay.style.display = 'block';
         video.src = url;
         video.play();
-        
-        // Autolimpar busca ao abrir
         document.getElementById('search-box').value = '';
     }
 
@@ -247,29 +255,27 @@
         const overlay = document.getElementById('player-overlay');
         const video = document.getElementById('video-player');
         video.pause();
+        video.src = "";
         overlay.style.display = 'none';
     }
 
-    // --- CONTROLE REMOTO NATIVO ---
     window.addEventListener('keydown', (e) => {
         const focusable = document.querySelectorAll('.btn-nav, .card, #search-box');
         let index = Array.from(focusable).indexOf(document.activeElement);
 
         if (e.key === "ArrowRight") index++;
         if (e.key === "ArrowLeft") index--;
-        if (e.key === "ArrowDown") index += 5; // Salto aproximado de linha
-        if (e.key === "ArrowUp") index -= 5;
+        if (e.key === "ArrowDown") index += 4; 
+        if (e.key === "ArrowUp") index -= 4;
 
         if (index >= 0 && index < focusable.length) focusable[index].focus();
 
-        // Atalhos Sair e Canais
         if (e.key === "Escape" || e.key === "Backspace") closePlayer();
         if (e.key === "ArrowUp" && document.getElementById('player-overlay').style.display === 'block') {
             document.getElementById('exit-overlay').style.display = 'block';
         }
     });
 
-    // --- FUNÇÕES DE ÁREA ---
     function openKids() {
         document.getElementById('main-nav').style.display = 'none';
         document.getElementById('kids-nav').style.display = 'flex';
@@ -282,7 +288,6 @@
         loadContent('tv');
     }
 
-    // Início padrão
     loadContent('tv');
 </script>
 
