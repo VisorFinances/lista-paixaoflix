@@ -14,7 +14,7 @@
 html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100%; width: 100%; }
 #app { display: flex; height: 100vh; width: 100vw; position: relative; overflow: hidden; }
 
-/* MENU LATERAL AJUSTADO PARA LOGO 100PX */
+/* MENU LATERAL */
 #menu { 
     width: 220px; 
     background: #001a1a; 
@@ -129,9 +129,8 @@ setInterval(updateClock, 1000); updateClock();
 
 function playMedia(item) {
     if (!item || (!item.url && !item.link)) return;
-    const url = (item.url || item.link).replace("http://", "https://"); // Forçar segurança onde possível
+    const url = (item.url || item.link).replace("http://", "https://");
     
-    // Salvar no Assistindo Agora
     if (!recent.find(r => r.titulo === item.titulo)) {
         recent.unshift(item);
         if (recent.length > 20) recent.pop();
@@ -145,9 +144,13 @@ function playMedia(item) {
         if (Hls.isSupported()) {
             hls = new Hls({ capLevelToPlayerSize: true, lowLatencyMode: true });
             hls.loadSource(url); hls.attachMedia(video);
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) { video.src = url; }
-    } else { video.src = url; }
-    video.play().catch(e => console.log("Erro ao reproduzir"));
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = url;
+        }
+    } else {
+        video.src = url;
+    }
+    video.play().catch(() => {});
 }
 
 function renderList() {
@@ -167,54 +170,73 @@ function renderList() {
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
         div.innerHTML = `<span>${item.titulo || item.name || item}</span>`;
         channelList.appendChild(div);
-        if (i === selectedIndex && !menuFocused) div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (i === selectedIndex && !menuFocused) {
+            div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     });
 
     const cur = data[selectedIndex];
     if (!menuFocused && cur?.poster) { 
-        posterPreview.src = cur.poster; posterWrapper.style.display = "block";
-    } else { posterWrapper.style.display = "none"; }
+        posterPreview.src = cur.poster;
+        posterWrapper.style.display = "block";
+    } else {
+        posterWrapper.style.display = "none";
+    }
 }
 
- // ===== INÍCIO PATCH LANÇAMENTOS =====
+/* ===== PATCH ÚNICO – LANÇAMENTOS ===== */
 function normalizeText(str) {
     return (str || "")
         .toString()
-        .normalize("NFD")                 // remove acentos
+        .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
-        .replace(/\s+/g, " ")             // normaliza espaços
+        .replace(/\s+/g, " ")
         .trim()
         .toUpperCase();
 }
-// ===== FIM PATCH LANÇAMENTOS =====
-   
+
 async function handleAction() {
     let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    let data = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "recent" ? recent : (viewMode === "fav" ? favorites : filteredList))));
+    let data = viewMode === "categories" ? movieCats :
+               viewMode === "series" ? seriesCats :
+               viewMode === "channels" ? channels :
+               viewMode === "recent" ? recent :
+               viewMode === "fav" ? favorites : filteredList;
+
     const item = data[selectedIndex];
     if (!item) return;
 
-    if ((viewMode === "categories" || viewMode === "series") && typeof item === 'string') {
+    if ((viewMode === "categories" || viewMode === "series") && typeof item === "string") {
         const isMovie = viewMode === "categories";
         const sourceData = isMovie ? movies : series;
-        // Correção Lançamentos: trim e case-insensitive
-        filteredList = sourceData.filter(m => m.genero?.toUpperCase().trim() === item.toUpperCase().trim());
+
+        filteredList = sourceData.filter(m =>
+            normalizeText(m.genero) === normalizeText(item)
+        );
+
         viewMode = isMovie ? "movie_list" : "series_list";
-        selectedIndex = 0; renderList();
+        selectedIndex = 0;
+        renderList();
     } 
     else if ((viewMode === "series_list" || viewMode === "kids_series") && item.type === "serie") {
         try {
             const resp = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
             const meta = await resp.json();
-            filteredList = meta.files.filter(f => f.name.endsWith(".mp4") || f.name.endsWith(".mkv")).map(f => ({
-                titulo: f.name.split('/').pop().replace(".mp4","").replace(".mkv",""),
-                url: `https://archive.org/download/${item.identificador_archive}/${f.name}`,
-                poster: item.poster
-            }));
-            viewMode = "episode_list"; selectedIndex = 0; renderList();
-        } catch (e) { console.error("Erro Archive"); }
+            filteredList = meta.files
+                .filter(f => f.name.endsWith(".mp4") || f.name.endsWith(".mkv"))
+                .map(f => ({
+                    titulo: f.name.split("/").pop().replace(".mp4","").replace(".mkv",""),
+                    url: `https://archive.org/download/${item.identificador_archive}/${f.name}`,
+                    poster: item.poster
+                }));
+            viewMode = "episode_list";
+            selectedIndex = 0;
+            renderList();
+        } catch (e) {}
     }
-    else { playMedia(item); }
+    else {
+        playMedia(item);
+    }
 }
 
 document.addEventListener("keydown", e => {
@@ -222,36 +244,58 @@ document.addEventListener("keydown", e => {
     
     if (menuFocused) {
         if (e.key === "ArrowUp" && menuIndex > -1) {
-            if (menuIndex === 0) { searchInput.focus(); searchInput.classList.add("focused"); menuIndex = -1; }
-            else menuIndex--;
-        } else if (e.key === "ArrowDown") {
-            if (menuIndex === -1) { searchInput.blur(); searchInput.classList.remove("focused"); menuIndex = 0; }
-            else if (menuIndex < menuItems.length - 1) menuIndex++;
-        } else if (e.key === "ArrowRight" || e.key === "Enter") {
+            if (menuIndex === 0) {
+                searchInput.focus();
+                searchInput.classList.add("focused");
+                menuIndex = -1;
+            } else menuIndex--;
+        } 
+        else if (e.key === "ArrowDown") {
+            if (menuIndex === -1) {
+                searchInput.blur();
+                searchInput.classList.remove("focused");
+                menuIndex = 0;
+            } else if (menuIndex < menuItems.length - 1) menuIndex++;
+        } 
+        else if (e.key === "ArrowRight" || e.key === "Enter") {
             if (menuIndex === -1) return;
-            menuFocused = false; channelList.style.display = "block";
+            menuFocused = false;
+            channelList.style.display = "block";
             viewMode = menuItems[menuIndex].dataset.type;
             if (viewMode === "kids_channels") filteredList = kidsChannels;
             else if (viewMode === "kids_movies") filteredList = kidsMovies;
             else if (viewMode === "kids_series") filteredList = kidsSeries;
-            selectedIndex = 0; renderList();
+            selectedIndex = 0;
+            renderList();
         }
     } else {
-        if (e.key === "ArrowUp") { selectedIndex = (selectedIndex - 1 + dataLen) % dataLen; renderList(); }
-        else if (e.key === "ArrowDown") { selectedIndex = (selectedIndex + 1) % dataLen; renderList(); }
+        if (e.key === "ArrowUp") {
+            selectedIndex = (selectedIndex - 1 + dataLen) % dataLen;
+            renderList();
+        }
+        else if (e.key === "ArrowDown") {
+            selectedIndex = (selectedIndex + 1) % dataLen;
+            renderList();
+        }
         else if (e.key === "ArrowLeft") {
-            // Lógica de Volta Hierárquica
             if (viewMode === "movie_list" || viewMode === "series_list") {
                 viewMode = viewMode === "movie_list" ? "categories" : "series";
-                selectedIndex = 0; renderList();
-            } else if (viewMode === "episode_list") {
+                selectedIndex = 0;
+                renderList();
+            } 
+            else if (viewMode === "episode_list") {
                 viewMode = "series_list";
-                selectedIndex = 0; renderList();
-            } else {
-                menuFocused = true; channelList.style.display = "none";
+                selectedIndex = 0;
+                renderList();
+            } 
+            else {
+                menuFocused = true;
+                channelList.style.display = "none";
             }
         }
-        else if (e.key === "Enter") { handleAction(); }
+        else if (e.key === "Enter") {
+            handleAction();
+        }
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
@@ -259,21 +303,5 @@ document.addEventListener("keydown", e => {
 window.onload = () => {
     loadM3U("https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u", channels);
     loadM3U("https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_kids_canais.m3u", kidsChannels);
-    fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d);
-    fetch("data/series.json").then(r=>r.json()).then(d=>series=d);
-    fetch("data/kids_filmes.json").then(r=>r.json()).then(d=>kidsMovies=d);
-    fetch("data/kids_series.json").then(r=>r.json()).then(d=>kidsSeries=d);
-};
-
-function loadM3U(path, array) {
-    fetch(path).then(r=>r.text()).then(text=>{
-        let temp=null;
-        text.split("\n").forEach(l=>{
-            if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop().trim()};
-            else if(l.startsWith("http") && temp){ temp.url=l.trim(); array.push(temp); temp=null; }
-        });
-    });
-}
-</script>
-</body>
-</html>
+    fetch("data/filmes.json").then(r => r.json()).then(d => movies = d);
+    fetch("data/series.json").then(r => r.json()).then(d => series = d);
