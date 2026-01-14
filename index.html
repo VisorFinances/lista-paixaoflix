@@ -9,123 +9,111 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 
 <style>
-* { overflow: hidden; -ms-overflow-style: none; scrollbar-width: none; touch-action: manipulation; box-sizing: border-box; }
-*::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
-html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100%; width: 100%; }
+/* Reset Geral */
+* { margin: 0; padding: 0; box-sizing: border-box; overflow: hidden; user-select: none; }
+body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; width: 100vw; }
 
-#app { display: flex; height: 100vh; width: 100vw; position: relative; overflow: hidden; }
+#app { display: flex; height: 100%; width: 100%; }
 
-/* MENU LATERAL - TRAVADO EM 220PX PARA LOGO */
+/* 1. MENU LATERAL */
 #menu { 
     width: 220px; 
     background: #001a1a; 
-    display: flex; 
-    flex-direction: column; 
-    z-index: 100; 
-    height: 100%; 
     border-right: 1px solid #003333;
-    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
 }
 
-#menuHeader { padding: 15px 10px; text-align: center; flex-shrink: 0; }
-/* ORDEM: LOGO 120PX PADRÃO */
-#menuHeader img { height: 120px; width: auto; object-fit: contain; }
-#clock { font-size: 11px; color: #ccc; margin-top: 8px; }
+#menuHeader { padding: 20px 10px; text-align: center; }
+/* ORDEM: LOGO 120PX / 71PX */
+#menuHeader img { height: 120px !important; width: auto; object-fit: contain; }
 
-#searchBox { padding: 10px; flex-shrink: 0; }
-#searchInput { 
-    width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #003333; 
-    background: #000; color: #fff; outline: none; font-size: 12px; 
-}
-
-#menuItemsArea { flex: 1; overflow-y: auto !important; padding: 10px; }
-
+#menuItemsArea { flex: 1; padding: 10px; overflow-y: auto; }
 .menu-item { 
     padding: 12px; font-size: 13px; margin-bottom: 8px; border-radius: 6px; 
-    background: #0080ff; border: none; border-bottom: 3px solid #004d99;
-    display: flex; align-items: center; color: #fff; cursor: pointer; white-space: nowrap;
+    background: #0080ff; border-bottom: 3px solid #004d99;
+    display: flex; align-items: center; cursor: pointer;
 }
-.menu-item i { margin-right: 10px; width: 18px; text-align: center; }
-.menu-item.active { 
-    background: #fff !important; color: #000 !important; border-bottom: 3px solid #ccc !important;
-    font-weight: bold; transform: scale(1.05);
-}
+.menu-item i { margin-right: 10px; width: 20px; text-align: center; }
+.menu-item.active { background: #fff !important; color: #000 !important; font-weight: bold; }
 
-#content { flex: 1; height: 100%; background: #000; display: flex; position: relative; }
-#videoContainer { position: absolute; width: 100%; height: 100%; z-index: 1; }
+/* 2. AREA DO PLAYER E CONTEÚDO */
+#main-content { flex: 1; position: relative; background: #000; display: flex; align-items: center; }
+
+#video-bg { position: absolute; width: 100%; height: 100%; z-index: 1; }
 video { width: 100%; height: 100%; object-fit: contain; }
 
-/* BARRA DE CONTEÚDOS E CAPAS COLADAS */
-#sideContainer {
-    display: none; 
-    z-index: 110; 
-    position: absolute; 
-    left: 0; 
-    top: 0; 
-    height: 100%; 
-    background: rgba(0, 0, 0, 0.9);
-    flex-direction: row; /* Faz a capa ficar ao lado da lista */
-    align-items: center;
+/* 3. PAINEL DE CONTEÚDO (LISTA + CAPA COLADA) */
+#side-panel { 
+    position: absolute; left: 0; top: 0; height: 100%; 
+    display: none; /* Inicia escondido */
+    z-index: 10;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(5px);
 }
+
+#content-layout { display: flex; height: 100%; align-items: center; }
 
 #channelList { 
-    width: 250px;
-    height: 100%; 
-    border-right: 1px solid rgba(255,255,255,0.2); 
-    overflow-y: auto !important;
+    width: 250px; height: 100%; 
+    border-right: 1px solid rgba(255,255,255,0.1);
+    overflow-y: auto;
 }
+.channel { padding: 12px 15px; font-size: 13px; border-bottom: 1px solid #222; cursor: pointer; }
+.channel.active { background: #fff; color: #000; font-weight: bold; }
 
-.channel { padding: 12px 15px; font-size: 13px; border-bottom: 1px solid #222; color: #fff; cursor: pointer; }
-.channel.active { background: #fff !important; color: #000 !important; font-weight: bold; }
-
-/* CAPA COLADA À BARRA DE CONTEÚDOS */
-#posterWrapper { 
-    padding: 20px;
-    display: none;
-    pointer-events: none;
-}
+/* CAPA COLADA NA BARRA */
+#posterWrapper { padding: 20px; display: none; }
 #posterPreview { 
-    height: 350px; 
-    width: auto; 
-    border-radius: 8px; 
-    border: 3px solid #fff;
-    box-shadow: 10px 0 20px rgba(0,0,0,0.5);
+    height: 380px; width: auto; 
+    border: 3px solid #fff; border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0,0,0,1);
 }
 
-/* RESPONSIVIDADE - LOGO 71PX MÓVEL */
+/* RESPONSIVIDADE MÓVEL */
 @media (max-width: 850px) {
-    #menu { width: 180px; }
-    #menuHeader img { height: 71px; }
+    #menu { width: 160px; }
+    #menuHeader img { height: 71px !important; } /* LOGO 71PX */
     #channelList { width: 180px; }
-    #posterPreview { height: 250px; }
+    .menu-item { font-size: 11px; padding: 8px; }
+    #posterPreview { height: 220px; }
 }
+
+#clock { font-size: 11px; color: #aaa; margin-top: 10px; text-align: center; }
 </style>
 </head>
-
 <body>
+
 <div id="app">
     <div id="menu">
         <div id="menuHeader">
             <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
             <div id="clock"></div>
         </div>
-        <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
         <div id="menuItemsArea">
             <div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
             <div class="menu-item" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
             <div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
             <div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
-            <div class="menu-item kids" data-type="kids_channels"><i class="fas fa-child"></i> Canal Kids</div>
-            <div class="menu-item kids" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
-            <div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
+            <div class="menu-item" data-type="kids_channels"><i class="fas fa-child"></i> Canal Kids</div>
+            <div class="menu-item" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
+            <div class="menu-item" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
         </div>
     </div>
-    
-    <div id="content">
-        <div id="videoContainer"><video id="video" autoplay playsinline controls></video></div>
-        <div id="sideContainer">
-            <div id="channelList"></div>
-            <div id="posterWrapper"><img id="posterPreview"></div>
+
+    <div id="main-content">
+        <div id="video-bg">
+            <video id="video" autoplay playsinline controls></video>
+        </div>
+
+        <div id="side-panel">
+            <div id="content-layout">
+                <div id="channelList"></div>
+                <div id="posterWrapper">
+                    <img id="posterPreview" src="" alt="Poster">
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -133,24 +121,23 @@ video { width: 100%; height: 100%; object-fit: contain; }
 <script>
 const video = document.getElementById("video");
 const channelList = document.getElementById("channelList");
-const sideContainer = document.getElementById("sideContainer");
-const posterPreview = document.getElementById("posterPreview");
+const sidePanel = document.getElementById("side-panel");
 const posterWrapper = document.getElementById("posterWrapper");
+const posterPreview = document.getElementById("posterPreview");
 const menuItems = document.querySelectorAll(".menu-item");
 
 let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [], kidsSeries = [];
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true, hls = null;
 
-const movieCats = ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
-
+// RELOGIO
 function updateClock() {
     const d = new Date();
     const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-    document.getElementById("clock").innerText = `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+    document.getElementById("clock").innerText = `${d.getDate()} ${meses[d.getMonth()]} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
 setInterval(updateClock, 1000); updateClock();
 
-// COMANDO POR TOQUE (TOUCH)
+// COMANDO POR TOQUE / CLIQUE
 document.addEventListener('click', (e) => {
     const mItem = e.target.closest('.menu-item');
     if (mItem) {
@@ -158,21 +145,22 @@ document.addEventListener('click', (e) => {
         mItem.classList.add('active');
         menuIndex = Array.from(menuItems).indexOf(mItem);
         menuFocused = true;
-        openCategory();
+        showList();
     }
     const cItem = e.target.closest('.channel');
     if (cItem) {
         selectedIndex = Array.from(channelList.children).indexOf(cItem);
         menuFocused = false;
-        renderList();
-        handleAction();
+        updateSelection();
+        handleSelection();
     }
 });
 
-function openCategory() {
+function showList() {
     menuFocused = false;
-    sideContainer.style.display = "flex";
+    sidePanel.style.display = "block";
     viewMode = menuItems[menuIndex].dataset.type;
+    // Lógica simplificada de filtros
     if (viewMode === "kids_channels") filteredList = kidsChannels;
     else if (viewMode === "kids_movies") filteredList = kidsMovies;
     else if (viewMode === "kids_series") filteredList = kidsSeries;
@@ -182,84 +170,78 @@ function openCategory() {
 
 function renderList() {
     channelList.innerHTML = "";
-    let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    let data = (viewMode === "categories") ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : filteredList));
+    let data = (viewMode === "categories") ? ["AÇÃO","COMÉDIA","TERROR","DRAMA"] : (viewMode === "channels" ? channels : filteredList);
     
     data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
-        div.innerHTML = `<span>${item.titulo || item.name || item}</span>`;
+        div.innerHTML = item.titulo || item.name || item;
         channelList.appendChild(div);
-        if (i === selectedIndex && !menuFocused) div.scrollIntoView({ block: 'center' });
     });
-
-    const cur = data[selectedIndex];
-    if (!menuFocused && cur?.poster) { 
-        posterPreview.src = cur.poster; 
-        posterWrapper.style.display = "block";
-    } else { posterWrapper.style.display = "none"; }
+    updatePoster(data[selectedIndex]);
 }
 
-function playMedia(item) {
-    const url = (item.url || item.link).replace("http://", "https://");
-    sideContainer.style.display = "none";
+function updateSelection() {
+    Array.from(channelList.children).forEach((el, i) => {
+        el.classList.toggle("active", i === selectedIndex);
+    });
+    let data = (viewMode === "categories") ? [] : (viewMode === "channels" ? channels : filteredList);
+    updatePoster(data[selectedIndex]);
+}
+
+function updatePoster(item) {
+    if (item && item.poster) {
+        posterPreview.src = item.poster;
+        posterWrapper.style.display = "block";
+    } else {
+        posterWrapper.style.display = "none";
+    }
+}
+
+function play(url) {
+    sidePanel.style.display = "none";
     if (hls) hls.destroy();
     if (url.includes(".m3u8")) {
         if (Hls.isSupported()) {
             hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
         } else { video.src = url; }
     } else { video.src = url; }
-    video.play().catch(() => {});
 }
 
-async function handleAction() {
-    let data = (viewMode === "categories") ? movieCats : (viewMode === "series" ? [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))] : (viewMode === "channels" ? channels : filteredList));
+function handleSelection() {
+    let data = (viewMode === "channels" ? channels : filteredList);
     const item = data[selectedIndex];
-    if (!item) return;
-
-    if (typeof item === 'string' && (viewMode === "categories" || viewMode === "series")) {
-        const isMovie = viewMode === "categories";
-        filteredList = (isMovie ? movies : series).filter(m => m.genero?.toUpperCase().trim() === item.toUpperCase().trim());
-        viewMode = isMovie ? "movie_list" : "series_list";
-        selectedIndex = 0; renderList();
-    } else { playMedia(item); }
+    if (item && item.url) play(item.url);
 }
 
-document.addEventListener("keydown", e => {
+// TECLADO
+document.addEventListener("keydown", (e) => {
     if (menuFocused) {
         if (e.key === "ArrowUp" && menuIndex > 0) menuIndex--;
-        else if (e.key === "ArrowDown" && menuIndex < menuItems.length - 1) menuIndex++;
-        else if (e.key === "ArrowRight" || e.key === "Enter") openCategory();
+        if (e.key === "ArrowDown" && menuIndex < menuItems.length - 1) menuIndex++;
+        if (e.key === "ArrowRight" || e.key === "Enter") showList();
     } else {
-        let dataLen = channelList.children.length;
-        if (e.key === "ArrowUp") { selectedIndex = (selectedIndex - 1 + dataLen) % dataLen; renderList(); }
-        else if (e.key === "ArrowDown") { selectedIndex = (selectedIndex + 1) % dataLen; renderList(); }
-        else if (e.key === "ArrowLeft") {
-            if (viewMode.includes("_list")) {
-                viewMode = viewMode.startsWith("movie") ? "categories" : "series";
-                selectedIndex = 0; renderList();
-            } else { menuFocused = true; sideContainer.style.display = "none"; }
-        } else if (e.key === "Enter") handleAction();
+        let max = channelList.children.length;
+        if (e.key === "ArrowUp") selectedIndex = (selectedIndex - 1 + max) % max;
+        if (e.key === "ArrowDown") selectedIndex = (selectedIndex + 1) % max;
+        if (e.key === "ArrowLeft") { sidePanel.style.display = "none"; menuFocused = true; }
+        if (e.key === "Enter") handleSelection();
+        updateSelection();
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
 
+// CARGA DE DADOS
 window.onload = () => {
-    loadM3U("https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u", channels);
-    loadM3U("https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_kids_canais.m3u", kidsChannels);
-    fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d);
-    fetch("data/series.json").then(r=>r.json()).then(d=>series=d);
-};
-
-function loadM3U(path, array) {
-    fetch(path).then(r=>r.text()).then(text=>{
-        let temp=null;
-        text.split("\n").forEach(l=>{
-            if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop().trim()};
-            else if(l.startsWith("http") && temp){ temp.url=l.trim(); array.push(temp); temp=null; }
+    fetch("https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u")
+    .then(r => r.text()).then(t => {
+        let temp = null;
+        t.split("\n").forEach(l => {
+            if(l.startsWith("#EXTINF")) temp = { titulo: l.split(",").pop().trim() };
+            else if(l.startsWith("http") && temp) { temp.url = l.trim(); channels.push(temp); temp = null; }
         });
     });
-}
+};
 </script>
 </body>
 </html>
