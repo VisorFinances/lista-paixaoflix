@@ -50,7 +50,7 @@ body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height
 
 /* CAPA COLADA NA BARRA CONFORME ORIGINAL */
 #container-capa { padding: 0 20px; display: flex; align-items: center; justify-content: center; }
-#imagem-capa { height: 350px; width: auto; border-radius: 10px; border: 3px solid #fff; }
+#imagem-capa { height: 350px; width: auto; border-radius: 10px; border: 3px solid #fff; cursor: pointer; }
 
 /* --- AJUSTES MOBILE EXATOS (ORDEM DO LOGO 100PX) --- */
 @media (max-width: 850px) {
@@ -156,7 +156,11 @@ function renderLista() {
         listaCanaisDiv.appendChild(div);
         if (i === itemIndex) {
             div.scrollIntoView({ block: 'center' });
-            if (!item.isHeader) imgCapa.src = item.poster || item.logo || "";
+            if (!item.isHeader) {
+                imgCapa.src = item.poster || item.logo || "";
+                // ORDEM: Play na capa apenas para dispositivos móveis
+                imgCapa.onclick = (window.innerWidth <= 850) ? () => playMedia(item) : null;
+            }
         }
     });
 }
