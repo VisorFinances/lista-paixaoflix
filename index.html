@@ -14,62 +14,66 @@ body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height
 
 #layout-principal { display: flex; height: 100%; width: 100%; }
 
-/* --- MENU LATERAL ESQUERDO --- */
+/* --- MENU LATERAL --- */
 #barra-menu { 
     width: 220px; 
     background: #001a1a; 
     border-right: 2px solid #003333;
-    display: flex; flex-direction: column; z-index: 100;
+    display: flex; flex-direction: column; z-index: 100; flex-shrink: 0;
 }
 
-#header-logo { padding: 20px 10px; text-align: center; }
-/* LOGO: 120px Padrão */
-#header-logo img { max-height: 120px; width: auto; max-width: 100%; object-fit: contain; }
+#header-logo { padding: 15px 10px; text-align: center; }
+#header-logo img { height: 120px; width: auto; max-width: 100%; object-fit: contain; }
 
-#itens-menu { flex: 1; padding: 10px; overflow-y: auto; }
+#searchBox { padding: 0 10px 15px; }
+#searchInput { 
+    width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #003333; 
+    background: #000; color: #fff; outline: none; font-size: 12px; 
+}
+
+#itens-menu { flex: 1; padding: 10px; overflow-y: auto !important; }
 .item-clicavel { 
     padding: 12px; font-size: 13px; margin-bottom: 8px; border-radius: 8px; 
     background: #0080ff; border-bottom: 3px solid #004d99;
-    display: flex; align-items: center; cursor: pointer; transition: 0.2s;
+    display: flex; align-items: center; cursor: pointer;
 }
+/* Espaçamento solicitado entre ícone e texto */
+.item-clicavel i { margin-right: 12px; width: 20px; text-align: center; }
 .item-clicavel.selecionado { background: #fff !important; color: #000 !important; font-weight: bold; }
 
 /* --- AREA DO PLAYER --- */
-#area-player { flex: 1; position: relative; background: #000; }
-#meu-video { width: 100%; height: 100%; object-fit: contain; z-index: 1; }
+#area-player { flex: 1; position: relative; background: #000; overflow: hidden; }
+/* Player ocupando espaço total responsivamente */
+#meu-video { width: 100%; height: 100%; background: #000; z-index: 1; object-fit: cover; }
 
-/* --- PAINEL DE CONTEÚDO (LISTA + CAPA COLADA) --- */
 #painel-conteudo { 
     position: absolute; left: 0; top: 0; height: 100%; 
-    background: rgba(0,0,0,0.92); z-index: 50;
-    display: none; /* Abre ao clicar no menu */
-    align-items: center;
+    background: rgba(0,0,0,0.95); z-index: 50;
+    display: none; align-items: center;
 }
 
 #lista-canais { 
     width: 260px; height: 100%; border-right: 1px solid #444; 
-    overflow-y: auto; padding: 10px 0;
+    overflow-y: auto !important; padding: 10px 0;
 }
 .canal-item { padding: 12px 20px; font-size: 14px; border-bottom: 1px solid #222; cursor: pointer; }
 .canal-item.ativo { background: #fff; color: #000; font-weight: bold; }
 
-/* CAPA TOTALMENTE COLADA À LISTA */
 #container-capa { padding: 0 20px; display: none; }
-#imagem-capa { 
-    height: 380px; width: auto; border-radius: 10px; 
-    border: 3px solid #fff; box-shadow: 0 0 30px #000;
-}
+#imagem-capa { height: 380px; width: auto; border-radius: 10px; border: 3px solid #fff; }
 
 /* --- RESPONSIVIDADE MÓVEL --- */
 @media (max-width: 850px) {
-    #barra-menu { width: 160px; }
-    #header-logo img { max-height: 71px; } /* LOGO: 71px MÓVEL */
-    #lista-canais { width: 190px; }
-    .item-clicavel { font-size: 11px; padding: 10px; }
-    #imagem-capa { height: 240px; }
+    #barra-menu { width: 140px; }
+    #header-logo img { height: 71px; width: 71px; } /* Largura reduzida no mobile */
+    #lista-canais { width: 180px; }
+    .item-clicavel { font-size: 10px; padding: 10px 8px; }
+    .item-clicavel i { margin-right: 8px; }
+    #imagem-capa { height: 220px; }
+    #meu-video { object-fit: contain; } /* No mobile mantém proporção para não cortar */
 }
 
-#relogio { font-size: 11px; color: #888; margin-top: 10px; text-align: center; }
+#relogio { font-size: 11px; color: #888; margin-top: 8px; text-align: center; }
 </style>
 </head>
 <body>
@@ -80,12 +84,19 @@ body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height
             <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
             <div id="relogio"></div>
         </div>
+        
+        <div id="searchBox">
+            <input type="text" id="searchInput" placeholder="Pesquisar...">
+        </div>
+
         <div id="itens-menu">
-            <div class="item-clicavel selecionado" data-tipo="canais"><i class="fas fa-tv"></i> TV ao vivo</div>
-            <div class="item-clicavel" data-tipo="favoritos"><i class="fas fa-star"></i> Favoritos</div>
-            <div class="item-clicavel" data-tipo="cinema"><i class="fas fa-film"></i> Cinema</div>
-            <div class="item-clicavel" data-tipo="series"><i class="fas fa-clapperboard"></i> Séries</div>
-            <div class="item-clicavel" data-tipo="kids"><i class="fas fa-child"></i> Kids</div>
+            <div class="item-clicavel selecionado" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
+            <div class="item-clicavel" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
+            <div class="item-clicavel" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
+            <div class="item-clicavel" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
+            <div class="item-clicavel" data-type="kids_channels"><i class="fas fa-child"></i> Canal Kids</div>
+            <div class="item-clicavel" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
+            <div class="item-clicavel" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
         </div>
     </div>
 
@@ -107,18 +118,19 @@ const listaCanais = document.getElementById("lista-canais");
 const painelConteudo = document.getElementById("painel-conteudo");
 const containerCapa = document.getElementById("container-capa");
 const imagemCapa = document.getElementById("imagem-capa");
+const searchInput = document.getElementById("searchInput");
 const botoesMenu = document.querySelectorAll(".item-clicavel");
 
-let dadosCanais = [], hls = null;
+let allData = { channels: [], movies: [], series: [], kids_channels: [], kids_movies: [], kids_series: [], fav: [] };
+let currentList = [];
+let hls = null;
 
-// ATUALIZAR RELÓGIO
 function carregarRelogio() {
     const d = new Date();
     document.getElementById("relogio").innerText = d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
 }
 setInterval(carregarRelogio, 1000); carregarRelogio();
 
-// COMANDO POR TOQUE (TOUCH) E CLIQUE
 document.addEventListener('click', (e) => {
     const btnMenu = e.target.closest('.item-clicavel');
     const btnCanal = e.target.closest('.canal-item');
@@ -126,72 +138,74 @@ document.addEventListener('click', (e) => {
     if (btnMenu) {
         botoesMenu.forEach(b => b.classList.remove('selecionado'));
         btnMenu.classList.add('selecionado');
-        abrirPainel();
+        const type = btnMenu.dataset.type;
+        abrirPainel(type);
     }
 
     if (btnCanal) {
         const index = Array.from(listaCanais.children).indexOf(btnCanal);
-        selecionarItem(index);
-        playVideo(dadosCanais[index].url);
+        playVideo(currentList[index]);
     }
 });
 
-function abrirPainel() {
+searchInput.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    const filtered = currentList.filter(item => (item.titulo || "").toLowerCase().includes(term));
+    renderizarLista(filtered);
+});
+
+function abrirPainel(type) {
     painelConteudo.style.display = "flex";
-    renderizarItens();
+    currentList = allData[type] || [];
+    renderizarLista(currentList);
 }
 
-function renderizarItens() {
+function renderizarLista(lista) {
     listaCanais.innerHTML = "";
-    dadosCanais.forEach((item, i) => {
+    lista.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = "canal-item";
-        div.innerHTML = item.titulo;
+        div.innerHTML = item.titulo || "Sem título";
+        div.onmouseover = () => mostrarPoster(item.poster);
         listaCanais.appendChild(div);
     });
 }
 
-function selecionarItem(index) {
-    Array.from(listaCanais.children).forEach((el, i) => {
-        el.classList.toggle('ativo', i === index);
-    });
-    // Mostrar Capa Colada
-    if (dadosCanais[index].poster) {
-        imagemCapa.src = dadosCanais[index].poster;
+function mostrarPoster(url) {
+    if (url) {
+        imagemCapa.src = url;
         containerCapa.style.display = "block";
     } else {
         containerCapa.style.display = "none";
     }
 }
 
-function playVideo(url) {
-    if (!url) return;
+function playVideo(item) {
+    if (!item || !item.url) return;
     painelConteudo.style.display = "none";
     if (hls) hls.destroy();
-    if (url.includes(".m3u8")) {
+    
+    if (item.url.includes(".m3u8")) {
         if (Hls.isSupported()) {
-            hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
-        } else { video.src = url; }
-    } else { video.src = url; }
+            hls = new Hls(); hls.loadSource(item.url); hls.attachMedia(video);
+        } else { video.src = item.url; }
+    } else { video.src = item.url; }
 }
 
-// BUSCAR DADOS M3U
-window.onload = () => {
-    fetch("https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u")
-    .then(r => r.text()).then(t => {
+async function loadData() {
+    // Exemplo de carga de canais
+    try {
+        const r = await fetch("https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u");
+        const t = await r.text();
         let temp = null;
         t.split("\n").forEach(l => {
             if(l.startsWith("#EXTINF")) temp = { titulo: l.split(",").pop().trim() };
-            else if(l.startsWith("http") && temp) { 
-                temp.url = l.trim(); 
-                // Exemplo de poster para teste
-                temp.poster = "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png";
-                dadosCanais.push(temp); 
-                temp = null; 
-            }
+            else if(l.startsWith("http") && temp) { temp.url = l.trim(); allData.channels.push(temp); temp = null; }
         });
-    });
-};
+    } catch(e) { console.log("Erro ao carregar lista"); }
+}
+
+window.onload = loadData;
 </script>
 </body>
 </html>
