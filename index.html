@@ -5,157 +5,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PaixãoFlix - Web TV</title>
     <style>
-        :root {
-            --primary: #013161;
-            --focus: #0278ed;
-            --bg: #050505;
-            --text: #ffffff;
-        }
-
+        :root { --primary: #013161; --focus: #0278ed; --bg: #050505; --text: #ffffff; }
         * { box-sizing: border-box; outline: none; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; overflow-x: hidden; }
+        
+        header { padding: 15px; display: flex; justify-content: center; background: #000; }
+        .logo { height: 60px; width: auto; }
 
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+        #search-container { padding: 10px 15px; }
+        #search-box { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #111; color: white; font-size: 16px; }
+
+        .nav-bar { display: flex; gap: 10px; padding: 10px 15px; overflow-x: auto; scrollbar-width: none; }
+        .nav-bar::-webkit-scrollbar { display: none; }
+        
+        #cat-nav { 
+            display: none; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            background: #0a0a0a; 
+            padding: 10px; 
+            gap: 8px;
+            border-top: 1px solid #222;
         }
 
-        header {
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
-        }
-
-        .logo { height: 80px; width: auto; }
-
-        #search-container { padding: 0 15px 10px; }
-        #search-box {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            background: #111;
-            color: white;
-            font-size: 16px;
-        }
-
-        .nav-bar {
-            display: flex;
-            gap: 10px;
-            padding: 10px 15px;
-            overflow-x: auto;
-        }
-
-        /* Categorias em 2 linhas */
-        #cat-nav {
-            display: none;
-            flex-wrap: wrap;
-            justify-content: center;
-            background: #0a0a0a;
-            padding: 10px;
-            gap: 5px;
-        }
-
-        .btn-nav {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
+        .btn-nav { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 10px 18px; 
+            border-radius: 5px; 
+            font-weight: bold; 
+            font-size: 12px; 
             text-transform: uppercase;
-            font-size: 12px;
+            cursor: pointer;
             white-space: nowrap;
         }
+        .btn-nav:focus { background: var(--focus); outline: 2px solid #fff; }
 
-        .btn-nav:focus {
-            background-color: var(--focus);
-            outline: 3px solid white;
+        /* Ajuste do tamanho dos ícones */
+        .content-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+            gap: 15px; 
+            padding: 15px; 
         }
 
-        /* Ajuste dos Ícones - Tamanho fixo e organizado */
-        .content-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 12px;
-            padding: 15px;
-        }
-
-        .card {
-            background: #181818;
-            border-radius: 8px;
-            overflow: hidden;
+        .card { 
+            background: #181818; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            transition: 0.2s;
+            cursor: pointer;
             border: 2px solid transparent;
-            transition: 0.3s;
             display: flex;
             flex-direction: column;
-            height: 180px; /* Altura fixa para evitar icones gigantes */
+            height: 200px; /* Altura total do card controlada */
         }
-
         .card:focus { border-color: var(--focus); transform: scale(1.05); }
-
+        
         .card img { 
             width: 100%; 
-            height: 140px; 
-            object-fit: contain; 
+            height: 160px; /* Altura da imagem controlada */
+            object-fit: cover; 
             background: #000;
-            padding: 5px;
         }
-
-        .card-title {
-            padding: 5px;
-            font-size: 10px;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #ccc;
-        }
-
-        #player-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: black;
-            display: none;
-            z-index: 1000;
-        }
-
-        video { width: 100%; height: 100%; }
-
-        #exit-overlay {
-            position: absolute;
-            top: 15px; right: 15px;
-            background: rgba(255,0,0,0.8);
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 1001;
+        
+        .card-title { 
+            padding: 6px; 
+            font-size: 11px; 
+            text-align: center; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
             font-weight: bold;
         }
 
+        /* Player */
+        #player-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; display: none; z-index: 2000; }
+        video { width: 100%; height: 100%; }
+        #exit-btn { position: absolute; top: 20px; right: 20px; background: rgba(255,0,0,0.8); color: white; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; z-index: 2001; }
+
         @media (max-width: 600px) {
-            .content-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-            .nav-bar:not(#cat-nav) { flex-direction: row; overflow-x: auto; }
-            .btn-nav { padding: 8px 12px; font-size: 11px; }
+            .content-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .card { height: 180px; }
+            .card img { height: 140px; }
         }
     </style>
 </head>
 <body>
 
 <header>
-    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="logo" alt="PaixãoFlix">
+    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="logo">
 </header>
 
 <div id="search-container">
-    <input type="text" id="search-box" placeholder="Pesquisar..." onkeyup="filterContent()">
+    <input type="text" id="search-box" placeholder="Procurar filmes ou canais..." onkeyup="filterContent()">
 </div>
 
 <nav class="nav-bar" id="main-nav">
@@ -166,19 +110,17 @@
 </nav>
 
 <nav class="nav-bar" id="kids-nav" style="display: none;">
-    <button class="btn-nav" onclick="loadContent('kids_canais')">CANAIS KIDS</button>
+    <button class="btn-nav" onclick="loadContent('kids_canais')">TV KIDS</button>
     <button class="btn-nav" onclick="loadContent('kids_filmes')">FILMES KIDS</button>
-    <button class="btn-nav" onclick="loadContent('kids_series')">SÉRIES KIDS</button>
-    <button class="btn-nav" style="background: #666;" onclick="closeKids()">VOLTAR</button>
+    <button class="btn-nav" onclick="closeKids()">VOLTAR</button>
 </nav>
 
-<nav id="cat-nav">
-    </nav>
+<nav id="cat-nav"></nav>
 
 <main class="content-grid" id="grid"></main>
 
 <div id="player-overlay">
-    <div id="exit-overlay" onclick="closePlayer()">SAIR</div>
+    <div id="exit-btn" onclick="closePlayer()">SAIR DO PLAYER</div>
     <video id="video-player" controls autoplay></video>
 </div>
 
@@ -188,41 +130,38 @@
         filmes: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json",
         series: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/series.json",
         kids_canais: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_kids_canais.m3u",
-        kids_filmes: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/kids_filmes.json",
-        kids_series: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/kids_series.json"
+        kids_filmes: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/kids_filmes.json"
     };
 
-    const CATEGORIAS = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
+    const CATEGORIAS = ["Lançamento", "Ação", "Aventura", "Animação", "Drama", "Nacional", "Terror", "Documentário", "Musical", "Suspense", "Romance"];
 
     let currentData = [];
 
-    function renderCategorias() {
-        const catNav = document.getElementById('cat-nav');
-        catNav.innerHTML = CATEGORIAS.map(cat => `<button class="btn-nav" onclick="filterByCategory('${cat}')">${cat}</button>`).join('');
-    }
-
     async function loadContent(type) {
         const grid = document.getElementById('grid');
-        grid.innerHTML = "Carregando...";
+        grid.innerHTML = "<p style='text-align:center'>Buscando conteúdo...</p>";
         
         if(type !== 'filmes') document.getElementById('cat-nav').style.display = 'none';
 
         try {
-            const response = await fetch(API[type] + "?v=" + Date.now());
-            const text = await response.text();
+            const resp = await fetch(API[type] + "?nocache=" + Date.now());
+            const text = await resp.text();
             
             if(type.includes('json')) {
                 const data = JSON.parse(text);
-                // Normalização inteligente: extrai a lista não importa onde ela esteja no JSON
-                currentData = Array.isArray(data) ? data : (data.items || data.filmes || data.series || Object.values(data)[0]);
+                // Mapeia os campos titulo/name e poster/logo dinamicamente
+                currentData = (Array.isArray(data) ? data : Object.values(data)[0]).map(item => ({
+                    name: item.titulo || item.name || item.title,
+                    url: item.url || item.link,
+                    logo: item.poster || item.logo || item.image,
+                    category: item.genero || item.category || ""
+                }));
             } else {
                 currentData = parseM3U(text);
             }
-
             renderGrid(currentData);
         } catch (e) {
-            grid.innerHTML = "Erro ao carregar lista. Verifique o formato do arquivo.";
-            console.error(e);
+            grid.innerHTML = "<p style='text-align:center'>Erro ao carregar lista. Verifique o arquivo JSON.</p>";
         }
     }
 
@@ -231,7 +170,7 @@
         const lines = data.split('\n');
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].includes('#EXTINF')) {
-                const name = lines[i].split(',')[1]?.trim() || "Canal sem nome";
+                const name = lines[i].split(',')[1]?.trim() || "Canal";
                 const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1] || '';
                 const url = lines[i+1]?.trim();
                 if(url && url.startsWith('http')) items.push({ name, url, logo });
@@ -242,26 +181,20 @@
 
     function renderGrid(data) {
         const grid = document.getElementById('grid');
-        if(!data || !Array.isArray(data)) {
-            grid.innerHTML = "Nenhum dado encontrado.";
-            return;
-        }
-        grid.innerHTML = data.map(item => {
-            const name = item.name || item.title || "Sem nome";
-            const img = item.logo || item.poster || item.image || 'https://via.placeholder.com/150x200?text=PaixãoFlix';
-            const url = item.url || item.link || item.file;
-            return `
-                <div class="card" tabindex="0" onclick="playVideo('${url}')">
-                    <img src="${img}" onerror="this.src='https://via.placeholder.com/150x200?text=Logo'">
-                    <div class="card-title">${name}</div>
-                </div>
-            `;
-        }).join('');
+        if(!data || data.length === 0) { grid.innerHTML = "Nenhum filme encontrado."; return; }
+        
+        grid.innerHTML = data.map(item => `
+            <div class="card" tabindex="0" onclick="playVideo('${item.url}')">
+                <img src="${item.logo}" onerror="this.src='https://via.placeholder.com/150x220/111/fff?text=S/POSTER'">
+                <div class="card-title">${item.name}</div>
+            </div>
+        `).join('');
     }
 
     function openCinema() {
-        document.getElementById('cat-nav').style.display = 'flex';
-        renderCategorias();
+        const cn = document.getElementById('cat-nav');
+        cn.style.display = 'flex';
+        cn.innerHTML = CATEGORIAS.map(c => `<button class="btn-nav" onclick="filterByCategory('${c}')">${c}</button>`).join('');
         loadContent('filmes');
     }
 
@@ -278,38 +211,32 @@
     }
 
     function filterByCategory(cat) {
-        const filtered = currentData.filter(i => 
-            (i.category && i.category.toLowerCase().includes(cat.toLowerCase())) ||
-            (i.name && i.name.toLowerCase().includes(cat.toLowerCase()))
-        );
-        renderGrid(filtered);
+        const f = currentData.filter(i => i.category.toLowerCase().includes(cat.toLowerCase()));
+        renderGrid(f);
     }
 
     function filterContent() {
-        const term = document.getElementById('search-box').value.toLowerCase();
-        const filtered = currentData.filter(i => (i.name || i.title || "").toLowerCase().includes(term));
-        renderGrid(filtered);
+        const t = document.getElementById('search-box').value.toLowerCase();
+        const f = currentData.filter(i => i.name.toLowerCase().includes(t));
+        renderGrid(f);
     }
 
     function playVideo(url) {
-        if(!url || url === 'undefined') return alert("Link de vídeo não encontrado!");
-        const overlay = document.getElementById('player-overlay');
-        const video = document.getElementById('video-player');
-        overlay.style.display = 'block';
-        video.src = url;
-        video.play();
+        if(!url) return;
+        const v = document.getElementById('video-player');
+        document.getElementById('player-overlay').style.display = 'block';
+        v.src = url;
+        v.play();
     }
 
     function closePlayer() {
-        const video = document.getElementById('video-player');
-        video.pause();
-        video.src = "";
+        const v = document.getElementById('video-player');
+        v.pause(); v.src = "";
         document.getElementById('player-overlay').style.display = 'none';
     }
 
-    // Inicialização
+    // Inicia com TV
     loadContent('tv');
 </script>
-
 </body>
 </html>
