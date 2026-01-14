@@ -55,6 +55,13 @@
             white-space: nowrap;
         }
 
+        /* AJUSTE: Categoria em 2 linhas */
+        #cat-nav {
+            flex-wrap: wrap;
+            white-space: normal;
+            justify-content: center;
+        }
+
         .btn-nav {
             background-color: var(--primary);
             color: white;
@@ -66,6 +73,7 @@
             transition: all 0.3s;
             box-shadow: 0 4px 0px #001a33;
             text-transform: uppercase;
+            margin-bottom: 5px;
         }
 
         .btn-nav:focus {
@@ -144,7 +152,7 @@
 
         @media (max-width: 600px) {
             .content-grid { grid-template-columns: repeat(3, 1fr); }
-            .nav-bar { flex-direction: column; }
+            .nav-bar:not(#cat-nav) { flex-direction: column; }
         }
     </style>
 </head>
@@ -180,7 +188,7 @@
 </nav>
 
 <nav class="nav-bar" id="cat-nav" style="background: #111; margin-top: -10px; display: none;">
-    </nav>
+</nav>
 
 <main class="content-grid" id="grid"></main>
 
@@ -205,29 +213,38 @@
 
     function renderCategorias() {
         const catNav = document.getElementById('cat-nav');
-        catNav.innerHTML = CATEGORIAS.map(cat => `<button class="btn-nav" style="font-size: 10px; padding: 5px 15px;" onclick="filterByCategory('${cat}')">${cat}</button>`).join('');
+        catNav.innerHTML = CATEGORIAS.map(cat => `<button class="btn-nav" style="font-size: 10px; padding: 5px 15px; margin: 2px;" onclick="filterByCategory('${cat}')">${cat}</button>`).join('');
     }
 
     async function loadContent(type) {
         const grid = document.getElementById('grid');
-        grid.innerHTML = "Carregando...";
+        grid.innerHTML = "<div style='padding:20px;'>Carregando conteúdo...</div>";
         
-        // Esconde categorias se não for cinema
         if(type !== 'filmes') document.getElementById('cat-nav').style.display = 'none';
 
         try {
-            const response = await fetch(API[type]);
+            // Anti-cache: Adiciona um timestamp para forçar o download do arquivo atualizado
+            const response = await fetch(API[type] + "?t=" + new Date().getTime());
+            if (!response.ok) throw new Error("Falha no download");
+            
             const text = await response.text();
             
             if(type.includes('json')) {
                 currentData = JSON.parse(text);
+                // Verifica se o JSON é um array ou objeto de categorias
+                if (!Array.isArray(currentData) && currentData.items) currentData = currentData.items;
             } else {
                 currentData = parseM3U(text);
             }
-            renderGrid(currentData);
+
+            if (currentData.length === 0) {
+                grid.innerHTML = "<div style='padding:20px;'>Nenhum item encontrado nesta categoria.</div>";
+            } else {
+                renderGrid(currentData);
+            }
         } catch (e) {
-            console.error(e);
-            grid.innerHTML = "Erro ao carregar lista.";
+            console.error("Erro ao carregar:", e);
+            grid.innerHTML = "<div style='padding:20px;'>Erro ao carregar lista. Verifique os arquivos no GitHub.</div>";
         }
     }
 
@@ -249,9 +266,9 @@
     function renderGrid(data) {
         const grid = document.getElementById('grid');
         grid.innerHTML = data.map(item => `
-            <div class="card" tabindex="0" onclick="playVideo('${item.url}')" onkeypress="if(event.key==='Enter') playVideo('${item.url}')">
-                <img src="${item.logo || 'https://via.placeholder.com/150x200?text=PaixãoFlix'}" alt="${item.name}">
-                <div style="padding:5px; font-size:10px; text-align:center; overflow:hidden;">${item.name}</div>
+            <div class="card" tabindex="0" onclick="playVideo('${item.url}')">
+                <img src="${item.logo || item.poster || 'https://via.placeholder.com/150x200?text=PaixãoFlix'}" alt="${item.name || item.title}">
+                <div style="padding:5px; font-size:10px; text-align:center; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">${item.name || item.title}</div>
             </div>
         `).join('');
     }
@@ -263,15 +280,16 @@
 
     function filterByCategory(cat) {
         const filtered = currentData.filter(i => 
-            (i.category && i.category.toLowerCase() === cat.toLowerCase()) || 
-            (i.name && i.name.toLowerCase().includes(cat.toLowerCase()))
+            (i.category && i.category.toLowerCase().includes(cat.toLowerCase())) || 
+            (i.name && i.name.toLowerCase().includes(cat.toLowerCase())) ||
+            (i.title && i.title.toLowerCase().includes(cat.toLowerCase()))
         );
         renderGrid(filtered);
     }
 
     function filterContent() {
         const term = document.getElementById('search-box').value.toLowerCase();
-        const filtered = currentData.filter(i => i.name.toLowerCase().includes(term));
+        const filtered = currentData.filter(i => (i.name || i.title || "").toLowerCase().includes(term));
         renderGrid(filtered);
     }
 
@@ -281,8 +299,6 @@
         overlay.style.display = 'block';
         video.src = url;
         video.play();
-        
-        // Salvar para continuar depois
         localStorage.setItem('lastPlayed', url);
         checkResume();
     }
@@ -305,22 +321,11 @@
         if(last) playVideo(last);
     }
 
-    window.addEventListener('keydown', (e) => {
-        const focusable = document.querySelectorAll('.btn-nav, .card, #search-box');
-        let index = Array.from(focusable).indexOf(document.activeElement);
-        if (e.key === "ArrowRight") index++;
-        if (e.key === "ArrowLeft") index--;
-        if (e.key === "ArrowDown") index += 4; 
-        if (e.key === "ArrowUp") index -= 4;
-        if (index >= 0 && index < focusable.length) focusable[index].focus();
-        if (e.key === "Escape" || e.key === "Backspace") closePlayer();
-    });
-
     function openKids() {
         document.getElementById('main-nav').style.display = 'none';
         document.getElementById('cat-nav').style.display = 'none';
         document.getElementById('kids-nav').style.display = 'flex';
-        loadContent('kids_filmes');
+        loadContent('kids_canais'); // Inicia com canais kids
     }
 
     function closeKids() {
@@ -329,7 +334,6 @@
         loadContent('tv');
     }
 
-    // Inicialização
     renderCategorias();
     checkResume();
     loadContent('tv');
