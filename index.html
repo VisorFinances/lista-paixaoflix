@@ -38,7 +38,6 @@ body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height
 
 #painel-conteudo { position: absolute; left: 0; top: 0; height: 100%; background: rgba(0,0,0,0.92); z-index: 50; display: none; align-items: center; }
 
-/* RETORNO DA LARGURA ORIGINAL DE 280PX */
 #lista-canais { width: 280px; height: 100%; border-right: 1px solid #333; overflow-y: auto; background: #000; flex-shrink: 0; }
 
 .canal-item { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid #222; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #ccc; }
@@ -48,11 +47,9 @@ body { background: #000; color: #fff; font-family: 'Poppins', sans-serif; height
 .fav-btn { color: #555; padding: 5px; cursor: pointer; }
 .fav-btn.active { color: #ffeb3b !important; }
 
-/* CAPA COLADA NA BARRA CONFORME ORIGINAL */
 #container-capa { padding: 0 20px; display: flex; align-items: center; justify-content: center; }
 #imagem-capa { height: 350px; width: auto; border-radius: 10px; border: 3px solid #fff; cursor: pointer; }
 
-/* --- AJUSTES MOBILE EXATOS (ORDEM DO LOGO 100PX) --- */
 @media (max-width: 850px) {
     #barra-menu { width: 120px; }
     #header-logo img { height: 100px !important; width: 100px !important; }
@@ -100,9 +97,10 @@ const imgCapa = document.getElementById("imagem-capa");
 const menuItems = document.querySelectorAll('.item-clicavel');
 const searchInput = document.getElementById("searchInput");
 
-let rawData = [], currentDisplayData = [];
+let rawData = [], currentDisplayData = [], currentItem = null;
 let menuIndex = 0, itemIndex = 0, menuFocused = true, hls = null;
 let favoritos = JSON.parse(localStorage.getItem('paixaoflix_favs')) || [];
+let historico = JSON.parse(localStorage.getItem('paixaoflix_history')) || {};
 
 function entrarModoApp() {
     if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
@@ -123,11 +121,14 @@ async function carregarDados(btn) {
         const text = await response.text();
         let items = [], temp = null;
         text.split('\n').forEach(line => {
-            if (line.startsWith('#EXTINF')) temp = { titulo: line.split(',').pop().trim() };
+            if (line.startsWith('#EXTINF')) temp = { titulo: line.split(',').pop().trim(), isLive: true };
             else if (line.startsWith('http') && temp) { temp.url = line.trim(); items.push(temp); temp = null; }
         });
         rawData = items;
-    } else { rawData = await response.json(); }
+    } else { 
+        rawData = await response.json();
+        if(rawData.categories) rawData.categories.forEach(c => c.items.forEach(i => i.isLive = false));
+    }
     processarCategorias();
 }
 
@@ -151,37 +152,63 @@ function renderLista() {
         if (!item.isHeader) {
             const isFav = favoritos.some(f => (f.url || f.link) === (item.url || item.link));
             div.innerHTML += `<i class="fas fa-star fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFav(${JSON.stringify(item).replace(/"/g, '&quot;')})"></i>`;
-            div.onclick = () => playMedia(item);
+            div.onclick = () => prepararPlay(item);
         }
         listaCanaisDiv.appendChild(div);
         if (i === itemIndex) {
             div.scrollIntoView({ block: 'center' });
             if (!item.isHeader) {
                 imgCapa.src = item.poster || item.logo || "";
-                // ORDEM: Play na capa apenas para dispositivos móveis
-                imgCapa.onclick = (window.innerWidth <= 850) ? () => playMedia(item) : null;
+                imgCapa.onclick = (window.innerWidth <= 850) ? () => prepararPlay(item) : null;
             }
         }
     });
 }
+
+function prepararPlay(item) {
+    const key = item.url || item.link;
+    if (!item.isLive && historico[key] && historico[key] > 10) {
+        if (confirm("Deseja continuar assistindo de onde parou?")) {
+            playMedia(item, historico[key]);
+        } else {
+            playMedia(item, 0);
+        }
+    } else {
+        playMedia(item, 0);
+    }
+}
+
+function playMedia(item, startTime) {
+    if (item.isHeader) return;
+    currentItem = item;
+    const url = item.url || item.link;
+    if (!url) return;
+    if (hls) hls.destroy();
+    if (url.includes(".m3u8")) {
+        if (Hls.isSupported()) { 
+            hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => { if(startTime) video.currentTime = startTime; video.play(); });
+        }
+        else video.src = url;
+    } else {
+        video.src = url;
+        video.onloadedmetadata = () => { if(startTime) video.currentTime = startTime; video.play(); };
+    }
+    painelConteudo.style.display = "none";
+}
+
+video.ontimeupdate = () => {
+    if (currentItem && !currentItem.isLive && video.currentTime > 5) {
+        historico[currentItem.url || currentItem.link] = video.currentTime;
+        localStorage.setItem('paixaoflix_history', JSON.stringify(historico));
+    }
+};
 
 function toggleFav(item) {
     const idx = favoritos.findIndex(f => (f.url || f.link) === (item.url || item.link));
     idx > -1 ? favoritos.splice(idx, 1) : favoritos.push(item);
     localStorage.setItem('paixaoflix_favs', JSON.stringify(favoritos));
     renderLista();
-}
-
-function playMedia(item) {
-    if (item.isHeader) return;
-    const url = item.url || item.link;
-    if (!url) return;
-    if (hls) hls.destroy();
-    if (url.includes(".m3u8")) {
-        if (Hls.isSupported()) { hls = new Hls(); hls.loadSource(url); hls.attachMedia(video); }
-        else video.src = url;
-    } else video.src = url;
-    painelConteudo.style.display = "none";
 }
 
 document.onkeydown = (e) => {
@@ -200,7 +227,7 @@ document.onkeydown = (e) => {
         if (e.key === "ArrowDown") { itemIndex = (itemIndex + 1) % currentDisplayData.length; if (currentDisplayData[itemIndex]?.isHeader) itemIndex++; renderLista(); }
         if (e.key === "ArrowUp") { itemIndex = (itemIndex - 1 + currentDisplayData.length) % currentDisplayData.length; if (currentDisplayData[itemIndex]?.isHeader) itemIndex--; renderLista(); }
         if (e.key === "ArrowLeft") { menuFocused = true; painelConteudo.style.display = "none"; }
-        if (e.key === "Enter") playMedia(currentDisplayData[itemIndex]);
+        if (e.key === "Enter") prepararPlay(currentDisplayData[itemIndex]);
     }
 };
 
