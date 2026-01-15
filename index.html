@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PaixãoFlix - V13 Pro</title>
+    <title>PaixãoFlix - V14 Ultra Frozen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
@@ -11,43 +11,45 @@
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; }
         body { background-color: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* SIDEBAR FIXA */
+        /* SIDEBAR */
         .sidebar { width: var(--sidebar-width); height: 100vh; background: #000; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; padding: 15px; border-right: 1px solid #222; z-index: 1000; }
-        .logo { width: 140px !important; height: auto !important; display: block; margin: 0 auto 5px; }
+        .logo { width: 140px !important; display: block; margin: 0 auto 5px; }
         .btn-exit-small { width: 60px; background: #d40000; color: white; border: none; padding: 4px; border-radius: 6px; font-size: 10px; font-weight: bold; margin: 0 auto 15px; cursor: pointer; display: block; }
-
-        #search-box { width: 90%; margin: 0 auto 15px; display: block; padding: 10px; border-radius: 8px; border: 2px solid #333; background: #111; color: white; }
         
-        /* MENUS: 2 POR LINHA */
+        /* BOTÕES MENU */
         .nav-menu { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
-        .btn-nav { width: calc(50% - 4px); background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; text-align: center; font-size: 11px; }
+        .btn-nav { width: calc(50% - 4px); background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; text-align: center; font-size: 13px; }
         
         .submenu { display: none; flex-wrap: wrap; gap: 5px; width: 100%; padding: 10px 0; }
-        .btn-cat { width: calc(50% - 4px); background: #111; color: #eee; border: none; padding: 10px; text-align: center; cursor: pointer; border-radius: 8px; font-size: 11px; }
+        .btn-cat { width: calc(50% - 4px); background: #111; color: #eee; border: none; padding: 12px; text-align: center; cursor: pointer; border-radius: 8px; font-size: 12px; font-weight: 600; }
 
         /* FOCO */
         .btn-nav:focus, .btn-cat:focus, .card:focus, #search-box:focus, .btn-exit-small:focus, #exit-player:focus { 
-            background: var(--focus) !important; color: #000 !important; transform: scale(1.05); border-radius: 12px; 
+            background: var(--focus) !important; color: #000 !important; transform: scale(1.05); border-radius: 10px; 
         }
 
         main { margin-left: var(--sidebar-width); flex: 1; padding: 20px; overflow-y: auto; height: 100vh; }
+        
+        /* SEÇÕES TV HORIZONTAL */
+        .tv-section { margin-bottom: 30px; }
+        .tv-row { display: flex; overflow-x: auto; gap: 15px; padding: 10px 0; scroll-behavior: smooth; }
+        .tv-row::-webkit-scrollbar { display: none; }
+
+        /* GRID E CARDS PADRONIZADOS */
         .content-grid { display: grid; grid-template-columns: repeat(8, 1fr) !important; gap: 12px; }
-        .card { background: #111; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; text-align: center; }
+        .card { background: #111; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; flex: 0 0 auto; width: 130px; }
         .card img { width: 90px !important; height: 90px !important; object-fit: contain; display: block; margin: 0 auto; padding: 8px; }
         
-        .movie-mode { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; }
+        .movie-mode { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; display: grid !important; }
+        .movie-card { width: 100%; }
         .movie-card img { width: 100% !important; height: auto !important; aspect-ratio: 2/3 !important; object-fit: cover !important; padding: 0; }
-        .card-title { padding: 5px; font-size: 10px; text-align: center; font-weight: 600; min-height: 35px; display: flex; align-items: center; justify-content: center; }
+        .card-title { padding: 5px; font-size: 11px; text-align: center; font-weight: 600; min-height: 35px; display: flex; align-items: center; justify-content: center; }
 
-        /* PLAYER E BOTÃO SAIR DINÂMICO */
+        /* PLAYER DINÂMICO */
         #player-overlay { position: fixed; inset: 0; background: black; display: none; z-index: 9999; }
-        #exit-player { position: absolute; top: 20px; right: 20px; background: rgba(212, 0, 0, 0.8); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; z-index: 10000; display: none; }
+        #exit-player { position: absolute; top: 30px; right: 30px; background: var(--primary); color: white; border: 2px solid white; padding: 15px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; z-index: 10001; opacity: 0; transition: opacity 0.5s; }
+        #exit-player.visible { opacity: 1; }
         video { width: 100%; height: 100%; }
-
-        @media (max-width: 950px) {
-            :root { --sidebar-width: 200px; }
-            .content-grid { grid-template-columns: repeat(3, 1fr) !important; }
-        }
     </style>
 </head>
 <body>
@@ -57,12 +59,12 @@
     <button class="btn-exit-small" onclick="window.location.reload()">SAIR</button>
     <input type="text" id="search-box" placeholder="Buscar..." oninput="globalSearch()">
     <nav class="nav-menu">
-        <button class="btn-nav" id="btn-tv" onclick="loadCategory('tv')">TV AO VIVO</button>
-        <button class="btn-nav" onclick="toggleMenu('cat-nav')">CINEMA</button>
+        <button class="btn-nav" id="btn-tv" onclick="loadTV()">TV</button>
+        <button class="btn-nav" id="trigger-cinema" onclick="toggleMenu('cat-nav', 'filmes')">CINEMA</button>
         <div id="cat-nav" class="submenu"></div>
-        <button class="btn-nav" onclick="toggleMenu('series-nav')">SÉRIES</button>
+        <button class="btn-nav" id="trigger-series" onclick="toggleMenu('series-nav', 'series')">SÉRIES</button>
         <div id="series-nav" class="submenu"></div>
-        <button class="btn-nav" onclick="toggleMenu('kids-nav')">KIDS</button>
+        <button class="btn-nav" id="trigger-kids" onclick="toggleMenu('kids-nav')">KIDS</button>
         <div id="kids-nav" class="submenu">
             <button class="btn-cat" onclick="loadCategory('kids_canais')">TV KIDS</button>
             <button class="btn-cat" onclick="loadCategory('kids_filmes')">FILMES KIDS</button>
@@ -71,11 +73,11 @@
     </nav>
 </aside>
 
-<main><div class="content-grid" id="grid"></div></main>
+<main id="main-content"><div class="content-grid" id="grid"></div></main>
 
 <div id="player-overlay">
     <button id="exit-player" onclick="closePlayer()">SAIR DO PLAYER</button>
-    <video id="video-player" controls playsinline></video>
+    <video id="video-player" controls></video>
 </div>
 
 <script>
@@ -109,31 +111,56 @@
                 } else { database[key] = parseM3U(t, key); }
             } catch(e) {}
         }
-        loadCategory('tv');
+        loadTV();
         document.getElementById('btn-tv').focus();
     }
 
     function parseM3U(d, type) {
         const items = [];
         const lines = d.split('\n');
+        let currentCat = "GERAL";
         for (let i = 0; i < lines.length; i++) {
+            if (lines[i].includes('group-title="')) {
+                currentCat = lines[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
+            }
             if (lines[i].includes('#EXTINF')) {
                 const name = lines[i].split(',')[1]?.trim();
                 const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1];
                 const url = lines[i+1]?.trim();
-                if(url) items.push({ name, url, logo, category: "TV", type: type });
+                if(url) items.push({ name, url, logo, category: currentCat, type: type });
             }
         }
         return items;
     }
 
+    function loadTV() {
+        const main = document.getElementById('main-content');
+        main.innerHTML = "";
+        const groups = [...new Set(database.tv.map(i => i.category))];
+        groups.forEach(group => {
+            const section = document.createElement('div');
+            section.className = 'tv-section';
+            section.innerHTML = `<h3>${group}</h3><div class="tv-row"></div>`;
+            const row = section.querySelector('.tv-row');
+            database.tv.filter(i => i.category === group).forEach(i => {
+                row.innerHTML += `<div class="card" tabindex="0" onclick="playVideo('${i.url}')">
+                    <img src="${i.logo}"><div class="card-title">${i.name}</div>
+                </div>`;
+            });
+            main.appendChild(section);
+        });
+        document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
+    }
+
     function renderGrid(data) {
+        const main = document.getElementById('main-content');
+        main.innerHTML = '<div class="content-grid" id="grid"></div>';
         const g = document.getElementById('grid');
         const isMovie = data.some(i => i.type && !i.type.includes('canais') && i.type !== 'tv');
         g.className = isMovie ? "content-grid movie-mode" : "content-grid";
         g.innerHTML = data.map(i => `
             <div class="card ${isMovie ? 'movie-card' : ''}" tabindex="0" onclick="playVideo('${i.url}')">
-                <img src="${i.logo}" loading="lazy">
+                <img src="${i.logo}">
                 <div class="card-title">${i.name}</div>
             </div>`).join('');
     }
@@ -141,74 +168,71 @@
     function filterData(cat, type) {
         let res;
         const db = database[type];
-        // FILTRO DE ANO ABSOLUTO (SEM PUXAR GÊNERO)
         if(cat.includes("2025") || cat.includes("2026")) {
             const y = cat.match(/\d+/)[0];
-            res = db.filter(i => String(i.year) === y);
+            res = db.filter(i => String(i.year) === y); // FILTRO ABSOLUTO DE ANO
         } else {
             const reg = new RegExp("\\b" + cat.toLowerCase() + "\\b", "i");
             res = db.filter(i => reg.test(i.category.toLowerCase()));
         }
         renderGrid(res);
+        document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none'); // FECHA AO ESCOLHER
     }
 
-    function toggleMenu(id) {
+    function toggleMenu(id, type) {
         const el = document.getElementById(id);
         const isOpen = el.style.display === 'flex';
         document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
         el.style.display = isOpen ? 'none' : 'flex';
-        
-        if(!isOpen) {
-            const type = id === 'series-nav' ? 'series' : 'filmes';
+        if(!isOpen && type) {
             el.innerHTML = CATEGORIAS.map(c => `<button class="btn-cat" onclick="filterData('${c}', '${type}')">${c}</button>`).join('');
         }
     }
 
     function loadCategory(type) {
-        document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
         renderGrid(database[type] || []);
+        document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
     }
 
     function globalSearch() {
         const term = document.getElementById('search-box').value.toLowerCase();
-        if(!term) { loadCategory('tv'); return; } // Volta para TV se apagar
+        if(!term) { loadTV(); return; }
         let res = [];
         for(let k in database) res = res.concat(database[k].filter(i => i.name.toLowerCase().includes(term)));
         renderGrid(res);
     }
 
+    let timerSair;
     function playVideo(url) {
         const v = document.getElementById('video-player');
-        const overlay = document.getElementById('player-overlay');
-        const exitBtn = document.getElementById('exit-player');
-        
-        overlay.style.display = 'block';
-        exitBtn.style.display = 'block'; // Mostra botão sair ao iniciar
-        
-        // Tratamento para Archive.org e MP4 puro
+        document.getElementById('player-overlay').style.display = 'block';
         if (url.includes('archive.org') || url.endsWith('.mp4')) {
             v.src = url;
-            v.type = "video/mp4";
         } else if (Hls.isSupported() && url.includes('m3u8')) {
             const hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
         } else { v.src = url; }
-        
-        v.play().catch(e => console.log("Erro Play:", e));
-        exitBtn.focus();
+        v.play();
+        showExitBtn();
+    }
+
+    function showExitBtn() {
+        const btn = document.getElementById('exit-player');
+        btn.classList.add('visible');
+        clearTimeout(timerSair);
+        timerSair = setTimeout(() => btn.classList.remove('visible'), 4000);
     }
 
     function closePlayer() {
         const v = document.getElementById('video-player');
-        v.pause(); v.removeAttribute('src'); v.load();
+        v.pause(); v.src = "";
         document.getElementById('player-overlay').style.display = 'none';
-        document.getElementById('exit-player').style.display = 'none';
     }
 
     window.addEventListener('keydown', (e) => {
         const cur = document.activeElement;
         const all = Array.from(document.querySelectorAll('button, input, .card, [tabindex="0"]')).filter(el => el.offsetParent !== null);
-        
         if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+            if(document.getElementById('player-overlay').style.display === 'block') showExitBtn();
             e.preventDefault();
             const next = getFocus(cur, all, e.key);
             if (next) next.focus();
@@ -223,18 +247,14 @@
         all.forEach(el => {
             if (el === cur) return;
             const rE = el.getBoundingClientRect();
-            let valid = false;
-            
-            // Tolerância de 10px para alinhar elementos
-            if (key === "ArrowUp") valid = rE.bottom <= rC.top + 10;
-            if (key === "ArrowDown") valid = rE.top >= rC.bottom - 10;
-            if (key === "ArrowLeft") valid = rE.right <= rC.left + 10;
-            if (key === "ArrowRight") valid = rE.left >= rC.right - 10;
-
-            if (valid) {
-                // Prioriza o elemento mais próximo no eixo principal do movimento
-                const dist = Math.sqrt(Math.pow(rE.left - rC.left, 2) + Math.pow(rE.top - rC.top, 2));
-                if (dist < minDist) { minDist = dist; best = el; }
+            let v = false;
+            if (key === "ArrowUp") v = rE.bottom <= rC.top + 5;
+            if (key === "ArrowDown") v = rE.top >= rC.bottom - 5;
+            if (key === "ArrowLeft") v = rE.right <= rC.left + 5;
+            if (key === "ArrowRight") v = rE.left >= rC.right - 5;
+            if (v) {
+                const d = Math.sqrt(Math.pow(rE.left - rC.left, 2) + Math.pow(rE.top - rC.top, 2));
+                if (d < minDist) { minDist = d; best = el; }
             }
         });
         return best;
