@@ -2,8 +2,8 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
-    <title>PaixãoFlix - V10 Ultra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PaixãoFlix - V12 Restored</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
@@ -11,104 +11,54 @@
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; }
         body { background-color: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* LOADER */
-        #loader { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 30000; }
-        .loader-logo { width: 420px !important; }
-
         /* SIDEBAR FIXA */
-        .sidebar { 
-            width: var(--sidebar-width); height: 100vh; background: #000; 
-            position: fixed; left: 0; top: 0; display: flex; flex-direction: column; 
-            padding: 15px; border-right: 1px solid #222; z-index: 1000; 
-        }
-        
-        /* LOGO E BOTÃO SAIR PEQUENO */
+        .sidebar { width: var(--sidebar-width); height: 100vh; background: #000; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; padding: 15px; border-right: 1px solid #222; z-index: 1000; }
         .logo { width: 140px !important; height: auto !important; display: block; margin: 0 auto 5px; }
-        .btn-exit-small { 
-            width: 60px; background: #d40000; color: white; border: none; 
-            padding: 4px; border-radius: 4px; font-size: 10px; font-weight: bold; 
-            margin: 0 auto 10px; cursor: pointer; display: block; text-align: center;
-        }
+        .btn-exit-small { width: 60px; background: #d40000; color: white; border: none; padding: 4px; border-radius: 4px; font-size: 10px; font-weight: bold; margin: 0 auto 15px; cursor: pointer; display: block; }
 
         #search-box { width: 90%; margin: 0 auto 15px; display: block; padding: 10px; border-radius: 8px; border: 2px solid #333; background: #111; color: white; }
-
         .nav-menu { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
         .btn-nav { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; text-align: left; }
-        
-        /* SUBMENUS */
-        .submenu { display: none; flex-wrap: wrap; gap: 5px; padding: 10px 0; }
+        .submenu { display: none; flex-wrap: wrap; gap: 5px; padding: 5px 0; }
         .btn-cat { width: 100%; background: #111; color: #eee; border: none; padding: 10px; text-align: left; cursor: pointer; border-radius: 4px; font-size: 13px; }
 
         /* FOCO */
-        .btn-nav:focus, .btn-cat:focus, .card:focus, #search-box:focus, .btn-exit-small:focus { 
-            background: var(--focus) !important; color: #000 !important; transform: scale(1.03); box-shadow: 0 0 15px var(--focus); 
-        }
+        .btn-nav:focus, .btn-cat:focus, .card:focus, #search-box:focus, .btn-exit-small:focus { background: var(--focus) !important; color: #000 !important; transform: scale(1.02); }
 
         main { margin-left: var(--sidebar-width); flex: 1; padding: 20px; overflow-y: auto; height: 100vh; }
-        
-        /* GRID DESKTOP (8 CANAIS) */
-        .content-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; }
-        .card { background: #111; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; }
+        .content-grid { display: grid; grid-template-columns: repeat(8, 1fr) !important; gap: 12px; }
+        .card { background: #111; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; text-align: center; }
         .card img { width: 90px !important; height: 90px !important; object-fit: contain; display: block; margin: 0 auto; padding: 8px; }
         
         .movie-mode { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; }
         .movie-card img { width: 100% !important; height: auto !important; aspect-ratio: 2/3 !important; object-fit: cover !important; padding: 0; }
         .card-title { padding: 5px; font-size: 10px; text-align: center; font-weight: 600; min-height: 35px; display: flex; align-items: center; justify-content: center; }
 
-        /* PLAYER */
         #player-overlay { position: fixed; inset: 0; background: black; display: none; z-index: 9999; }
         video { width: 100%; height: 100%; }
 
-        /* CONFIGURAÇÕES MÓVEIS (HORIZONTAL OBRIGATÓRIO) */
+        /* AJUSTES DISPOSITIVOS MÓVEIS (HORIZONTAL) */
         @media (max-width: 950px) {
             :root { --sidebar-width: 220px; }
-            body { flex-direction: row; } /* Mantém horizontal */
-            
-            /* Sidebar 2 por linha no mobile */
-            .nav-menu { display: flex; flex-direction: row; flex-wrap: wrap; gap: 5px; }
+            .nav-menu { flex-direction: row; flex-wrap: wrap; gap: 5px; }
             .btn-nav { width: calc(50% - 5px); font-size: 11px; padding: 8px; }
-            .header-fixed { width: 100%; }
-            
-            /* Grade de 3 canais por linha */
             .content-grid { grid-template-columns: repeat(3, 1fr) !important; }
             .movie-mode { grid-template-columns: repeat(3, 1fr) !important; }
-            
-            /* Ajuste de logo no mobile */
-            .logo { width: 100px !important; }
-            .loader-logo { width: 280px !important; }
-        }
-
-        /* FORÇAR HORIZONTAL SE ESTIVER EM PÉ */
-        @media (orientation: portrait) {
-            #portrait-warning { display: flex; }
-        }
-        #portrait-warning { 
-            position: fixed; inset: 0; background: #000; color: #fff; z-index: 40000; 
-            display: none; align-items: center; justify-content: center; text-align: center; padding: 20px;
         }
     </style>
 </head>
 <body>
 
-<div id="portrait-warning"><h1>POR FAVOR, GIRE O APARELHO PARA A HORIZONTAL</h1></div>
-
-<div id="loader">
-    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="loader-logo">
-    <div style="width: 40px; height: 40px; border: 4px solid #222; border-top: 4px solid var(--focus); border-radius: 50%; animation: spin 1s linear infinite;"></div>
-</div>
-
 <aside class="sidebar">
-    <div class="header-fixed">
-        <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="logo">
-        <button class="btn-exit-small" id="exit-sys" onclick="window.location.reload()">SAIR</button>
-        <input type="text" id="search-box" placeholder="Busca..." oninput="globalSearch()" onblur="this.value=''">
-    </div>
+    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="logo">
+    <button class="btn-exit-small" onclick="window.location.reload()">SAIR</button>
+    <input type="text" id="search-box" placeholder="Buscar..." oninput="globalSearch()">
     <nav class="nav-menu">
-        <button class="btn-nav" id="first-focus" onclick="loadCategory('tv')">TV</button>
-        <button class="btn-nav" onclick="toggleMenu('cat-nav')">FILMES</button>
+        <button class="btn-nav" id="btn-start" onclick="loadCategory('tv')">TV AO VIVO</button>
+        <button class="btn-nav" id="btn-cinema" onclick="toggleMenu('cat-nav')">CINEMA ▾</button>
         <div id="cat-nav" class="submenu"></div>
         <button class="btn-nav" onclick="loadCategory('series')">SÉRIES</button>
-        <button class="btn-nav" onclick="toggleMenu('kids-nav')">KIDS</button>
+        <button class="btn-nav" id="btn-kids" onclick="toggleMenu('kids-nav')">KIDS ▾</button>
         <div id="kids-nav" class="submenu">
             <button class="btn-cat" onclick="loadCategory('kids_canais')">TV KIDS</button>
             <button class="btn-cat" onclick="loadCategory('kids_filmes')">FILMES KIDS</button>
@@ -119,9 +69,7 @@
 
 <main><div class="content-grid" id="grid"></div></main>
 
-<div id="player-overlay">
-    <video id="video-player" controls autoplay playsinline></video>
-</div>
+<div id="player-overlay"><video id="video-player" controls autoplay playsinline></video></div>
 
 <script>
     const API = {
@@ -134,7 +82,7 @@
     };
 
     let database = {};
-    const CATEGORIAS_LISTA = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
+    const CATEGORIAS = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
 
     async function init() {
         for(let key in API) {
@@ -154,9 +102,8 @@
                 } else { database[key] = parseM3U(t, key); }
             } catch(e) {}
         }
-        document.getElementById('loader').style.display = 'none';
         loadCategory('tv');
-        document.getElementById('first-focus').focus(); // Foco automático ao carregar
+        document.getElementById('btn-start').focus();
     }
 
     function parseM3U(d, type) {
@@ -177,24 +124,21 @@
         const g = document.getElementById('grid');
         const isMovie = data.some(i => i.type && !i.type.includes('canais') && i.type !== 'tv');
         g.className = isMovie ? "content-grid movie-mode" : "content-grid";
-        g.innerHTML = data.map(i => {
-            const isItemMovie = i.type && !i.type.includes('canais') && i.type !== 'tv';
-            return `<div class="card ${isItemMovie ? 'movie-card' : ''}" tabindex="0" onclick="playVideo('${i.url}')">
+        g.innerHTML = data.map(i => `
+            <div class="card ${isMovie ? 'movie-card' : ''}" tabindex="0" onclick="playVideo('${i.url}')">
                 <img src="${i.logo}" loading="lazy">
                 <div class="card-title">${i.name}</div>
-            </div>`;
-        }).join('');
+            </div>`).join('');
     }
 
     function filterCinema(cat) {
         let res;
-        // FILTRO DE ANO EXCLUSIVO - IGNORA GÊNERO
         if(cat.includes("2025") || cat.includes("2026")) {
-            const anoAlvo = cat.match(/\d+/)[0];
-            res = database.filmes.filter(i => i.year === anoAlvo);
+            const y = cat.match(/\d+/)[0];
+            res = database.filmes.filter(i => i.year === y);
         } else {
-            const regex = new RegExp("\\b" + cat.toLowerCase() + "\\b", "i");
-            res = database.filmes.filter(i => regex.test(i.category.toLowerCase()));
+            const reg = new RegExp("\\b" + cat.toLowerCase() + "\\b", "i");
+            res = database.filmes.filter(i => reg.test(i.category.toLowerCase()));
         }
         renderGrid(res);
     }
@@ -205,10 +149,8 @@
         document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
         el.style.display = isOpen ? 'none' : 'flex';
         if(id === 'cat-nav' && !isOpen) {
-            el.innerHTML = CATEGORIAS_LISTA.map(c => `<button class="btn-cat" onclick="filterCinema('${c}')">${c}</button>`).join('');
+            el.innerHTML = CATEGORIAS.map(c => `<button class="btn-cat" onclick="filterCinema('${c}')">${c}</button>`).join('');
         }
-        // Foca no primeiro item do submenu aberto
-        setTimeout(() => { if(!isOpen) el.querySelector('button').focus(); }, 100);
     }
 
     function loadCategory(type) {
@@ -218,7 +160,6 @@
 
     function globalSearch() {
         const term = document.getElementById('search-box').value.toLowerCase();
-        if(!term) return;
         let res = [];
         for(let k in database) res = res.concat(database[k].filter(i => i.name.toLowerCase().includes(term)));
         renderGrid(res);
@@ -233,20 +174,15 @@
         v.play();
     }
 
-    // NAVEGAÇÃO DIRECIAL BRAVA
     window.addEventListener('keydown', (e) => {
         const cur = document.activeElement;
         const all = Array.from(document.querySelectorAll('button, input, .card, [tabindex="0"]'));
-        
         if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
             e.preventDefault();
             const next = getFocus(cur, all, e.key);
             if (next) next.focus();
         }
-        if (e.key === "Enter" || e.keyCode === 13) {
-            e.preventDefault();
-            cur.click();
-        }
+        if (e.key === "Enter") cur.click();
         if (e.key === "Escape" || e.key === "Backspace") {
             const v = document.getElementById('video-player');
             v.pause(); v.src = "";
@@ -275,6 +211,5 @@
 
     init();
 </script>
-<style> @keyframes spin { to { transform: rotate(360deg); } } </style>
 </body>
 </html>
