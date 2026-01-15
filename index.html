@@ -6,11 +6,11 @@
     <title>PaixãoFlix - Web TV</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --primary: #013161; --focus: #0278ed; --bg: #050505; --text: #ffffff; --sidebar-width: 250px; }
+        :root { --primary: #013161; --focus: #0278ed; --bg: #050505; --text: #ffffff; --sidebar-width: 260px; }
         * { box-sizing: border-box; outline: none; }
         body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* Sidebar Fixa */
+        /* Barra Lateral Fixa */
         .sidebar { 
             width: var(--sidebar-width); height: 100vh; background: #000; 
             position: fixed; left: 0; top: 0; display: flex; flex-direction: column; 
@@ -18,72 +18,67 @@
         }
 
         .logo-container { text-align: center; margin-bottom: 20px; }
-        .logo { width: 100px; height: auto; object-fit: contain; }
+        /* Logotipo fixado em 120px */
+        .logo { width: 120px; height: auto; }
 
         #search-box { 
             width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; 
-            background: #111; color: white; margin-bottom: 20px;
+            background: #111; color: white; margin-bottom: 20px; font-size: 16px;
         }
 
-        .nav-menu { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; scrollbar-width: none; }
+        .nav-menu { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; scrollbar-width: none; }
         .nav-menu::-webkit-scrollbar { display: none; }
 
         .btn-nav { 
-            background: var(--primary); color: white; border: none; padding: 12px; 
-            border-radius: 6px; font-weight: bold; cursor: pointer; text-align: left;
-            transition: 0.2s; font-size: 13px;
+            background: var(--primary); color: white; border: none; padding: 10px 15px; 
+            border-radius: 5px; font-weight: bold; cursor: pointer; text-align: left;
+            text-transform: uppercase; font-size: 12px; transition: 0.2s;
         }
-        .btn-nav:hover { background: var(--focus); }
+        /* Foco para Controle Remoto e Teclado */
+        .btn-nav:focus { background: var(--focus); outline: 2px solid #fff; }
 
-        /* Submenu Cinema */
-        #cat-nav { 
-            display: none; flex-direction: column; gap: 5px; padding: 10px 0 10px 15px;
-            background: #080808; border-radius: 6px;
-        }
+        /* Menu Cinema Suspenso */
+        #cat-nav { display: none; flex-direction: column; gap: 2px; padding-left: 10px; margin-bottom: 10px; }
         .btn-cat { 
-            background: transparent; color: #bbb; border: none; padding: 8px; 
-            text-align: left; cursor: pointer; font-size: 12px; border-bottom: 1px solid #111;
+            background: #0a0a0a; color: #ccc; border: none; padding: 8px; 
+            text-align: left; cursor: pointer; font-size: 11px; border-radius: 3px;
         }
-        .btn-cat:hover { color: white; background: #111; }
+        .btn-cat:focus { background: var(--focus); color: white; }
 
-        /* Grid de Conteúdo Otimizado */
-        main { margin-left: var(--sidebar-width); flex: 1; padding: 20px; overflow-y: auto; height: 100vh; }
+        /* Área Kids Suspensa */
+        #kids-nav-box { display: none; flex-direction: column; gap: 5px; padding-left: 10px; margin-bottom: 10px; }
+
+        /* Conteúdo principal */
+        main { margin-left: var(--sidebar-width); flex: 1; padding: 15px; overflow-y: auto; height: 100vh; }
+        
+        /* Logotipos de Canais e Filmes REDUZIDOS */
         .content-grid { 
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
-            gap: 15px; padding-bottom: 50px;
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); 
+            gap: 12px; 
         }
 
         .card { 
-            background: #111; border-radius: 8px; overflow: hidden; 
-            transition: 0.3s; cursor: pointer; border: 2px solid transparent;
-            height: 180px; position: relative;
+            background: #181818; border-radius: 6px; overflow: hidden; 
+            transition: 0.2s; cursor: pointer; border: 2px solid transparent;
+            height: 140px; display: flex; flex-direction: column;
         }
-        .card:hover { transform: translateY(-5px); border-color: var(--focus); }
+        /* Usabilidade de seleção (Controle/Teclado) */
+        .card:focus { border-color: var(--focus); transform: scale(1.05); background: #222; }
         
-        /* Lazy Loading Style */
-        .card img { 
-            width: 100%; height: 140px; object-fit: cover; background: #000;
-            opacity: 0; transition: opacity 0.5s; /* Efeito de fade ao carregar */
-        }
-        .card img.loaded { opacity: 1; }
-
-        .card-title { 
-            padding: 6px; font-size: 11px; text-align: center; font-weight: bold;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
+        .card img { width: 100%; height: 100px; object-fit: contain; background: #000; padding: 5px; }
+        .card-title { padding: 4px; font-size: 10px; text-align: center; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* Player Overlay */
-        #player-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; display: none; z-index: 9999; }
-        #exit-btn { position: absolute; top: 20px; right: 20px; background: #f00; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        #player-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; display: none; z-index: 2000; }
+        #exit-btn { position: absolute; top: 20px; right: 20px; background: rgba(255,0,0,0.8); color: white; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; z-index: 2001; }
         video { width: 100%; height: 100%; }
 
-        /* Mobile */
-        @media (max-width: 768px) {
+        @media (max-width: 600px) {
             body { flex-direction: column; }
             .sidebar { width: 100%; height: auto; position: relative; border-right: none; }
-            main { margin-left: 0; width: 100%; height: auto; }
+            main { margin-left: 0; width: 100%; }
             .content-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-            #cat-nav { flex-direction: row; flex-wrap: wrap; }
         }
     </style>
 </head>
@@ -94,16 +89,21 @@
         <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="logo">
     </div>
 
-    <input type="text" id="search-box" placeholder="Pesquisar..." onkeyup="filterContent()">
+    <input type="text" id="search-box" placeholder="Procurar..." onkeyup="filterContent()">
 
     <nav class="nav-menu">
-        <button class="btn-nav" onclick="loadContent('tv')">📺 TV AO VIVO</button>
+        <button class="btn-nav" onclick="loadContent('tv')">TV AO VIVO</button>
         
-        <button class="btn-nav" onclick="toggleCinema()">🎬 CINEMA ▾</button>
+        <button class="btn-nav" onclick="toggleCinema()">CINEMA ▾</button>
         <div id="cat-nav"></div>
 
-        <button class="btn-nav" onclick="loadContent('series')">🍿 SÉRIES</button>
-        <button class="btn-nav" style="background: #d40000;" onclick="loadContent('kids_canais')">🎡 ÁREA KIDS</button>
+        <button class="btn-nav" onclick="loadContent('series')">SÉRIES</button>
+        
+        <button class="btn-nav" style="background: #d40000;" onclick="toggleKids()">ÁREA KIDS ▾</button>
+        <div id="kids-nav-box">
+            <button class="btn-cat" onclick="loadContent('kids_canais')">TV KIDS</button>
+            <button class="btn-cat" onclick="loadContent('kids_filmes')">FILMES KIDS</button>
+        </div>
     </nav>
 </aside>
 
@@ -112,8 +112,8 @@
 </main>
 
 <div id="player-overlay">
-    <button id="exit-btn" onclick="closePlayer()">VOLTAR</button>
-    <video id="video-player" controls autoplay playsinline></video>
+    <div id="exit-btn" onclick="closePlayer()">SAIR DO PLAYER</div>
+    <video id="video-player" controls autoplay></video>
 </div>
 
 <script>
@@ -121,36 +121,37 @@
         tv: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u",
         filmes: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json",
         series: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/series.json",
-        kids_canais: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_kids_canais.m3u"
+        kids_canais: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_kids_canais.m3u",
+        kids_filmes: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/kids_filmes.json"
     };
 
-    const CATEGORIAS = ["Lançamento", "Ação", "Aventura", "Animação", "Drama", "Terror", "Nacional"];
+    const CATEGORIAS = ["Lançamento", "Ação", "Aventura", "Animação", "Comédia", "Crime", "Drama", "Documentário", "Fantasia", "Ficção Científica", "Guerra", "Musical", "Nacional", "Romance", "Suspense", "Terror", "Western"];
+
     let currentData = [];
 
-    // Função para carregar conteúdo
     async function loadContent(type) {
         const grid = document.getElementById('grid');
-        grid.innerHTML = "";
+        grid.innerHTML = "<p style='text-align:center'>Buscando...</p>";
         
         try {
-            const resp = await fetch(API[type] + "?v=" + Date.now());
+            const resp = await fetch(API[type] + "?nocache=" + Date.now());
             const text = await resp.text();
             
-            if(type.includes('json')) {
+            if(type.includes('json') || type === 'series' || type === 'kids_filmes' || type === 'filmes') {
                 const data = JSON.parse(text);
-                const items = Array.isArray(data) ? data : Object.values(data)[0];
-                currentData = items.map(i => ({
-                    name: i.titulo || i.name || i.title,
-                    url: i.url || i.link,
-                    logo: i.poster || i.logo || i.image,
-                    category: i.genero || i.category || ""
+                const items = Array.isArray(data) ? data : (data.filmes || data.series || Object.values(data)[0]);
+                currentData = items.map(item => ({
+                    name: item.titulo || item.name || item.title,
+                    url: item.url || item.link,
+                    logo: item.poster || item.logo || item.image,
+                    category: item.genero || item.category || ""
                 }));
             } else {
                 currentData = parseM3U(text);
             }
             renderGrid(currentData);
         } catch (e) {
-            grid.innerHTML = "<p>Erro ao carregar lista.</p>";
+            grid.innerHTML = "<p style='text-align:center'>Erro ao carregar lista.</p>";
         }
     }
 
@@ -162,70 +163,59 @@
                 const name = lines[i].split(',')[1]?.trim() || "Canal";
                 const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1] || '';
                 const url = lines[i+1]?.trim();
-                if(url && url.startsWith('http')) items.push({ name, url, logo, category: "TV" });
+                if(url && url.startsWith('http')) items.push({ name, url, logo });
             }
         }
         return items;
     }
 
-    // Renderização com Lazy Loading
     function renderGrid(data) {
         const grid = document.getElementById('grid');
         grid.innerHTML = data.map(item => `
-            <div class="card" onclick="playVideo('${item.url}')">
-                <img data-src="${item.logo}" class="lazy" onload="this.classList.add('loaded')" onerror="this.src='https://via.placeholder.com/150x200/000/fff?text=PaixãoFlix'">
+            <div class="card" tabindex="0" onclick="playVideo('${item.url}')" onkeypress="if(event.key==='Enter')playVideo('${item.url}')">
+                <img src="${item.logo}" onerror="this.src='https://via.placeholder.com/100x150/111/fff?text=S/L'">
                 <div class="card-title">${item.name}</div>
             </div>
         `).join('');
-
-        // Lógica de Lazy Loading
-        const images = document.querySelectorAll('img.lazy');
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    img.src = img.dataset.src;
-                    observer.unobserve(img);
-                }
-            });
-        });
-        images.forEach(img => observer.observe(img));
     }
 
     function toggleCinema() {
         const cn = document.getElementById('cat-nav');
-        const isVisible = cn.style.display === 'flex';
-        cn.style.display = isVisible ? 'none' : 'flex';
-        if(!isVisible) {
+        cn.style.display = cn.style.display === 'flex' ? 'none' : 'flex';
+        if(cn.style.display === 'flex') {
             cn.innerHTML = CATEGORIAS.map(c => `<button class="btn-cat" onclick="filterByCategory('${c}')">${c}</button>`).join('');
             loadContent('filmes');
         }
     }
 
+    function toggleKids() {
+        const kn = document.getElementById('kids-nav-box');
+        kn.style.display = kn.style.display === 'flex' ? 'none' : 'flex';
+    }
+
     function filterByCategory(cat) {
-        const filtered = currentData.filter(i => i.category.toLowerCase().includes(cat.toLowerCase()));
-        renderGrid(filtered);
+        const f = currentData.filter(i => i.category.toLowerCase().includes(cat.toLowerCase()));
+        renderGrid(f);
     }
 
     function filterContent() {
         const t = document.getElementById('search-box').value.toLowerCase();
-        renderGrid(currentData.filter(i => i.name.toLowerCase().includes(t)));
+        const f = currentData.filter(i => i.name.toLowerCase().includes(t));
+        renderGrid(f);
     }
 
     function playVideo(url) {
-        const video = document.getElementById('video-player');
+        if(!url) return;
+        const v = document.getElementById('video-player');
         document.getElementById('player-overlay').style.display = 'block';
-        
-        // Correção para links do Archive e M3U8
-        if (Hls.isSupported() && (url.includes('m3u8') || url.includes('archive.org'))) {
+        if (Hls.isSupported() && url.includes('m3u8')) {
             const hls = new Hls();
             hls.loadSource(url);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+            hls.attachMedia(v);
         } else {
-            video.src = url;
-            video.play();
+            v.src = url;
         }
+        v.play();
     }
 
     function closePlayer() {
@@ -234,11 +224,9 @@
         document.getElementById('player-overlay').style.display = 'none';
     }
 
-    // Registro de Service Worker para Modo Offline
+    // Configuração Offline
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').catch(() => {});
-        });
+        navigator.serviceWorker.register('sw.js').catch(()=>{});
     }
 
     loadContent('tv');
