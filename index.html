@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PaixãoFlix - V8 Pro</title>
+    <title>PaixãoFlix - V9 Final</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
@@ -11,51 +11,59 @@
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; }
         body { background-color: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* LOADER */
+        /* LOADER 3X MAIOR */
         #loader { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 30000; }
-        .loader-logo { width: 420px !important; height: auto !important; margin-bottom: 30px; animation: pulse 2s infinite; }
+        .loader-logo { width: 420px !important; height: auto !important; margin-bottom: 30px; }
 
         /* SIDEBAR */
         .sidebar { width: var(--sidebar-width); height: 100vh; background: #000; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; padding: 15px; border-right: 1px solid #222; z-index: 1000; }
         .logo { width: 140px !important; height: auto !important; display: block; margin: 0 auto 10px; }
-        #search-box { width: 85%; margin: 0 auto 15px; display: block; padding: 10px; border-radius: 8px; border: 2px solid #333; background: #111; color: white; }
+        #search-box { width: 85%; margin: 0 auto 15px; display: block; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #111; color: white; font-size: 16px; }
 
-        .btn-nav { width: calc(100% - 15px); margin: 0 auto 8px; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; text-align: left; }
+        .nav-menu { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .btn-nav { width: calc(100% - 15px); margin: 0 auto; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; text-align: left; }
         .submenu { display: none; flex-direction: column; gap: 6px; padding-left: 15px; margin-bottom: 10px; }
-        .btn-cat { width: calc(100% - 15px); background: #111; color: #eee; border: none; padding: 10px; text-align: left; cursor: pointer; border-radius: 4px; font-size: 14px; }
+        .btn-cat { width: calc(100% - 15px); background: #111; color: #eee; border: none; padding: 12px; text-align: left; cursor: pointer; border-radius: 4px; font-size: 15px; font-weight: 600; }
 
-        /* FOCO */
+        /* FOCO / SELETOR */
         .btn-nav:focus, .btn-cat:focus, .card:focus, #search-box:focus, .modal-btn:focus { background: var(--focus) !important; box-shadow: 0 0 0 4px #fff; transform: scale(1.03); z-index: 999; }
 
-        main { margin-left: var(--sidebar-width); flex: 1; padding: 20px; overflow-y: auto; height: 100vh; }
+        main { margin-left: var(--sidebar-width); flex: 1; padding: 25px; overflow-y: auto; height: 100vh; }
         
-        /* GRIDS */
-        .content-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; }
-        .card { background: #111; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; }
-        .card img { width: 85px !important; height: 85px !important; object-fit: contain; display: block; margin: 0 auto; padding: 6px; }
+        /* GRID DE CANAIS - TRAVADO EM 8 POR LINHA (DESKTOP/TV) */
+        .content-grid { 
+            display: grid; 
+            grid-template-columns: repeat(8, 1fr) !important; 
+            gap: 15px; 
+        }
         
-        .movie-mode { grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)) !important; }
+        .card { background: #111; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; text-align: center; }
+        
+        /* LOGO CANAIS: LEVE AUMENTO E TRAVA */
+        .card img { width: 95px !important; height: 95px !important; object-fit: contain; display: block; margin: 0 auto; padding: 8px; background: #000; }
+        
+        /* MODO FILME: CAPAS GRANDES */
+        .movie-mode { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important; }
         .movie-card img { width: 100% !important; height: auto !important; aspect-ratio: 2/3 !important; object-fit: cover !important; padding: 0; }
-        .card-title { padding: 6px; font-size: 11px; text-align: center; font-weight: 600; min-height: 38px; display: flex; align-items: center; justify-content: center; }
+        .card-title { padding: 8px; font-size: 12px; font-weight: 600; line-height: 1.2; min-height: 40px; display: flex; align-items: center; justify-content: center; }
 
         /* MODAL RETOMAR */
-        #resume-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 20000; }
-        .modal-content { background: #111; padding: 30px; border-radius: 15px; text-align: center; border: 2px solid var(--primary); }
-        .modal-btn { padding: 15px 25px; margin: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        #resume-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 20000; }
+        .modal-content { background: #111; padding: 40px; border-radius: 15px; text-align: center; border: 2px solid var(--primary); max-width: 400px; }
+        .modal-btn { padding: 15px 30px; margin: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; min-width: 150px; }
 
         /* PLAYER */
         #player-overlay { position: fixed; inset: 0; background: black; display: none; z-index: 9999; }
-        #exit-btn { position: absolute; top: 30px; right: 30px; background: #f00; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; opacity: 0; transition: 0.3s; z-index: 10001; }
-        #exit-btn.visible { opacity: 1; }
+        #exit-btn { position: absolute; top: 40px; right: 40px; background: #f00; color: white; border: none; padding: 18px 35px; border-radius: 10px; font-weight: bold; opacity: 0; transition: 0.3s; z-index: 10001; pointer-events: none; }
+        #exit-btn.visible { opacity: 1; pointer-events: auto; }
         video { width: 100%; height: 100%; }
 
-        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.02); opacity: 1; } }
-
-        @media (max-width: 800px) {
+        /* MOBILE AJUSTES */
+        @media (max-width: 1000px) {
+            .content-grid { grid-template-columns: repeat(4, 1fr) !important; }
             body { flex-direction: column; }
             .sidebar { width: 100%; height: auto; position: relative; }
             main { margin-left: 0; }
-            .content-grid { grid-template-columns: repeat(4, 1fr) !important; }
         }
     </style>
 </head>
@@ -68,7 +76,7 @@
 
 <div id="resume-modal">
     <div class="modal-content">
-        <h2 id="modal-title">Continuar assistindo?</h2>
+        <h2 style="margin-bottom: 20px;">Retomar exibição?</h2>
         <button class="modal-btn" id="btn-resume" style="background: var(--focus); color: #000;">RETOMAR</button>
         <button class="modal-btn" id="btn-restart" style="background: #444; color: #fff;">RECOMEÇAR</button>
     </div>
@@ -114,12 +122,12 @@
     async function init() {
         for(let key in API) {
             try {
-                const r = await fetch(API[key]);
+                const r = await fetch(API[key] + "?v=" + Date.now());
                 const t = await r.text();
                 if(t.trim().startsWith('[') || t.trim().startsWith('{')) {
                     const j = JSON.parse(t);
                     database[key] = (Array.isArray(j) ? j : Object.values(j)[0]).map(i => ({
-                        name: i.titulo || i.name,
+                        name: i.titulo || i.name || "Sem Nome",
                         url: i.url || i.link,
                         logo: i.poster || i.logo,
                         category: String(i.genero || ""),
@@ -149,10 +157,11 @@
 
     function renderGrid(data) {
         const g = document.getElementById('grid');
-        const isMovie = data.some(i => i.type && !i.type.includes('canais') && i.type !== 'tv');
+        const isMovie = data.some(i => i.type && (i.type === 'filmes' || i.type === 'series' || i.type.includes('kids_filmes')));
         g.className = isMovie ? "content-grid movie-mode" : "content-grid";
+        
         g.innerHTML = data.map(i => {
-            const isItemMovie = i.type && !i.type.includes('canais') && i.type !== 'tv';
+            const isItemMovie = i.type && (i.type === 'filmes' || i.type === 'series' || i.type.includes('kids_filmes'));
             return `<div class="card ${isItemMovie ? 'movie-card' : ''}" tabindex="0" onclick="handlePlayAction('${i.url}', '${i.name}')">
                 <img src="${i.logo}" loading="lazy">
                 <div class="card-title">${i.name}</div>
@@ -162,12 +171,13 @@
 
     function handlePlayAction(url, name) {
         const savedTime = localStorage.getItem('progress_' + btoa(name));
-        if (savedTime && parseFloat(savedTime) > 10) {
+        if (savedTime && parseFloat(savedTime) > 30) {
             const modal = document.getElementById('resume-modal');
             modal.style.display = 'flex';
-            document.getElementById('btn-resume').onclick = () => { modal.style.display = 'none'; playVideo(url, name, savedTime); };
+            const resBtn = document.getElementById('btn-resume');
+            resBtn.onclick = () => { modal.style.display = 'none'; playVideo(url, name, savedTime); };
             document.getElementById('btn-restart').onclick = () => { modal.style.display = 'none'; playVideo(url, name, 0); };
-            document.getElementById('btn-resume').focus();
+            resBtn.focus();
         } else {
             playVideo(url, name, 0);
         }
@@ -180,12 +190,25 @@
             const hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
         } else { v.src = url; }
         v.currentTime = startTime;
-        v.play();
+        v.play().catch(() => alert("Erro ao carregar mídia."));
 
-        // Salvar progresso a cada 10 segundos
         v.ontimeupdate = () => {
             if(v.currentTime > 10) localStorage.setItem('progress_' + btoa(name), v.currentTime);
         };
+    }
+
+    function filterCinema(cat) {
+        let res;
+        // CORREÇÃO CATEGORIA ANO: Filtro isolado pelo campo YEAR do JSON
+        if(cat.includes("Lançamento")) {
+            const anoBuscado = cat.match(/\d+/)[0]; 
+            res = database.filmes.filter(i => i.year === anoBuscado);
+        } else {
+            const regex = new RegExp("\\b" + cat.toLowerCase() + "\\b", "i");
+            res = database.filmes.filter(i => regex.test(i.category.toLowerCase()) && (cat === "Animação" || !i.category.toLowerCase().includes("animação")));
+        }
+        renderGrid(res);
+        document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
     }
 
     function toggleMenu(id) {
@@ -194,19 +217,6 @@
         document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
         el.style.display = isOpen ? 'none' : 'flex';
         if(id === 'cat-nav' && !isOpen) el.innerHTML = CATEGORIAS_LISTA.map(c => `<button class="btn-cat" onclick="filterCinema('${c}')">${c}</button>`).join('');
-    }
-
-    function filterCinema(cat) {
-        let res;
-        if(cat.includes("2025") || cat.includes("2026")) {
-            const ano = cat.split(" ")[1];
-            res = database.filmes.filter(i => i.year === ano);
-        } else {
-            const regex = new RegExp("\\b" + cat.toLowerCase() + "\\b", "i");
-            res = database.filmes.filter(i => regex.test(i.category.toLowerCase()) && (cat === "Animação" || !i.category.toLowerCase().includes("animação")));
-        }
-        renderGrid(res);
-        document.getElementById('cat-nav').style.display = 'none';
     }
 
     function loadCategory(type) {
@@ -236,7 +246,7 @@
         uiTimer = setTimeout(() => btn.classList.remove('visible'), 3000);
     }
 
-    // NAVEGAÇÃO ESPACIAL OTIMIZADA
+    // NAVEGAÇÃO ESPACIAL OTIMIZADA (DIRECIONAL)
     window.addEventListener('keydown', (e) => {
         const cur = document.activeElement;
         const all = Array.from(document.querySelectorAll('button, input, .card, [tabindex="0"]'));
@@ -260,20 +270,16 @@
             const rE = el.getBoundingClientRect();
             let v = false;
             
-            // Lógica de prioridade: Se estiver na grade, tenta achar outro na grade primeiro
-            const bothInMain = (cur.closest('main') && el.closest('main'));
-            const bothInSide = (cur.closest('aside') && el.closest('aside'));
-
-            if (key === "ArrowUp") v = rE.bottom <= rC.top + 2;
-            if (key === "ArrowDown") v = rE.top >= rC.bottom - 2;
-            if (key === "ArrowLeft") v = rE.right <= rC.left + 2;
-            if (key === "ArrowRight") v = rE.left >= rC.right - 2;
+            // Margem de tolerância para manter o foco na mesma linha/coluna
+            if (key === "ArrowUp") v = rE.bottom <= rC.top + 5;
+            if (key === "ArrowDown") v = rE.top >= rC.bottom - 5;
+            if (key === "ArrowLeft") v = rE.right <= rC.left + 5;
+            if (key === "ArrowRight") v = rE.left >= rC.right - 5;
 
             if (v) {
-                // Cálculo de distância com "peso" para manter o foco na mesma área (Main ou Sidebar)
                 let d = Math.sqrt(Math.pow(rE.left - rC.left, 2) + Math.pow(rE.top - rC.top, 2));
-                if (bothInMain || bothInSide) d -= 100; // Favorece manter-se na mesma zona
-
+                // Peso para evitar que o seletor fuja para a sidebar facilmente
+                if (cur.closest('main') && el.closest('aside') && key === "ArrowUp") d += 500;
                 if (d < minDist) { minDist = d; best = el; }
             }
         });
