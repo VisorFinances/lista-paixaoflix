@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PaixãoFlix - V12 Restored</title>
+    <title>PaixãoFlix - V13 Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
@@ -14,16 +14,21 @@
         /* SIDEBAR FIXA */
         .sidebar { width: var(--sidebar-width); height: 100vh; background: #000; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; padding: 15px; border-right: 1px solid #222; z-index: 1000; }
         .logo { width: 140px !important; height: auto !important; display: block; margin: 0 auto 5px; }
-        .btn-exit-small { width: 60px; background: #d40000; color: white; border: none; padding: 4px; border-radius: 4px; font-size: 10px; font-weight: bold; margin: 0 auto 15px; cursor: pointer; display: block; }
+        .btn-exit-small { width: 60px; background: #d40000; color: white; border: none; padding: 4px; border-radius: 6px; font-size: 10px; font-weight: bold; margin: 0 auto 15px; cursor: pointer; display: block; }
 
         #search-box { width: 90%; margin: 0 auto 15px; display: block; padding: 10px; border-radius: 8px; border: 2px solid #333; background: #111; color: white; }
-        .nav-menu { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .btn-nav { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; text-align: left; }
-        .submenu { display: none; flex-wrap: wrap; gap: 5px; padding: 5px 0; }
-        .btn-cat { width: 100%; background: #111; color: #eee; border: none; padding: 10px; text-align: left; cursor: pointer; border-radius: 4px; font-size: 13px; }
+        
+        /* MENUS: 2 POR LINHA */
+        .nav-menu { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
+        .btn-nav { width: calc(50% - 4px); background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; text-align: center; font-size: 11px; }
+        
+        .submenu { display: none; flex-wrap: wrap; gap: 5px; width: 100%; padding: 10px 0; }
+        .btn-cat { width: calc(50% - 4px); background: #111; color: #eee; border: none; padding: 10px; text-align: center; cursor: pointer; border-radius: 8px; font-size: 11px; }
 
         /* FOCO */
-        .btn-nav:focus, .btn-cat:focus, .card:focus, #search-box:focus, .btn-exit-small:focus { background: var(--focus) !important; color: #000 !important; transform: scale(1.02); }
+        .btn-nav:focus, .btn-cat:focus, .card:focus, #search-box:focus, .btn-exit-small:focus, #exit-player:focus { 
+            background: var(--focus) !important; color: #000 !important; transform: scale(1.05); border-radius: 12px; 
+        }
 
         main { margin-left: var(--sidebar-width); flex: 1; padding: 20px; overflow-y: auto; height: 100vh; }
         .content-grid { display: grid; grid-template-columns: repeat(8, 1fr) !important; gap: 12px; }
@@ -34,16 +39,14 @@
         .movie-card img { width: 100% !important; height: auto !important; aspect-ratio: 2/3 !important; object-fit: cover !important; padding: 0; }
         .card-title { padding: 5px; font-size: 10px; text-align: center; font-weight: 600; min-height: 35px; display: flex; align-items: center; justify-content: center; }
 
+        /* PLAYER E BOTÃO SAIR DINÂMICO */
         #player-overlay { position: fixed; inset: 0; background: black; display: none; z-index: 9999; }
+        #exit-player { position: absolute; top: 20px; right: 20px; background: rgba(212, 0, 0, 0.8); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; z-index: 10000; display: none; }
         video { width: 100%; height: 100%; }
 
-        /* AJUSTES DISPOSITIVOS MÓVEIS (HORIZONTAL) */
         @media (max-width: 950px) {
-            :root { --sidebar-width: 220px; }
-            .nav-menu { flex-direction: row; flex-wrap: wrap; gap: 5px; }
-            .btn-nav { width: calc(50% - 5px); font-size: 11px; padding: 8px; }
+            :root { --sidebar-width: 200px; }
             .content-grid { grid-template-columns: repeat(3, 1fr) !important; }
-            .movie-mode { grid-template-columns: repeat(3, 1fr) !important; }
         }
     </style>
 </head>
@@ -54,11 +57,12 @@
     <button class="btn-exit-small" onclick="window.location.reload()">SAIR</button>
     <input type="text" id="search-box" placeholder="Buscar..." oninput="globalSearch()">
     <nav class="nav-menu">
-        <button class="btn-nav" id="btn-start" onclick="loadCategory('tv')">TV AO VIVO</button>
-        <button class="btn-nav" id="btn-cinema" onclick="toggleMenu('cat-nav')">CINEMA ▾</button>
+        <button class="btn-nav" id="btn-tv" onclick="loadCategory('tv')">TV AO VIVO</button>
+        <button class="btn-nav" onclick="toggleMenu('cat-nav')">CINEMA</button>
         <div id="cat-nav" class="submenu"></div>
-        <button class="btn-nav" onclick="loadCategory('series')">SÉRIES</button>
-        <button class="btn-nav" id="btn-kids" onclick="toggleMenu('kids-nav')">KIDS ▾</button>
+        <button class="btn-nav" onclick="toggleMenu('series-nav')">SÉRIES</button>
+        <div id="series-nav" class="submenu"></div>
+        <button class="btn-nav" onclick="toggleMenu('kids-nav')">KIDS</button>
         <div id="kids-nav" class="submenu">
             <button class="btn-cat" onclick="loadCategory('kids_canais')">TV KIDS</button>
             <button class="btn-cat" onclick="loadCategory('kids_filmes')">FILMES KIDS</button>
@@ -69,7 +73,10 @@
 
 <main><div class="content-grid" id="grid"></div></main>
 
-<div id="player-overlay"><video id="video-player" controls autoplay playsinline></video></div>
+<div id="player-overlay">
+    <button id="exit-player" onclick="closePlayer()">SAIR DO PLAYER</button>
+    <video id="video-player" controls playsinline></video>
+</div>
 
 <script>
     const API = {
@@ -103,7 +110,7 @@
             } catch(e) {}
         }
         loadCategory('tv');
-        document.getElementById('btn-start').focus();
+        document.getElementById('btn-tv').focus();
     }
 
     function parseM3U(d, type) {
@@ -131,14 +138,16 @@
             </div>`).join('');
     }
 
-    function filterCinema(cat) {
+    function filterData(cat, type) {
         let res;
+        const db = database[type];
+        // FILTRO DE ANO ABSOLUTO (SEM PUXAR GÊNERO)
         if(cat.includes("2025") || cat.includes("2026")) {
             const y = cat.match(/\d+/)[0];
-            res = database.filmes.filter(i => i.year === y);
+            res = db.filter(i => String(i.year) === y);
         } else {
             const reg = new RegExp("\\b" + cat.toLowerCase() + "\\b", "i");
-            res = database.filmes.filter(i => reg.test(i.category.toLowerCase()));
+            res = db.filter(i => reg.test(i.category.toLowerCase()));
         }
         renderGrid(res);
     }
@@ -148,8 +157,10 @@
         const isOpen = el.style.display === 'flex';
         document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
         el.style.display = isOpen ? 'none' : 'flex';
-        if(id === 'cat-nav' && !isOpen) {
-            el.innerHTML = CATEGORIAS.map(c => `<button class="btn-cat" onclick="filterCinema('${c}')">${c}</button>`).join('');
+        
+        if(!isOpen) {
+            const type = id === 'series-nav' ? 'series' : 'filmes';
+            el.innerHTML = CATEGORIAS.map(c => `<button class="btn-cat" onclick="filterData('${c}', '${type}')">${c}</button>`).join('');
         }
     }
 
@@ -160,6 +171,7 @@
 
     function globalSearch() {
         const term = document.getElementById('search-box').value.toLowerCase();
+        if(!term) { loadCategory('tv'); return; } // Volta para TV se apagar
         let res = [];
         for(let k in database) res = res.concat(database[k].filter(i => i.name.toLowerCase().includes(term)));
         renderGrid(res);
@@ -167,43 +179,62 @@
 
     function playVideo(url) {
         const v = document.getElementById('video-player');
-        document.getElementById('player-overlay').style.display = 'block';
-        if (Hls.isSupported() && url.includes('m3u8')) {
+        const overlay = document.getElementById('player-overlay');
+        const exitBtn = document.getElementById('exit-player');
+        
+        overlay.style.display = 'block';
+        exitBtn.style.display = 'block'; // Mostra botão sair ao iniciar
+        
+        // Tratamento para Archive.org e MP4 puro
+        if (url.includes('archive.org') || url.endsWith('.mp4')) {
+            v.src = url;
+            v.type = "video/mp4";
+        } else if (Hls.isSupported() && url.includes('m3u8')) {
             const hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
         } else { v.src = url; }
-        v.play();
+        
+        v.play().catch(e => console.log("Erro Play:", e));
+        exitBtn.focus();
+    }
+
+    function closePlayer() {
+        const v = document.getElementById('video-player');
+        v.pause(); v.removeAttribute('src'); v.load();
+        document.getElementById('player-overlay').style.display = 'none';
+        document.getElementById('exit-player').style.display = 'none';
     }
 
     window.addEventListener('keydown', (e) => {
         const cur = document.activeElement;
-        const all = Array.from(document.querySelectorAll('button, input, .card, [tabindex="0"]'));
+        const all = Array.from(document.querySelectorAll('button, input, .card, [tabindex="0"]')).filter(el => el.offsetParent !== null);
+        
         if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
             e.preventDefault();
             const next = getFocus(cur, all, e.key);
             if (next) next.focus();
         }
         if (e.key === "Enter") cur.click();
-        if (e.key === "Escape" || e.key === "Backspace") {
-            const v = document.getElementById('video-player');
-            v.pause(); v.src = "";
-            document.getElementById('player-overlay').style.display = 'none';
-        }
+        if (e.key === "Escape" || e.key === "Backspace") closePlayer();
     });
 
     function getFocus(cur, all, key) {
         const rC = cur.getBoundingClientRect();
         let best = null, minDist = Infinity;
         all.forEach(el => {
-            if (el === cur || el.offsetParent === null) return;
+            if (el === cur) return;
             const rE = el.getBoundingClientRect();
-            let v = false;
-            if (key === "ArrowUp") v = rE.bottom <= rC.top + 5;
-            if (key === "ArrowDown") v = rE.top >= rC.bottom - 5;
-            if (key === "ArrowLeft") v = rE.right <= rC.left + 5;
-            if (key === "ArrowRight") v = rE.left >= rC.right - 5;
-            if (v) {
-                const d = Math.sqrt(Math.pow(rE.left - rC.left, 2) + Math.pow(rE.top - rC.top, 2));
-                if (d < minDist) { minDist = d; best = el; }
+            let valid = false;
+            
+            // Tolerância de 10px para alinhar elementos
+            if (key === "ArrowUp") valid = rE.bottom <= rC.top + 10;
+            if (key === "ArrowDown") valid = rE.top >= rC.bottom - 10;
+            if (key === "ArrowLeft") valid = rE.right <= rC.left + 10;
+            if (key === "ArrowRight") valid = rE.left >= rC.right - 10;
+
+            if (valid) {
+                // Prioriza o elemento mais próximo no eixo principal do movimento
+                const dist = Math.sqrt(Math.pow(rE.left - rC.left, 2) + Math.pow(rE.top - rC.top, 2));
+                if (dist < minDist) { minDist = dist; best = el; }
             }
         });
         return best;
