@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PaixãoFlix - V7 Ultimate</title>
+    <title>PaixãoFlix - V8 Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
@@ -11,53 +11,51 @@
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; }
         body { background-color: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* LOADER 3X MAIOR */
+        /* LOADER */
         #loader { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 30000; }
         .loader-logo { width: 420px !important; height: auto !important; margin-bottom: 30px; animation: pulse 2s infinite; }
-        .spinner { width: 60px; height: 60px; border: 6px solid #222; border-top: 6px solid var(--focus); border-radius: 50%; animation: spin 1s linear infinite; }
 
-        /* SIDEBAR E COMPONENTES REDUZIDOS */
+        /* SIDEBAR */
         .sidebar { width: var(--sidebar-width); height: 100vh; background: #000; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; padding: 15px; border-right: 1px solid #222; z-index: 1000; }
         .logo { width: 140px !important; height: auto !important; display: block; margin: 0 auto 10px; }
-        .btn-exit-sys { width: 80px; background: #d40000; color: white; border: none; padding: 6px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; margin: 0 auto 15px; display: block; }
-        
-        #search-box { width: 85%; margin: 0 auto 15px; display: block; padding: 10px; border-radius: 8px; border: 2px solid #333; background: #111; color: white; font-size: 15px; }
+        #search-box { width: 85%; margin: 0 auto 15px; display: block; padding: 10px; border-radius: 8px; border: 2px solid #333; background: #111; color: white; }
 
-        .nav-menu { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .btn-nav { width: calc(100% - 15px); margin: 0 auto; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; text-align: left; font-size: 13px; }
+        .btn-nav { width: calc(100% - 15px); margin: 0 auto 8px; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; text-align: left; }
+        .submenu { display: none; flex-direction: column; gap: 6px; padding-left: 15px; margin-bottom: 10px; }
+        .btn-cat { width: calc(100% - 15px); background: #111; color: #eee; border: none; padding: 10px; text-align: left; cursor: pointer; border-radius: 4px; font-size: 14px; }
 
-        .submenu { display: none; flex-direction: column; gap: 6px; padding: 10px 0 10px 15px; }
-        .btn-cat { width: calc(100% - 15px); background: #111; color: #eee; border: none; padding: 12px; text-align: left; cursor: pointer; font-size: 15px; font-weight: 600; border-radius: 4px; }
-
-        /* SELETOR */
-        .btn-nav:focus, .btn-cat:focus, .card:focus, .btn-exit-sys:focus, #search-box:focus { background: var(--focus) !important; box-shadow: 0 0 0 4px #fff; transform: scale(1.03); z-index: 999; }
+        /* FOCO */
+        .btn-nav:focus, .btn-cat:focus, .card:focus, #search-box:focus, .modal-btn:focus { background: var(--focus) !important; box-shadow: 0 0 0 4px #fff; transform: scale(1.03); z-index: 999; }
 
         main { margin-left: var(--sidebar-width); flex: 1; padding: 20px; overflow-y: auto; height: 100vh; }
         
-        /* GRID CANAIS: 8 POR LINHA COM QUALIDADE AUMENTADA */
+        /* GRIDS */
         .content-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; }
-        .card { background: #111; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: 0.2s; }
+        .card { background: #111; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; }
+        .card img { width: 85px !important; height: 85px !important; object-fit: contain; display: block; margin: 0 auto; padding: 6px; }
         
-        /* LOGO CANAIS TRAVADO 85PX */
-        .card img { width: 85px !important; height: 85px !important; object-fit: contain; display: block; margin: 0 auto; background: #000; padding: 6px; }
-        
-        /* MODO FILME / SÉRIE (CAPAS GRANDES) */
         .movie-mode { grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)) !important; }
         .movie-card img { width: 100% !important; height: auto !important; aspect-ratio: 2/3 !important; object-fit: cover !important; padding: 0; }
+        .card-title { padding: 6px; font-size: 11px; text-align: center; font-weight: 600; min-height: 38px; display: flex; align-items: center; justify-content: center; }
 
-        .card-title { padding: 6px; font-size: 11px; text-align: center; font-weight: 600; word-wrap: break-word; min-height: 38px; display: flex; align-items: center; justify-content: center; }
+        /* MODAL RETOMAR */
+        #resume-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 20000; }
+        .modal-content { background: #111; padding: 30px; border-radius: 15px; text-align: center; border: 2px solid var(--primary); }
+        .modal-btn { padding: 15px 25px; margin: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
 
         /* PLAYER */
         #player-overlay { position: fixed; inset: 0; background: black; display: none; z-index: 9999; }
-        #exit-btn { position: absolute; top: 30px; right: 30px; background: #f00; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 10001; }
-        #exit-btn.visible { opacity: 1; pointer-events: auto; }
-        video { width: 100%; height: 100%; position: absolute; top:0; left:0; }
+        #exit-btn { position: absolute; top: 30px; right: 30px; background: #f00; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; opacity: 0; transition: 0.3s; z-index: 10001; }
+        #exit-btn.visible { opacity: 1; }
+        video { width: 100%; height: 100%; }
+
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.02); opacity: 1; } }
 
         @media (max-width: 800px) {
             body { flex-direction: column; }
             .sidebar { width: 100%; height: auto; position: relative; }
             main { margin-left: 0; }
-            .content-grid { grid-template-columns: repeat(5, 1fr) !important; }
+            .content-grid { grid-template-columns: repeat(4, 1fr) !important; }
         }
     </style>
 </head>
@@ -65,12 +63,19 @@
 
 <div id="loader">
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="loader-logo">
-    <div class="spinner"></div>
+    <div style="width: 60px; height: 60px; border: 6px solid #222; border-top: 6px solid var(--focus); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+</div>
+
+<div id="resume-modal">
+    <div class="modal-content">
+        <h2 id="modal-title">Continuar assistindo?</h2>
+        <button class="modal-btn" id="btn-resume" style="background: var(--focus); color: #000;">RETOMAR</button>
+        <button class="modal-btn" id="btn-restart" style="background: #444; color: #fff;">RECOMEÇAR</button>
+    </div>
 </div>
 
 <aside class="sidebar">
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="logo">
-    <button class="btn-exit-sys" onclick="window.location.reload()">SAIR</button>
     <input type="text" id="search-box" placeholder="Pesquisar..." oninput="globalSearch()" onblur="this.value=''">
     <nav class="nav-menu">
         <button class="btn-nav" onclick="loadCategory('tv')">TV AO VIVO</button>
@@ -103,13 +108,13 @@
         kids_series: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/kids_series.json"
     };
 
-    const CATEGORIAS_LISTA = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
     let database = {};
+    const CATEGORIAS_LISTA = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
 
     async function init() {
         for(let key in API) {
             try {
-                const r = await fetch(API[key] + "?t=" + Date.now());
+                const r = await fetch(API[key]);
                 const t = await r.text();
                 if(t.trim().startsWith('[') || t.trim().startsWith('{')) {
                     const j = JSON.parse(t);
@@ -144,18 +149,43 @@
 
     function renderGrid(data) {
         const g = document.getElementById('grid');
-        // Identifica se são filmes/séries para ativar modo pôster
         const isMovie = data.some(i => i.type && !i.type.includes('canais') && i.type !== 'tv');
         g.className = isMovie ? "content-grid movie-mode" : "content-grid";
-        
         g.innerHTML = data.map(i => {
             const isItemMovie = i.type && !i.type.includes('canais') && i.type !== 'tv';
-            return `
-            <div class="card ${isItemMovie ? 'movie-card' : ''}" tabindex="0" onclick="playVideo('${i.url}')">
+            return `<div class="card ${isItemMovie ? 'movie-card' : ''}" tabindex="0" onclick="handlePlayAction('${i.url}', '${i.name}')">
                 <img src="${i.logo}" loading="lazy">
                 <div class="card-title">${i.name}</div>
-            </div>
-        `}).join('');
+            </div>`;
+        }).join('');
+    }
+
+    function handlePlayAction(url, name) {
+        const savedTime = localStorage.getItem('progress_' + btoa(name));
+        if (savedTime && parseFloat(savedTime) > 10) {
+            const modal = document.getElementById('resume-modal');
+            modal.style.display = 'flex';
+            document.getElementById('btn-resume').onclick = () => { modal.style.display = 'none'; playVideo(url, name, savedTime); };
+            document.getElementById('btn-restart').onclick = () => { modal.style.display = 'none'; playVideo(url, name, 0); };
+            document.getElementById('btn-resume').focus();
+        } else {
+            playVideo(url, name, 0);
+        }
+    }
+
+    function playVideo(url, name, startTime) {
+        const v = document.getElementById('video-player');
+        document.getElementById('player-overlay').style.display = 'block';
+        if (Hls.isSupported() && (url.includes('m3u8') || url.includes('archive.org'))) {
+            const hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
+        } else { v.src = url; }
+        v.currentTime = startTime;
+        v.play();
+
+        // Salvar progresso a cada 10 segundos
+        v.ontimeupdate = () => {
+            if(v.currentTime > 10) localStorage.setItem('progress_' + btoa(name), v.currentTime);
+        };
     }
 
     function toggleMenu(id) {
@@ -163,18 +193,16 @@
         const isOpen = el.style.display === 'flex';
         document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
         el.style.display = isOpen ? 'none' : 'flex';
-        if(id === 'cat-nav') el.innerHTML = CATEGORIAS_LISTA.map(c => `<button class="btn-cat" onclick="filterCinema('${c}')">${c}</button>`).join('');
+        if(id === 'cat-nav' && !isOpen) el.innerHTML = CATEGORIAS_LISTA.map(c => `<button class="btn-cat" onclick="filterCinema('${c}')">${c}</button>`).join('');
     }
 
     function filterCinema(cat) {
         let res;
         if(cat.includes("2025") || cat.includes("2026")) {
             const ano = cat.split(" ")[1];
-            // Filtro EXCLUSIVO por ano, ignorando gêneros
             res = database.filmes.filter(i => i.year === ano);
         } else {
             const regex = new RegExp("\\b" + cat.toLowerCase() + "\\b", "i");
-            // Filtro de gênero que exclui Animação se a categoria for Ação
             res = database.filmes.filter(i => regex.test(i.category.toLowerCase()) && (cat === "Animação" || !i.category.toLowerCase().includes("animação")));
         }
         renderGrid(res);
@@ -194,14 +222,10 @@
         renderGrid(res);
     }
 
-    function playVideo(url) {
-        if(!url) return;
+    function closePlayer() {
         const v = document.getElementById('video-player');
-        document.getElementById('player-overlay').style.display = 'block';
-        if (Hls.isSupported() && (url.includes('m3u8') || url.includes('archive.org'))) {
-            const hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
-        } else { v.src = url; }
-        v.play().catch(e => { alert("Este link não pode ser reproduzido."); closePlayer(); });
+        v.pause(); v.src = "";
+        document.getElementById('player-overlay').style.display = 'none';
     }
 
     let uiTimer;
@@ -212,13 +236,7 @@
         uiTimer = setTimeout(() => btn.classList.remove('visible'), 3000);
     }
 
-    function closePlayer() {
-        const v = document.getElementById('video-player');
-        v.pause(); v.src = "";
-        document.getElementById('player-overlay').style.display = 'none';
-    }
-
-    // NAVEGAÇÃO 4 DIREÇÕES
+    // NAVEGAÇÃO ESPACIAL OTIMIZADA
     window.addEventListener('keydown', (e) => {
         const cur = document.activeElement;
         const all = Array.from(document.querySelectorAll('button, input, .card, [tabindex="0"]'));
@@ -236,16 +254,26 @@
     function getFocus(cur, all, key) {
         const rC = cur.getBoundingClientRect();
         let best = null, minDist = Infinity;
+        
         all.forEach(el => {
-            if (el === cur) return;
+            if (el === cur || el.offsetParent === null) return;
             const rE = el.getBoundingClientRect();
             let v = false;
-            if (key === "ArrowUp") v = rE.bottom <= rC.top + 5;
-            if (key === "ArrowDown") v = rE.top >= rC.bottom - 5;
-            if (key === "ArrowLeft") v = rE.right <= rC.left + 5;
-            if (key === "ArrowRight") v = rE.left >= rC.right - 5;
+            
+            // Lógica de prioridade: Se estiver na grade, tenta achar outro na grade primeiro
+            const bothInMain = (cur.closest('main') && el.closest('main'));
+            const bothInSide = (cur.closest('aside') && el.closest('aside'));
+
+            if (key === "ArrowUp") v = rE.bottom <= rC.top + 2;
+            if (key === "ArrowDown") v = rE.top >= rC.bottom - 2;
+            if (key === "ArrowLeft") v = rE.right <= rC.left + 2;
+            if (key === "ArrowRight") v = rE.left >= rC.right - 2;
+
             if (v) {
-                const d = Math.sqrt(Math.pow(rE.left - rC.left, 2) + Math.pow(rE.top - rC.top, 2));
+                // Cálculo de distância com "peso" para manter o foco na mesma área (Main ou Sidebar)
+                let d = Math.sqrt(Math.pow(rE.left - rC.left, 2) + Math.pow(rE.top - rC.top, 2));
+                if (bothInMain || bothInSide) d -= 100; // Favorece manter-se na mesma zona
+
                 if (d < minDist) { minDist = d; best = el; }
             }
         });
