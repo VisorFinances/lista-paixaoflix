@@ -1,251 +1,155 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PaixãoFlix - V24 Original Fixed</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root { --primary: #013161; --bg: #050505; --text: #ffffff; --sidebar-width: 280px; }
-        * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
-
-        /* SIDEBAR */
-        .sidebar { width: var(--sidebar-width); height: 100vh; background: #000; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; padding: 15px; border-right: 1px solid #222; z-index: 1000; }
-        .logo { width: 180px; display: block; margin: 0 auto 10px; }
-        .btn-exit-small { width: 60px; background: #d40000; color: white; border: none; padding: 4px; border-radius: 6px; font-size: 10px; font-weight: bold; margin: 0 auto 10px; cursor: pointer; }
-        #search-box { width: 90%; margin: 0 auto 20px; padding: 10px; border-radius: 8px; border: 2px solid #333; background: #111; color: white; }
-        
-        .nav-menu { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
-        .btn-nav { width: calc(50% - 4px); background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 14px; }
-        .submenu { display: none; flex-wrap: wrap; gap: 5px; width: 100%; padding: 10px 0; }
-        .btn-cat { width: calc(50% - 4px); background: #111; color: #eee; border: none; padding: 12px; border-radius: 10px; cursor: pointer; }
-
-        /* SELETOR BRANCO (CONFORME SOLICITADO) */
-        .btn-nav:focus, .btn-cat:focus, .card:focus, #search-box:focus, .btn-exit-small:focus, #exit-player:focus, .ep-item:focus { 
-            background: #ffffff !important; color: #000 !important; transform: scale(1.05); box-shadow: 0 0 15px #ffffff; outline: none;
-        }
-
-        /* CONTEÚDO */
-        main { margin-left: var(--sidebar-width); flex: 1; padding: 20px; overflow-y: auto; height: 100vh; }
-        .tv-section { margin-bottom: 30px; }
-        .tv-row { display: flex; overflow-x: auto; gap: 10px; padding: 10px 0; scroll-behavior: smooth; }
-        .tv-row::-webkit-scrollbar { display: none; }
-
-        /* CARDS CANAIS KIDS (7 POR LINHA) */
-        .kids-row .card { width: calc(100% / 7.5) !important; flex: 0 0 auto; }
-        .card { background: #111; border-radius: 8px; overflow: hidden; cursor: pointer; flex: 0 0 auto; width: 130px; text-align: center; }
-        .card img { width: 85%; height: auto; object-fit: contain; margin: 10px auto; display: block; }
-        .card-title { font-size: 11px; padding: 5px; min-height: 30px; display: flex; align-items: center; justify-content: center; }
-
-        /* GRADES */
-        .grid-padrao { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-        .movie-card { width: 100%; }
-        .movie-card img { width: 100%; height: auto; aspect-ratio: 2/3; object-fit: cover; }
-
-        /* PLAYER E MODAL DE EPISÓDIOS */
-        #player-overlay, #episodes-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; z-index: 9999; }
-        #episodes-modal { flex-direction: column; align-items: center; justify-content: center; padding: 40px; }
-        .ep-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 900px; }
-        .ep-item { background: var(--primary); padding: 15px; border-radius: 8px; text-align: center; cursor: pointer; font-weight: bold; }
-        
-        #exit-player { position: absolute; top: 30px; right: 30px; background: var(--primary); color: white; border: 2px solid white; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; z-index: 10001; }
-        video { width: 100%; height: 100%; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PaixãoFlix - V20 Ultra Frozen</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<style>
+:root{--primary:#013161;--focus:#00d4ff;--bg:#050505;--text:#fff;--sidebar-width:280px}
+*{box-sizing:border-box;outline:none;font-family:'Poppins',sans-serif}
+body{background:var(--bg);color:var(--text);margin:0;display:flex;height:100vh;overflow:hidden}
+.sidebar{width:var(--sidebar-width);height:100vh;background:#000;position:fixed;left:0;top:0;display:flex;flex-direction:column;padding:15px;border-right:1px solid #222;z-index:1000}
+.logo{width:180px!important;margin:0 auto 5px}
+.btn-exit-small{width:60px;background:#d40000;color:#fff;border:none;padding:4px;border-radius:6px;font-size:10px;font-weight:bold;margin:0 auto 10px;cursor:pointer}
+#search-box{width:90%;margin:0 auto 25px;padding:10px;border-radius:8px;border:2px solid #333;background:#111;color:#fff}
+.nav-menu{flex-grow:1;overflow-y:auto;display:flex;flex-wrap:wrap;gap:8px}
+.btn-nav{width:calc(50% - 4px);background:var(--primary);color:#fff;border:none;padding:12px;border-radius:10px;font-weight:700;cursor:pointer}
+.submenu{display:none;flex-wrap:wrap;gap:5px;width:100%;padding:10px 0}
+.btn-cat{width:calc(50% - 4px);background:#111;color:#eee;border:none;padding:12px;border-radius:10px;font-weight:600}
+main{margin-left:var(--sidebar-width);flex:1;padding:20px;overflow-y:auto}
+.content-grid{display:grid;grid-template-columns:repeat(8,1fr)!important;gap:12px}
+.movie-mode{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))!important}
+.card{background:#111;border-radius:8px;overflow:hidden;cursor:pointer;width:130px}
+.card img{width:90px;height:90px;object-fit:contain;margin:0 auto;padding:8px}
+.movie-card img{width:100%!important;aspect-ratio:2/3;object-fit:cover;padding:0}
+.card-info{background:rgba(0,0,0,.8)}
+.card-title{text-align:center;font-size:11px;font-weight:600}
+#player-overlay{position:fixed;inset:0;background:black;display:none;z-index:9999}
+#exit-player{position:absolute;top:30px;right:30px;background:var(--primary);color:#fff;padding:15px 30px;border-radius:10px;font-weight:bold}
+video{width:100%;height:100%}
+</style>
 </head>
-<body>
 
+<body>
 <aside class="sidebar">
-    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="logo">
-    <button class="btn-exit-small" onclick="window.location.reload()">SAIR</button>
-    <input type="text" id="search-box" placeholder="Buscar...">
-    <nav class="nav-menu">
-        <button class="btn-nav" onclick="loadTV()">TV</button>
-        <button class="btn-nav" onclick="toggleMenu('cat-nav', 'filmes')">CINEMA</button>
-        <div id="cat-nav" class="submenu"></div>
-        <button class="btn-nav" onclick="toggleMenu('series-nav', 'series')">SÉRIES</button>
-        <div id="series-nav" class="submenu"></div>
-        <button class="btn-nav" onclick="loadKids()">KIDS</button>
-    </nav>
+<img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="logo">
+<button class="btn-exit-small" onclick="location.reload()">SAIR</button>
+<input id="search-box" placeholder="Buscar..." oninput="globalSearch()">
+<nav class="nav-menu">
+<button class="btn-nav" onclick="loadTV()">TV</button>
+<button class="btn-nav" onclick="toggleMenu('cat-nav','filmes')">CINEMA</button>
+<div id="cat-nav" class="submenu"></div>
+<button class="btn-nav" onclick="toggleMenu('series-nav','series')">SÉRIES</button>
+<div id="series-nav" class="submenu"></div>
+<button class="btn-nav" onclick="toggleMenu('kids-nav','kids_series')">KIDS</button>
+<div id="kids-nav" class="submenu"></div>
+</nav>
 </aside>
 
-<main id="main-content"></main>
-
-<div id="episodes-modal">
-    <h2 id="modal-title">Episódios</h2>
-    <div class="ep-list" id="ep-list"></div>
-    <button class="btn-nav" style="margin-top:20px; width:200px" onclick="closeModal()">VOLTAR</button>
-</div>
+<main id="main-content"><div class="content-grid" id="grid"></div></main>
 
 <div id="player-overlay">
-    <button id="exit-player" onclick="closePlayer()">SAIR DO PLAYER</button>
-    <video id="video-player" controls preload="auto"></video>
+<button id="exit-player" onclick="closePlayer()">SAIR DO PLAYER</button>
+<video id="video-player" controls></video>
 </div>
 
 <script>
-    const API = {
-        tv: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u",
-        filmes: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json",
-        series: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/series.json",
-        kids_canais: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_kids_canais.m3u",
-        kids_filmes: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/kids_filmes.json"
-    };
+const API={
+tv:"https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u",
+filmes:"https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json",
+series:"https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/series.json",
+kids_series:"https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/kids_series.json"
+};
 
-    let database = {};
-    const CATEGORIAS = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Animação", "Terror", "Ficção", "Adulto"];
+let database={};
 
-    async function init() {
-        for(let key in API) {
-            try {
-                const r = await fetch(API[key]);
-                const t = await r.text();
-                if(t.trim().startsWith('[') || t.trim().startsWith('{')) {
-                    database[key] = JSON.parse(t);
-                } else { database[key] = parseM3U(t, key); }
-            } catch(e) {}
-        }
-        loadTV();
-    }
+async function init(){
+for(const k in API){
+const r=await fetch(API[k]);
+const t=await r.text();
 
-    function parseM3U(d, type) {
-        const items = [];
-        const lines = d.split('\n');
-        let group = "GERAL";
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes('group-title="')) group = lines[i].match(/group-title="([^"]+)"/)[1];
-            if (lines[i].includes('#EXTINF')) {
-                const name = lines[i].split(',')[1]?.trim();
-                const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1];
-                const url = lines[i+1]?.trim();
-                if(url) items.push({ name, url, logo, category: group, type: 'tv' });
-            }
-        }
-        return items;
-    }
+if(k.includes("series")){
+const j=JSON.parse(t);
+database[k]=j.map(i=>({
+name:i.titulo,
+url:`https://archive.org/download/${i.identificador_archive}/${i.identificador_archive}.mp4`,
+logo:i.poster,
+category:i.genero||"",
+year:i.year||"",
+rating:i.rating||"",
+type:k
+}));
+}else if(k==="filmes"){
+database[k]=JSON.parse(t).map(i=>({
+name:i.titulo||i.name,
+url:i.url||i.link,
+logo:i.poster||i.logo,
+category:i.genero||"",
+year:i.year||"",
+rating:i.rating||"",
+type:k
+}));
+}else{
+database[k]=parseM3U(t,k);
+}
+}
+loadTV();
+}
 
-    function loadTV() {
-        renderRows(database.tv, "TV GERAL");
-    }
+function parseM3U(d,type){
+const items=[],l=d.split('\n');let cat="GERAL";
+for(let i=0;i<l.length;i++){
+if(l[i].includes('group-title="'))cat=l[i].match(/group-title="([^"]+)"/)?.[1]||cat;
+if(l[i].includes('#EXTINF')){
+const name=l[i].split(',')[1]?.trim();
+const logo=l[i].match(/tvg-logo="([^"]+)"/)?.[1];
+const url=l[i+1]?.trim();
+if(url)items.push({name,url,logo,category:cat,type});
+}}
+return items;
+}
 
-    function loadKids() {
-        const main = document.getElementById('main-content');
-        main.innerHTML = "";
-        // Canais Kids com 7 por linha
-        renderRows(database.kids_canais, "CANAIS KIDS", true);
-        // Filmes Kids na grade
-        const h = document.createElement('h2'); h.innerText = "FILMES KIDS";
-        const g = document.createElement('div'); g.className = "grid-padrao";
-        g.innerHTML = database.kids_filmes.map(i => `<div class="card movie-card" tabindex="0" onclick="playVideo('${i.url}')"><img src="${i.poster}"><div class="card-title">${i.titulo}</div></div>`).join('');
-        main.appendChild(h); main.appendChild(g);
-    }
+function renderGrid(d){
+const g=document.getElementById("grid");
+g.className="content-grid movie-mode";
+g.innerHTML=d.map(i=>`
+<div class="card movie-card" tabindex="0" onclick="playVideo('${i.url}')">
+<img src="${i.logo}">
+<div class="card-info"><div class="card-title">${i.name}</div></div>
+</div>`).join("");
+}
 
-    function renderRows(data, title, isKids = false) {
-        const main = document.getElementById('main-content');
-        const groups = [...new Set(data.map(i => i.category))];
-        groups.forEach(g => {
-            const sec = document.createElement('div');
-            sec.className = `tv-section ${isKids ? 'kids-row' : ''}`;
-            sec.innerHTML = `<h2>${g}</h2><div class="tv-row"></div>`;
-            const row = sec.querySelector('.tv-row');
-            data.filter(i => i.category === g).forEach(i => {
-                row.innerHTML += `<div class="card" tabindex="0" onclick="playVideo('${i.url}')"><img src="${i.logo}"><div class="card-title">${i.name}</div></div>`;
-            });
-            main.appendChild(sec);
-        });
-    }
+function toggleMenu(id,type){
+const el=document.getElementById(id);
+el.style.display=el.style.display==="flex"?"none":"flex";
+el.innerHTML=[...new Set(database[type].map(i=>i.category))].map(c=>
+`<button class="btn-cat" onclick="renderGrid(database['${type}'].filter(i=>i.category==='${c}'))">${c}</button>`).join("");
+}
 
-    function toggleMenu(id, type) {
-        const el = document.getElementById(id);
-        const isOpen = el.style.display === 'flex';
-        document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
-        el.style.display = isOpen ? 'none' : 'flex';
-        el.innerHTML = CATEGORIAS.map(c => `<button class="btn-cat" onclick="filter('${c}','${type}')">${c}</button>`).join('');
-    }
+function loadTV(){renderGrid(database.tv||[])}
 
-    function filter(cat, type) {
-        const res = database[type].filter(i => (i.genero || "").includes(cat) || (i.year === cat.split(" ")[1]));
-        const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="grid-padrao"></div>`;
-        const g = main.querySelector('.grid-padrao');
-        g.innerHTML = res.map(i => `<div class="card movie-card" tabindex="0" onclick="${type === 'series' ? `openSeries('${i.identificador_archive}')` : `playVideo('${i.url}')`}"><img src="${i.poster}"><div class="card-title">${i.titulo}</div></div>`).join('');
-    }
+function globalSearch(){
+const t=document.getElementById("search-box").value.toLowerCase();
+let r=[];for(const k in database)r=r.concat(database[k].filter(i=>i.name.toLowerCase().includes(t)));
+renderGrid(r);
+}
 
-    // LÓGICA DE SÉRIES (ABRIR EPISÓDIOS)
-    function openSeries(id) {
-        const modal = document.getElementById('episodes-modal');
-        const list = document.getElementById('ep-list');
-        modal.style.display = 'flex';
-        list.innerHTML = "";
-        for(let i=1; i<=10; i++) { // Exemplo: 10 episódios
-            const url = `https://archive.org/download/${id}/${id}_ep${i < 10 ? '0'+i : i}.mp4`;
-            list.innerHTML += `<div class="ep-item" tabindex="0" onclick="playVideo('${url}')">Episódio ${i}</div>`;
-        }
-        list.querySelector('.ep-item').focus();
-    }
-
-    function closeModal() { document.getElementById('episodes-modal').style.display = 'none'; }
-
-    function playVideo(url) {
-        const v = document.getElementById('video-player');
-        document.getElementById('player-overlay').style.display = 'block';
-        v.src = url; v.play();
-        setTimeout(() => document.getElementById('exit-player').focus(), 500);
-    }
-
-    function closePlayer() { 
-        const v = document.getElementById('video-player'); 
-        v.pause(); v.src = ""; 
-        document.getElementById('player-overlay').style.display = 'none'; 
-    }
-
-    // NAVEGAÇÃO HORIZONTAL INFINITA + SELETOR
-    window.addEventListener('keydown', (e) => {
-        const cur = document.activeElement;
-        const row = cur.closest('.tv-row');
-        
-        if (e.key === "ArrowRight" && row) {
-            const cards = Array.from(row.querySelectorAll('.card'));
-            if (cur === cards[cards.length - 1]) {
-                e.preventDefault();
-                cards[0].focus();
-                return;
-            }
-        }
-        if (e.key === "ArrowLeft" && row) {
-            const cards = Array.from(row.querySelectorAll('.card'));
-            if (cur === cards[0]) {
-                e.preventDefault();
-                cards[cards.length - 1].focus();
-                return;
-            }
-        }
-
-        // Lógica de movimentação padrão
-        const navKeys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
-        if (navKeys.includes(e.key)) {
-            e.preventDefault();
-            const all = Array.from(document.querySelectorAll('button, input, .card, .ep-item')).filter(el => el.offsetParent !== null);
-            const rC = cur.getBoundingClientRect();
-            let best = null, minDist = Infinity;
-            all.forEach(el => {
-                if (el === cur) return;
-                const rE = el.getBoundingClientRect();
-                let valid = false;
-                if (e.key === "ArrowUp") valid = rE.bottom <= rC.top + 5;
-                if (e.key === "ArrowDown") valid = rE.top >= rC.bottom - 5;
-                if (e.key === "ArrowLeft") valid = rE.right <= rC.left + 5;
-                if (e.key === "ArrowRight") valid = rE.left >= rC.right - 5;
-                if (valid) {
-                    const d = Math.hypot(rE.left - rC.left, rE.top - rC.top);
-                    if (d < minDist) { minDist = d; best = el; }
-                }
-            });
-            if (best) best.focus();
-        }
-        if (e.key === "Enter") cur.click();
-    });
-
-    init();
+let hls=null;
+function playVideo(url){
+const v=document.getElementById("video-player");
+document.getElementById("player-overlay").style.display="block";
+if(hls){hls.destroy();hls=null}
+if(url.endsWith(".m3u8")&&Hls.isSupported()){hls=new Hls();hls.loadSource(url);hls.attachMedia(v)}
+else v.src=url;
+v.play();
+}
+function closePlayer(){
+if(hls){hls.destroy();hls=null}
+document.getElementById("player-overlay").style.display="none";
+}
+init();
 </script>
 </body>
 </html>
