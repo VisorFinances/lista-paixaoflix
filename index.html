@@ -138,13 +138,12 @@ function renderList() {
     channelList.innerHTML = "";
     let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     
-    // Determina qual dado exibir
     let data = [];
     if (viewMode === "categories") data = movieCats;
     else if (viewMode === "series") data = seriesCats;
     else if (viewMode === "channels") data = channels;
     else if (viewMode === "fav") data = favorites;
-    else data = filteredList; // Para movie_list, series_list, kids_*, etc.
+    else if (viewMode === "movie_list" || viewMode === "series_list" || viewMode === "search_results" || viewMode.startsWith("kids")) data = filteredList;
     
     data.forEach((item, i) => {
         const div = document.createElement("div");
@@ -179,10 +178,7 @@ async function handleAction() {
         const sourceData = isMovie ? movies : series;
         const catName = item.toUpperCase().trim();
         
-        filteredList = sourceData.filter(m => {
-            let gen = (m.genero || "").toUpperCase().trim();
-            return gen === catName;
-        });
+        filteredList = sourceData.filter(m => (m.genero || "").toUpperCase().trim() === catName);
         
         viewMode = isMovie ? "movie_list" : "series_list"; 
         selectedIndex = 0; 
@@ -208,8 +204,6 @@ async function handleAction() {
 
 document.addEventListener("keydown", e => {
     let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    
-    // CORREÇÃO: Pegar o tamanho da lista correta baseado no viewMode atual
     let currentData = [];
     if (viewMode === "categories") currentData = movieCats;
     else if (viewMode === "series") currentData = seriesCats;
@@ -248,18 +242,19 @@ document.addEventListener("keydown", e => {
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
 
-function loadM3U(path, array) {
+function loadM3U(path, array, isMainCanais = false) {
     fetch(path).then(r=>r.text()).then(text=>{
         let temp=null;
         text.split("\n").forEach(l=>{
             if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop().trim()};
             else if(l.startsWith("http") && temp){ temp.url=l.trim(); array.push(temp); temp=null; }
         });
+        if(isMainCanais && array.length > 0) playMedia(array[0]);
     });
 }
 
 window.onload = () => {
-    loadM3U("data/canais.m3u", channels);
+    loadM3U("data/canais.m3u", channels, true);
     loadM3U("data/kids_canais.m3u", kidsChannels);
     fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d);
     fetch("data/series.json").then(r=>r.json()).then(d=>series=d);
