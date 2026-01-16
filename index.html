@@ -136,9 +136,11 @@ function playMedia(item) {
 
 function renderList() {
     channelList.innerHTML = "";
+    let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    
     let data = [];
     if (viewMode === "categories") data = movieCats;
-    else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    else if (viewMode === "series") data = seriesCats;
     else if (viewMode === "channels") data = channels;
     else if (viewMode === "fav") data = favorites;
     else data = filteredList; 
@@ -165,7 +167,8 @@ function renderList() {
 }
 
 async function handleAction() {
-    let data = viewMode === "categories" ? movieCats : (viewMode === "series" ? [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))] : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
+    let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    let data = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
     const item = data[selectedIndex];
     if (!item) return;
 
@@ -197,7 +200,8 @@ async function handleAction() {
 }
 
 document.addEventListener("keydown", e => {
-    let currentData = viewMode === "categories" ? movieCats : (viewMode === "series" ? [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))] : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
+    let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    let currentData = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
     let dataLen = currentData.length;
     
     if (menuFocused) {
@@ -230,6 +234,17 @@ document.addEventListener("keydown", e => {
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
+
+function loadM3U(path, array, isMainCanais = false) {
+    fetch(path).then(r=>r.text()).then(text=>{
+        let temp=null;
+        text.split("\n").forEach(l=>{
+            if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop().trim()};
+            else if(l.startsWith("http") && temp){ temp.url=l.trim(); array.push(temp); temp=null; }
+        });
+        if(isMainCanais && array.length > 0) playMedia(array[0]);
+    });
+}
 
 window.onload = () => {
     loadM3U("data/canais.m3u", channels, true);
