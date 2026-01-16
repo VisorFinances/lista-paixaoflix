@@ -51,7 +51,6 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 #posterWrapper { position: absolute; top: 50%; left: 360px; transform: translateY(-50%); width: 300px; height: 450px; z-index: 120; display: none; pointer-events: none; }
 #posterPreview { width: 100%; height: 100%; border-radius: 12px; background: #222; object-fit: cover; border: 3px solid #ff9800; }
 
-/* ESTILO NETFLIX NAS CAPAS */
 #ratingBadge { position: absolute; top: 15px; right: 15px; background: rgba(229, 9, 20, 0.9); color: #fff; padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 18px; display: flex; align-items: center; gap: 6px; }
 #yearBadge { position: absolute; bottom: 15px; left: 15px; background: rgba(0, 0, 0, 0.8); color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 16px; border: 1px solid #444; }
 </style>
@@ -138,7 +137,14 @@ function playMedia(item) {
 function renderList() {
     channelList.innerHTML = "";
     let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    let data = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
+    
+    // Determina qual dado exibir
+    let data = [];
+    if (viewMode === "categories") data = movieCats;
+    else if (viewMode === "series") data = seriesCats;
+    else if (viewMode === "channels") data = channels;
+    else if (viewMode === "fav") data = favorites;
+    else data = filteredList; // Para movie_list, series_list, kids_*, etc.
     
     data.forEach((item, i) => {
         const div = document.createElement("div");
@@ -149,14 +155,16 @@ function renderList() {
     });
 
     const cur = data[selectedIndex];
-    if (!menuFocused && cur?.poster) { 
+    if (!menuFocused && cur && typeof cur === 'object' && cur.poster) { 
         posterPreview.src = cur.poster; 
         posterWrapper.style.display = "block";
         ratingBadge.style.display = (cur.rating || cur.vote_average) ? "flex" : "none";
-        ratingValue.innerText = cur.rating || cur.vote_average || "";
-        yearBadge.innerText = cur.year || "S/A";
+        ratingValue.innerText = cur.rating || cur.vote_average || "0.0";
+        yearBadge.innerText = cur.year || "";
         yearBadge.style.display = cur.year ? "block" : "none";
-    } else { posterWrapper.style.display = "none"; }
+    } else { 
+        posterWrapper.style.display = "none"; 
+    }
 }
 
 async function handleAction() {
@@ -171,11 +179,9 @@ async function handleAction() {
         const sourceData = isMovie ? movies : series;
         const catName = item.toUpperCase().trim();
         
-        // FILTRAGEM CORRIGIDA PARA CARREGAR OS FILMES NA LISTA
         filteredList = sourceData.filter(m => {
             let gen = (m.genero || "").toUpperCase().trim();
-            // Verifica se a categoria é um ano (Lançamentos 202X) ou um gênero
-            return catName.includes("202") ? m.year === catName.split(" ").pop() : gen === catName;
+            return gen === catName;
         });
         
         viewMode = isMovie ? "movie_list" : "series_list"; 
@@ -202,7 +208,16 @@ async function handleAction() {
 
 document.addEventListener("keydown", e => {
     let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    let dataLen = (viewMode === "categories" ? movieCats.length : (viewMode === "series" ? seriesCats.length : (viewMode === "channels" ? channels.length : (viewMode === "fav" ? favorites.length : filteredList.length))));
+    
+    // CORREÇÃO: Pegar o tamanho da lista correta baseado no viewMode atual
+    let currentData = [];
+    if (viewMode === "categories") currentData = movieCats;
+    else if (viewMode === "series") currentData = seriesCats;
+    else if (viewMode === "channels") currentData = channels;
+    else if (viewMode === "fav") currentData = favorites;
+    else currentData = filteredList;
+    
+    let dataLen = currentData.length;
     
     if (menuFocused) {
         if (e.key === "ArrowUp") {
