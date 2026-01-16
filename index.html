@@ -136,10 +136,9 @@ function playMedia(item) {
 
 function renderList() {
     channelList.innerHTML = "";
-    let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     let data = [];
     if (viewMode === "categories") data = movieCats;
-    else if (viewMode === "series") data = seriesCats;
+    else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     else if (viewMode === "channels") data = channels;
     else if (viewMode === "fav") data = favorites;
     else data = filteredList; 
@@ -147,7 +146,8 @@ function renderList() {
     data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
-        div.innerHTML = `<span>${item.titulo || item.name || item}</span>`;
+        const titleText = (typeof item === 'string') ? item : (item.titulo || item.name || "Sem título");
+        div.innerHTML = `<span>${titleText}</span>`;
         channelList.appendChild(div);
         if (i === selectedIndex && !menuFocused) div.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
@@ -166,22 +166,28 @@ function renderList() {
 }
 
 async function handleAction() {
-    let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    let data = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
+    let data = (viewMode === "categories") ? movieCats : (viewMode === "series" ? [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))] : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
     const item = data[selectedIndex];
     if (!item) return;
 
+    // Ação para Categoria de Filme
     if (viewMode === "categories" && typeof item === 'string') {
         const catName = item.toUpperCase().trim();
         filteredList = movies.filter(m => (m.genero || "").toUpperCase().includes(catName));
         viewMode = "movie_list"; selectedIndex = 0; renderList();
     } 
+    // Ação para Categoria de Série
     else if (viewMode === "series" && typeof item === 'string') {
         const catName = item.toUpperCase().trim();
         filteredList = series.filter(m => (m.genero || "").toUpperCase().includes(catName));
         viewMode = "series_list"; selectedIndex = 0; renderList();
     }
-    else if ((viewMode === "series_list" || viewMode === "kids_series" || viewMode === "search_results") && item.type === "serie") {
+    // Ação para o Objeto Filme (conforme o seu exemplo JSON)
+    else if (item.type === "movie") {
+        playMedia(item);
+    }
+    // Ação para o Objeto Série
+    else if (item.type === "serie") {
         channelList.innerHTML = "<div class='channel'>Carregando episódios...</div>";
         try {
             const resp = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
@@ -199,9 +205,7 @@ async function handleAction() {
 }
 
 document.addEventListener("keydown", e => {
-    let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    let currentData = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
-    let dataLen = currentData.length;
+    let dataLen = (viewMode === "categories" ? movieCats.length : (viewMode === "series" ? [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))].length : (viewMode === "channels" ? channels.length : (viewMode === "fav" ? favorites.length : filteredList.length))));
     
     if (menuFocused) {
         if (e.key === "ArrowUp") {
@@ -215,6 +219,7 @@ document.addEventListener("keydown", e => {
             menuFocused = false; channelList.style.display = "block";
             viewMode = menuItems[menuIndex].dataset.type;
             
+            // CARREGAMENTO DAS LISTAS KIDS E OUTROS
             if (viewMode === "kids_channels") filteredList = kidsChannels;
             else if (viewMode === "kids_movies") filteredList = kidsMovies;
             else if (viewMode === "kids_series") filteredList = kidsSeries;
