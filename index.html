@@ -136,9 +136,10 @@ function playMedia(item) {
 
 function renderList() {
     channelList.innerHTML = "";
+    let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     let data = [];
     if (viewMode === "categories") data = movieCats;
-    else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    else if (viewMode === "series") data = seriesCats;
     else if (viewMode === "channels") data = channels;
     else if (viewMode === "fav") data = favorites;
     else data = filteredList; 
@@ -166,28 +167,28 @@ function renderList() {
 }
 
 async function handleAction() {
-    let data = (viewMode === "categories") ? movieCats : (viewMode === "series" ? [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))] : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
+    let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    let data = (viewMode === "categories") ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
     const item = data[selectedIndex];
     if (!item) return;
 
-    // Ação para Categoria de Filme
     if (viewMode === "categories" && typeof item === 'string') {
-        const catName = item.toUpperCase().trim();
-        filteredList = movies.filter(m => (m.genero || "").toUpperCase().includes(catName));
+        const catNorm = item.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        filteredList = movies.filter(m => {
+            const genNorm = (m.genero || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            return genNorm.includes(catNorm);
+        });
         viewMode = "movie_list"; selectedIndex = 0; renderList();
     } 
-    // Ação para Categoria de Série
     else if (viewMode === "series" && typeof item === 'string') {
         const catName = item.toUpperCase().trim();
         filteredList = series.filter(m => (m.genero || "").toUpperCase().includes(catName));
         viewMode = "series_list"; selectedIndex = 0; renderList();
     }
-    // Ação para o Objeto Filme (conforme o seu exemplo JSON)
     else if (item.type === "movie") {
         playMedia(item);
     }
-    // Ação para o Objeto Série
-    else if (item.type === "serie") {
+    else if ((viewMode === "series_list" || viewMode === "kids_series" || viewMode === "search_results") && item.type === "serie") {
         channelList.innerHTML = "<div class='channel'>Carregando episódios...</div>";
         try {
             const resp = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
@@ -205,7 +206,9 @@ async function handleAction() {
 }
 
 document.addEventListener("keydown", e => {
-    let dataLen = (viewMode === "categories" ? movieCats.length : (viewMode === "series" ? [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))].length : (viewMode === "channels" ? channels.length : (viewMode === "fav" ? favorites.length : filteredList.length))));
+    let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    let currentData = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
+    let dataLen = currentData.length;
     
     if (menuFocused) {
         if (e.key === "ArrowUp") {
@@ -219,7 +222,6 @@ document.addEventListener("keydown", e => {
             menuFocused = false; channelList.style.display = "block";
             viewMode = menuItems[menuIndex].dataset.type;
             
-            // CARREGAMENTO DAS LISTAS KIDS E OUTROS
             if (viewMode === "kids_channels") filteredList = kidsChannels;
             else if (viewMode === "kids_movies") filteredList = kidsMovies;
             else if (viewMode === "kids_series") filteredList = kidsSeries;
