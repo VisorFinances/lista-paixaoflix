@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PaixãoFlix - V14 Ultra Frozen</title>
+    <title>PaixãoFlix - V16 Frozen Fix</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
@@ -11,31 +11,26 @@
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; }
         body { background-color: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* SIDEBAR */
         .sidebar { width: var(--sidebar-width); height: 100vh; background: #000; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; padding: 15px; border-right: 1px solid #222; z-index: 1000; }
-        .logo { width: 140px !important; display: block; margin: 0 auto 5px; }
-        .btn-exit-small { width: 60px; background: #d40000; color: white; border: none; padding: 4px; border-radius: 6px; font-size: 10px; font-weight: bold; margin: 0 auto 15px; cursor: pointer; display: block; }
-        
-        /* BOTÕES MENU */
+        .logo { width: 180px !important; height: auto !important; display: block; margin: 0 auto 5px; }
+        .btn-exit-small { width: 60px; background: #d40000; color: white; border: none; padding: 4px; border-radius: 6px; font-size: 10px; font-weight: bold; margin: 0 auto 10px; cursor: pointer; display: block; }
+
+        #search-box { width: 90%; margin: 0 auto 25px; display: block; padding: 10px; border-radius: 8px; border: 2px solid #333; background: #111; color: white; }
         .nav-menu { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
-        .btn-nav { width: calc(50% - 4px); background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; text-align: center; font-size: 13px; }
+        .btn-nav { width: calc(50% - 4px); background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; text-align: center; font-size: 14px; }
         
         .submenu { display: none; flex-wrap: wrap; gap: 5px; width: 100%; padding: 10px 0; }
-        .btn-cat { width: calc(50% - 4px); background: #111; color: #eee; border: none; padding: 12px; text-align: center; cursor: pointer; border-radius: 8px; font-size: 12px; font-weight: 600; }
+        .btn-cat { width: calc(50% - 4px); background: #111; color: #eee; border: none; padding: 12px; text-align: center; cursor: pointer; border-radius: 8px; font-size: 13px; font-weight: 600; }
 
-        /* FOCO */
         .btn-nav:focus, .btn-cat:focus, .card:focus, #search-box:focus, .btn-exit-small:focus, #exit-player:focus { 
-            background: var(--focus) !important; color: #000 !important; transform: scale(1.05); border-radius: 10px; 
+            background: var(--focus) !important; color: #000 !important; transform: scale(1.05); border-radius: 10px; box-shadow: 0 0 15px var(--focus);
         }
 
         main { margin-left: var(--sidebar-width); flex: 1; padding: 20px; overflow-y: auto; height: 100vh; }
-        
-        /* SEÇÕES TV HORIZONTAL */
         .tv-section { margin-bottom: 30px; }
         .tv-row { display: flex; overflow-x: auto; gap: 15px; padding: 10px 0; scroll-behavior: smooth; }
         .tv-row::-webkit-scrollbar { display: none; }
 
-        /* GRID E CARDS PADRONIZADOS */
         .content-grid { display: grid; grid-template-columns: repeat(8, 1fr) !important; gap: 12px; }
         .card { background: #111; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; flex: 0 0 auto; width: 130px; }
         .card img { width: 90px !important; height: 90px !important; object-fit: contain; display: block; margin: 0 auto; padding: 8px; }
@@ -45,7 +40,6 @@
         .movie-card img { width: 100% !important; height: auto !important; aspect-ratio: 2/3 !important; object-fit: cover !important; padding: 0; }
         .card-title { padding: 5px; font-size: 11px; text-align: center; font-weight: 600; min-height: 35px; display: flex; align-items: center; justify-content: center; }
 
-        /* PLAYER DINÂMICO */
         #player-overlay { position: fixed; inset: 0; background: black; display: none; z-index: 9999; }
         #exit-player { position: absolute; top: 30px; right: 30px; background: var(--primary); color: white; border: 2px solid white; padding: 15px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; z-index: 10001; opacity: 0; transition: opacity 0.5s; }
         #exit-player.visible { opacity: 1; }
@@ -60,11 +54,11 @@
     <input type="text" id="search-box" placeholder="Buscar..." oninput="globalSearch()">
     <nav class="nav-menu">
         <button class="btn-nav" id="btn-tv" onclick="loadTV()">TV</button>
-        <button class="btn-nav" id="trigger-cinema" onclick="toggleMenu('cat-nav', 'filmes')">CINEMA</button>
+        <button class="btn-nav" id="btn-cinema" onclick="toggleMenu('cat-nav', 'filmes')">CINEMA</button>
         <div id="cat-nav" class="submenu"></div>
-        <button class="btn-nav" id="trigger-series" onclick="toggleMenu('series-nav', 'series')">SÉRIES</button>
+        <button class="btn-nav" id="btn-series" onclick="toggleMenu('series-nav', 'series')">SÉRIES</button>
         <div id="series-nav" class="submenu"></div>
-        <button class="btn-nav" id="trigger-kids" onclick="toggleMenu('kids-nav')">KIDS</button>
+        <button class="btn-nav" id="btn-kids" onclick="toggleMenu('kids-nav')">KIDS</button>
         <div id="kids-nav" class="submenu">
             <button class="btn-cat" onclick="loadCategory('kids_canais')">TV KIDS</button>
             <button class="btn-cat" onclick="loadCategory('kids_filmes')">FILMES KIDS</button>
@@ -140,7 +134,7 @@
         groups.forEach(group => {
             const section = document.createElement('div');
             section.className = 'tv-section';
-            section.innerHTML = `<h3>${group}</h3><div class="tv-row"></div>`;
+            section.innerHTML = `<h2 style="margin-left:10px; font-size:18px;">${group}</h2><div class="tv-row"></div>`;
             const row = section.querySelector('.tv-row');
             database.tv.filter(i => i.category === group).forEach(i => {
                 row.innerHTML += `<div class="card" tabindex="0" onclick="playVideo('${i.url}')">
@@ -166,17 +160,17 @@
     }
 
     function filterData(cat, type) {
-        let res;
         const db = database[type];
-        if(cat.includes("2025") || cat.includes("2026")) {
+        let res;
+        if(cat.includes("2026") || cat.includes("2025")) {
             const y = cat.match(/\d+/)[0];
-            res = db.filter(i => String(i.year) === y); // FILTRO ABSOLUTO DE ANO
+            res = db.filter(i => i.year === y);
         } else {
             const reg = new RegExp("\\b" + cat.toLowerCase() + "\\b", "i");
             res = db.filter(i => reg.test(i.category.toLowerCase()));
         }
         renderGrid(res);
-        document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none'); // FECHA AO ESCOLHER
+        document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
     }
 
     function toggleMenu(id, type) {
@@ -206,12 +200,7 @@
     function playVideo(url) {
         const v = document.getElementById('video-player');
         document.getElementById('player-overlay').style.display = 'block';
-        if (url.includes('archive.org') || url.endsWith('.mp4')) {
-            v.src = url;
-        } else if (Hls.isSupported() && url.includes('m3u8')) {
-            const hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
-        } else { v.src = url; }
-        v.play();
+        v.src = url; v.play();
         showExitBtn();
     }
 
@@ -231,13 +220,19 @@
     window.addEventListener('keydown', (e) => {
         const cur = document.activeElement;
         const all = Array.from(document.querySelectorAll('button, input, .card, [tabindex="0"]')).filter(el => el.offsetParent !== null);
+        
         if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
             if(document.getElementById('player-overlay').style.display === 'block') showExitBtn();
             e.preventDefault();
-            const next = getFocus(cur, all, e.key);
+            let next = getFocus(cur, all, e.key);
+            
+            // Loop Infinito Lateral (mesma linha)
+            if (!next && e.key === "ArrowRight") {
+                next = all.find(el => Math.abs(el.getBoundingClientRect().top - cur.getBoundingClientRect().top) < 10);
+            }
             if (next) next.focus();
         }
-        if (e.key === "Enter") cur.click();
+        if (e.key === "Enter") { e.preventDefault(); cur.click(); }
         if (e.key === "Escape" || e.key === "Backspace") closePlayer();
     });
 
@@ -248,8 +243,9 @@
             if (el === cur) return;
             const rE = el.getBoundingClientRect();
             let v = false;
-            if (key === "ArrowUp") v = rE.bottom <= rC.top + 5;
-            if (key === "ArrowDown") v = rE.top >= rC.bottom - 5;
+            // Bloqueio rigoroso de eixo para Cima/Baixo
+            if (key === "ArrowUp") v = rE.bottom <= rC.top + 2 && Math.abs(rE.left - rC.left) < 50;
+            if (key === "ArrowDown") v = rE.top >= rC.bottom - 2 && Math.abs(rE.left - rC.left) < 50;
             if (key === "ArrowLeft") v = rE.right <= rC.left + 5;
             if (key === "ArrowRight") v = rE.left >= rC.right - 5;
             if (v) {
