@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PaixãoFlix - V16 Frozen Fix</title>
+    <title>PaixãoFlix - V18 Archive Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
@@ -71,7 +71,7 @@
 
 <div id="player-overlay">
     <button id="exit-player" onclick="closePlayer()">SAIR DO PLAYER</button>
-    <video id="video-player" controls></video>
+    <video id="video-player" controls preload="auto"></video>
 </div>
 
 <script>
@@ -96,7 +96,7 @@
                     const j = JSON.parse(t);
                     database[key] = (Array.isArray(j) ? j : Object.values(j)[0]).map(i => ({
                         name: i.titulo || i.name,
-                        url: i.url || i.link,
+                        url: i.url || i.link || (i.identificador_archive ? `https://archive.org/download/${i.identificador_archive}/${i.identificador_archive}.mp4` : ""),
                         logo: i.poster || i.logo,
                         category: String(i.genero || ""),
                         year: String(i.year || ""),
@@ -164,7 +164,7 @@
         let res;
         if(cat.includes("2026") || cat.includes("2025")) {
             const y = cat.match(/\d+/)[0];
-            res = db.filter(i => i.year === y);
+            res = db.filter(i => String(i.year) === y);
         } else {
             const reg = new RegExp("\\b" + cat.toLowerCase() + "\\b", "i");
             res = db.filter(i => reg.test(i.category.toLowerCase()));
@@ -197,10 +197,29 @@
     }
 
     let timerSair;
+    let hlsInstance = null;
+
     function playVideo(url) {
+        if(!url) { alert("Link não encontrado!"); return; }
         const v = document.getElementById('video-player');
-        document.getElementById('player-overlay').style.display = 'block';
-        v.src = url; v.play();
+        const overlay = document.getElementById('player-overlay');
+        overlay.style.display = 'block';
+
+        if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+        v.pause(); v.removeAttribute('src'); v.load();
+
+        if (url.includes('archive.org') || url.toLowerCase().endsWith('.mp4')) {
+            v.src = url;
+            v.type = "video/mp4";
+        } else if (Hls.isSupported() && url.includes('m3u8')) {
+            hlsInstance = new Hls();
+            hlsInstance.loadSource(url);
+            hlsInstance.attachMedia(v);
+        } else {
+            v.src = url;
+        }
+
+        v.play().catch(e => console.log(e));
         showExitBtn();
     }
 
@@ -213,6 +232,7 @@
 
     function closePlayer() {
         const v = document.getElementById('video-player');
+        if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
         v.pause(); v.src = "";
         document.getElementById('player-overlay').style.display = 'none';
     }
@@ -226,7 +246,6 @@
             e.preventDefault();
             let next = getFocus(cur, all, e.key);
             
-            // Loop Infinito Lateral (mesma linha)
             if (!next && e.key === "ArrowRight") {
                 next = all.find(el => Math.abs(el.getBoundingClientRect().top - cur.getBoundingClientRect().top) < 10);
             }
@@ -243,7 +262,6 @@
             if (el === cur) return;
             const rE = el.getBoundingClientRect();
             let v = false;
-            // Bloqueio rigoroso de eixo para Cima/Baixo
             if (key === "ArrowUp") v = rE.bottom <= rC.top + 2 && Math.abs(rE.left - rC.left) < 50;
             if (key === "ArrowDown") v = rE.top >= rC.bottom - 2 && Math.abs(rE.left - rC.left) < 50;
             if (key === "ArrowLeft") v = rE.right <= rC.left + 5;
