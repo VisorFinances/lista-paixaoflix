@@ -100,7 +100,6 @@ let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [],
 let favorites = JSON.parse(localStorage.getItem("paixaoflix_favs") || "[]");
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true;
 
-// Lista de categorias para o Cinema
 const movieCats = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
 
 function updateClock() {
@@ -137,11 +136,9 @@ function playMedia(item) {
 
 function renderList() {
     channelList.innerHTML = "";
-    let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    
     let data = [];
     if (viewMode === "categories") data = movieCats;
-    else if (viewMode === "series") data = seriesCats;
+    else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     else if (viewMode === "channels") data = channels;
     else if (viewMode === "fav") data = favorites;
     else data = filteredList; 
@@ -168,24 +165,20 @@ function renderList() {
 }
 
 async function handleAction() {
-    let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    let data = viewMode === "categories" ? movieCats : (viewMode === "series" ? seriesCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
+    let data = viewMode === "categories" ? movieCats : (viewMode === "series" ? [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))] : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
     const item = data[selectedIndex];
-
     if (!item) return;
 
-    if ((viewMode === "categories" || viewMode === "series") && typeof item === 'string') {
-        const isMovie = viewMode === "categories";
-        const sourceData = isMovie ? movies : series;
+    if (viewMode === "categories" && typeof item === 'string') {
         const catName = item.toUpperCase().trim();
-        
-        // Filtra para abrir a lista INTEIRA do gênero selecionado
-        filteredList = sourceData.filter(m => (m.genero || "").toUpperCase().includes(catName));
-        
-        viewMode = isMovie ? "movie_list" : "series_list"; 
-        selectedIndex = 0; 
-        renderList();
+        filteredList = movies.filter(m => (m.genero || "").toUpperCase().includes(catName));
+        viewMode = "movie_list"; selectedIndex = 0; renderList();
     } 
+    else if (viewMode === "series" && typeof item === 'string') {
+        const catName = item.toUpperCase().trim();
+        filteredList = series.filter(m => (m.genero || "").toUpperCase().includes(catName));
+        viewMode = "series_list"; selectedIndex = 0; renderList();
+    }
     else if ((viewMode === "series_list" || viewMode === "kids_series" || viewMode === "search_results") && item.type === "serie") {
         channelList.innerHTML = "<div class='channel'>Carregando episódios...</div>";
         try {
@@ -197,22 +190,14 @@ async function handleAction() {
                 url: `https://archive.org/download/${item.identificador_archive}/${f.name}`,
                 poster: item.poster
             }));
-            viewMode = "episode_list";
-            selectedIndex = 0; renderList();
+            viewMode = "episode_list"; selectedIndex = 0; renderList();
         } catch (e) { renderList(); }
     }
     else { playMedia(item); }
 }
 
 document.addEventListener("keydown", e => {
-    let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    let currentData = [];
-    if (viewMode === "categories") currentData = movieCats;
-    else if (viewMode === "series") currentData = seriesCats;
-    else if (viewMode === "channels") currentData = channels;
-    else if (viewMode === "fav") currentData = favorites;
-    else currentData = filteredList;
-    
+    let currentData = viewMode === "categories" ? movieCats : (viewMode === "series" ? [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))] : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList)));
     let dataLen = currentData.length;
     
     if (menuFocused) {
@@ -224,15 +209,11 @@ document.addEventListener("keydown", e => {
             else if (menuIndex < menuItems.length - 1) menuIndex++;
         } else if (e.key === "ArrowRight" || e.key === "Enter") {
             if(menuIndex === -1) return;
-            menuFocused = false; 
-            channelList.style.display = "block";
+            menuFocused = false; channelList.style.display = "block";
             viewMode = menuItems[menuIndex].dataset.type;
-            
-            // Atribuição correta para as listas Kids e Cinema
             if (viewMode === "kids_channels") filteredList = kidsChannels;
             else if (viewMode === "kids_movies") filteredList = kidsMovies;
             else if (viewMode === "kids_series") filteredList = kidsSeries;
-            
             selectedIndex = 0; renderList();
         }
     } else {
@@ -249,17 +230,6 @@ document.addEventListener("keydown", e => {
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
-
-function loadM3U(path, array, isMainCanais = false) {
-    fetch(path).then(r=>r.text()).then(text=>{
-        let temp=null;
-        text.split("\n").forEach(l=>{
-            if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop().trim()};
-            else if(l.startsWith("http") && temp){ temp.url=l.trim(); array.push(temp); temp=null; }
-        });
-        if(isMainCanais && array.length > 0) playMedia(array[0]);
-    });
-}
 
 window.onload = () => {
     loadM3U("data/canais.m3u", channels, true);
