@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PaixãoFlix - V18 Archive Pro</title>
+    <title>PaixãoFlix - V19 Final Frozen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
@@ -11,26 +11,33 @@
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; }
         body { background-color: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
+        /* SIDEBAR */
         .sidebar { width: var(--sidebar-width); height: 100vh; background: #000; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; padding: 15px; border-right: 1px solid #222; z-index: 1000; }
         .logo { width: 180px !important; height: auto !important; display: block; margin: 0 auto 5px; }
         .btn-exit-small { width: 60px; background: #d40000; color: white; border: none; padding: 4px; border-radius: 6px; font-size: 10px; font-weight: bold; margin: 0 auto 10px; cursor: pointer; display: block; }
 
         #search-box { width: 90%; margin: 0 auto 25px; display: block; padding: 10px; border-radius: 8px; border: 2px solid #333; background: #111; color: white; }
+        
+        /* BOTÕES MENU */
         .nav-menu { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
-        .btn-nav { width: calc(50% - 4px); background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; text-align: center; font-size: 14px; }
+        .btn-nav { width: calc(50% - 4px); background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; text-align: center; font-size: 14px; }
         
         .submenu { display: none; flex-wrap: wrap; gap: 5px; width: 100%; padding: 10px 0; }
-        .btn-cat { width: calc(50% - 4px); background: #111; color: #eee; border: none; padding: 12px; text-align: center; cursor: pointer; border-radius: 8px; font-size: 13px; font-weight: 600; }
+        .btn-cat { width: calc(50% - 4px); background: #111; color: #eee; border: none; padding: 12px; text-align: center; cursor: pointer; border-radius: 10px; font-size: 13px; font-weight: 600; }
 
+        /* FOCO COM BORDAS ARREDONDADAS */
         .btn-nav:focus, .btn-cat:focus, .card:focus, #search-box:focus, .btn-exit-small:focus, #exit-player:focus { 
-            background: var(--focus) !important; color: #000 !important; transform: scale(1.05); border-radius: 10px; box-shadow: 0 0 15px var(--focus);
+            background: var(--focus) !important; color: #000 !important; transform: scale(1.05); border-radius: 15px; box-shadow: 0 0 15px var(--focus);
         }
 
         main { margin-left: var(--sidebar-width); flex: 1; padding: 20px; overflow-y: auto; height: 100vh; }
+        
+        /* TV ROLAGEM HORIZONTAL */
         .tv-section { margin-bottom: 30px; }
         .tv-row { display: flex; overflow-x: auto; gap: 15px; padding: 10px 0; scroll-behavior: smooth; }
         .tv-row::-webkit-scrollbar { display: none; }
 
+        /* GRID CONTEÚDO */
         .content-grid { display: grid; grid-template-columns: repeat(8, 1fr) !important; gap: 12px; }
         .card { background: #111; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; flex: 0 0 auto; width: 130px; }
         .card img { width: 90px !important; height: 90px !important; object-fit: contain; display: block; margin: 0 auto; padding: 8px; }
@@ -40,8 +47,9 @@
         .movie-card img { width: 100% !important; height: auto !important; aspect-ratio: 2/3 !important; object-fit: cover !important; padding: 0; }
         .card-title { padding: 5px; font-size: 11px; text-align: center; font-weight: 600; min-height: 35px; display: flex; align-items: center; justify-content: center; }
 
+        /* PLAYER */
         #player-overlay { position: fixed; inset: 0; background: black; display: none; z-index: 9999; }
-        #exit-player { position: absolute; top: 30px; right: 30px; background: var(--primary); color: white; border: 2px solid white; padding: 15px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; z-index: 10001; opacity: 0; transition: opacity 0.5s; }
+        #exit-player { position: absolute; top: 30px; right: 30px; background: var(--primary); color: white; border: 2px solid white; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; z-index: 10001; opacity: 0; transition: opacity 0.5s; }
         #exit-player.visible { opacity: 1; }
         video { width: 100%; height: 100%; }
     </style>
@@ -162,9 +170,10 @@
     function filterData(cat, type) {
         const db = database[type];
         let res;
-        if(cat.includes("2026") || cat.includes("2025")) {
-            const y = cat.match(/\d+/)[0];
-            res = db.filter(i => String(i.year) === y);
+        // FILTRO DE ANO BLINDADO
+        if(cat === "Lançamento 2026" || cat === "Lançamento 2025") {
+            const targetYear = cat.split(" ")[1];
+            res = db.filter(i => i.year === targetYear);
         } else {
             const reg = new RegExp("\\b" + cat.toLowerCase() + "\\b", "i");
             res = db.filter(i => reg.test(i.category.toLowerCase()));
@@ -196,15 +205,11 @@
         renderGrid(res);
     }
 
-    let timerSair;
     let hlsInstance = null;
-
     function playVideo(url) {
-        if(!url) { alert("Link não encontrado!"); return; }
+        if(!url) return;
         const v = document.getElementById('video-player');
-        const overlay = document.getElementById('player-overlay');
-        overlay.style.display = 'block';
-
+        document.getElementById('player-overlay').style.display = 'block';
         if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
         v.pause(); v.removeAttribute('src'); v.load();
 
@@ -215,14 +220,12 @@
             hlsInstance = new Hls();
             hlsInstance.loadSource(url);
             hlsInstance.attachMedia(v);
-        } else {
-            v.src = url;
-        }
-
-        v.play().catch(e => console.log(e));
+        } else { v.src = url; }
+        v.play();
         showExitBtn();
     }
 
+    let timerSair;
     function showExitBtn() {
         const btn = document.getElementById('exit-player');
         btn.classList.add('visible');
@@ -246,6 +249,7 @@
             e.preventDefault();
             let next = getFocus(cur, all, e.key);
             
+            // Loop Infinito Lateral
             if (!next && e.key === "ArrowRight") {
                 next = all.find(el => Math.abs(el.getBoundingClientRect().top - cur.getBoundingClientRect().top) < 10);
             }
@@ -262,8 +266,9 @@
             if (el === cur) return;
             const rE = el.getBoundingClientRect();
             let v = false;
-            if (key === "ArrowUp") v = rE.bottom <= rC.top + 2 && Math.abs(rE.left - rC.left) < 50;
-            if (key === "ArrowDown") v = rE.top >= rC.bottom - 2 && Math.abs(rE.left - rC.left) < 50;
+            // Bloqueio rigoroso de eixo para evitar desvio lateral
+            if (key === "ArrowUp") v = rE.bottom <= rC.top + 2 && Math.abs(rE.left - rC.left) < 40;
+            if (key === "ArrowDown") v = rE.top >= rC.bottom - 2 && Math.abs(rE.left - rC.left) < 40;
             if (key === "ArrowLeft") v = rE.right <= rC.left + 5;
             if (key === "ArrowRight") v = rE.left >= rC.right - 5;
             if (v) {
