@@ -100,7 +100,7 @@ let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [],
 let favorites = JSON.parse(localStorage.getItem("paixaoflix_favs") || "[]");
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true;
 
-const movieCats = ["Ação","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
+const movieCats = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
 
 function updateClock() {
     const d = new Date();
@@ -143,7 +143,8 @@ function renderList() {
     else if (viewMode === "series") data = seriesCats;
     else if (viewMode === "channels") data = channels;
     else if (viewMode === "fav") data = favorites;
-    else if (viewMode === "movie_list" || viewMode === "series_list" || viewMode === "search_results" || viewMode.startsWith("kids")) data = filteredList;
+    // Corrigido para carregar filteredList em listas de filmes/series e busca
+    else data = filteredList; 
     
     data.forEach((item, i) => {
         const div = document.createElement("div");
@@ -178,7 +179,8 @@ async function handleAction() {
         const sourceData = isMovie ? movies : series;
         const catName = item.toUpperCase().trim();
         
-        filteredList = sourceData.filter(m => (m.genero || "").toUpperCase().trim() === catName);
+        // Filtra os dados e armazena em filteredList
+        filteredList = sourceData.filter(m => (m.genero || "").toUpperCase().includes(catName));
         
         viewMode = isMovie ? "movie_list" : "series_list"; 
         selectedIndex = 0; 
@@ -225,9 +227,11 @@ document.addEventListener("keydown", e => {
             menuFocused = false; 
             channelList.style.display = "block";
             viewMode = menuItems[menuIndex].dataset.type;
+            
             if (viewMode === "kids_channels") filteredList = kidsChannels;
             else if (viewMode === "kids_movies") filteredList = kidsMovies;
             else if (viewMode === "kids_series") filteredList = kidsSeries;
+            
             selectedIndex = 0; renderList();
         }
     } else {
@@ -235,7 +239,10 @@ document.addEventListener("keydown", e => {
         else if (e.key === "ArrowDown") { selectedIndex = (selectedIndex + 1) % dataLen; renderList(); }
         else if (e.key === "ArrowLeft") {
             if (viewMode === "episode_list") { viewMode = "series_list"; selectedIndex = 0; renderList(); }
-            else if (viewMode.includes("_list")) { viewMode = viewMode.includes("movie") ? "categories" : "series"; selectedIndex = 0; renderList(); }
+            else if (viewMode.includes("_list")) { 
+                viewMode = viewMode.includes("movie") ? "categories" : "series"; 
+                selectedIndex = 0; renderList(); 
+            }
             else { menuFocused = true; channelList.style.display = "none"; }
         } else if (e.key === "Enter") { handleAction(); }
     }
@@ -249,6 +256,7 @@ function loadM3U(path, array, isMainCanais = false) {
             if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop().trim()};
             else if(l.startsWith("http") && temp){ temp.url=l.trim(); array.push(temp); temp=null; }
         });
+        // Autoplay do primeiro canal ao carregar canais.m3u
         if(isMainCanais && array.length > 0) playMedia(array[0]);
     });
 }
