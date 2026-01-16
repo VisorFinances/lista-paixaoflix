@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
+<script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
 * { overflow: -moz-scrollbars-none; -ms-overflow-style: none; scrollbar-width: none; touch-action: manipulation; }
@@ -44,7 +44,6 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 .menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
 #content { position: absolute; top: 0; left: 280px; width: calc(100% - 280px); height: 100%; z-index: 10; background: black; display: flex; justify-content: center; align-items: center; }
 #videoContainer { width: 100%; height: 100%; background: #000; }
-video { width: 100%; height: 100%; object-fit: fill; background: #000; }
 #channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: scroll; border-right: 1px solid #ff9800; }
 .channel { padding: 15px 20px; font-size: 16px; border-bottom: 1px solid #222; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
 .channel.active { background: #ff9800 !important; color: #000 !important; font-weight: bold; }
@@ -75,7 +74,9 @@ video { width: 100%; height: 100%; object-fit: fill; background: #000; }
 <div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
 </div>
 <div id="content">
-<div id="videoContainer"><video id="video" autoplay playsinline controls></video></div>
+<div id="videoContainer">
+    <div id="player" style="width:100%; height:100%;"></div>
+</div>
 <div id="channelList"></div>
 <div id="posterWrapper">
     <img id="posterPreview">
@@ -85,7 +86,7 @@ video { width: 100%; height: 100%; object-fit: fill; background: #000; }
 </div>
 
 <script>
-const video = document.getElementById("video");
+let player; // Variável para o Clappr
 const channelList = document.getElementById("channelList");
 const posterPreview = document.getElementById("posterPreview");
 const posterWrapper = document.getElementById("posterWrapper");
@@ -97,7 +98,7 @@ const currentTitleDisplay = document.getElementById("currentTitle");
 
 let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [], kidsSeries = [];
 let favorites = JSON.parse(localStorage.getItem("paixaoflix_favs") || "[]");
-let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true, hls = null;
+let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true;
 
 const movieCats = ["Lançamentos 2026","Lançamentos 2025","AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
 
@@ -129,17 +130,24 @@ function playMedia(item) {
     currentTitleDisplay.innerText = item.titulo || item.name;
     channelList.style.display = "none"; 
     posterWrapper.style.display = "none";
-    if (hls) { hls.destroy(); hls = null; }
-    if (url.includes(".m3u8")) {
-        if (Hls.isSupported()) {
-            hls = new Hls({ capLevelToPlayerSize: true, lowLatencyMode: true });
-            hls.loadSource(url);
-            hls.attachMedia(video);
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = url;
+
+    // LÓGICA DO CLAPPR
+    if (player) { player.destroy(); }
+    player = new Clappr.Player({
+        source: url,
+        parentId: "#player",
+        width: '100%',
+        height: '100%',
+        autoPlay: true,
+        preload: 'auto',
+        chromecast: true,
+        playback: {
+            playInline: true,
+            hlsjsConfig: {
+                enableWorker: true
+            }
         }
-    } else { video.src = url; }
-    video.play().catch(e => console.log("Erro Play"));
+    });
 }
 
 function renderList() {
@@ -171,7 +179,6 @@ async function handleAction() {
 
     if (!item) return;
 
-    // 1. Entrar em Categorias
     if ((viewMode === "categories" || viewMode === "series") && typeof item === 'string') {
         const isMovie = viewMode === "categories";
         const sourceData = isMovie ? movies : series;
@@ -186,7 +193,6 @@ async function handleAction() {
         viewMode = isMovie ? "movie_list" : "series_list"; 
         selectedIndex = 0; renderList();
     } 
-    // 2. Carregar episódios do Archive.org se for Série
     else if ((viewMode === "series_list" || viewMode === "kids_series" || viewMode === "search_results") && item.type === "serie") {
         channelList.innerHTML = "<div class='channel'>Carregando episódios...</div>";
         try {
@@ -205,7 +211,6 @@ async function handleAction() {
             renderList();
         }
     }
-    // 3. Play
     else {
         playMedia(item);
     }
