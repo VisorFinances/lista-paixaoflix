@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape">
-    <title>PaixãoFlix - Oficial V27</title>
+    <title>PaixãoFlix - V28 Final</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --sidebar-bg: #030a14; --btn-bg: #363636; --btn-active: #033f99; --text: #ffffff; --sel: #ffffff; --sidebar-width: 280px; }
@@ -11,25 +11,27 @@
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; font-size: 16px; -webkit-user-select: none; }
         body { background: #000; color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* CARREGAMENTO */
         #loading { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; }
-        .load-logo { width: 240px; }
+        .load-logo { width: 200px; }
 
-        /* BARRA LATERAL */
+        /* SIDEBAR */
         .sidebar { width: var(--sidebar-width); background: var(--sidebar-bg); height: 100vh; padding: 15px; display: flex; flex-direction: column; z-index: 1000; position: fixed; left:0; border-right: 1px solid #1a1a1a; }
-        .logo-top { width: 180px; margin: 0 auto 5px; display: block; }
-        .btn-exit-sys { background: #d40000; color: #fff; border: 1px solid #fff; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin: 0 auto 10px; font-weight: bold; font-size: 10px; display: block; }
-        #clock { font-size: 12px; text-align: center; margin-bottom: 10px; font-weight: 600; color: #fff; }
+        .logo-top { width: 180px; margin: 0 auto 10px; display: block; }
+        .btn-exit-sys { background: #d40000; color: #fff; border: 1px solid #fff; padding: 4px; border-radius: 4px; cursor: pointer; margin-bottom: 10px; font-weight: bold; font-size: 10px; width: 60px; align-self: center; }
+        #clock { font-size: 12px; text-align: center; margin-bottom: 10px; font-weight: 600; }
         #search-box { width: 100%; padding: 10px; border-radius: 8px; border: none; margin-bottom: 15px; background: #fff; color: #000; }
 
-        /* MENUS 2 POR LINHA */
-        .nav-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; overflow-y: auto; padding-bottom: 20px; }
-        .btn-menu { background: var(--btn-bg); color: #fff; border: none; padding: 10px 5px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; text-align: center; box-shadow: 0 3px 0 #000; transition: 0.2s; height: 60px; display: flex; align-items: center; justify-content: center; }
+        /* MENU PRINCIPAL 2 POR LINHA */
+        .nav-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; overflow-y: auto; }
+        .btn-menu { background: var(--btn-bg); color: #fff; border: none; padding: 10px 5px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; height: 50px; display: flex; align-items: center; justify-content: center; text-align: center; }
         
-        .btn-menu:focus, .card-tv:focus, .card-media:focus, .btn-sub:focus, .ep-btn:focus, #search-box:focus { 
-            background: var(--btn-active) !important; box-shadow: 0 0 0 4px var(--sel) !important; transform: scale(1.05); animation: pulse 1s infinite;
+        /* CATEGORIAS: 2 POR LINHA, FONTE 16PX, LARGURA DA ESCRITA */
+        .submenu { display: none; grid-template-columns: repeat(2, auto); gap: 5px; grid-column: span 2; padding: 10px 0; justify-content: center; }
+        .btn-sub { background: #444; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600; white-space: nowrap; width: fit-content; min-width: 100px; text-align: center; }
+
+        .btn-menu:focus, .btn-sub:focus, .card-tv:focus, .card-media:focus, .ep-btn:focus, #search-box:focus { 
+            background: var(--btn-active) !important; box-shadow: 0 0 0 4px var(--sel) !important; transform: scale(1.05); outline: none; z-index: 10;
         }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0px #fff; } 70% { box-shadow: 0 0 0 10px rgba(255,255,255,0); } 100% { box-shadow: 0 0 0 0px rgba(255,255,255,0); } }
 
         /* CONTEÚDO */
         main { margin-left: var(--sidebar-width); flex: 1; padding: 20px; overflow-y: auto; height: 100vh; }
@@ -38,33 +40,28 @@
         /* CANAIS 7 POR LINHA */
         .tv-row { display: flex; overflow-x: auto; gap: 10px; padding: 10px 0; scroll-behavior: smooth; }
         .tv-row::-webkit-scrollbar { display: none; }
-        .card-tv { flex: 0 0 calc(100% / 7.5); background: #111; border-radius: 8px; text-align: center; padding: 10px; cursor: pointer; border: 1px solid #222; }
-        .card-tv img { width: 100%; height: 60px; object-fit: contain; }
-        .tv-name { font-size: 10px; margin-top: 5px; white-space: nowrap; overflow: hidden; }
+        .card-tv { flex: 0 0 calc(100% / 7.5); background: #111; border-radius: 8px; text-align: center; padding: 8px; cursor: pointer; border: 1px solid #222; }
+        .card-tv img { width: 100%; height: 55px; object-fit: contain; }
+        .tv-name { font-size: 10px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* GRID MEDIA */
         .grid-content { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
         .card-media { background: #111; border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid #222; }
         .card-media img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
         .media-info { padding: 8px; }
-        .media-title { font-size: 12px; font-weight: 700; display: block; height: 35px; overflow: hidden; }
-        .media-meta { display: flex; justify-content: space-between; font-size: 10px; color: #00d4ff; font-weight: bold; }
-
-        /* SUBMENU */
-        .submenu { display: none; grid-column: span 2; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 8px; }
-        .btn-sub { width: 100%; background: #222; color: #fff; border: none; padding: 8px; text-align: left; cursor: pointer; margin-bottom: 2px; border-radius: 4px; font-size: 11px; }
+        .media-title { font-size: 12px; font-weight: 700; display: block; height: 34px; overflow: hidden; }
+        .media-meta { display: flex; justify-content: space-between; font-size: 10px; color: #00d4ff; }
 
         /* PLAYER */
         #player-overlay, #ep-modal { position: fixed; inset: 0; background: #000; display: none; z-index: 10001; }
-        #ep-modal { background: rgba(0,0,0,0.95); flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        #ep-modal { flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
         .ep-container { background: #111; width: 90%; max-height: 85%; padding: 20px; border-radius: 15px; border: 1px solid #333; overflow-y: auto; }
         .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
-        .ep-btn { background: #333; color: #fff; padding: 12px; border-radius: 6px; border: none; cursor: pointer; text-align: left; font-weight: bold; }
+        .ep-btn { background: #333; color: #fff; padding: 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
 
         #btn-exit-player { position: absolute; top: 20px; right: 20px; background: var(--btn-bg); color: #fff; border: 1px solid #fff; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; z-index: 10002; opacity: 0; }
         #player-overlay:hover #btn-exit-player { opacity: 1; }
         video { width: 100%; height: 100%; }
-
     </style>
 </head>
 <body oncontextmenu="return false">
@@ -75,7 +72,7 @@
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="logo-top">
     <button class="btn-exit-sys" onclick="window.location.reload()">SAIR</button>
     <div id="clock"></div>
-    <input type="text" id="search-box" placeholder="Pesquisar..." oninput="globalSearch()">
+    <input type="text" id="search-box" placeholder="Busca global..." oninput="globalSearch()">
     
     <div class="nav-menu">
         <button class="btn-menu" onclick="loadTV()">TV AO VIVO</button>
@@ -103,7 +100,7 @@
 
 <div id="player-overlay">
     <button id="btn-exit-player" onclick="closePlayer()">SAIR DO PLAYER</button>
-    <video id="main-player" controls controlsList="nodownload"></video>
+    <video id="main-player" controls></video>
 </div>
 
 <script>
@@ -126,7 +123,7 @@
                 const t = await r.text();
                 if(t.includes('#EXTM3U')) db[key] = parseM3U(t);
                 else db[key] = JSON.parse(t);
-            } catch(e) {}
+            } catch(e) { console.error("Erro na API: ", key); }
         }
         fillSubs();
         document.getElementById('loading').style.display = 'none';
@@ -136,18 +133,20 @@
     function parseM3U(data) {
         const lines = data.split('\n');
         const list = [];
-        let cur = {};
-        lines.forEach(l => {
-            if(l.startsWith('#EXTINF')) {
-                cur.name = l.split(',')[1]?.trim();
-                cur.group = l.match(/group-title="([^"]+)"/)?.[1] || "GERAL";
-                cur.logo = l.match(/tvg-logo="([^"]+)"/)?.[1];
-            } else if(l.startsWith('http')) {
-                cur.url = l.trim();
-                if(cur.name) list.push(cur);
-                cur = {};
+        for(let i=0; i < lines.length; i++) {
+            if(lines[i].startsWith('#EXTINF')) {
+                const info = lines[i];
+                const url = lines[i+1]?.trim();
+                if(url && url.startsWith('http')) {
+                    list.push({
+                        name: info.split(',')[1]?.trim(),
+                        group: info.match(/group-title="([^"]+)"/)?.[1] || "GERAL",
+                        logo: info.match(/tvg-logo="([^"]+)"/)?.[1],
+                        url: url
+                    });
+                }
             }
-        });
+        }
         return list;
     }
 
@@ -166,9 +165,9 @@
 
     function toggleSub(id) {
         const el = document.getElementById(id);
-        const v = el.style.display === 'block';
+        const isHidden = window.getComputedStyle(el).display === 'none';
         document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
-        el.style.display = v ? 'none' : 'block';
+        el.style.display = isHidden ? 'grid' : 'none';
     }
 
     function loadTV() {
@@ -189,16 +188,11 @@
             db.kids_tv.sort((a,b)=>a.name.localeCompare(b.name)).map(i => `<div class="card-tv" tabindex="0" onclick="playVideo('${i.url}','${i.name}')" style="flex:0 0 calc(100%/7.5)"><img src="${i.logo}"><div class="tv-name">${i.name}</div></div>`).join('') + `</div>`;
     }
 
-    function loadKidsMovies() {
-        renderGrid(db.kids_filmes.sort((a,b)=>a.titulo.localeCompare(b.titulo)));
-    }
-
-    function loadKidsSeries() {
-        renderGrid(db.kids_filmes.filter(i => i.type === 'serie').sort((a,b)=>a.titulo.localeCompare(b.titulo)), true);
-    }
+    function loadKidsMovies() { renderGrid(db.kids_filmes.filter(i => i.type === 'movie').sort((a,b)=>a.titulo.localeCompare(b.titulo))); }
+    function loadKidsSeries() { renderGrid(db.kids_filmes.filter(i => i.type === 'serie').sort((a,b)=>a.titulo.localeCompare(b.titulo)), true); }
 
     function filter(type, cat) {
-        const data = db[type === 'cinema' ? 'filmes' : 'series'].filter(i => i.genero.includes(cat));
+        const data = db[type === 'cinema' ? 'filmes' : 'series'].filter(i => i.genero.toLowerCase().includes(cat.toLowerCase()));
         renderGrid(data, type === 'series');
     }
 
@@ -219,7 +213,7 @@
         document.getElementById('ep-title').innerText = title;
         const list = document.getElementById('ep-list');
         list.innerHTML = "";
-        for(let i=1; i<=30; i++) {
+        for(let i=1; i<=20; i++) {
             const url = `https://archive.org/download/${id}/${id}_ep${i.toString().padStart(2,'0')}.mp4`;
             list.innerHTML += `<button class="ep-btn" tabindex="0" onclick="playVideo('${url}','${title} E${i}')">Episódio ${i}</button>`;
         }
@@ -228,91 +222,15 @@
     }
 
     function closeEp() { document.getElementById('ep-modal').style.display = 'none'; }
-
-    function confirmPlay(url, title) {
-        if(confirm(`Deseja continuar assistindo "${title}" ou recomeçar?`)) playVideo(url, title);
-    }
+    function confirmPlay(url, title) { if(confirm(`Assistir "${title}"?`)) playVideo(url, title); }
 
     function playVideo(url, title) {
         const player = document.getElementById('main-player');
         document.getElementById('player-overlay').style.display = 'block';
         player.src = url; player.play();
-        saveContinue(title, url);
-        setTimeout(() => document.getElementById('btn-exit-player').focus(), 1000);
+        saveCont(title, url);
     }
 
-    function closePlayer() {
-        const p = document.getElementById('main-player');
-        p.pause(); p.src = "";
-        document.getElementById('player-overlay').style.display = 'none';
-    }
-
-    function saveContinue(t, u) {
-        let list = JSON.parse(localStorage.getItem('pflix_cont') || '[]');
-        list = list.filter(i => i.u !== u);
-        list.unshift({t, u, d: Date.now()});
-        localStorage.setItem('pflix_cont', JSON.stringify(list.slice(0, 20)));
-    }
-
-    function loadContinue() {
-        let list = JSON.parse(localStorage.getItem('pflix_cont') || '[]');
-        const now = Date.now();
-        list = list.filter(i => (now - i.d) < 86400000);
-        renderGrid(list.map(i => ({titulo: i.t, url: i.u, poster: '', year: 'Visto', rating: ''})));
-    }
-
-    function globalSearch() {
-        const s = document.getElementById('search-box').value.toLowerCase();
-        if(!s) return;
-        let res = [];
-        for(let k in db) {
-            const found = db[k].filter(i => (i.name || i.titulo || "").toLowerCase().includes(s));
-            res = res.concat(found);
-        }
-        renderGrid(res.map(i => ({
-            titulo: i.titulo || i.name,
-            url: i.url,
-            poster: i.poster || i.logo,
-            year: i.year || "",
-            rating: i.rating || "",
-            identificador_archive: i.identificador_archive
-        })), res.some(i => i.identificador_archive));
-    }
-
-    window.addEventListener('keydown', e => {
-        const cur = document.activeElement;
-        if(e.key === "Enter") cur.click();
-        
-        // ROLAGEM INFINITA TV
-        if((e.key === "ArrowRight" || e.key === "ArrowLeft") && cur.classList.contains('card-tv')) {
-            const row = cur.closest('.tv-row');
-            const items = Array.from(row.querySelectorAll('.card-tv'));
-            const idx = items.indexOf(cur);
-            if(e.key === "ArrowRight" && idx === items.length - 1) { e.preventDefault(); items[0].focus(); }
-            if(e.key === "ArrowLeft" && idx === 0) { e.preventDefault(); items[items.length - 1].focus(); }
-        }
-
-        // NAVEGAÇÃO GERAL
-        const moves = { ArrowUp: 'Up', ArrowDown: 'Down', ArrowLeft: 'Left', ArrowRight: 'Right' };
-        if(moves[e.key]) {
-            e.preventDefault();
-            const all = Array.from(document.querySelectorAll('button, input, [tabindex="0"]')).filter(i => i.offsetParent);
-            const rC = cur.getBoundingClientRect();
-            let best = null, minDist = Infinity;
-            all.forEach(el => {
-                if(el === cur) return;
-                const rE = el.getBoundingClientRect();
-                const d = Math.hypot(rE.left - rC.left, rE.top - rC.top);
-                if(e.key === "ArrowUp" && rE.bottom <= rC.top + 5 && d < minDist) { best = el; minDist = d; }
-                if(e.key === "ArrowDown" && rE.top >= rC.bottom - 5 && d < minDist) { best = el; minDist = d; }
-                if(e.key === "ArrowLeft" && rE.right <= rC.left + 5 && d < minDist) { best = el; minDist = d; }
-                if(e.key === "ArrowRight" && rE.left >= rC.right - 5 && d < minDist) { best = el; minDist = d; }
-            });
-            best?.focus();
-        }
-    });
-
-    init();
-</script>
-</body>
-</html>
+    function closePlayer() { 
+        const p = document.getElementById('main-player'); 
+        p.pause(); p.src
