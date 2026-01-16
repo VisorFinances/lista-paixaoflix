@@ -1,87 +1,258 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: content:; style-src * 'self' 'unsafe-inline'; script-src * 'self' 'unsafe-inline' 'unsafe-eval'; connect-src *; img-src * 'self' data: content:; media-src * blob:;">
-    <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
-    <title>PaixãoFlix</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PaixãoFlix - V7 Ultimate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --azul-petroleo: #0a1921; --azul-claro: #142d3a; --destaque: #00a8ff; --texto: #ffffff; }
-        body { margin: 0; padding: 0; background: var(--azul-petroleo); color: var(--texto); font-family: 'Poppins', sans-serif; display: flex; height: 100vh; overflow: hidden; }
-        
-        #sidebar { width: 200px; background: rgba(0,0,0,0.4); display: flex; flex-direction: column; height: 100vh; border-right: 1px solid rgba(255,255,255,0.1); }
-        .logo-container { padding: 15px; flex-shrink: 0; text-align: center; }
-        .logo { width: 120px; }
-        
-        .nav-scroll { flex-grow: 1; overflow-y: auto; padding: 10px; scrollbar-width: none; }
-        .nav-scroll::-webkit-scrollbar { display: none; }
-        
-        .search-box { background: var(--azul-claro); border: 2px solid transparent; border-radius: 8px; padding: 10px; color: white; width: 100%; box-sizing: border-box; margin-bottom: 10px; outline: none; font-size: 13px; }
-        .search-box:focus { border-color: var(--destaque); background: #1c3d4e; }
+        :root { --primary: #013161; --focus: #00d4ff; --bg: #050505; --text: #ffffff; --sidebar-width: 280px; }
+        * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        .indicacao-box { background: linear-gradient(to bottom, #142d3a, #0a1921); padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--destaque); font-size: 11px; min-height: 40px; display: flex; align-items: center; }
+        /* LOADER 3X MAIOR */
+        #loader { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 30000; }
+        .loader-logo { width: 420px !important; height: auto !important; margin-bottom: 30px; animation: pulse 2s infinite; }
+        .spinner { width: 60px; height: 60px; border: 6px solid #222; border-top: 6px solid var(--focus); border-radius: 50%; animation: spin 1s linear infinite; }
 
-        .menu-item { background: linear-gradient(145deg, #163544, #0e242f); border: none; border-radius: 8px; padding: 12px; margin-bottom: 8px; color: white; text-align: left; display: flex; align-items: center; cursor: pointer; transition: 0.2s; width: 100%; font-size: 13px; }
-        .menu-item i { margin-right: 10px; width: 15px; color: var(--destaque); }
-        .menu-item:focus { background: var(--destaque); outline: none; transform: scale(1.02); }
-
-        #main-content { flex: 1; padding: 20px; overflow-y: auto; background: radial-gradient(circle at top right, #142d3a, #0a1921); }
-        .category-title { border-left: 4px solid var(--destaque); padding-left: 10px; margin: 25px 0 15px 0; text-transform: uppercase; font-size: 16px; letter-spacing: 1px; }
-        .content-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; }
+        /* SIDEBAR E COMPONENTES REDUZIDOS */
+        .sidebar { width: var(--sidebar-width); height: 100vh; background: #000; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; padding: 15px; border-right: 1px solid #222; z-index: 1000; }
+        .logo { width: 140px !important; height: auto !important; display: block; margin: 0 auto 10px; }
+        .btn-exit-sys { width: 80px; background: #d40000; color: white; border: none; padding: 6px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; margin: 0 auto 15px; display: block; }
         
-        .card { background: #000; border-radius: 6px; overflow: hidden; transition: 0.3s; cursor: pointer; border: 2px solid transparent; }
-        .card:focus { border-color: var(--destaque); transform: translateY(-5px); outline: none; }
-        .card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; }
-        .card .info { padding: 8px; background: rgba(0,0,0,0.8); font-size: 11px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #search-box { width: 85%; margin: 0 auto 15px; display: block; padding: 10px; border-radius: 8px; border: 2px solid #333; background: #111; color: white; font-size: 15px; }
 
-        #player-wrapper { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 99999; display: none; }
-        .video-js { width: 100% !important; height: 100% !important; }
-        .btn-voltar { position: absolute; top: 20px; left: 20px; z-index: 100000; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #fff; padding: 10px 20px; border-radius: 20px; cursor: pointer; }
+        .nav-menu { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .btn-nav { width: calc(100% - 15px); margin: 0 auto; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; text-align: left; font-size: 13px; }
+
+        .submenu { display: none; flex-direction: column; gap: 6px; padding: 10px 0 10px 15px; }
+        .btn-cat { width: calc(100% - 15px); background: #111; color: #eee; border: none; padding: 12px; text-align: left; cursor: pointer; font-size: 15px; font-weight: 600; border-radius: 4px; }
+
+        /* SELETOR */
+        .btn-nav:focus, .btn-cat:focus, .card:focus, .btn-exit-sys:focus, #search-box:focus { background: var(--focus) !important; box-shadow: 0 0 0 4px #fff; transform: scale(1.03); z-index: 999; }
+
+        main { margin-left: var(--sidebar-width); flex: 1; padding: 20px; overflow-y: auto; height: 100vh; }
         
-        @media (max-width: 600px) {
-            #sidebar { width: 70px; padding: 5px; }
-            .logo, .search-box, .indicacao-box, .menu-item span { display: none; }
-            .menu-item { justify-content: center; padding: 15px; }
-            .menu-item i { margin: 0; font-size: 18px; }
+        /* GRID CANAIS: 8 POR LINHA COM QUALIDADE AUMENTADA */
+        .content-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; }
+        .card { background: #111; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: 0.2s; }
+        
+        /* LOGO CANAIS TRAVADO 85PX */
+        .card img { width: 85px !important; height: 85px !important; object-fit: contain; display: block; margin: 0 auto; background: #000; padding: 6px; }
+        
+        /* MODO FILME / SÉRIE (CAPAS GRANDES) */
+        .movie-mode { grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)) !important; }
+        .movie-card img { width: 100% !important; height: auto !important; aspect-ratio: 2/3 !important; object-fit: cover !important; padding: 0; }
+
+        .card-title { padding: 6px; font-size: 11px; text-align: center; font-weight: 600; word-wrap: break-word; min-height: 38px; display: flex; align-items: center; justify-content: center; }
+
+        /* PLAYER */
+        #player-overlay { position: fixed; inset: 0; background: black; display: none; z-index: 9999; }
+        #exit-btn { position: absolute; top: 30px; right: 30px; background: #f00; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 10001; }
+        #exit-btn.visible { opacity: 1; pointer-events: auto; }
+        video { width: 100%; height: 100%; position: absolute; top:0; left:0; }
+
+        @media (max-width: 800px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; }
+            main { margin-left: 0; }
+            .content-grid { grid-template-columns: repeat(5, 1fr) !important; }
         }
     </style>
 </head>
 <body>
 
-<div id="sidebar">
-    <div class="logo-container">
-        <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="logo">
-    </div>
-    <div class="nav-scroll">
-        <input type="text" id="globalSearch" class="search-box selectable" placeholder="Buscar em tudo...">
-        <div class="indicacao-box" id="indicacao-texto">PaixãoFlix: Carregando...</div>
-        
-        <button class="menu-item selectable" onclick="carregarTV('canais.m3u')"><i class="fas fa-tv"></i> <span>Canais TV</span></button>
-        <button class="menu-item selectable" onclick="carregarSecao('filmes.json', 'Filmes')"><i class="fas fa-film"></i> <span>Filmes</span></button>
-        <button class="menu-item selectable" onclick="carregarSecao('series.json', 'Séries')"><i class="fas fa-clapperboard"></i> <span>Séries</span></button>
-        
-        <div style="margin: 15px 0; border-top: 1px solid rgba(255,255,255,0.1);"></div>
-        
-        <button class="menu-item selectable" onclick="carregarTV('kids_canais.m3u')"><i class="fas fa-child"></i> <span>TV Kids</span></button>
-        <button class="menu-item selectable" onclick="carregarSecao('kids_filmes.json', 'Filmes Kids')"><i class="fas fa-ice-cream"></i> <span>Filmes Kids</span></button>
-        <button class="menu-item selectable" onclick="carregarSecao('kids_series.json', 'Séries Kids')"><i class="fas fa-robot"></i> <span>Séries Kids</span></button>
-    </div>
+<div id="loader">
+    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="loader-logo">
+    <div class="spinner"></div>
 </div>
 
-<div id="main-content">
-    <div id="display-area"></div>
+<aside class="sidebar">
+    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="logo">
+    <button class="btn-exit-sys" onclick="window.location.reload()">SAIR</button>
+    <input type="text" id="search-box" placeholder="Pesquisar..." oninput="globalSearch()" onblur="this.value=''">
+    <nav class="nav-menu">
+        <button class="btn-nav" onclick="loadCategory('tv')">TV AO VIVO</button>
+        <button class="btn-nav" onclick="toggleMenu('cat-nav')">CINEMA ▾</button>
+        <div id="cat-nav" class="submenu"></div>
+        <button class="btn-nav" onclick="loadCategory('series')">SÉRIES</button>
+        <button class="btn-nav" style="background: #d40000;" onclick="toggleMenu('kids-nav')">ÁREA KIDS ▾</button>
+        <div id="kids-nav" class="submenu">
+            <button class="btn-cat" onclick="loadCategory('kids_canais')">TV KIDS</button>
+            <button class="btn-cat" onclick="loadCategory('kids_filmes')">FILMES KIDS</button>
+            <button class="btn-cat" onclick="loadCategory('kids_series')">SÉRIES KIDS</button>
+        </div>
+    </nav>
+</aside>
+
+<main><div class="content-grid" id="grid"></div></main>
+
+<div id="player-overlay">
+    <button id="exit-btn" onclick="closePlayer()">SAIR DO PLAYER</button>
+    <video id="video-player" controls autoplay playsinline></video>
 </div>
 
-<div id="player-wrapper">
-    <button class="btn-voltar" onclick="fecharPlayer()"><i class="fas fa-arrow-left"></i> VOLTAR</button>
-    <video id="paixao-player" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto"></video>
-</div>
+<script>
+    const API = {
+        tv: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_canais.m3u",
+        filmes: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/filmes.json",
+        series: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/series.json",
+        kids_canais: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/ativa_kids_canais.m3u",
+        kids_filmes: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/kids_filmes.json",
+        kids_series: "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/kids_series.json"
+    };
 
-<script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
-<script src="cordova.js"></script>
-<script src="js/index.js"></script>
+    const CATEGORIAS_LISTA = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
+    let database = {};
+
+    async function init() {
+        for(let key in API) {
+            try {
+                const r = await fetch(API[key] + "?t=" + Date.now());
+                const t = await r.text();
+                if(t.trim().startsWith('[') || t.trim().startsWith('{')) {
+                    const j = JSON.parse(t);
+                    database[key] = (Array.isArray(j) ? j : Object.values(j)[0]).map(i => ({
+                        name: i.titulo || i.name,
+                        url: i.url || i.link,
+                        logo: i.poster || i.logo,
+                        category: String(i.genero || ""),
+                        year: String(i.year || ""),
+                        type: key
+                    }));
+                } else { database[key] = parseM3U(t, key); }
+            } catch(e) {}
+        }
+        document.getElementById('loader').style.display = 'none';
+        loadCategory('tv');
+    }
+
+    function parseM3U(d, type) {
+        const items = [];
+        const lines = d.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].includes('#EXTINF')) {
+                const name = lines[i].split(',')[1]?.trim();
+                const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1];
+                const url = lines[i+1]?.trim();
+                if(url) items.push({ name, url, logo, category: "TV", type: type });
+            }
+        }
+        return items;
+    }
+
+    function renderGrid(data) {
+        const g = document.getElementById('grid');
+        // Identifica se são filmes/séries para ativar modo pôster
+        const isMovie = data.some(i => i.type && !i.type.includes('canais') && i.type !== 'tv');
+        g.className = isMovie ? "content-grid movie-mode" : "content-grid";
+        
+        g.innerHTML = data.map(i => {
+            const isItemMovie = i.type && !i.type.includes('canais') && i.type !== 'tv';
+            return `
+            <div class="card ${isItemMovie ? 'movie-card' : ''}" tabindex="0" onclick="playVideo('${i.url}')">
+                <img src="${i.logo}" loading="lazy">
+                <div class="card-title">${i.name}</div>
+            </div>
+        `}).join('');
+    }
+
+    function toggleMenu(id) {
+        const el = document.getElementById(id);
+        const isOpen = el.style.display === 'flex';
+        document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
+        el.style.display = isOpen ? 'none' : 'flex';
+        if(id === 'cat-nav') el.innerHTML = CATEGORIAS_LISTA.map(c => `<button class="btn-cat" onclick="filterCinema('${c}')">${c}</button>`).join('');
+    }
+
+    function filterCinema(cat) {
+        let res;
+        if(cat.includes("2025") || cat.includes("2026")) {
+            const ano = cat.split(" ")[1];
+            // Filtro EXCLUSIVO por ano, ignorando gêneros
+            res = database.filmes.filter(i => i.year === ano);
+        } else {
+            const regex = new RegExp("\\b" + cat.toLowerCase() + "\\b", "i");
+            // Filtro de gênero que exclui Animação se a categoria for Ação
+            res = database.filmes.filter(i => regex.test(i.category.toLowerCase()) && (cat === "Animação" || !i.category.toLowerCase().includes("animação")));
+        }
+        renderGrid(res);
+        document.getElementById('cat-nav').style.display = 'none';
+    }
+
+    function loadCategory(type) {
+        document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
+        renderGrid(database[type] || []);
+    }
+
+    function globalSearch() {
+        const term = document.getElementById('search-box').value.toLowerCase();
+        if(!term) return;
+        let res = [];
+        for(let k in database) res = res.concat(database[k].filter(i => i.name.toLowerCase().includes(term)));
+        renderGrid(res);
+    }
+
+    function playVideo(url) {
+        if(!url) return;
+        const v = document.getElementById('video-player');
+        document.getElementById('player-overlay').style.display = 'block';
+        if (Hls.isSupported() && (url.includes('m3u8') || url.includes('archive.org'))) {
+            const hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
+        } else { v.src = url; }
+        v.play().catch(e => { alert("Este link não pode ser reproduzido."); closePlayer(); });
+    }
+
+    let uiTimer;
+    function triggerPlayerUI() {
+        const btn = document.getElementById('exit-btn');
+        btn.classList.add('visible');
+        clearTimeout(uiTimer);
+        uiTimer = setTimeout(() => btn.classList.remove('visible'), 3000);
+    }
+
+    function closePlayer() {
+        const v = document.getElementById('video-player');
+        v.pause(); v.src = "";
+        document.getElementById('player-overlay').style.display = 'none';
+    }
+
+    // NAVEGAÇÃO 4 DIREÇÕES
+    window.addEventListener('keydown', (e) => {
+        const cur = document.activeElement;
+        const all = Array.from(document.querySelectorAll('button, input, .card, [tabindex="0"]'));
+        
+        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+            e.preventDefault();
+            const next = getFocus(cur, all, e.key);
+            if (next) next.focus();
+            if (document.getElementById('player-overlay').style.display === 'block') triggerPlayerUI();
+        }
+        if (e.key === "Enter" || e.keyCode === 13) cur.click();
+        if (e.key === "Escape" || e.key === "Backspace") closePlayer();
+    });
+
+    function getFocus(cur, all, key) {
+        const rC = cur.getBoundingClientRect();
+        let best = null, minDist = Infinity;
+        all.forEach(el => {
+            if (el === cur) return;
+            const rE = el.getBoundingClientRect();
+            let v = false;
+            if (key === "ArrowUp") v = rE.bottom <= rC.top + 5;
+            if (key === "ArrowDown") v = rE.top >= rC.bottom - 5;
+            if (key === "ArrowLeft") v = rE.right <= rC.left + 5;
+            if (key === "ArrowRight") v = rE.left >= rC.right - 5;
+            if (v) {
+                const d = Math.sqrt(Math.pow(rE.left - rC.left, 2) + Math.pow(rE.top - rC.top, 2));
+                if (d < minDist) { minDist = d; best = el; }
+            }
+        });
+        return best;
+    }
+
+    init();
+</script>
 </body>
 </html>
