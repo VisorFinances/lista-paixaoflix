@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PaixãoFlix - V19 Final Frozen</title>
+    <title>PaixãoFlix - V20 Ultra Frozen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
@@ -11,43 +11,39 @@
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; }
         body { background-color: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* SIDEBAR */
         .sidebar { width: var(--sidebar-width); height: 100vh; background: #000; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; padding: 15px; border-right: 1px solid #222; z-index: 1000; }
         .logo { width: 180px !important; height: auto !important; display: block; margin: 0 auto 5px; }
         .btn-exit-small { width: 60px; background: #d40000; color: white; border: none; padding: 4px; border-radius: 6px; font-size: 10px; font-weight: bold; margin: 0 auto 10px; cursor: pointer; display: block; }
 
         #search-box { width: 90%; margin: 0 auto 25px; display: block; padding: 10px; border-radius: 8px; border: 2px solid #333; background: #111; color: white; }
-        
-        /* BOTÕES MENU */
         .nav-menu { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
         .btn-nav { width: calc(50% - 4px); background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; text-align: center; font-size: 14px; }
         
         .submenu { display: none; flex-wrap: wrap; gap: 5px; width: 100%; padding: 10px 0; }
         .btn-cat { width: calc(50% - 4px); background: #111; color: #eee; border: none; padding: 12px; text-align: center; cursor: pointer; border-radius: 10px; font-size: 13px; font-weight: 600; }
 
-        /* FOCO COM BORDAS ARREDONDADAS */
         .btn-nav:focus, .btn-cat:focus, .card:focus, #search-box:focus, .btn-exit-small:focus, #exit-player:focus { 
             background: var(--focus) !important; color: #000 !important; transform: scale(1.05); border-radius: 15px; box-shadow: 0 0 15px var(--focus);
         }
 
         main { margin-left: var(--sidebar-width); flex: 1; padding: 20px; overflow-y: auto; height: 100vh; }
-        
-        /* TV ROLAGEM HORIZONTAL */
         .tv-section { margin-bottom: 30px; }
         .tv-row { display: flex; overflow-x: auto; gap: 15px; padding: 10px 0; scroll-behavior: smooth; }
         .tv-row::-webkit-scrollbar { display: none; }
 
-        /* GRID CONTEÚDO */
         .content-grid { display: grid; grid-template-columns: repeat(8, 1fr) !important; gap: 12px; }
-        .card { background: #111; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; flex: 0 0 auto; width: 130px; }
+        .card { background: #111; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; flex: 0 0 auto; width: 130px; position: relative; }
         .card img { width: 90px !important; height: 90px !important; object-fit: contain; display: block; margin: 0 auto; padding: 8px; }
         
         .movie-mode { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; display: grid !important; }
         .movie-card { width: 100%; }
         .movie-card img { width: 100% !important; height: auto !important; aspect-ratio: 2/3 !important; object-fit: cover !important; padding: 0; }
-        .card-title { padding: 5px; font-size: 11px; text-align: center; font-weight: 600; min-height: 35px; display: flex; align-items: center; justify-content: center; }
+        
+        .card-info { padding: 5px; background: rgba(0,0,0,0.8); }
+        .card-title { font-size: 11px; text-align: center; font-weight: 600; min-height: 30px; display: flex; align-items: center; justify-content: center; line-height: 1.2; }
+        .card-meta { display: flex; justify-content: space-between; padding: 0 5px 5px; font-size: 10px; color: var(--focus); font-weight: bold; }
+        .rating-star { color: #ffcc00; }
 
-        /* PLAYER */
         #player-overlay { position: fixed; inset: 0; background: black; display: none; z-index: 9999; }
         #exit-player { position: absolute; top: 30px; right: 30px; background: var(--primary); color: white; border: 2px solid white; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; z-index: 10001; opacity: 0; transition: opacity 0.5s; }
         #exit-player.visible { opacity: 1; }
@@ -93,7 +89,7 @@
     };
 
     let database = {};
-    const CATEGORIAS = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial","Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
+    const CATEGORIAS = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
 
     async function init() {
         for(let key in API) {
@@ -108,6 +104,7 @@
                         logo: i.poster || i.logo,
                         category: String(i.genero || ""),
                         year: String(i.year || ""),
+                        rating: i.rating || "N/A",
                         type: key
                     }));
                 } else { database[key] = parseM3U(t, key); }
@@ -122,17 +119,52 @@
         const lines = d.split('\n');
         let currentCat = "GERAL";
         for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes('group-title="')) {
-                currentCat = lines[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
-            }
+            if (lines[i].includes('group-title="')) currentCat = lines[i].match(/group-title="([^"]+)"/)?.[1] || "GERAL";
             if (lines[i].includes('#EXTINF')) {
                 const name = lines[i].split(',')[1]?.trim();
                 const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1];
                 const url = lines[i+1]?.trim();
-                if(url) items.push({ name, url, logo, category: currentCat, type: type });
+                if(url) items.push({ name, url, logo, category: currentCat, type: type, year: "", rating: "" });
             }
         }
         return items;
+    }
+
+    function renderGrid(data) {
+        const main = document.getElementById('main-content');
+        main.innerHTML = '<div class="content-grid" id="grid"></div>';
+        const g = document.getElementById('grid');
+        const isMovie = data.some(i => i.type && !i.type.includes('canais') && i.type !== 'tv');
+        g.className = isMovie ? "content-grid movie-mode" : "content-grid";
+        
+        g.innerHTML = data.map(i => {
+            const hasMeta = isMovie && (i.year || i.rating);
+            return `
+            <div class="card ${isMovie ? 'movie-card' : ''}" tabindex="0" onclick="playVideo('${i.url}')">
+                <img src="${i.logo}">
+                <div class="card-info">
+                    <div class="card-title">${i.name}</div>
+                    ${hasMeta ? `<div class="card-meta">
+                        <span><span class="rating-star">★</span> ${i.rating}</span>
+                        <span>${i.year}</span>
+                    </div>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function filterData(cat, type) {
+        const db = database[type];
+        let res;
+        if(cat.includes("2026") || cat.includes("2025")) {
+            const y = cat.split(" ")[1];
+            res = db.filter(i => i.year && i.year.trim().includes(y));
+        } else {
+            const reg = new RegExp("\\b" + cat.toLowerCase() + "\\b", "i");
+            res = db.filter(i => reg.test(i.category.toLowerCase()));
+        }
+        renderGrid(res);
+        document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
     }
 
     function loadTV() {
@@ -146,40 +178,11 @@
             const row = section.querySelector('.tv-row');
             database.tv.filter(i => i.category === group).forEach(i => {
                 row.innerHTML += `<div class="card" tabindex="0" onclick="playVideo('${i.url}')">
-                    <img src="${i.logo}"><div class="card-title">${i.name}</div>
+                    <img src="${i.logo}"><div class="card-info"><div class="card-title">${i.name}</div></div>
                 </div>`;
             });
             main.appendChild(section);
         });
-        document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
-    }
-
-    function renderGrid(data) {
-        const main = document.getElementById('main-content');
-        main.innerHTML = '<div class="content-grid" id="grid"></div>';
-        const g = document.getElementById('grid');
-        const isMovie = data.some(i => i.type && !i.type.includes('canais') && i.type !== 'tv');
-        g.className = isMovie ? "content-grid movie-mode" : "content-grid";
-        g.innerHTML = data.map(i => `
-            <div class="card ${isMovie ? 'movie-card' : ''}" tabindex="0" onclick="playVideo('${i.url}')">
-                <img src="${i.logo}">
-                <div class="card-title">${i.name}</div>
-            </div>`).join('');
-    }
-
-    function filterData(cat, type) {
-        const db = database[type];
-        let res;
-        // FILTRO DE ANO BLINDADO
-        if(cat === "Lançamento 2026" || cat === "Lançamento 2025") {
-            const targetYear = cat.split(" ")[1];
-            res = db.filter(i => i.year === targetYear);
-        } else {
-            const reg = new RegExp("\\b" + cat.toLowerCase() + "\\b", "i");
-            res = db.filter(i => reg.test(i.category.toLowerCase()));
-        }
-        renderGrid(res);
-        document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
     }
 
     function toggleMenu(id, type) {
@@ -212,17 +215,12 @@
         document.getElementById('player-overlay').style.display = 'block';
         if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
         v.pause(); v.removeAttribute('src'); v.load();
-
         if (url.includes('archive.org') || url.toLowerCase().endsWith('.mp4')) {
-            v.src = url;
-            v.type = "video/mp4";
+            v.src = url; v.type = "video/mp4";
         } else if (Hls.isSupported() && url.includes('m3u8')) {
-            hlsInstance = new Hls();
-            hlsInstance.loadSource(url);
-            hlsInstance.attachMedia(v);
+            hlsInstance = new Hls(); hlsInstance.loadSource(url); hlsInstance.attachMedia(v);
         } else { v.src = url; }
-        v.play();
-        showExitBtn();
+        v.play(); showExitBtn();
     }
 
     let timerSair;
@@ -243,16 +241,11 @@
     window.addEventListener('keydown', (e) => {
         const cur = document.activeElement;
         const all = Array.from(document.querySelectorAll('button, input, .card, [tabindex="0"]')).filter(el => el.offsetParent !== null);
-        
         if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
             if(document.getElementById('player-overlay').style.display === 'block') showExitBtn();
             e.preventDefault();
             let next = getFocus(cur, all, e.key);
-            
-            // Loop Infinito Lateral
-            if (!next && e.key === "ArrowRight") {
-                next = all.find(el => Math.abs(el.getBoundingClientRect().top - cur.getBoundingClientRect().top) < 10);
-            }
+            if (!next && e.key === "ArrowRight") next = all.find(el => Math.abs(el.getBoundingClientRect().top - cur.getBoundingClientRect().top) < 10);
             if (next) next.focus();
         }
         if (e.key === "Enter") { e.preventDefault(); cur.click(); }
@@ -266,7 +259,6 @@
             if (el === cur) return;
             const rE = el.getBoundingClientRect();
             let v = false;
-            // Bloqueio rigoroso de eixo para evitar desvio lateral
             if (key === "ArrowUp") v = rE.bottom <= rC.top + 2 && Math.abs(rE.left - rC.left) < 40;
             if (key === "ArrowDown") v = rE.top >= rC.bottom - 2 && Math.abs(rE.left - rC.left) < 40;
             if (key === "ArrowLeft") v = rE.right <= rC.left + 5;
