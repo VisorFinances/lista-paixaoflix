@@ -92,7 +92,7 @@ const posterPreview = document.getElementById("posterPreview");
 const posterWrapper = document.getElementById("posterWrapper");
 const ratingValue = document.getElementById("ratingValue");
 const ratingBadge = document.getElementById("ratingBadge");
-const yearBadge = document.getElementById("yearBadge"); // Novo badge
+const yearBadge = document.getElementById("yearBadge"); 
 const searchInput = document.getElementById("searchInput");
 const menuItems = document.querySelectorAll(".menu-item");
 const currentTitleDisplay = document.getElementById("currentTitle");
@@ -152,13 +152,10 @@ function renderList() {
     if (!menuFocused && cur?.poster) { 
         posterPreview.src = cur.poster; 
         posterWrapper.style.display = "block";
-        
-        // MOSTRAR AVALIAÇÃO E ANO ESTILO NETFLIX
         ratingBadge.style.display = (cur.rating || cur.vote_average) ? "flex" : "none";
         ratingValue.innerText = cur.rating || cur.vote_average || "";
         yearBadge.innerText = cur.year || "S/A";
         yearBadge.style.display = cur.year ? "block" : "none";
-
     } else { posterWrapper.style.display = "none"; }
 }
 
@@ -174,14 +171,16 @@ async function handleAction() {
         const sourceData = isMovie ? movies : series;
         const catName = item.toUpperCase().trim();
         
-        // CORREÇÃO: Filtrar corretamente por gênero ou ano
+        // FILTRAGEM CORRIGIDA PARA CARREGAR OS FILMES NA LISTA
         filteredList = sourceData.filter(m => {
             let gen = (m.genero || "").toUpperCase().trim();
+            // Verifica se a categoria é um ano (Lançamentos 202X) ou um gênero
             return catName.includes("202") ? m.year === catName.split(" ").pop() : gen === catName;
         });
         
         viewMode = isMovie ? "movie_list" : "series_list"; 
-        selectedIndex = 0; renderList();
+        selectedIndex = 0; 
+        renderList();
     } 
     else if ((viewMode === "series_list" || viewMode === "kids_series" || viewMode === "search_results") && item.type === "serie") {
         channelList.innerHTML = "<div class='channel'>Carregando episódios...</div>";
