@@ -137,7 +137,6 @@ function playMedia(item) {
 function renderList() {
     channelList.innerHTML = "";
     let seriesCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    
     let data = [];
     if (viewMode === "categories") data = movieCats;
     else if (viewMode === "series") data = seriesCats;
@@ -215,9 +214,11 @@ document.addEventListener("keydown", e => {
             if(menuIndex === -1) return;
             menuFocused = false; channelList.style.display = "block";
             viewMode = menuItems[menuIndex].dataset.type;
+            
             if (viewMode === "kids_channels") filteredList = kidsChannels;
             else if (viewMode === "kids_movies") filteredList = kidsMovies;
             else if (viewMode === "kids_series") filteredList = kidsSeries;
+            
             selectedIndex = 0; renderList();
         }
     } else {
