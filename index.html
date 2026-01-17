@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV - V3.0</title>
+<title>PaixãoFlix TV - V4.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -44,7 +44,7 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
     <div id="menuHeader">
         <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
         <div id="clock"></div>
-        <div id="version">V3.0 ULTIMATE</div>
+        <div id="version">V4.0 FIX</div>
         <div id="nowPlaying"><span>Assistindo:</span><div id="currentTitle">...</div></div>
     </div>
     <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
@@ -66,7 +66,6 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 <script>
 let player;
 let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [], kidsSeries = [];
-let favorites = JSON.parse(localStorage.getItem("paixaoflix_favs") || "[]");
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true;
 
 const movieCats = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
@@ -95,6 +94,10 @@ function renderList() {
     else if (viewMode === "kids_series") data = [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     else data = filteredList;
 
+    if (data.length === 0 && !menuFocused) {
+        listDiv.innerHTML = "<div class='channel'>Nenhum conteúdo encontrado</div>";
+    }
+
     data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
@@ -112,19 +115,27 @@ function renderList() {
     }
 }
 
-async function handleAction() {
-    let data = (viewMode === "categories") ? movieCats : (viewMode === "series" ? [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))] : (viewMode === "kids_series" ? [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))] : (viewMode === "kids_movies" ? kidsMovies : (viewMode === "channels" ? channels : (viewMode === "kids_channels" ? kidsChannels : filteredList)))));
+function handleAction() {
+    let data = [];
+    if (viewMode === "categories") data = movieCats;
+    else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    else if (viewMode === "kids_series") data = [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    else if (viewMode === "kids_movies") data = kidsMovies;
+    else if (viewMode === "channels") data = channels;
+    else if (viewMode === "kids_channels") data = kidsChannels;
+    else data = filteredList;
+
     const item = data[selectedIndex];
     if (!item) return;
 
     if (viewMode === "categories") {
-        filteredList = movies.filter(m => m.genero?.toUpperCase().includes(item));
+        filteredList = movies.filter(m => (m.genero || "").toUpperCase().includes(item));
         viewMode = "movie_list"; selectedIndex = 0; renderList();
     } else if (viewMode === "series" || viewMode === "kids_series") {
-        const source = viewMode === "series" ? series : kidsSeries;
-        filteredList = source.filter(s => s.genero?.toUpperCase() === item);
-        viewMode = viewMode === "series" ? "series_list" : "ks_list"; selectedIndex = 0; renderList();
-    } else if (item.url || item.link) {
+        const source = (viewMode === "series") ? series : kidsSeries;
+        filteredList = source.filter(s => (s.genero || "").toUpperCase() === item);
+        viewMode = (viewMode === "series") ? "series_list" : "ks_list"; selectedIndex = 0; renderList();
+    } else {
         playMedia(item);
     }
 }
@@ -134,38 +145,51 @@ document.addEventListener("keydown", e => {
     if (menuFocused) {
         if (e.keyCode === 38 && menuIndex > 0) menuIndex--;
         if (e.keyCode === 40 && menuIndex < items.length - 1) menuIndex++;
-        if (e.keyCode === 39 || e.keyCode === 13) { menuFocused = false; document.getElementById("channelList").style.display = "block"; viewMode = items[menuIndex].dataset.type; selectedIndex = 0; renderList(); }
+        if (e.keyCode === 39 || e.keyCode === 13) { 
+            menuFocused = false; 
+            document.getElementById("channelList").style.display = "block"; 
+            viewMode = items[menuIndex].dataset.type; 
+            selectedIndex = 0; 
+            renderList(); 
+        }
     } else {
-        if (e.keyCode === 38) selectedIndex = Math.max(0, selectedIndex - 1);
-        if (e.keyCode === 40) selectedIndex++;
+        if (e.keyCode === 38) { selectedIndex = Math.max(0, selectedIndex - 1); renderList(); }
+        if (e.keyCode === 40) { selectedIndex++; renderList(); }
         if (e.keyCode === 37) { menuFocused = true; document.getElementById("channelList").style.display = "none"; }
         if (e.keyCode === 13) handleAction();
-        renderList();
     }
     items.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
 
 window.onload = () => {
-    fetch("data/canais.m3u").then(r=>r.text()).then(t => {
+    const BASE_URL = "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/";
+    
+    // Canais TV
+    fetch(BASE_URL + "canais.m3u").then(r=>r.text()).then(t => {
         let temp=null; t.split("\n").forEach(l=>{
             if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop().trim()};
             else if(l.startsWith("http") && temp){ temp.url=l.trim(); channels.push(temp); temp=null; }
         });
         if(channels.length > 0) playMedia(channels[0]);
     });
-    fetch("data/kids_canais.m3u").then(r=>r.text()).then(t => {
+
+    // Filmes (Link direto solicitado)
+    fetch(BASE_URL + "filmes.json").then(r=>r.json()).then(d=>movies=d).catch(e => console.log("Erro Filmes"));
+    
+    // Outros dados
+    fetch(BASE_URL + "series.json").then(r=>r.json()).then(d=>series=d);
+    fetch(BASE_URL + "kids_filmes.json").then(r=>r.json()).then(d=>kidsMovies=d);
+    fetch(BASE_URL + "kids_series.json").then(r=>r.json()).then(d=>kidsSeries=d);
+    fetch(BASE_URL + "kids_canais.m3u").then(r=>r.text()).then(t => {
         let temp=null; t.split("\n").forEach(l=>{
             if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop().trim()};
             else if(l.startsWith("http") && temp){ temp.url=l.trim(); kidsChannels.push(temp); temp=null; }
         });
     });
-    fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d);
-    fetch("data/series.json").then(r=>r.json()).then(d=>series=d);
-    fetch("data/kids_filmes.json").then(r=>r.json()).then(d=>kidsMovies=d);
-    fetch("data/kids_series.json").then(r=>r.json()).then(d=>kidsSeries=d);
+
     setInterval(() => {
         const d = new Date();
-        document.getElementById("clock").innerText = d.toLocaleTimeString();
+        document.getElementById("clock").innerText = d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
     }, 1000);
 };
 </script>
