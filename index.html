@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV - V4.0</title>
+<title>PaixãoFlix TV - V5.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -20,7 +20,7 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 #version { font-size: 11px; color: #ff9800; font-weight: bold; margin-top: 5px; }
 #nowPlaying { margin: 15px 0; text-align: center; }
 #nowPlaying span { display: block; font-size: 13px; color: #fff; font-weight: 700; margin-bottom: 5px; }
-#currentTitle { display: inline-block; padding: 6px 10px; color: #fff; font-size: 15px; background: rgba(0,0,0,0.6); border-radius: 4px; max-width: 240px; word-wrap: break-word; }
+#currentTitle { display: inline-block; padding: 6px 10px; color: #fff; font-size: 14px; background: rgba(0,0,0,0.6); border-radius: 4px; max-width: 240px; word-wrap: break-word; }
 #searchBox { margin-bottom: 15px; }
 #searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; outline: none; box-sizing: border-box; }
 #searchInput.focused { border-color: #ff9800; background: #222; }
@@ -44,7 +44,7 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
     <div id="menuHeader">
         <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
         <div id="clock"></div>
-        <div id="version">V4.0 FIX</div>
+        <div id="version">V5.0 FINAL</div>
         <div id="nowPlaying"><span>Assistindo:</span><div id="currentTitle">...</div></div>
     </div>
     <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
@@ -92,10 +92,10 @@ function renderList() {
     else if (viewMode === "kids_channels") data = kidsChannels;
     else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     else if (viewMode === "kids_series") data = [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    else data = filteredList;
+    else if (viewMode === "movie_list" || viewMode === "series_list" || viewMode === "ks_list") data = filteredList;
 
     if (data.length === 0 && !menuFocused) {
-        listDiv.innerHTML = "<div class='channel'>Nenhum conteúdo encontrado</div>";
+        listDiv.innerHTML = "<div class='channel'>Nenhum conteúdo carregado. Verifique a conexão.</div>";
     }
 
     data.forEach((item, i) => {
@@ -155,37 +155,51 @@ document.addEventListener("keydown", e => {
     } else {
         if (e.keyCode === 38) { selectedIndex = Math.max(0, selectedIndex - 1); renderList(); }
         if (e.keyCode === 40) { selectedIndex++; renderList(); }
-        if (e.keyCode === 37) { menuFocused = true; document.getElementById("channelList").style.display = "none"; }
+        if (e.keyCode === 37) { 
+            if (viewMode === "movie_list") { viewMode = "categories"; selectedIndex = 0; renderList(); }
+            else { menuFocused = true; document.getElementById("channelList").style.display = "none"; }
+        }
         if (e.keyCode === 13) handleAction();
     }
     items.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
 
-window.onload = () => {
-    const BASE_URL = "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/";
+window.onload = async () => {
+    const BASE = "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/";
     
-    // Canais TV
-    fetch(BASE_URL + "canais.m3u").then(r=>r.text()).then(t => {
-        let temp=null; t.split("\n").forEach(l=>{
-            if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop().trim()};
-            else if(l.startsWith("http") && temp){ temp.url=l.trim(); channels.push(temp); temp=null; }
-        });
-        if(channels.length > 0) playMedia(channels[0]);
-    });
+    // Função auxiliar para carregar JSON de forma segura
+    const loadJSON = async (file) => {
+        try {
+            const r = await fetch(BASE + file);
+            return await r.json();
+        } catch (e) { console.error("Falha ao carregar: " + file); return []; }
+    };
 
-    // Filmes (Link direto solicitado)
-    fetch(BASE_URL + "filmes.json").then(r=>r.json()).then(d=>movies=d).catch(e => console.log("Erro Filmes"));
+    // Função para carregar M3U
+    const loadM3U = async (file) => {
+        try {
+            const r = await fetch(BASE + file);
+            const t = await r.text();
+            let arr = [], temp = null;
+            t.split("\n").forEach(l => {
+                if(l.startsWith("#EXTINF")) temp = { titulo: l.split(",").pop().trim() };
+                else if(l.startsWith("http") && temp) { temp.url = l.trim(); arr.push(temp); temp = null; }
+            });
+            return arr;
+        } catch (e) { return []; }
+    };
+
+    // Carregamento paralelo
+    channels = await loadM3U("canais.m3u");
+    kidsChannels = await loadM3U("kids_canais.m3u");
+    movies = await loadJSON("filmes.json");
+    series = await loadJSON("series.json");
+    kidsMovies = await loadJSON("kids_filmes.json");
+    kidsSeries = await loadJSON("kids_series.json");
+
+    if (channels.length > 0) playMedia(channels[0]);
     
-    // Outros dados
-    fetch(BASE_URL + "series.json").then(r=>r.json()).then(d=>series=d);
-    fetch(BASE_URL + "kids_filmes.json").then(r=>r.json()).then(d=>kidsMovies=d);
-    fetch(BASE_URL + "kids_series.json").then(r=>r.json()).then(d=>kidsSeries=d);
-    fetch(BASE_URL + "kids_canais.m3u").then(r=>r.text()).then(t => {
-        let temp=null; t.split("\n").forEach(l=>{
-            if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop().trim()};
-            else if(l.startsWith("http") && temp){ temp.url=l.trim(); kidsChannels.push(temp); temp=null; }
-        });
-    });
+    console.log("Sistema Carregado. Filmes:", movies.length);
 
     setInterval(() => {
         const d = new Date();
