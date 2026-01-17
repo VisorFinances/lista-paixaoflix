@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV - V11.0</title>
+<title>PaixãoFlix TV - V12.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
@@ -40,7 +40,7 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 #content { position: absolute; left: 280px; right: 0; top: 0; bottom: 0; background: #000; overflow: hidden; }
 #videoContainer { width: 100%; height: 100%; }
 .video-js { width: 100% !important; height: 100% !important; }
-.vjs-tech { object-fit: fill !important; } /* Força Tela Cheia */
+.vjs-tech { object-fit: fill !important; }
 
 #channelList { position: absolute; left: 0; top: 0; width: 340px; height: 100%; background: rgba(0,0,0,0.98); display: none; z-index: 110; overflow-y: auto; border-right: 2px solid #ff9800; }
 .channel { padding: 18px 20px; font-size: 16px; border-bottom: 1px solid #222; color: #fff; }
@@ -56,7 +56,7 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 
 <div id="loadingScreen">
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-    <div style="color: #ff9800; font-weight: bold;">CARREGANDO SISTEMA...</div>
+    <div style="color: #ff9800; font-weight: bold;">Transformando momentos de lazer em lembranças felizes!...</div>
 </div>
 
 <div id="app">
@@ -117,11 +117,11 @@ function renderList() {
     listDiv.innerHTML = "";
     let data = [];
     if (viewMode === "channels") data = channels;
-    else if (viewMode === "categories") data = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
+    else if (viewMode === "categories") data = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","CRIME","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
     else if (viewMode === "kids_movies") data = kidsMovies;
     else if (viewMode === "kids_channels") data = kidsChannels;
     else if (viewMode === "kids_series") data = kidsSeries;
-    else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))].sort();
     else data = filteredList;
 
     data.forEach((item, i) => {
@@ -144,13 +144,13 @@ function renderList() {
 }
 
 async function handleAction() {
-    let data = [];
     if (viewMode === "categories") {
-        const cat = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"][selectedIndex];
-        filteredList = movies.filter(m => (m.genero || "").toUpperCase().includes(cat));
+        const cat = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","CRIME","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"][selectedIndex];
+        // Comparação EXATA para não misturar Ação com Animação
+        filteredList = movies.filter(m => (m.genero || "").toUpperCase() === cat);
         viewMode = "movie_list"; selectedIndex = 0; renderList();
     } else if (viewMode === "series") {
-        const gen = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))][selectedIndex];
+        const gen = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))].sort()[selectedIndex];
         filteredList = series.filter(s => (s.genero || "").toUpperCase() === gen);
         viewMode = "series_list"; selectedIndex = 0; renderList();
     } else {
@@ -173,10 +173,8 @@ async function handleAction() {
     }
 }
 
-// BLOQUEIO TOTAL DE NAVEGADOR E BOX
 document.addEventListener("keydown", e => {
     const code = e.keyCode;
-    // Impede o navegador de usar as setas para sair da página
     if([37,38,39,40,13].includes(code)) {
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -207,8 +205,12 @@ document.addEventListener("keydown", e => {
         else if (code === 40) { selectedIndex = (selectedIndex + 1) % listLen; renderList(); }
         else if (code === 13 || code === 23) handleAction();
         else if (code === 37 || code === 4) {
-            document.getElementById("posterWrapper").style.display = "none"; // Fecha poster ao sair
-            if (viewMode.includes("_list")) { viewMode = viewMode.includes("movie") ? "categories" : "series"; renderList(); }
+            document.getElementById("posterWrapper").style.display = "none";
+            if (viewMode.includes("_list")) { 
+                viewMode = viewMode.includes("movie") ? "categories" : "series"; 
+                selectedIndex = 0;
+                renderList(); 
+            }
             else { menuFocused = true; document.getElementById("channelList").style.display = "none"; }
         }
     }
@@ -219,7 +221,6 @@ window.onload = async () => {
     const BASE = "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/";
     const t = "?nocache=" + Date.now();
     
-    // Função de carregamento com tratamento de erro real
     const load = async (file, isM3U) => {
         try {
             const r = await fetch(BASE + file + t);
@@ -230,9 +231,14 @@ window.onload = async () => {
                     if(l.startsWith("#EXTINF")) tmp = { titulo: l.split(",").pop().trim() };
                     else if(l.startsWith("http") && tmp) { tmp.url = l.trim(); arr.push(tmp); tmp = null; }
                 });
-                return arr;
+                return arr.sort((a,b) => (a.titulo || "").localeCompare(b.titulo || ""));
             }
-            return await r.json();
+            let data = await r.json();
+            // Aplica ordem alfabética em todos os JSONs carregados
+            if(Array.isArray(data)) {
+                return data.sort((a, b) => (a.titulo || "").localeCompare(b.titulo || ""));
+            }
+            return data;
         } catch(e) { return []; }
     };
 
