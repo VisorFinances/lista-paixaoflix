@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV - V6.0</title>
+<title>PaixãoFlix TV - V7.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -44,7 +44,7 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
     <div id="menuHeader">
         <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
         <div id="clock"></div>
-        <div id="version">V6.0 STABLE</div>
+        <div id="version">V7.0 INX-PLUS</div>
         <div id="nowPlaying"><span>Assistindo:</span><div id="currentTitle">...</div></div>
     </div>
     <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
@@ -90,13 +90,9 @@ function renderList() {
     else if (viewMode === "categories") data = movieCats;
     else if (viewMode === "kids_movies") data = kidsMovies;
     else if (viewMode === "kids_channels") data = kidsChannels;
-    else if (viewMode === "kids_series") data = kidsSeries; // Sem categorias agora
     else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    else if (viewMode === "kids_series") data = [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     else data = filteredList;
-
-    if (data.length === 0 && !menuFocused) {
-        listDiv.innerHTML = "<div class='channel'>Carregando ou vazio...</div>";
-    }
 
     data.forEach((item, i) => {
         const div = document.createElement("div");
@@ -115,36 +111,45 @@ function renderList() {
     }
 }
 
-function handleAction() {
-    let data = [];
-    if (viewMode === "categories") data = movieCats;
-    else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    else if (viewMode === "kids_movies") data = kidsMovies;
-    else if (viewMode === "kids_series") data = kidsSeries;
-    else if (viewMode === "channels") data = channels;
-    else if (viewMode === "kids_channels") data = kidsChannels;
-    else data = filteredList;
-
+async function handleAction() {
+    let data = (viewMode === "categories") ? movieCats : (viewMode === "series" ? [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))] : (viewMode === "kids_series" ? [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))] : (viewMode === "kids_movies" ? kidsMovies : (viewMode === "channels" ? channels : (viewMode === "kids_channels" ? kidsChannels : filteredList)))));
     const item = data[selectedIndex];
     if (!item) return;
 
     if (viewMode === "categories") {
         filteredList = movies.filter(m => (m.genero || "").toUpperCase().includes(item));
         viewMode = "movie_list"; selectedIndex = 0; renderList();
-    } else if (viewMode === "series") {
-        filteredList = series.filter(s => (s.genero || "").toUpperCase() === item);
-        viewMode = "series_list"; selectedIndex = 0; renderList();
-    } else {
+    } else if (viewMode === "series" || viewMode === "kids_series") {
+        const source = (viewMode === "series") ? series : kidsSeries;
+        filteredList = source.filter(s => (s.genero || "").toUpperCase() === item);
+        viewMode = (viewMode === "series") ? "series_list" : "ks_list"; selectedIndex = 0; renderList();
+    } else if (item.url || item.link) {
         playMedia(item);
+    } else if (item.identificador_archive) {
+        channelList.innerHTML = "<div class='channel'>Carregando episódios...</div>";
+        try {
+            const resp = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
+            const meta = await resp.json();
+            const files = meta.files.filter(f => f.name.endsWith(".mp4") || f.name.endsWith(".mkv"));
+            filteredList = files.map(f => ({
+                titulo: f.name.split('/').pop().replace(/_/g, ' '),
+                url: `https://archive.org/download/${item.identificador_archive}/${f.name}`,
+                poster: item.poster
+            }));
+            viewMode = "episode_list"; selectedIndex = 0; renderList();
+        } catch (e) { renderList(); }
     }
 }
 
+// Controle Remoto In X Plus / TV Box (Standard Android Keycodes)
 document.addEventListener("keydown", e => {
     const items = document.querySelectorAll(".menu-item");
+    const code = e.keyCode;
+
     if (menuFocused) {
-        if (e.keyCode === 38 && menuIndex > 0) menuIndex--;
-        if (e.keyCode === 40 && menuIndex < items.length - 1) menuIndex++;
-        if (e.keyCode === 39 || e.keyCode === 13) { 
+        if (code === 38 && menuIndex > 0) menuIndex--; // Cima
+        else if (code === 40 && menuIndex < items.length - 1) menuIndex++; // Baixo
+        else if (code === 39 || code === 13 || code === 23) { // Direita ou OK
             menuFocused = false; 
             document.getElementById("channelList").style.display = "block"; 
             viewMode = items[menuIndex].dataset.type; 
@@ -152,52 +157,45 @@ document.addEventListener("keydown", e => {
             renderList(); 
         }
     } else {
-        if (e.keyCode === 38) { selectedIndex = Math.max(0, selectedIndex - 1); renderList(); }
-        if (e.keyCode === 40) { selectedIndex++; renderList(); }
-        if (e.keyCode === 37) { 
-            if (viewMode === "movie_list") { viewMode = "categories"; selectedIndex = 0; renderList(); }
-            else { menuFocused = true; document.getElementById("channelList").style.display = "none"; }
+        let dataLen = document.querySelectorAll(".channel").length;
+        if (code === 38) { selectedIndex = (selectedIndex - 1 + dataLen) % dataLen; renderList(); } // Cima
+        else if (code === 40) { selectedIndex = (selectedIndex + 1) % dataLen; renderList(); } // Baixo
+        else if (code === 37 || code === 4) { // Esquerda ou Back
+            if (viewMode.includes("_list") || viewMode === "episode_list") {
+                viewMode = viewMode === "movie_list" ? "categories" : (viewMode === "ks_list" ? "kids_series" : "series");
+                selectedIndex = 0; renderList();
+            } else {
+                menuFocused = true; document.getElementById("channelList").style.display = "none";
+            }
         }
-        if (e.keyCode === 13) handleAction();
+        else if (code === 13 || code === 23) handleAction(); // OK (In X Plus usa 23 ou 13)
     }
     items.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
 
 window.onload = async () => {
     const BASE = "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/";
-    
-    const loadJSON = async (file) => {
-        try {
-            const r = await fetch(BASE + file + "?t=" + Date.now()); // Mata o cache
-            return await r.json();
-        } catch (e) { return []; }
-    };
+    const t = "?nocache=" + Date.now();
 
-    const loadM3U = async (file) => {
+    const loadJSON = async (f) => { try { const r = await fetch(BASE+f+t); return await r.json(); } catch(e){ return []; } };
+    const loadM3U = async (f) => {
         try {
-            const r = await fetch(BASE + file + "?t=" + Date.now());
-            const t = await r.text();
+            const r = await fetch(BASE+f+t); const text = await r.text();
             let arr = [], temp = null;
-            t.split("\n").forEach(l => {
+            text.split("\n").forEach(l => {
                 if(l.startsWith("#EXTINF")) temp = { titulo: l.split(",").pop().trim() };
                 else if(l.startsWith("http") && temp) { temp.url = l.trim(); arr.push(temp); temp = null; }
             });
             return arr;
-        } catch (e) { return []; }
+        } catch(e){ return []; }
     };
 
-    // Carregando tudo simultaneamente
     [channels, kidsChannels, movies, series, kidsMovies, kidsSeries] = await Promise.all([
-        loadM3U("canais.m3u"),
-        loadM3U("kids_canais.m3u"),
-        loadJSON("filmes.json"),
-        loadJSON("series.json"),
-        loadJSON("kids_filmes.json"),
-        loadJSON("kids_series.json")
+        loadM3U("canais.m3u"), loadM3U("kids_canais.m3u"), loadJSON("filmes.json"),
+        loadJSON("series.json"), loadJSON("kids_filmes.json"), loadJSON("kids_series.json")
     ]);
 
     if (channels.length > 0) playMedia(channels[0]);
-
     setInterval(() => {
         const d = new Date();
         document.getElementById("clock").innerText = d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
