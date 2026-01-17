@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV - V12.0</title>
+<title>PaixãoFlix TV - V13.0.1</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
@@ -14,8 +14,9 @@
 
 body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; width: 100vw; overflow: hidden; }
 
-#loadingScreen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-#loadingScreen img { width: 375px; height: auto; margin-bottom: 20px; }
+/* Correção Logo Centralizado */
+#loadingScreen { position: fixed; top:0; left:0; width: 100vw; height: 100vh; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+#loadingScreen img { width: 320px; height: auto; margin-bottom: 25px; }
 
 #app { display: flex; height: 100%; width: 100%; position: relative; }
 
@@ -26,13 +27,14 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 
 #nowPlaying { margin: 15px 0; text-align: center; }
 #nowPlaying span { display: block; font-size: 13px; color: #fff; font-weight: 700; margin-bottom: 5px; }
-#currentTitle { display: inline-block; padding: 6px 10px; color: #fff; font-size: 14px; background: rgba(255,152,0,0.2); border: 1px solid #ff9800; border-radius: 4px; max-width: 240px; }
+#currentTitle { display: inline-block; padding: 6px 10px; color: #fff; font-size: 14px; background: rgba(255,152,0,0.2); border: 1px solid #ff9800; border-radius: 4px; max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-#searchBox { margin-bottom: 15px; }
-#searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; box-sizing: border-box; }
+/* Ajuste Caixa Pesquisa */
+#searchBox { margin-bottom: 20px; padding-bottom: 5px; }
+#searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; box-sizing: border-box; font-size: 14px; }
 #searchInput.active-focus { border-color: #ff9800; background: #222; }
 
-.menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #1a1a1a; border: 1px solid #333; display: flex; align-items: center; color: #ccc; }
+.menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #1a1a1a; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
 .menu-item i { margin-right: 15px; width: 20px; text-align: center; }
 .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; }
 .menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
@@ -56,7 +58,7 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 
 <div id="loadingScreen">
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-    <div style="color: #ff9800; font-weight: bold;">Transformando momentos de lazer em lembranças felizes!...</div>
+    <div style="color: #ff9800; font-weight: bold; letter-spacing: 1px;" id="loadText">INICIANDO EXPERIÊNCIA...</div>
 </div>
 
 <div id="app">
@@ -66,9 +68,8 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
             <div id="clock"></div>
             <div id="nowPlaying"><span>Assistindo:</span><div id="currentTitle">...</div></div>
         </div>
-        <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..." readonly></div>
+        <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..." autocomplete="off"></div>
         <div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
-        <div class="menu-item" data-type="fav"><i class="fas fa-star"></i> Favoritos</div>
         <div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
         <div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
         <div class="menu-item kids" data-type="kids_channels"><i class="fas fa-child"></i> Canal Kids</div>
@@ -82,7 +83,7 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
         </div>
         <div id="channelList"></div>
         <div id="posterWrapper">
-            <img id="posterPreview" loading="lazy">
+            <img id="posterPreview">
             <div id="ratingBadge"><i class="fas fa-star" style="color:#ffeb3b"></i> <span id="ratingValue">0.0</span></div>
             <div id="yearBadge">0000</div>
         </div>
@@ -90,17 +91,31 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 </div>
 
 <script>
-let vPlayer = videojs('mainPlayer', { autoplay: true, controls: false, fill: true });
+let vPlayer = videojs('mainPlayer', { autoplay: true, controls: false, fill: true, preload: 'auto' });
 let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [], kidsSeries = [];
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true;
 
+// Relógio
 function updateClock() {
     const d = new Date();
     const dias = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
-    const hora = d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
-    document.getElementById("clock").innerText = `${dias[d.getDay()]}, ${d.toLocaleDateString('pt-BR')}    |  ${hora}`;
+    document.getElementById("clock").innerText = `${dias[d.getDay()]}, ${d.toLocaleDateString('pt-BR')} | ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
 }
 setInterval(updateClock, 1000); updateClock();
+
+// Busca Global Tempo Real
+document.getElementById("searchInput").addEventListener("input", (e) => {
+    const term = e.target.value.toLowerCase();
+    if(term.length > 0) {
+        menuFocused = false;
+        viewMode = "search_result";
+        const all = [...channels, ...movies, ...series, ...kidsMovies, ...kidsSeries];
+        filteredList = all.filter(x => (x.titulo || x.name || "").toLowerCase().includes(term));
+        document.getElementById("channelList").style.display = "block";
+        selectedIndex = 0;
+        renderList();
+    }
+});
 
 function playMedia(item) {
     if (!item) return;
@@ -116,8 +131,13 @@ function renderList() {
     const listDiv = document.getElementById("channelList");
     listDiv.innerHTML = "";
     let data = [];
+
     if (viewMode === "channels") data = channels;
-    else if (viewMode === "categories") data = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","CRIME","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
+    else if (viewMode === "categories") {
+        // Ordem Alfabética com Adulto por último
+        const cats = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","CRIME","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO"];
+        data = [...cats.sort(), "ADULTO"];
+    }
     else if (viewMode === "kids_movies") data = kidsMovies;
     else if (viewMode === "kids_channels") data = kidsChannels;
     else if (viewMode === "kids_series") data = kidsSeries;
@@ -134,8 +154,9 @@ function renderList() {
 
     const cur = data[selectedIndex];
     if (!menuFocused && cur && cur.poster) {
-        document.getElementById("posterPreview").src = cur.poster;
-        document.getElementById("ratingValue").innerText = cur.rating || cur.vote_average || "0.0";
+        const img = document.getElementById("posterPreview");
+        img.src = cur.poster;
+        document.getElementById("ratingValue").innerText = cur.rating || "0.0";
         document.getElementById("yearBadge").innerText = cur.year || "N/A";
         document.getElementById("posterWrapper").style.display = "block";
     } else {
@@ -144,9 +165,18 @@ function renderList() {
 }
 
 async function handleAction() {
+    if (viewMode === "search_result") {
+        const item = filteredList[selectedIndex];
+        playMedia(item);
+        document.getElementById("searchInput").value = "";
+        menuFocused = true;
+        return;
+    }
+    
     if (viewMode === "categories") {
-        const cat = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","CRIME","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"][selectedIndex];
-        // Comparação EXATA para não misturar Ação com Animação
+        const cats = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","CRIME","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO"];
+        const fullCats = [...cats.sort(), "ADULTO"];
+        const cat = fullCats[selectedIndex];
         filteredList = movies.filter(m => (m.genero || "").toUpperCase() === cat);
         viewMode = "movie_list"; selectedIndex = 0; renderList();
     } else if (viewMode === "series") {
@@ -156,6 +186,7 @@ async function handleAction() {
     } else {
         const item = (viewMode === "kids_series") ? kidsSeries[selectedIndex] : 
                      (viewMode === "kids_movies") ? kidsMovies[selectedIndex] : 
+                     (viewMode === "kids_channels") ? kidsChannels[selectedIndex] :
                      (viewMode === "channels") ? channels[selectedIndex] : filteredList[selectedIndex];
         
         if (item?.identificador_archive) {
@@ -173,11 +204,21 @@ async function handleAction() {
     }
 }
 
+// Controle Remoto Smart TV e Box
 document.addEventListener("keydown", e => {
     const code = e.keyCode;
-    if([37,38,39,40,13].includes(code)) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
+    
+    // Bloqueio de scroll indesejado
+    if([37,38,39,40,13].includes(code)) e.preventDefault();
+
+    // CH+ (427 / 33) e CH- (428 / 34)
+    if(code === 427 || code === 33) { 
+        selectedIndex = (selectedIndex - 1 + channels.length) % channels.length; 
+        playMedia(channels[selectedIndex]); return; 
+    }
+    if(code === 428 || code === 34) { 
+        selectedIndex = (selectedIndex + 1) % channels.length; 
+        playMedia(channels[selectedIndex]); return; 
     }
 
     const items = document.querySelectorAll(".menu-item");
@@ -186,13 +227,13 @@ document.addEventListener("keydown", e => {
     if (menuFocused) {
         if (code === 38 && menuIndex > -1) { 
             menuIndex--; 
-            if(menuIndex === -1) input.classList.add("active-focus");
+            if(menuIndex === -1) input.focus();
         }
         else if (code === 40 && menuIndex < items.length - 1) {
             menuIndex++;
-            input.classList.remove("active-focus");
+            input.blur();
         }
-        else if (code === 39 || code === 13 || code === 23) {
+        else if (code === 39 || code === 13) {
             menuFocused = false;
             document.getElementById("channelList").style.display = "block";
             viewMode = items[Math.max(0, menuIndex)].dataset.type;
@@ -203,27 +244,27 @@ document.addEventListener("keydown", e => {
         let listLen = document.querySelectorAll(".channel").length;
         if (code === 38) { selectedIndex = (selectedIndex - 1 + listLen) % listLen; renderList(); }
         else if (code === 40) { selectedIndex = (selectedIndex + 1) % listLen; renderList(); }
-        else if (code === 13 || code === 23) handleAction();
-        else if (code === 37 || code === 4) {
-            document.getElementById("posterWrapper").style.display = "none";
-            if (viewMode.includes("_list")) { 
-                viewMode = viewMode.includes("movie") ? "categories" : "series"; 
-                selectedIndex = 0;
-                renderList(); 
+        else if (code === 13) handleAction();
+        else if (code === 37 || code === 8 || code === 461) { // Voltar
+            if (viewMode.includes("_list") || viewMode === "search_result") { 
+                viewMode = viewMode.includes("movie") ? "categories" : (viewMode === "search_result" ? "channels" : "series"); 
+                selectedIndex = 0; renderList(); 
+            } else { 
+                menuFocused = true; 
+                document.getElementById("channelList").style.display = "none"; 
+                document.getElementById("posterWrapper").style.display = "none";
             }
-            else { menuFocused = true; document.getElementById("channelList").style.display = "none"; }
         }
     }
     items.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
-}, true);
+});
 
 window.onload = async () => {
     const BASE = "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/";
-    const t = "?nocache=" + Date.now();
     
     const load = async (file, isM3U) => {
         try {
-            const r = await fetch(BASE + file + t);
+            const r = await fetch(BASE + file + "?t=" + Date.now());
             if(isM3U) {
                 const txt = await r.text();
                 let arr = [], tmp = null;
@@ -233,22 +274,25 @@ window.onload = async () => {
                 });
                 return arr.sort((a,b) => (a.titulo || "").localeCompare(b.titulo || ""));
             }
-            let data = await r.json();
-            // Aplica ordem alfabética em todos os JSONs carregados
-            if(Array.isArray(data)) {
-                return data.sort((a, b) => (a.titulo || "").localeCompare(b.titulo || ""));
-            }
-            return data;
+            let d = await r.json();
+            return Array.isArray(d) ? d.sort((a, b) => (a.titulo || "").localeCompare(b.titulo || "")) : d;
         } catch(e) { return []; }
     };
 
+    // Carregamento Paralelo
     [channels, kidsChannels, movies, series, kidsMovies, kidsSeries] = await Promise.all([
         load("canais.m3u", true), load("kids_canais.m3u", true), load("filmes.json", false),
         load("series.json", false), load("kids_filmes.json", false), load("kids_series.json", false)
     ]);
 
-    document.getElementById("loadingScreen").style.display = "none";
-    if (channels.length > 0) playMedia(channels[0]);
+    // Tela de Carregamento de 10 segundos
+    setTimeout(() => {
+        document.getElementById("loadingScreen").style.opacity = "0";
+        setTimeout(() => {
+            document.getElementById("loadingScreen").style.display = "none";
+            if (channels.length > 0) playMedia(channels[0]);
+        }, 500);
+    }, 10000);
 };
 </script>
 </body>
