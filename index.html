@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV - V8.0</title>
+<title>PaixãoFlix TV - V9.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -24,7 +24,7 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 #searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; outline: none; box-sizing: border-box; }
 #searchInput.focused { border-color: #ff9800; background: #222; }
 .menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #222; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
-.menu-item i { margin-right: 15px; width: 20px; text-align: center; } /* Espaço restaurado */
+.menu-item i { margin-right: 15px; width: 20px; text-align: center; }
 .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; }
 .menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
 #content { position: absolute; top: 0; left: 280px; width: calc(100% - 280px); height: 100%; z-index: 10; background: black; display: flex; justify-content: center; align-items: center; }
@@ -71,7 +71,6 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 let player;
 let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [], kidsSeries = [];
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true;
-
 const movieCats = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
 
 function updateClock() {
@@ -98,7 +97,6 @@ function renderList() {
     const listDiv = document.getElementById("channelList");
     listDiv.innerHTML = "";
     let data = [];
-
     if (viewMode === "channels") data = channels;
     else if (viewMode === "categories") data = movieCats;
     else if (viewMode === "kids_movies") data = kidsMovies;
@@ -119,11 +117,9 @@ function renderList() {
     if (!menuFocused && cur && cur.poster) {
         document.getElementById("posterPreview").src = cur.poster;
         document.getElementById("ratingValue").innerText = cur.rating || cur.vote_average || "0.0";
-        document.getElementById("yearBadge").innerText = cur.year || cur.first_air_date?.split('-')[0] || "N/A";
+        document.getElementById("yearBadge").innerText = cur.year || "N/A";
         document.getElementById("posterWrapper").style.display = "block";
-    } else {
-        document.getElementById("posterWrapper").style.display = "none";
-    }
+    } else { document.getElementById("posterWrapper").style.display = "none"; }
 }
 
 async function handleAction() {
@@ -156,22 +152,15 @@ async function handleAction() {
 function globalSearch(term) {
     if (!term) return;
     const t = term.toUpperCase();
-    filteredList = [
-        ...channels.filter(c => c.titulo?.toUpperCase().includes(t)),
-        ...movies.filter(m => m.titulo?.toUpperCase().includes(t)),
-        ...series.filter(s => s.titulo?.toUpperCase().includes(t)),
-        ...kidsMovies.filter(k => k.titulo?.toUpperCase().includes(t)),
-        ...kidsSeries.filter(ks => ks.titulo?.toUpperCase().includes(t))
-    ];
+    filteredList = [...channels, ...movies, ...series, ...kidsMovies, ...kidsSeries].filter(x => (x.titulo || x.name || "").toUpperCase().includes(t));
     viewMode = "search_results"; selectedIndex = 0; menuFocused = false; 
-    document.getElementById("channelList").style.display = "block";
-    renderList();
+    document.getElementById("channelList").style.display = "block"; renderList();
 }
 
 document.addEventListener("keydown", e => {
     const code = e.keyCode;
-    const items = document.querySelectorAll(".menu-item");
     const input = document.getElementById("searchInput");
+    const items = document.querySelectorAll(".menu-item");
 
     if (menuFocused) {
         if (code === 38) { // Cima
@@ -180,32 +169,41 @@ document.addEventListener("keydown", e => {
         } else if (code === 40) { // Baixo
             if (menuIndex === -1) { menuIndex = 0; input.blur(); input.classList.remove("focused"); }
             else if (menuIndex < items.length - 1) menuIndex++;
-        } else if (code === 39 || code === 13 || code === 23) {
-            if (menuIndex === -1) { globalSearch(input.value); }
+        } else if (code === 39 || code === 13 || code === 23) { // Direita ou OK
+            if (menuIndex === -1) { globalSearch(input.value); input.blur(); input.classList.remove("focused"); }
             else { menuFocused = false; document.getElementById("channelList").style.display = "block"; viewMode = items[menuIndex].dataset.type; selectedIndex = 0; renderList(); }
         }
     } else {
         let listLen = document.querySelectorAll(".channel").length;
         if (code === 38) { selectedIndex = (selectedIndex - 1 + listLen) % listLen; renderList(); }
         else if (code === 40) { selectedIndex = (selectedIndex + 1) % listLen; renderList(); }
-        else if (code === 37 || code === 4) { menuFocused = true; document.getElementById("channelList").style.display = "none"; }
         else if (code === 13 || code === 23) handleAction();
+        else if (code === 37 || code === 4) { // Esquerda
+            if (viewMode === "episode_list") { 
+                viewMode = (filteredList[0] && series.some(s => s.poster === filteredList[0].poster)) ? "series_list" : "kids_series"; 
+                selectedIndex = 0; renderList(); 
+            } else if (viewMode === "movie_list") { viewMode = "categories"; selectedIndex = 0; renderList(); }
+            else if (viewMode === "series_list") { viewMode = "series"; selectedIndex = 0; renderList(); }
+            else { menuFocused = true; document.getElementById("channelList").style.display = "none"; }
+        }
     }
     items.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
 
 window.onload = async () => {
     const BASE = "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/";
-    const t = "?v=" + Date.now();
-    const loadJSON = async (f) => fetch(BASE+f+t).then(r=>r.json()).catch(()=>[]);
+    const t = "?nocache=" + Date.now();
+    const loadJSON = async (f) => { try { const r = await fetch(BASE+f+t); return await r.json(); } catch(e){ return []; } };
     const loadM3U = async (f) => {
-        const r = await fetch(BASE+f+t); const text = await r.text();
-        let arr = [], temp = null;
-        text.split("\n").forEach(l => {
-            if(l.startsWith("#EXTINF")) temp = { titulo: l.split(",").pop().trim() };
-            else if(l.startsWith("http") && temp) { temp.url = l.trim(); arr.push(temp); temp = null; }
-        });
-        return arr;
+        try {
+            const r = await fetch(BASE+f+t); const txt = await r.text();
+            let arr = [], tmp = null;
+            txt.split("\n").forEach(l => {
+                if(l.startsWith("#EXTINF")) tmp = { titulo: l.split(",").pop().trim() };
+                else if(l.startsWith("http") && tmp) { tmp.url = l.trim(); arr.push(tmp); tmp = null; }
+            });
+            return arr;
+        } catch(e){ return []; }
     };
     [channels, kidsChannels, movies, series, kidsMovies, kidsSeries] = await Promise.all([
         loadM3U("canais.m3u"), loadM3U("kids_canais.m3u"), loadJSON("filmes.json"),
