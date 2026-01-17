@@ -39,6 +39,8 @@ https://5b33b873179a2.streamlock.net:1443/live/livestream/playlist.m3u8
 https://stream.ichibantv.com:3764/hybrid/play.m3u8
 #EXTINF:-1 tvg-logo="https://i.imgur.com/6X9m9Yp.png" group-title="FAST",AWTV
 https://awtv.nuvemplay.live/hls/stream.m3u8
+#EXTINF:-1 tvg-logo="https://i.imgur.com/6X9m9Yp.png" group-title="KIDS",BDC TV (576p)
+https://video01.kshost.com.br/bdctv/bdctv/playlist.m3u8
 #EXTINF:-1 tvg-logo="https://i.imgur.com/6X9m9Yp.png" group-title="FAST",TV Acesso
 https://cdn.live.br1.jmvstream.com/webtv/tvacessochannel/playlist/chunklist.m3u8
 #EXTINF:-1 tvg-logo="https://i.imgur.com/zXf9h4X.png" group-title="KIDS",Loading (720p)
@@ -63,6 +65,8 @@ https://stmv1.srvif.com/gospelcartoon/gospelcartoon/playlist.m3u8
 https://stmv1.srvif.com/gospelcartoon/gospelcartoon/playlist.m3u8
 #EXTINF:-1 tvg-logo="https://i.imgur.com/6X9m9Yp.png" group-title="KIDS",Kuriakos Kids (1080p)
 https://w2.manasat.com/kkids/smil:kkids.smil/playlist.m3u8
+#EXTINF:-1 tvg-logo="https://i.imgur.com/pYV7pX9.png" group-title="KIDS",Gloob (576p)
+http://45.235.0.78/Gloob/playlist.m3u8
 #EXTINF:-1 tvg-logo="https://i.imgur.com/zXf9h4X.png" group-title="KIDS",Geekdot (720p)
 https://stream.ichibantv.com:3764/hybrid/play.m3u8
 #EXTINF:-1 tvg-logo="https://i.imgur.com/7Y6Y9Pz.png" group-title="Brazilian Channel",BR: Discovery Kids
@@ -193,9 +197,15 @@ https://canalgov-stream.ebc.com.br/index.m3u8
 https://cdn-1.nxplay.com.br/AeE_BRASIL_TK/index.m3u8
 #EXTINF:-1 tvg-logo="https://i.imgur.com/8xY1m9T.png", História
 https://cdn-1.nxplay.com.br/HISTORY_TK/index.m3u8
+#EXTINF:-1 tvg-logo="https://i.imgur.com/yO4m9Zp.png", COM Brasil
+https://cdn-1.nxplay.com.br/COM_BRASIL/index.m3u8
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/mariosanthos/arquivos/main/rittv.png", RIT TV
 https://cdn-1.nxplay.com.br/RIT_TV/index.m3u8
+#EXTINF:-1 tvg-logo="https://i.imgur.com/yO4m9Zp.png" tvg-id="COMBrasil" group-title="MÚSICA",COM Brasil
+https://br5093.streamingdevideo.com.br/abc/abc/playlist.m3u8
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/mariosanthos/arquivos/main/tvdestak.png" group-title="🌎Variedades",TV Destak
 https://video03.logicahost.com.br/pascoal/pascoal/playlist.m3u8
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/mariosanthos/arquivos/main/1mus.png" group-title="🎶Música", 1Mus
 http://hz1.teleport.cc/HLS/HD.m3u8
+#EXTINF:-1 tvg-logo="https://i.imgur.com/yO4m9Zp.png" tvg-id="COMBrasil.br@SD",COM Brasil
+https://br5093.streamingdevideo.com.br/abc/abc/playlist.m3u8
