@@ -148,7 +148,6 @@ function renderList() {
 async function handleAction() {
     let sCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     let ksCats = [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    
     let data = (viewMode === "categories") ? movieCats : (viewMode === "series" ? sCats : (viewMode === "kids_series" ? ksCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList))));
     const item = data[selectedIndex];
     if (!item) return;
@@ -187,37 +186,48 @@ async function handleAction() {
 }
 
 document.addEventListener("keydown", e => {
+    const code = e.keyCode;
+    const isUp = (code === 38);
+    const isDown = (code === 40);
+    const isLeft = (code === 37);
+    const isRight = (code === 39);
+    const isEnter = (code === 13);
+
     let sCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     let ksCats = [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     let currentData = (viewMode === "categories") ? movieCats : (viewMode === "series" ? sCats : (viewMode === "kids_series" ? ksCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : filteredList))));
     let dataLen = currentData.length;
     
     if (menuFocused) {
-        if (e.key === "ArrowUp") {
+        if (isUp) {
             if (menuIndex === 0) { menuIndex = -1; searchInput.focus(); searchInput.classList.add("focused"); }
             else if (menuIndex > 0) menuIndex--;
-        } else if (e.key === "ArrowDown") {
+            e.preventDefault();
+        } else if (isDown) {
             if (menuIndex === -1) { menuIndex = 0; searchInput.blur(); searchInput.classList.remove("focused"); }
             else if (menuIndex < menuItems.length - 1) menuIndex++;
-        } else if (e.key === "ArrowRight" || e.key === "Enter") {
+            e.preventDefault();
+        } else if (isRight || isEnter) {
             if(menuIndex === -1) return;
             menuFocused = false; channelList.style.display = "block";
             viewMode = menuItems[menuIndex].dataset.type;
             if (viewMode === "kids_channels") filteredList = kidsChannels;
             else if (viewMode === "kids_movies") filteredList = kidsMovies;
             selectedIndex = 0; renderList();
+            e.preventDefault();
         }
     } else {
-        if (e.key === "ArrowUp") { selectedIndex = (selectedIndex - 1 + dataLen) % dataLen; renderList(); }
-        else if (e.key === "ArrowDown") { selectedIndex = (selectedIndex + 1) % dataLen; renderList(); }
-        else if (e.key === "ArrowLeft") {
+        if (isUp) { selectedIndex = (selectedIndex - 1 + dataLen) % dataLen; renderList(); e.preventDefault(); }
+        else if (isDown) { selectedIndex = (selectedIndex + 1) % dataLen; renderList(); e.preventDefault(); }
+        else if (isLeft) {
             if (viewMode === "episode_list") { viewMode = filteredList[0]?.type === "serie" ? "series_list" : "ks_list"; selectedIndex = 0; renderList(); }
             else if (viewMode.includes("_list") || viewMode === "ks_list") { 
                 viewMode = viewMode.includes("movie") ? "categories" : (viewMode === "ks_list" ? "kids_series" : "series"); 
                 selectedIndex = 0; renderList(); 
             }
             else { menuFocused = true; channelList.style.display = "none"; }
-        } else if (e.key === "Enter") { handleAction(); }
+            e.preventDefault();
+        } else if (isEnter) { handleAction(); e.preventDefault(); }
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
