@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV - V5.0</title>
+<title>PaixãoFlix TV - V6.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -44,7 +44,7 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
     <div id="menuHeader">
         <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
         <div id="clock"></div>
-        <div id="version">V5.0 FINAL</div>
+        <div id="version">V6.0 STABLE</div>
         <div id="nowPlaying"><span>Assistindo:</span><div id="currentTitle">...</div></div>
     </div>
     <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
@@ -90,12 +90,12 @@ function renderList() {
     else if (viewMode === "categories") data = movieCats;
     else if (viewMode === "kids_movies") data = kidsMovies;
     else if (viewMode === "kids_channels") data = kidsChannels;
+    else if (viewMode === "kids_series") data = kidsSeries; // Sem categorias agora
     else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    else if (viewMode === "kids_series") data = [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    else if (viewMode === "movie_list" || viewMode === "series_list" || viewMode === "ks_list") data = filteredList;
+    else data = filteredList;
 
     if (data.length === 0 && !menuFocused) {
-        listDiv.innerHTML = "<div class='channel'>Nenhum conteúdo carregado. Verifique a conexão.</div>";
+        listDiv.innerHTML = "<div class='channel'>Carregando ou vazio...</div>";
     }
 
     data.forEach((item, i) => {
@@ -119,8 +119,8 @@ function handleAction() {
     let data = [];
     if (viewMode === "categories") data = movieCats;
     else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    else if (viewMode === "kids_series") data = [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     else if (viewMode === "kids_movies") data = kidsMovies;
+    else if (viewMode === "kids_series") data = kidsSeries;
     else if (viewMode === "channels") data = channels;
     else if (viewMode === "kids_channels") data = kidsChannels;
     else data = filteredList;
@@ -131,10 +131,9 @@ function handleAction() {
     if (viewMode === "categories") {
         filteredList = movies.filter(m => (m.genero || "").toUpperCase().includes(item));
         viewMode = "movie_list"; selectedIndex = 0; renderList();
-    } else if (viewMode === "series" || viewMode === "kids_series") {
-        const source = (viewMode === "series") ? series : kidsSeries;
-        filteredList = source.filter(s => (s.genero || "").toUpperCase() === item);
-        viewMode = (viewMode === "series") ? "series_list" : "ks_list"; selectedIndex = 0; renderList();
+    } else if (viewMode === "series") {
+        filteredList = series.filter(s => (s.genero || "").toUpperCase() === item);
+        viewMode = "series_list"; selectedIndex = 0; renderList();
     } else {
         playMedia(item);
     }
@@ -167,18 +166,16 @@ document.addEventListener("keydown", e => {
 window.onload = async () => {
     const BASE = "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/data/";
     
-    // Função auxiliar para carregar JSON de forma segura
     const loadJSON = async (file) => {
         try {
-            const r = await fetch(BASE + file);
+            const r = await fetch(BASE + file + "?t=" + Date.now()); // Mata o cache
             return await r.json();
-        } catch (e) { console.error("Falha ao carregar: " + file); return []; }
+        } catch (e) { return []; }
     };
 
-    // Função para carregar M3U
     const loadM3U = async (file) => {
         try {
-            const r = await fetch(BASE + file);
+            const r = await fetch(BASE + file + "?t=" + Date.now());
             const t = await r.text();
             let arr = [], temp = null;
             t.split("\n").forEach(l => {
@@ -189,17 +186,17 @@ window.onload = async () => {
         } catch (e) { return []; }
     };
 
-    // Carregamento paralelo
-    channels = await loadM3U("canais.m3u");
-    kidsChannels = await loadM3U("kids_canais.m3u");
-    movies = await loadJSON("filmes.json");
-    series = await loadJSON("series.json");
-    kidsMovies = await loadJSON("kids_filmes.json");
-    kidsSeries = await loadJSON("kids_series.json");
+    // Carregando tudo simultaneamente
+    [channels, kidsChannels, movies, series, kidsMovies, kidsSeries] = await Promise.all([
+        loadM3U("canais.m3u"),
+        loadM3U("kids_canais.m3u"),
+        loadJSON("filmes.json"),
+        loadJSON("series.json"),
+        loadJSON("kids_filmes.json"),
+        loadJSON("kids_series.json")
+    ]);
 
     if (channels.length > 0) playMedia(channels[0]);
-    
-    console.log("Sistema Carregado. Filmes:", movies.length);
 
     setInterval(() => {
         const d = new Date();
