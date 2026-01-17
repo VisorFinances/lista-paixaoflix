@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV</title>
+<title>PaixãoFlix TV - V2.1</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -17,6 +17,7 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 #menuHeader { padding: 15px 10px; text-align: center; border-bottom: 1px solid #222; margin-bottom: 15px; }
 #menuHeader img { height: 95px; width: auto; object-fit: contain; }
 #clock { margin-top: 10px; font-size: 13px; color: #aaa; }
+#versionBadge { font-size: 10px; color: #555; margin-top: 5px; }
 #nowPlaying { margin: 15px 0; text-align: center; }
 #nowPlaying span { display: block; font-size: 13px; color: #fff; font-weight: 700; margin-bottom: 5px; }
 
@@ -45,6 +46,7 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 #ratingBadge { position: absolute; top: 15px; right: 15px; background: rgba(229, 9, 20, 0.9); color: #fff; padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 18px; display: flex; align-items: center; gap: 6px; }
 #yearBadge { position: absolute; bottom: 15px; left: 15px; background: rgba(0, 0, 0, 0.8); color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 16px; border: 1px solid #444; }
 
+/* Forçar vídeo em tela cheia no player */
 [data-player] video { object-fit: fill !important; }
 </style>
 </head>
@@ -55,6 +57,7 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 <div id="menuHeader">
 <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
 <div id="clock"></div>
+<div id="versionBadge">VERSÃO 2.1 STABLE</div>
 <div id="nowPlaying"><span>Assistindo agora</span><div id="currentTitle">...</div></div>
 </div>
 <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
@@ -121,16 +124,15 @@ function playMedia(item) {
 
 function renderList() {
     channelList.innerHTML = "";
-    let sCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    let ksCats = [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    
     let data = [];
+    
     if (viewMode === "categories") data = movieCats;
-    else if (viewMode === "series") data = sCats;
-    else if (viewMode === "kids_series") data = ksCats;
+    else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    else if (viewMode === "kids_series") data = [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))];
     else if (viewMode === "channels") data = channels;
-    else if (viewMode === "fav") data = favorites;
+    else if (viewMode === "kids_channels") data = kidsChannels;
     else if (viewMode === "kids_movies") data = kidsMovies;
+    else if (viewMode === "fav") data = favorites;
     else data = filteredList; 
     
     data.forEach((item, i) => {
@@ -156,10 +158,15 @@ function renderList() {
 }
 
 async function handleAction() {
-    let sCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    let ksCats = [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    let data = (viewMode === "categories") ? movieCats : (viewMode === "series" ? sCats : (viewMode === "kids_series" ? ksCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : (viewMode === "kids_movies" ? kidsMovies : filteredList)))));
-    
+    let data = [];
+    if (viewMode === "categories") data = movieCats;
+    else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    else if (viewMode === "kids_series") data = [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    else if (viewMode === "kids_movies") data = kidsMovies;
+    else if (viewMode === "channels") data = channels;
+    else if (viewMode === "kids_channels") data = kidsChannels;
+    else data = filteredList;
+
     const item = data[selectedIndex];
     if (!item) return;
 
@@ -179,7 +186,7 @@ async function handleAction() {
     else if (item.url || item.link) {
         playMedia(item);
     }
-    else if (item.type === "serie" || item.identificador_archive) {
+    else if (item.identificador_archive) {
         channelList.innerHTML = "<div class='channel'>Carregando episódios...</div>";
         try {
             const resp = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
@@ -201,11 +208,6 @@ document.addEventListener("keydown", e => {
     const isLeft = (code === 37); const isRight = (code === 39);
     const isEnter = (code === 13);
 
-    let sCats = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    let ksCats = [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    let currentData = (viewMode === "categories") ? movieCats : (viewMode === "series" ? sCats : (viewMode === "kids_series" ? ksCats : (viewMode === "channels" ? channels : (viewMode === "fav" ? favorites : (viewMode === "kids_movies" ? kidsMovies : filteredList)))));
-    let dataLen = currentData.length;
-    
     if (menuFocused) {
         if (isUp) {
             if (menuIndex === 0) { menuIndex = -1; searchInput.focus(); searchInput.classList.add("focused"); }
@@ -217,21 +219,32 @@ document.addEventListener("keydown", e => {
             e.preventDefault();
         } else if (isRight || isEnter) {
             if(menuIndex === -1) return;
-            menuFocused = false; channelList.style.display = "block";
+            menuFocused = false; 
+            channelList.style.display = "block";
             viewMode = menuItems[menuIndex].dataset.type;
-            if (viewMode === "kids_channels") filteredList = kidsChannels;
-            selectedIndex = 0; renderList();
+            selectedIndex = 0; 
+            renderList();
             e.preventDefault();
         }
     } else {
+        let currentData = [];
+        if (viewMode === "categories") currentData = movieCats;
+        else if (viewMode === "series") currentData = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+        else if (viewMode === "kids_series") currentData = [...new Set(kidsSeries.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+        else if (viewMode === "kids_movies") currentData = kidsMovies;
+        else if (viewMode === "channels") currentData = channels;
+        else if (viewMode === "kids_channels") currentData = kidsChannels;
+        else currentData = filteredList;
+
+        let dataLen = currentData.length;
+
         if (isUp) { selectedIndex = (selectedIndex - 1 + dataLen) % dataLen; renderList(); e.preventDefault(); }
         else if (isDown) { selectedIndex = (selectedIndex + 1) % dataLen; renderList(); e.preventDefault(); }
         else if (isLeft) {
-            if (viewMode === "episode_list") { viewMode = filteredList[0]?.type === "serie" ? "series_list" : "ks_list"; selectedIndex = 0; renderList(); }
-            else if (viewMode.includes("_list") || viewMode === "ks_list" || viewMode === "movie_list") { 
-                viewMode = (viewMode === "movie_list") ? "categories" : (viewMode === "ks_list" ? "kids_series" : "series"); 
-                selectedIndex = 0; renderList(); 
-            }
+            if (viewMode === "movie_list") { viewMode = "categories"; selectedIndex = 0; renderList(); }
+            else if (viewMode === "series_list") { viewMode = "series"; selectedIndex = 0; renderList(); }
+            else if (viewMode === "ks_list") { viewMode = "kids_series"; selectedIndex = 0; renderList(); }
+            else if (viewMode === "episode_list") { viewMode = "series_list"; selectedIndex = 0; renderList(); }
             else { menuFocused = true; channelList.style.display = "none"; }
             e.preventDefault();
         } else if (isEnter) { handleAction(); e.preventDefault(); }
@@ -247,16 +260,16 @@ function loadM3U(path, array, isMainCanais = false) {
             else if(l.startsWith("http") && temp){ temp.url=l.trim(); array.push(temp); temp=null; }
         });
         if(isMainCanais && array.length > 0) playMedia(array[0]);
-    });
+    }).catch(e => console.log("Erro M3U:", path));
 }
 
 window.onload = () => {
     loadM3U("data/canais.m3u", channels, true);
     loadM3U("data/kids_canais.m3u", kidsChannels);
-    fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d).catch(e=>console.error("Erro filmes"));
-    fetch("data/series.json").then(r=>r.json()).then(d=>series=d).catch(e=>console.error("Erro series"));
-    fetch("data/kids_filmes.json").then(r=>r.json()).then(d=>kidsMovies=d).catch(e=>console.error("Erro kids_filmes"));
-    fetch("data/kids_series.json").then(r=>r.json()).then(d=>kidsSeries=d).catch(e=>console.error("Erro kids_series"));
+    fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d);
+    fetch("data/series.json").then(r=>r.json()).then(d=>series=d);
+    fetch("data/kids_filmes.json").then(r=>r.json()).then(d=>kidsMovies=d);
+    fetch("data/kids_series.json").then(r=>r.json()).then(d=>kidsSeries=d);
 };
 </script>
 </body>
