@@ -33,6 +33,8 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 #searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; box-sizing: border-box; font-size: 14px; }
 
 .menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #1a1a1a; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
+/* Ajuste de distância entre ícone e título */
+.menu-item i { margin-right: 25px; width: 20px; text-align: center; }
 .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; }
 .menu-item.kids { border-left: 3px solid #ffeb3b; color: #ffeb3b; }
 
@@ -101,7 +103,6 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
-// Pesquisa Global
 document.getElementById("searchInput").addEventListener("input", (e) => {
     const term = e.target.value.toLowerCase();
     if(term.length > 0) {
@@ -120,7 +121,6 @@ function playMedia(item) {
     
     document.getElementById("currentTitle").innerText = item.titulo || item.name;
     
-    // Reseta player para evitar erro de buffer/rede das Smart TVs
     vPlayer.pause();
     vPlayer.src({ src: url, type: url.includes(".m3u8") ? 'application/x-mpegURL' : 'video/mp4' });
     vPlayer.load();
@@ -154,12 +154,11 @@ function renderList() {
         if (i === selectedIndex && !menuFocused) div.scrollIntoView({ block: 'center' });
     });
 
-    // Limpeza de capa anterior ao trocar categoria e carregamento leve
     const cur = data[selectedIndex];
     const wrapper = document.getElementById("posterWrapper");
     if (!menuFocused && cur && cur.poster) {
         const img = document.getElementById("posterPreview");
-        img.src = ""; // Limpa rastro da categoria anterior
+        img.src = ""; 
         img.src = cur.poster;
         document.getElementById("ratingValue").innerText = cur.rating || "0.0";
         document.getElementById("yearBadge").innerText = cur.year || "N/A";
@@ -202,12 +201,10 @@ async function handleAction() {
     }
 }
 
-// Navegação Blindada contra travamentos
 document.addEventListener("keydown", e => {
     const code = e.keyCode;
     if([37,38,39,40,13].includes(code)) e.preventDefault();
 
-    // Troca de Canais CH+ / CH- (Otimizado WebOS/Box)
     if(code === 427 || code === 33 || code === 428 || code === 34) {
         if(channels.length === 0) return;
         selectedIndex = (code === 427 || code === 33) ? (selectedIndex - 1 + channels.length) % channels.length : (selectedIndex + 1) % channels.length;
@@ -270,7 +267,7 @@ window.onload = async () => {
             document.getElementById("loadingScreen").style.display = "none";
             if (channels.length > 0) playMedia(channels[0]);
         }, 500);
-    }, 5000); // Carregamento em 5s para maior fluidez
+    }, 5000); 
 };
 </script>
 </body>
