@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV - V19.0 Corrigida</title>
+<title>PaixãoFlix TV - V19.0 Restaurada</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
@@ -34,6 +34,7 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 .menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #1a1a1a; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
 .menu-item i { margin-right: 25px; width: 20px; text-align: center; }
 .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; }
+.menu-item.fav { color: #ffeb3b; border-left: 3px solid #ffeb3b; }
 
 #content { position: absolute; left: 280px; right: 0; top: 0; bottom: 0; background: #000; }
 #videoContainer { width: 100%; height: 100%; }
@@ -66,7 +67,7 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 
 <div id="loadingScreen">
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-    <div style="color: #ff9800; font-weight: bold;">Carregando PaixãoFlix...</div>
+    <div style="color: #ff9800; font-weight: bold;">PaixãoFlix V19.0</div>
 </div>
 
 <div id="resumeModal">
@@ -87,12 +88,12 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
         </div>
         <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..." autocomplete="off"></div>
         <div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> TV ao vivo</div>
-        <div class="menu-item" data-type="favorites"><i class="fas fa-star"></i> Meus Favoritos</div>
+        <div class="menu-item fav" data-type="favorites"><i class="fas fa-star"></i> Meus Favoritos</div>
         <div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
         <div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
-        <div class="menu-item" data-type="kids_channels"><i class="fas fa-child"></i> Canal Kids</div>
-        <div class="menu-item" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
-        <div class="menu-item" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
+        <div class="menu-item kids" data-type="kids_channels"><i class="fas fa-child"></i> Canal Kids</div>
+        <div class="menu-item kids" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
+        <div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
     </div>
 
     <div id="content">
@@ -114,7 +115,8 @@ let currentPendingItem = null, resumeFocusIdx = 0, isModalOpen = false;
 
 function updateClock() {
     const d = new Date();
-    document.getElementById("clock").innerText = d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    const dias = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
+    document.getElementById("clock").innerText = `${dias[d.getDay()]}, ${d.toLocaleDateString('pt-BR')} | ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
 }
 setInterval(updateClock, 1000); updateClock();
 
@@ -122,15 +124,13 @@ function playMedia(item, resume = false) {
     if (!item || typeof item === 'string') return;
     const url = item.url || item.link;
     const id = item.titulo || item.name;
-    
-    if (!resume && progress[id] > 15 && !viewMode.includes('channels')) {
+    if (!resume && progress[id] && progress[id] > 15 && !viewMode.includes('channels')) {
         currentPendingItem = item;
         document.getElementById("resumeTitle").innerText = id;
         document.getElementById("resumeModal").style.display = "flex";
         isModalOpen = true; resumeFocusIdx = 0; updateModalFocus();
         return;
     }
-
     currentPendingItem = item;
     document.getElementById("currentTitle").innerText = id;
     vPlayer.src({ src: url, type: url.includes(".m3u8") ? 'application/x-mpegURL' : 'video/mp4' });
@@ -162,7 +162,7 @@ function renderList() {
         filteredList = flatData;
     } else {
         if (viewMode === "favorites") data = favorites;
-        else if (viewMode === "categories") data = ["AÇÃO","AVENTURA","ANIME","COMÉDIA","DRAMA","TERROR","ADULTO"];
+        else if (viewMode === "categories") data = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","CRIME","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
         else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()))].filter(Boolean).sort();
         else if (viewMode === "kids_movies") data = kidsMovies;
         else if (viewMode === "kids_series") data = kidsSeries;
@@ -190,9 +190,7 @@ function updatePoster() {
         document.getElementById("posterPreview").src = cur.poster;
         document.getElementById("ratingValue").innerText = cur.rating || "8.5";
         wrapper.style.display = "block";
-    } else {
-        wrapper.style.display = "none";
-    }
+    } else { wrapper.style.display = "none"; }
 }
 
 document.addEventListener("keydown", e => {
@@ -211,6 +209,7 @@ document.addEventListener("keydown", e => {
 
     const items = document.querySelectorAll(".menu-item");
     if (menuFocused) {
+        // ROLAGEM DE MENU (PARA NO TOPO E NO FIM)
         if (code === 38 && menuIndex > 0) menuIndex--;
         else if (code === 40 && menuIndex < items.length - 1) menuIndex++;
         else if (code === 39 || code === 13) {
@@ -218,6 +217,7 @@ document.addEventListener("keydown", e => {
             viewMode = items[menuIndex].dataset.type; selectedIndex = 0; renderList();
         }
     } else {
+        // ROLAGEM VERTICAL INFINITA EM TODAS AS LISTAS
         let len = filteredList.length;
         if (code === 38) { selectedIndex = (selectedIndex - 1 + len) % len; renderList(); }
         else if (code === 40) { selectedIndex = (selectedIndex + 1) % len; renderList(); }
@@ -230,7 +230,8 @@ document.addEventListener("keydown", e => {
             } else playMedia(item);
         }
         else if (code === 37 || code === 8) {
-            menuFocused = true; document.getElementById("channelList").style.display = "none"; document.getElementById("posterWrapper").style.display = "none";
+            if (viewMode.includes("_list")) { viewMode = viewMode.includes("movie") ? "categories" : "series"; selectedIndex = 0; renderList(); }
+            else { menuFocused = true; document.getElementById("channelList").style.display = "none"; document.getElementById("posterWrapper").style.display = "none"; }
         }
     }
     items.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
@@ -253,11 +254,9 @@ window.onload = async () => {
             return await r.json();
         } catch(e) { return []; }
     };
-
     [channels, kidsChannels, movies, series, kidsMovies, kidsSeries] = await Promise.all([
         load("canais.m3u", true), load("kids_canais.m3u", true), load("filmes.json", false), load("series.json", false), load("kids_filmes.json", false), load("kids_series.json", false)
     ]);
-
     document.getElementById("loadingScreen").style.display = "none";
     if (channels.length > 0) playMedia(channels[0]);
 };
