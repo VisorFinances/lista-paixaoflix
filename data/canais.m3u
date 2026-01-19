@@ -478,3 +478,52 @@ http://hz1.teleport.cc/HLS/HD.m3u8
 
 #EXTINF:-1 tvg-logo="https://i.imgur.com/yO4m9Zp.png" tvg-id="COMBrasil.br@SD",COM Brasil
 https://br5093.streamingdevideo.com.br/abc/abc/playlist.m3u8
+
+
+########## CINEMA EM ESPANHOL ##########
+
+#EXTINF:-1 tvg-id="Cortos.es" tvg-logo="https://i.imgur.com/lyBkCzB.png" group-title="Cinema em espanhol",Cortos | Shorts TV
+https://shortstv-fast-spain-lg.amagi.tv/playlist.m3u8
+
+#EXTINF:-1 tvg-id="Pluto_Cine_Esp" tvg-logo="http://images.pluto.tv/channels/61c49a1b5ec8d40008673251/colorLogoPNG.png" group-title="Cinema em espanhol",Cortos | Pluto TV Espanha
+https://service-stitcher.clusters.pluto.tv/v1/stitch/embed/hls/channel/61c49a1b5ec8d40008673251/master.m3u8?deviceMake=samsung&deviceType=samsung-tvplus
+
+#EXTINF:-1 tvg-id="Runtime_Esp" tvg-logo="https://provider-static.plex.tv/epg/images/ott_channels/logos/runtime-espanol.png" group-title="Cinema em espanhol",Runtime Español
+https://ammo-espanol-plex.amagi.tv/hls/amagi_hls_data_plexAAAAA-ammo-espanol-plex/CDN/playlist.m3u8
+
+#EXTINF:-1 tvg-id="Horrorfy" tvg-logo="https://provider-static.plex.tv/epg/cms/production/fe3c7159-2d42-47c3-a112-2c0cd847e4ef/horrorfy_logo.png" group-title="Cinema em espanhol",Horrorfy
+https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01024-olympusat-horrorfy-plex/playlist.m3u8
+
+#EXTINF:-1 tvg-id="TopCine" tvg-logo="https://provider-static.plex.tv/epg/images/ott_channels/logos/topcine_logo_dark_v3.png" group-title="Cinema em espanhol",Top Cine
+https://olympusamagi.amagi.tv/hls/amagi_hls_data_olympusat-topcine-latam-plex/CDN/playlist.m3u8
+
+#EXTINF:-1 tvg-id="TuCine" tvg-logo="https://provider-static.plex.tv/epg/images/ott_channels/logos/tucine_logo_light.png" group-title="Cinema em espanhol",Tu Cine
+https://olympusamagi.amagi.tv/hls/amagi_hls_data_olympusat-tucineus-plex/CDN/playlist.m3u8
+
+
+########## CINEMA INGLÊS ##########
+
+#EXTINF:-1 tvg-id="Pluto_70s" tvg-logo="http://images.pluto.tv/channels/5f4d878d3d19b30007d2e782/colorLogoPNG.png" group-title="Cinema em inglês",70s Cinema
+https://service-stitcher.clusters.pluto.tv/v1/stitch/embed/hls/channel/5f4d878d3d19b30007d2e782/master.m3u8?deviceMake=web&deviceType=web
+
+#EXTINF:-1 tvg-id="Pluto_80s" tvg-logo="http://images.pluto.tv/channels/5ca525b650be2571e3943c63/colorLogoPNG.png" group-title="Cinema em inglês",80s Rewind
+https://service-stitcher.clusters.pluto.tv/v1/stitch/embed/hls/channel/5ca525b650be2571e3943c63/master.m3u8?deviceMake=web&deviceType=web
+
+#EXTINF:-1 tvg-id="Cinehouse" tvg-logo="https://provider-static.plex.tv/epg/images/ott_channels/logos/Cinehouse_logo_dark.png" group-title="Cinema em inglês",Cinehouse (Plex)
+https://3e14f4fda10247bc907cf85bbf6f6d88.mediatailor.us-east-1.amazonaws.com/v1/master/44f73ba4d03e9607dcd9bebdcb8494d86964f1d8/Plex_Cinehouse/playlist.m3u8
+
+#EXTINF:-1 tvg-id="CineLife" tvg-logo="https://f9q4g5j6.ssl.hwcdn.net/613a27bb62bf105667747223/" group-title="Cinema em inglês",CineLife (Magnolia)
+https://magnolia-cinelife.amagi.tv/playlist.m3u8
+
+#EXTINF:-1 tvg-id="Christmas_Classics" tvg-logo="https://i.imgur.com/IzRBrWA.png" group-title="Cinema em inglês",Christmas Classics
+https://stream.ads.ottera.tv/playlist.m3u8?network_id=440
+
+########## CINEMA FRANCÊS   ##########
+
+#EXTINF:-1 tvg-id="Pluto_Action_FR" tvg-logo="http://images.pluto.tv/channels/5f8ed1ff5c39700007e2204a/colorLogoPNG.png" group-title="Cinema em francês",Action Pluto FR
+https://service-stitcher.clusters.pluto.tv/v1/stitch/embed/hls/channel/5f8ed1ff5c39700007e2204a/master.m3u8?deviceMake=web&deviceType=web
+
+#EXTINF:-1 tvg-id="RunTime_FR" tvg-logo="https://tvpmlogopeu.samsungcloud.tv/platform/image/sourcelogo/vc/70/01/70/FRBB50000016B_20220323T080520.png" group-title="Cinema em francês",RunTime FR
+https://stream.ads.ottera.tv/playlist.m3u8?network_id=2160
+
+
