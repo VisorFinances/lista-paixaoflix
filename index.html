@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV - V19.0 Restaurada</title>
+<title>PaixãoFlix TV - V19.0 Final</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
@@ -14,7 +14,7 @@
 
 body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; width: 100vw; overflow: hidden; }
 
-#loadingScreen { position: fixed; top:0; left:0; width: 100vw; height: 100vh; background: #000; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 1; transition: opacity 0.5s ease; }
+#loadingScreen { position: fixed; top:0; left:0; width: 100vw; height: 100vh; background: #000; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 #loadingScreen img { width: 320px; height: auto; margin-bottom: 25px; }
 
 #app { display: flex; height: 100%; width: 100%; position: relative; }
@@ -47,13 +47,16 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 .channel { padding: 12px 20px; font-size: 15px; border-bottom: 1px solid #1a1a1a; color: #fff; display: flex; align-items: center; }
 .channel img { width: 35px; height: 35px; object-fit: contain; margin-right: 15px; background: #111; border-radius: 4px; }
 .channel.active { background: #ff9800 !important; color: #000 !important; font-weight: bold; }
+.fav-icon { margin-left: auto; color: #555; font-size: 18px; }
+.is-fav { color: #ffeb3b !important; }
 
 #posterWrapper { position: absolute; top: 50%; left: 380px; transform: translateY(-50%); width: 300px; height: 450px; z-index: 120; display: none; pointer-events: none; }
 #posterPreview { width: 100%; height: 100%; border-radius: 12px; object-fit: cover; border: 3px solid #ff9800; background: #000; }
+#posterInfo { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8); padding: 10px; box-sizing: border-box; border-radius: 0 0 12px 12px; text-align: center; }
 #ratingBadge { position: absolute; top: 15px; right: 15px; background: rgba(229, 9, 20, 0.9); padding: 5px 10px; border-radius: 4px; font-weight: bold; }
 
-#resumeModal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; text-align: center; }
-.modal-box { background: #111; padding: 30px; border: 2px solid #ff9800; border-radius: 10px; }
+#resumeModal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; }
+.modal-box { background: #111; padding: 30px; border: 2px solid #ff9800; border-radius: 10px; text-align: center; }
 .modal-btn { padding: 12px 25px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; border: 2px solid transparent; }
 .modal-btn.selected { border-color: #fff; transform: scale(1.1); background: #ff9800; color: #000; }
 </style>
@@ -96,12 +99,22 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
             <video id="mainPlayer" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto"></video>
         </div>
         <div id="channelList"></div>
-        <div id="posterWrapper"><img id="posterPreview"><div id="ratingBadge">★ <span id="ratingValue">0.0</span></div></div>
+        <div id="posterWrapper">
+            <img id="posterPreview">
+            <div id="ratingBadge">★ <span id="ratingValue">0.0</span></div>
+            <div id="posterInfo"><span id="posterYear">0000</span></div>
+        </div>
     </div>
 </div>
 
 <script>
-let vPlayer = videojs('mainPlayer', { autoplay: true, controls: true, fill: true });
+let vPlayer = videojs('mainPlayer', { 
+    autoplay: true, 
+    controls: true, 
+    fill: true,
+    fluid: false 
+});
+
 let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [], kidsSeries = [];
 let favorites = JSON.parse(localStorage.getItem('flix_favs')) || [];
 let progress = JSON.parse(localStorage.getItem('flix_progress')) || {};
@@ -110,24 +123,16 @@ let currentPendingItem = null, resumeFocusIdx = 0, isModalOpen = false;
 
 function updateClock() {
     const d = new Date();
-    document.getElementById("clock").innerText = d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    const dias = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
+    document.getElementById("clock").innerText = `${dias[d.getDay()]}, ${d.toLocaleDateString('pt-BR')} | ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
 }
 setInterval(updateClock, 1000); updateClock();
-
-document.getElementById("searchInput").addEventListener("input", (e) => {
-    const term = e.target.value.toLowerCase();
-    if(term.length > 0) {
-        menuFocused = false; viewMode = "search";
-        filteredList = [...channels, ...movies, ...series, ...kidsMovies, ...kidsSeries].filter(x => (x.titulo || x.name || "").toLowerCase().includes(term));
-        document.getElementById("channelList").style.display = "block";
-        selectedIndex = 0; renderList();
-    }
-});
 
 function playMedia(item, resume = false) {
     if (!item || typeof item === 'string') return;
     const url = item.url || item.link;
     const id = item.titulo || item.name;
+    
     if (!resume && progress[id] > 15 && !viewMode.includes('channels')) {
         currentPendingItem = item;
         document.getElementById("resumeTitle").innerText = id;
@@ -135,6 +140,7 @@ function playMedia(item, resume = false) {
         isModalOpen = true; resumeFocusIdx = 0; updateModalFocus();
         return;
     }
+
     currentPendingItem = item;
     document.getElementById("currentTitle").innerText = id;
     vPlayer.src({ src: url, type: url.includes(".m3u8") ? 'application/x-mpegURL' : 'video/mp4' });
@@ -144,9 +150,21 @@ function playMedia(item, resume = false) {
     document.getElementById("posterWrapper").style.display = "none";
 }
 
-function updateModalFocus() {
-    const btns = document.querySelectorAll('.modal-btn');
-    btns.forEach((b, i) => b.classList.toggle('selected', i === resumeFocusIdx));
+vPlayer.on('timeupdate', () => {
+    if (currentPendingItem && !viewMode.includes('channels')) {
+        const id = currentPendingItem.titulo || currentPendingItem.name;
+        progress[id] = Math.floor(vPlayer.currentTime());
+        localStorage.setItem('flix_progress', JSON.stringify(progress));
+    }
+});
+
+function toggleFavorite(item) {
+    const id = item.titulo || item.name;
+    const idx = favorites.findIndex(f => (f.titulo || f.name) === id);
+    if (idx > -1) favorites.splice(idx, 1);
+    else favorites.push(item);
+    localStorage.setItem('flix_favs', JSON.stringify(favorites));
+    renderList();
 }
 
 function renderList() {
@@ -155,7 +173,7 @@ function renderList() {
     let data = [];
 
     if (viewMode === "channels" || viewMode === "kids_channels") {
-        const source = viewMode === "channels" ? channels : kidsChannels;
+        const source = (viewMode === "channels") ? channels : kidsChannels;
         const groups = {};
         source.forEach(c => { const cat = c.categoria || "Geral"; if (!groups[cat]) groups[cat] = []; groups[cat].push(c); });
         let flatIndex = 0; let flatData = [];
@@ -163,6 +181,7 @@ function renderList() {
             const h = document.createElement("div"); h.className = "cat-header"; h.innerText = cat; listDiv.appendChild(h);
             groups[cat].forEach(item => { flatData.push(item); listDiv.appendChild(createItemEl(item, flatIndex++)); });
         }
+        flatData.forEach((item, idx) => { if(idx === selectedIndex && !menuFocused) { /* scroll logic handled in createItemEl */ } });
         filteredList = flatData;
     } else {
         if (viewMode === "favorites") data = favorites;
@@ -182,8 +201,11 @@ function createItemEl(item, i) {
     div.className = `channel ${i === selectedIndex ? "active" : ""}`;
     const id = typeof item === 'string' ? item : (item.titulo || item.name);
     const logo = item.logo || item.poster || "";
-    div.innerHTML = `${logo ? `<img src="${logo}">` : ''}<span>${id}</span>`;
-    if (i === selectedIndex && !menuFocused) div.scrollIntoView({ block: 'center' });
+    const isFav = favorites.some(f => (f.titulo || f.name) === id);
+    div.innerHTML = `${logo ? `<img src="${logo}">` : ''}<span>${id}</span> ${!menuFocused && typeof item !== 'string' ? `<i class="fas fa-star fav-icon ${isFav?'is-fav':''}"></i>` : ''}`;
+    if (i === selectedIndex && !menuFocused) {
+        setTimeout(() => div.scrollIntoView({ block: 'center', behavior: 'smooth' }), 10);
+    }
     return div;
 }
 
@@ -193,8 +215,14 @@ function updatePoster() {
     if (!menuFocused && cur && cur.poster) {
         document.getElementById("posterPreview").src = cur.poster;
         document.getElementById("ratingValue").innerText = cur.rating || "8.5";
+        document.getElementById("posterYear").innerText = cur.ano || "2024";
         wrapper.style.display = "block";
     } else { wrapper.style.display = "none"; }
+}
+
+function updateModalFocus() {
+    const btns = document.querySelectorAll('.modal-btn');
+    btns.forEach((b, i) => b.classList.toggle('selected', i === resumeFocusIdx));
 }
 
 document.addEventListener("keydown", e => {
@@ -212,11 +240,8 @@ document.addEventListener("keydown", e => {
     const searchInput = document.getElementById("searchInput");
 
     if (menuFocused) {
-        // NAVEGAÇÃO MENU (0 é Pesquisa, 1 em diante são itens)
         if (code === 38 && menuIndex > 0) menuIndex--;
         else if (code === 40 && menuIndex < items.length) menuIndex++;
-        
-        // Estilização do Foco
         searchInput.classList.toggle("active", menuIndex === 0);
         items.forEach((m, i) => m.classList.toggle("active", i === (menuIndex - 1)));
 
@@ -229,20 +254,28 @@ document.addEventListener("keydown", e => {
             renderList();
         }
     } else {
-        // ROLAGEM INFINITA EM TODAS AS LISTAS
         let len = filteredList.length;
         if (code === 38) { selectedIndex = (selectedIndex - 1 + len) % len; renderList(); }
         else if (code === 40) { selectedIndex = (selectedIndex + 1) % len; renderList(); }
+        else if (code === 39) { const cur = filteredList[selectedIndex]; if(cur && typeof cur !== 'string') toggleFavorite(cur); }
         else if (code === 13) {
             const item = filteredList[selectedIndex];
             if (typeof item === 'string') {
                 if (viewMode === "categories") { filteredList = movies.filter(m => (m.genero||"").toUpperCase() === item); viewMode = "movie_list"; }
                 else if (viewMode === "series") { filteredList = series.filter(s => (s.genero||"").toUpperCase() === item); viewMode = "series_list"; }
                 selectedIndex = 0; renderList();
+            } else if (item.episodios) {
+                filteredList = item.episodios; viewMode = "ep_list"; selectedIndex = 0; renderList();
             } else playMedia(item);
         }
         else if (code === 37 || code === 8) {
-            menuFocused = true; document.getElementById("channelList").style.display = "none"; document.getElementById("posterWrapper").style.display = "none";
+            if (viewMode.includes("_list")) { 
+                if(viewMode === "ep_list") { viewMode = "series_list"; }
+                else { viewMode = viewMode.includes("movie") ? "categories" : "series"; }
+                selectedIndex = 0; renderList();
+            } else {
+                menuFocused = true; document.getElementById("channelList").style.display = "none"; document.getElementById("posterWrapper").style.display = "none";
+            }
         }
     }
 });
