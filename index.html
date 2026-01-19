@@ -2,14 +2,13 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV - V18.0</title>
+<title>PaixãoFlix TV - V19.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
 <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
 
 <style>
-/* Bloqueio total de barras de rolagem conforme ordenado */
 * { overflow: hidden !important; scrollbar-width: none !important; -ms-overflow-style: none !important; touch-action: none; outline: none; }
 *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
 
@@ -29,10 +28,8 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 #nowPlaying span { display: block; font-size: 13px; color: #fff; font-weight: 700; margin-bottom: 5px; }
 #currentTitle { display: inline-block; padding: 8px 12px; color: #fff; font-size: 14px; background: rgba(255,152,0,0.2); border: 1px solid #ff9800; border-radius: 4px; max-width: 240px; word-wrap: break-word; white-space: normal; line-height: 1.4; }
 
-/* Configuração da Caixa de Pesquisa */
 #searchBox { margin-bottom: 15px; }
 #searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; box-sizing: border-box; font-size: 14px; }
-#searchInput:focus { border-color: #ff9800; background: #111; }
 
 .menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #1a1a1a; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
 .menu-item i { margin-right: 25px; width: 20px; text-align: center; }
@@ -58,10 +55,11 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 #posterPreview { width: 100%; height: 100%; border-radius: 12px; object-fit: cover; border: 3px solid #ff9800; background: #000; }
 #ratingBadge { position: absolute; top: 15px; right: 15px; background: rgba(229, 9, 20, 0.9); padding: 5px 10px; border-radius: 4px; font-weight: bold; }
 
-/* Modal Continuar Assistindo */
+/* Modal Continuar Assistindo - Focado nos Direcionais */
 #resumeModal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; text-align: center; }
 .modal-box { background: #111; padding: 30px; border: 2px solid #ff9800; border-radius: 10px; }
-.modal-btn { padding: 12px 25px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; }
+.modal-btn { padding: 12px 25px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; border: 2px solid transparent; }
+.modal-btn.selected { border-color: #fff; transform: scale(1.1); }
 .btn-res { background: #ff9800; color: #000; }
 .btn-new { background: #444; color: #fff; }
 
@@ -72,14 +70,14 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 
 <div id="loadingScreen">
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-    <div style="color: #ff9800; font-weight: bold;">Carregando PaixãoFlix V18.0...</div>
+    <div style="color: #ff9800; font-weight: bold;">PaixãoFlix V19.0</div>
 </div>
 
 <div id="resumeModal">
     <div class="modal-box">
         <h2 id="resumeTitle" style="color:#ff9800"></h2>
-        <p>Você já começou a assistir este conteúdo.</p>
-        <button class="modal-btn btn-res" id="confirmResume">CONTINUAR ASSISTINDO</button>
+        <p>Retomar de onde parou?</p>
+        <button class="modal-btn btn-res selected" id="confirmResume">CONTINUAR</button>
         <button class="modal-btn btn-new" id="confirmRestart">RECOMEÇAR</button>
     </div>
 </div>
@@ -116,7 +114,7 @@ let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [],
 let favorites = JSON.parse(localStorage.getItem('flix_favs')) || [];
 let progress = JSON.parse(localStorage.getItem('flix_progress')) || {};
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true;
-let currentPendingItem = null;
+let currentPendingItem = null, resumeFocusIdx = 0, isModalOpen = false;
 
 function updateClock() {
     const d = new Date();
@@ -125,7 +123,6 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
-// Salva o progresso real no localStorage
 vPlayer.on('timeupdate', () => {
     if (currentPendingItem && viewMode !== 'channels' && !vPlayer.paused()) {
         const id = currentPendingItem.titulo || currentPendingItem.name;
@@ -141,6 +138,10 @@ function toggleFavorite(item) {
     if (idx > -1) favorites.splice(idx, 1);
     else favorites.push(item);
     localStorage.setItem('flix_favs', JSON.stringify(favorites));
+    if(viewMode === "favorites") {
+        renderList();
+        if(selectedIndex >= filteredList.length) selectedIndex = Math.max(0, filteredList.length - 1);
+    }
     renderList();
 }
 
@@ -149,11 +150,11 @@ function playMedia(item, resume = false) {
     const url = item.url || item.link;
     const id = item.titulo || item.name;
     
-    // Filtro para "Continuar Assistindo"
-    if (!resume && progress[id] && progress[id] > 20 && !viewMode.includes('channels')) {
+    if (!resume && progress[id] && progress[id] > 15 && !viewMode.includes('channels')) {
         currentPendingItem = item;
         document.getElementById("resumeTitle").innerText = id;
         document.getElementById("resumeModal").style.display = "flex";
+        isModalOpen = true; resumeFocusIdx = 0; updateModalFocus();
         return;
     }
 
@@ -162,31 +163,22 @@ function playMedia(item, resume = false) {
     vPlayer.src({ src: url, type: url.includes(".m3u8") ? 'application/x-mpegURL' : 'video/mp4' });
     if (resume && progress[id]) vPlayer.one('loadedmetadata', () => vPlayer.currentTime(progress[id]));
     vPlayer.play().catch(() => {});
-
     document.getElementById("channelList").style.display = "none";
     document.getElementById("posterWrapper").style.display = "none";
 }
 
-document.getElementById("confirmResume").onclick = () => {
-    document.getElementById("resumeModal").style.display = "none";
-    playMedia(currentPendingItem, true);
-};
-document.getElementById("confirmRestart").onclick = () => {
-    document.getElementById("resumeModal").style.display = "none";
-    delete progress[currentPendingItem.titulo || currentPendingItem.name];
-    playMedia(currentPendingItem, true);
-};
+function updateModalFocus() {
+    const btns = document.querySelectorAll('.modal-btn');
+    btns.forEach((b, i) => b.classList.toggle('selected', i === resumeFocusIdx));
+}
 
-// --- CORREÇÃO DA CAIXA DE PESQUISA ---
 document.getElementById("searchInput").addEventListener("input", (e) => {
     const term = e.target.value.toLowerCase();
     if(term.length > 0) {
-        menuFocused = false;
-        viewMode = "search_result";
+        menuFocused = false; viewMode = "search_result";
         filteredList = [...channels, ...movies, ...series, ...kidsMovies, ...kidsSeries].filter(x => (x.titulo || x.name || "").toLowerCase().includes(term));
         document.getElementById("channelList").style.display = "block";
-        selectedIndex = 0; 
-        renderList();
+        selectedIndex = 0; renderList();
     }
 });
 
@@ -195,23 +187,14 @@ function renderList() {
     listDiv.innerHTML = "";
     let data = [];
 
-    // Rolagem Horizontal Infinita (Simulada pela navegação circular no JS)
     if (viewMode === "channels" || viewMode === "kids_channels") {
         const source = viewMode === "channels" ? channels : kidsChannels;
         const groups = {};
-        source.forEach(c => {
-            const cat = c.categoria || "Geral";
-            if (!groups[cat]) groups[cat] = [];
-            groups[cat].push(c);
-        });
-        let flatIndex = 0;
-        let flatData = [];
+        source.forEach(c => { const cat = c.categoria || "Geral"; if (!groups[cat]) groups[cat] = []; groups[cat].push(c); });
+        let flatIndex = 0; let flatData = [];
         for (const cat in groups) {
             const h = document.createElement("div"); h.className = "cat-header"; h.innerText = cat; listDiv.appendChild(h);
-            groups[cat].forEach(item => {
-                flatData.push(item);
-                listDiv.appendChild(createItemEl(item, flatIndex++));
-            });
+            groups[cat].forEach(item => { flatData.push(item); listDiv.appendChild(createItemEl(item, flatIndex++)); });
         }
         filteredList = flatData;
     } else {
@@ -221,7 +204,6 @@ function renderList() {
         else if (viewMode === "kids_movies") data = kidsMovies;
         else if (viewMode === "kids_series") data = kidsSeries;
         else data = filteredList;
-        
         filteredList = data;
         data.forEach((item, i) => listDiv.appendChild(createItemEl(item, i)));
     }
@@ -234,12 +216,7 @@ function createItemEl(item, i) {
     const id = typeof item === 'string' ? item : (item.titulo || item.name);
     const isFav = favorites.some(f => (f.titulo || f.name) === id);
     const logo = item.logo || item.poster || "https://via.placeholder.com/35x35?text=PF";
-    
-    div.innerHTML = `
-        ${typeof item !== 'string' ? `<img src="${logo}">` : ''}
-        <span>${id}</span>
-        ${typeof item !== 'string' ? `<i class="fas fa-star fav-icon ${isFav ? 'is-fav' : ''}"></i>` : ''}
-    `;
+    div.innerHTML = `${typeof item !== 'string' ? `<img src="${logo}">` : ''}<span>${id}</span>${typeof item !== 'string' ? `<i class="fas fa-star fav-icon ${isFav ? 'is-fav' : ''}"></i>` : ''}`;
     if (i === selectedIndex && !menuFocused) div.scrollIntoView({ block: 'center' });
     return div;
 }
@@ -251,42 +228,42 @@ function updatePoster() {
         document.getElementById("posterPreview").src = cur.poster;
         document.getElementById("ratingValue").innerText = cur.rating || "8.5";
         wrapper.style.display = "block";
-    } else {
-        wrapper.style.display = "none";
-    }
+    } else wrapper.style.display = "none";
 }
 
 document.addEventListener("keydown", e => {
     const code = e.keyCode;
     if([37,38,39,40,13].includes(code)) e.preventDefault();
 
+    // Lógica do Modal (Continuar/Recomeçar)
+    if(isModalOpen) {
+        if(code === 37) { resumeFocusIdx = 0; updateModalFocus(); } // Esquerda
+        if(code === 39) { resumeFocusIdx = 1; updateModalFocus(); } // Direita
+        if(code === 13) {
+            isModalOpen = false; document.getElementById("resumeModal").style.display = "none";
+            if(resumeFocusIdx === 0) playMedia(currentPendingItem, true);
+            else { delete progress[currentPendingItem.titulo || currentPendingItem.name]; playMedia(currentPendingItem, true); }
+        }
+        return;
+    }
+
     const items = document.querySelectorAll(".menu-item");
     if (menuFocused) {
-        if (code === 38 && menuIndex > -1) { 
-            menuIndex--; 
-            if(menuIndex === -1) { 
-                document.getElementById("searchInput").focus(); 
-            } 
-        }
-        else if (code === 40 && menuIndex < items.length - 1) { 
-            menuIndex++; 
-            document.getElementById("searchInput").blur(); 
-        }
+        // Rolagem Infinita Menu
+        if (code === 38) { menuIndex = (menuIndex - 1 + items.length) % items.length; }
+        else if (code === 40) { menuIndex = (menuIndex + 1) % items.length; }
         else if (code === 39 || code === 13) {
-            menuFocused = false;
-            document.getElementById("channelList").style.display = "block";
-            viewMode = items[Math.max(0, menuIndex)].dataset.type;
-            selectedIndex = 0; renderList();
+            menuFocused = false; document.getElementById("channelList").style.display = "block";
+            viewMode = items[menuIndex].dataset.type; selectedIndex = 0; renderList();
         }
     } else {
+        // Rolagem Infinita Listas
         let len = filteredList.length;
-        // Rolagem infinita vertical em todas as barras
         if (code === 38) { selectedIndex = (selectedIndex - 1 + len) % len; renderList(); }
         else if (code === 40) { selectedIndex = (selectedIndex + 1) % len; renderList(); }
         else if (code === 13) {
             const item = filteredList[selectedIndex];
-            // Favoritar via Enter (Shift+Enter ou verificação de item para não favoritar categorias)
-            if (e.shiftKey && typeof item !== 'string') { toggleFavorite(item); }
+            if (e.shiftKey) toggleFavorite(item); // Atalho Favoritos
             else if (typeof item === 'string') {
                 if (viewMode === "categories") { filteredList = movies.filter(m => (m.genero||"").toUpperCase() === item); viewMode = "movie_list"; }
                 else if (viewMode === "series") { filteredList = series.filter(s => (s.genero||"").toUpperCase() === item); viewMode = "series_list"; }
@@ -294,14 +271,8 @@ document.addEventListener("keydown", e => {
             } else playMedia(item);
         }
         else if (code === 37 || code === 8 || code === 461) {
-            if (viewMode.includes("_list") || viewMode === "search_result") { 
-                viewMode = viewMode.includes("movie") ? "categories" : "series"; 
-                selectedIndex = 0; renderList(); 
-            } else { 
-                menuFocused = true; 
-                document.getElementById("channelList").style.display = "none"; 
-                document.getElementById("posterWrapper").style.display = "none"; 
-            }
+            if (viewMode.includes("_list") || viewMode === "search_result") { viewMode = viewMode.includes("movie") ? "categories" : "series"; selectedIndex = 0; renderList(); }
+            else { menuFocused = true; document.getElementById("channelList").style.display = "none"; document.getElementById("posterWrapper").style.display = "none"; }
         }
     }
     items.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
@@ -313,12 +284,10 @@ window.onload = async () => {
         try {
             const r = await fetch(BASE + f + "?t=" + Date.now());
             if(isM) {
-                const txt = await r.text();
-                let a = [], t = null;
+                const txt = await r.text(); let a = [], t = null;
                 txt.split("\n").forEach(l => {
                     if(l.startsWith("#EXTINF")) {
-                        const cat = l.match(/group-title="([^"]+)"/);
-                        const logo = l.match(/tvg-logo="([^"]+)"/);
+                        const cat = l.match(/group-title="([^"]+)"/); const logo = l.match(/tvg-logo="([^"]+)"/);
                         t = { titulo: l.split(",").pop().trim(), categoria: cat ? cat[1] : "Geral", logo: logo ? logo[1] : "" };
                     } else if(l.startsWith("http") && t) { t.url = l.trim(); a.push(t); t = null; }
                 });
@@ -335,10 +304,7 @@ window.onload = async () => {
 
     setTimeout(() => {
         document.getElementById("loadingScreen").style.opacity = "0";
-        setTimeout(() => {
-            document.getElementById("loadingScreen").style.display = "none";
-            if (channels.length > 0) playMedia(channels[0]);
-        }, 500);
+        setTimeout(() => { document.getElementById("loadingScreen").style.display = "none"; if (channels.length > 0) playMedia(channels[0]); }, 500);
     }, 2000);
 };
 </script>
