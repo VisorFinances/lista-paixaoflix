@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV - V19.0 Final</title>
+<title>PaixãoFlix TV - V19.0 Final Corrigida</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
@@ -51,8 +51,8 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 .is-fav { color: #ffeb3b !important; }
 
 #posterWrapper { position: absolute; top: 50%; left: 380px; transform: translateY(-50%); width: 300px; height: 450px; z-index: 120; display: none; pointer-events: none; }
-#posterPreview { width: 100%; height: 100%; border-radius: 12px; object-fit: cover; border: 3px solid #ff9800; background: #000; }
-#posterInfo { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8); padding: 10px; box-sizing: border-box; border-radius: 0 0 12px 12px; text-align: center; }
+#posterPreview { width: 100%; height: 100%; border-radius: 12px; object-fit: cover; border: 3px solid #ff9800; background: #111; will-change: contents; }
+#posterInfo { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.85); padding: 10px; box-sizing: border-box; border-radius: 0 0 12px 12px; text-align: center; }
 #ratingBadge { position: absolute; top: 15px; right: 15px; background: rgba(229, 9, 20, 0.9); padding: 5px 10px; border-radius: 4px; font-weight: bold; }
 
 #resumeModal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; }
@@ -100,7 +100,7 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
         </div>
         <div id="channelList"></div>
         <div id="posterWrapper">
-            <img id="posterPreview">
+            <img id="posterPreview" loading="lazy">
             <div id="ratingBadge">★ <span id="ratingValue">0.0</span></div>
             <div id="posterInfo"><span id="posterYear">0000</span></div>
         </div>
@@ -108,13 +108,7 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 </div>
 
 <script>
-let vPlayer = videojs('mainPlayer', { 
-    autoplay: true, 
-    controls: true, 
-    fill: true,
-    fluid: false 
-});
-
+let vPlayer = videojs('mainPlayer', { autoplay: true, controls: true, fill: true });
 let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [], kidsSeries = [];
 let favorites = JSON.parse(localStorage.getItem('flix_favs')) || [];
 let progress = JSON.parse(localStorage.getItem('flix_progress')) || {};
@@ -128,11 +122,21 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
+// --- CONFIGURAÇÃO DA CAIXA DE PESQUISA RESTAURADA ---
+document.getElementById("searchInput").addEventListener("input", (e) => {
+    const term = e.target.value.toLowerCase();
+    if(term.length > 0) {
+        menuFocused = false; viewMode = "search";
+        filteredList = [...channels, ...movies, ...series, ...kidsMovies, ...kidsSeries].filter(x => (x.titulo || x.name || "").toLowerCase().includes(term));
+        document.getElementById("channelList").style.display = "block";
+        selectedIndex = 0; renderList();
+    }
+});
+
 function playMedia(item, resume = false) {
     if (!item || typeof item === 'string') return;
     const url = item.url || item.link;
     const id = item.titulo || item.name;
-    
     if (!resume && progress[id] > 15 && !viewMode.includes('channels')) {
         currentPendingItem = item;
         document.getElementById("resumeTitle").innerText = id;
@@ -140,7 +144,6 @@ function playMedia(item, resume = false) {
         isModalOpen = true; resumeFocusIdx = 0; updateModalFocus();
         return;
     }
-
     currentPendingItem = item;
     document.getElementById("currentTitle").innerText = id;
     vPlayer.src({ src: url, type: url.includes(".m3u8") ? 'application/x-mpegURL' : 'video/mp4' });
@@ -158,20 +161,10 @@ vPlayer.on('timeupdate', () => {
     }
 });
 
-function toggleFavorite(item) {
-    const id = item.titulo || item.name;
-    const idx = favorites.findIndex(f => (f.titulo || f.name) === id);
-    if (idx > -1) favorites.splice(idx, 1);
-    else favorites.push(item);
-    localStorage.setItem('flix_favs', JSON.stringify(favorites));
-    renderList();
-}
-
 function renderList() {
     const listDiv = document.getElementById("channelList");
     listDiv.innerHTML = "";
     let data = [];
-
     if (viewMode === "channels" || viewMode === "kids_channels") {
         const source = (viewMode === "channels") ? channels : kidsChannels;
         const groups = {};
@@ -181,7 +174,6 @@ function renderList() {
             const h = document.createElement("div"); h.className = "cat-header"; h.innerText = cat; listDiv.appendChild(h);
             groups[cat].forEach(item => { flatData.push(item); listDiv.appendChild(createItemEl(item, flatIndex++)); });
         }
-        flatData.forEach((item, idx) => { if(idx === selectedIndex && !menuFocused) { /* scroll logic handled in createItemEl */ } });
         filteredList = flatData;
     } else {
         if (viewMode === "favorites") data = favorites;
@@ -203,9 +195,7 @@ function createItemEl(item, i) {
     const logo = item.logo || item.poster || "";
     const isFav = favorites.some(f => (f.titulo || f.name) === id);
     div.innerHTML = `${logo ? `<img src="${logo}">` : ''}<span>${id}</span> ${!menuFocused && typeof item !== 'string' ? `<i class="fas fa-star fav-icon ${isFav?'is-fav':''}"></i>` : ''}`;
-    if (i === selectedIndex && !menuFocused) {
-        setTimeout(() => div.scrollIntoView({ block: 'center', behavior: 'smooth' }), 10);
-    }
+    if (i === selectedIndex && !menuFocused) { div.scrollIntoView({ block: 'center' }); }
     return div;
 }
 
@@ -244,38 +234,32 @@ document.addEventListener("keydown", e => {
         else if (code === 40 && menuIndex < items.length) menuIndex++;
         searchInput.classList.toggle("active", menuIndex === 0);
         items.forEach((m, i) => m.classList.toggle("active", i === (menuIndex - 1)));
-
         if (code === 13 && menuIndex === 0) searchInput.focus();
         if (code === 39 || (code === 13 && menuIndex > 0)) {
-            menuFocused = false; 
-            viewMode = items[menuIndex - 1].dataset.type; 
-            selectedIndex = 0; 
-            document.getElementById("channelList").style.display = "block";
-            renderList();
+            menuFocused = false; viewMode = items[menuIndex - 1].dataset.type; selectedIndex = 0; 
+            document.getElementById("channelList").style.display = "block"; renderList();
         }
     } else {
+        // --- ROLAGEM INFINITA SEM DELAY (SECAS) ---
         let len = filteredList.length;
         if (code === 38) { selectedIndex = (selectedIndex - 1 + len) % len; renderList(); }
         else if (code === 40) { selectedIndex = (selectedIndex + 1) % len; renderList(); }
-        else if (code === 39) { const cur = filteredList[selectedIndex]; if(cur && typeof cur !== 'string') toggleFavorite(cur); }
         else if (code === 13) {
             const item = filteredList[selectedIndex];
             if (typeof item === 'string') {
                 if (viewMode === "categories") { filteredList = movies.filter(m => (m.genero||"").toUpperCase() === item); viewMode = "movie_list"; }
                 else if (viewMode === "series") { filteredList = series.filter(s => (s.genero||"").toUpperCase() === item); viewMode = "series_list"; }
                 selectedIndex = 0; renderList();
-            } else if (item.episodios) {
-                filteredList = item.episodios; viewMode = "ep_list"; selectedIndex = 0; renderList();
-            } else playMedia(item);
+            } 
+            // --- LOGICA DE SERIES RESTAURADA ---
+            else if (item.episodios) { filteredList = item.episodios; viewMode = "ep_list"; selectedIndex = 0; renderList(); }
+            else playMedia(item);
         }
         else if (code === 37 || code === 8) {
             if (viewMode.includes("_list")) { 
-                if(viewMode === "ep_list") { viewMode = "series_list"; }
-                else { viewMode = viewMode.includes("movie") ? "categories" : "series"; }
+                viewMode = (viewMode === "ep_list") ? "series_list" : (viewMode.includes("movie") ? "categories" : "series");
                 selectedIndex = 0; renderList();
-            } else {
-                menuFocused = true; document.getElementById("channelList").style.display = "none"; document.getElementById("posterWrapper").style.display = "none";
-            }
+            } else { menuFocused = true; document.getElementById("channelList").style.display = "none"; document.getElementById("posterWrapper").style.display = "none"; }
         }
     }
 });
