@@ -89,7 +89,8 @@ let vPlayer = videojs('mainPlayer', {
     autoplay: true, 
     controls: true, 
     fill: true,
-    html5: { vhs: { overrideNative: true }, nativeAudioTracks: false, nativeVideoTracks: false }
+    preload: 'auto',
+    html5: { vhs: { overrideNative: true } }
 });
 
 let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [], kidsSeries = [];
@@ -105,24 +106,23 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
-// --- LOGICA DE PESQUISA ---
+// CONFIGURAÇÃO DA CAIXA DE PESQUISA
 document.getElementById("searchInput").addEventListener("input", (e) => {
     const term = e.target.value.toLowerCase();
-    if(term.length > 2) {
+    if(term.length > 0) {
         menuFocused = false; viewMode = "search";
-        filteredList = [...channels, ...movies, ...series].filter(x => (x.titulo || x.name || "").toLowerCase().includes(term));
+        filteredList = [...channels, ...movies, ...series, ...kidsMovies, ...kidsSeries].filter(x => (x.titulo || x.name || "").toLowerCase().includes(term));
         document.getElementById("channelList").style.display = "block";
-        renderList();
+        selectedIndex = 0; renderList();
     }
 });
 
-// --- FUNÇÃO PLAY COM PROXY E SUPORTE TS ---
 function playMedia(item, resume = false) {
     if (!item || typeof item === 'string') return;
     let url = item.url || item.link;
     const id = item.titulo || item.name;
 
-    // Detecta se precisa de Proxy (HTTP ou portas IPTV comuns)
+    // APLICA PROXY PARA HTTP E PORTAS 8080
     if (url.startsWith("http://") || url.includes(":8080")) {
         const proxyBase = "https://proxy.paixaoflix-vip.workers.dev/?url=";
         url = proxyBase + encodeURIComponent(url);
@@ -130,18 +130,17 @@ function playMedia(item, resume = false) {
 
     document.getElementById("currentTitle").innerText = id;
     
-    // Configura o tipo de mídia dinamicamente
-    let type = "application/x-mpegURL"; // Padrão HLS/M3U8
-    if (url.includes(".mp4")) type = "video/mp4";
-    
-    vPlayer.src({ src: url, type: type });
+    // Tenta forçar como HLS para links de IPTV sem extensão
+    vPlayer.src({ 
+        src: url, 
+        type: (url.includes(".mp4")) ? 'video/mp4' : 'application/x-mpegURL'
+    });
 
     if (resume && progress[id]) vPlayer.one('loadedmetadata', () => vPlayer.currentTime(progress[id]));
-    
     vPlayer.play().catch(() => {
-        // Fallback: Tenta forçar como stream de vídeo se falhar
-        vPlayer.src({ src: url, type: 'video/mp2t' });
-        vPlayer.play();
+        // Fallback para video direto caso o HLS falhe
+        vPlayer.src({ src: url, type: 'video/mp4' });
+        vPlayer.play().catch(() => console.log("Erro ao carregar fonte."));
     });
 
     document.getElementById("channelList").style.display = "none";
@@ -175,7 +174,7 @@ function createItemEl(item, i) {
     const id = typeof item === 'string' ? item : (item.titulo || item.name);
     const logo = item.logo || item.poster || "";
     div.innerHTML = `${logo ? `<img src="${logo}">` : ''}<span>${id}</span>`;
-    if (i === selectedIndex && !menuFocused) { div.scrollIntoView({ block: 'center' }); }
+    if (i === selectedIndex && !menuFocused) { div.scrollIntoView({ block: 'center', behavior: 'instant' }); }
     return div;
 }
 
@@ -192,12 +191,15 @@ document.addEventListener("keydown", e => {
     const code = e.keyCode;
     if([37,38,39,40,13].includes(code)) e.preventDefault();
     const items = document.querySelectorAll(".menu-item");
+    const searchInput = document.getElementById("searchInput");
 
     if (menuFocused) {
         if (code === 38 && menuIndex > 0) menuIndex--;
         else if (code === 40 && menuIndex < items.length) menuIndex++;
+        searchInput.classList.toggle("active", menuIndex === 0);
         items.forEach((m, i) => m.classList.toggle("active", i === (menuIndex - 1)));
-        if (code === 39 || code === 13) {
+        if (code === 13 && menuIndex === 0) searchInput.focus();
+        if (code === 39 || (code === 13 && menuIndex > 0)) {
             menuFocused = false; viewMode = items[menuIndex - 1].dataset.type; selectedIndex = 0; 
             document.getElementById("channelList").style.display = "block"; renderList();
         }
@@ -211,8 +213,8 @@ document.addEventListener("keydown", e => {
                 if (viewMode === "categories") { filteredList = movies.filter(m => (m.genero||"").toUpperCase() === item); viewMode = "movie_list"; }
                 else if (viewMode === "series") { filteredList = series.filter(s => (s.genero||"").toUpperCase() === item); viewMode = "series_list"; }
                 selectedIndex = 0; renderList();
-            } else if (item.episodios) {
-                filteredList = item.episodios; viewMode = "ep_list"; selectedIndex = 0; renderList();
+            } else if (item.episodios || item.temporadas) { // SE FOR SERIE ABRE LISTA
+                filteredList = item.episodios || item.temporadas; viewMode = "ep_list"; selectedIndex = 0; renderList();
             } else playMedia(item);
         }
         else if (code === 37 || code === 8) {
@@ -245,6 +247,7 @@ window.onload = async () => {
         load("canais.m3u", true), load("kids_canais.m3u", true), load("filmes.json", false), load("series.json", false), load("kids_filmes.json", false), load("kids_series.json", false)
     ]);
     document.getElementById("loadingScreen").style.display = "none";
+    if (channels.length > 0) playMedia(channels[0]);
 };
 </script>
 </body>
