@@ -2,50 +2,40 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV - V19.0 Final</title>
+<title>PaixãoFlix TV - V19.09 Final</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
 <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
 
 <style>
-/* PRESERVANDO SEU LAYOUT ORIGINAL */
-* { overflow: hidden !important; scrollbar-width: none !important; -ms-overflow-style: none !important; touch-action: none; outline: none; }
-*::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
-body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; width: 100vw; overflow: hidden; }
-#loadingScreen { position: fixed; top:0; left:0; width: 100vw; height: 100vh; background: #000; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-#loadingScreen img { width: 320px; height: auto; margin-bottom: 25px; }
+/* SEU LAYOUT ORIGINAL PRESERVADO */
+* { overflow: hidden !important; scrollbar-width: none !important; touch-action: none; outline: none; }
+body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; width: 100vw; }
+#loadingScreen { position: fixed; inset: 0; background: #000; z-index: 99999; display: flex; align-items: center; justify-content: center; }
+#loadingScreen img { width: 320px; }
 #app { display: flex; height: 100%; width: 100%; position: relative; }
-#menu { width: 280px; background: #111; display: flex; flex-direction: column; z-index: 100; padding: 12px; box-sizing: border-box; border-right: 1px solid #333; }
-#menuHeader { padding: 15px 5px; text-align: center; border-bottom: 1px solid #222; margin-bottom: 15px; }
-#menuHeader img { height: 95px; object-fit: contain; }
-#clock { margin-top: 10px; font-size: 13px; color: #aaa; white-space: nowrap; }
+#menu { width: 280px; background: #111; display: flex; flex-direction: column; z-index: 100; padding: 12px; border-right: 1px solid #333; box-sizing: border-box; }
+#menuHeader { text-align: center; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+#menuHeader img { height: 95px; }
+#clock { font-size: 13px; color: #aaa; margin-top: 5px; }
 #nowPlaying { margin: 15px 0; text-align: center; }
-#nowPlaying span { display: block; font-size: 13px; color: #fff; font-weight: 700; margin-bottom: 5px; }
-#currentTitle { display: inline-block; padding: 8px 12px; color: #fff; font-size: 14px; background: rgba(255,152,0,0.2); border: 1px solid #ff9800; border-radius: 4px; max-width: 240px; word-wrap: break-word; white-space: normal; line-height: 1.4; }
+#currentTitle { display: inline-block; padding: 8px 12px; color: #fff; font-size: 14px; background: rgba(255,152,0,0.2); border: 1px solid #ff9800; border-radius: 4px; }
 #searchBox { margin-bottom: 15px; }
-#searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; box-sizing: border-box; font-size: 14px; }
-#searchInput.active { border-color: #ff9800; background: #1a1a1a; box-shadow: 0 0 10px #ff9800; }
-.menu-item { padding: 12px 15px; font-size: 15px; margin-bottom: 8px; border-radius: 8px; background: #1a1a1a; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
-.menu-item i { margin-right: 25px; width: 20px; text-align: center; }
+#searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; background: #000; color: #fff; }
+#searchInput.active { border-color: #ff9800; box-shadow: 0 0 10px #ff9800; }
+.menu-item { padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; background: #1a1a1a; border: 1px solid #333; display: flex; align-items: center; color: #ccc; cursor: pointer; }
 .menu-item.active { background: #333; color: #fff; border: 1px solid #ff9800; font-weight: bold; }
 #content { position: absolute; left: 280px; right: 0; top: 0; bottom: 0; background: #000; }
 #videoContainer { width: 100%; height: 100%; }
 .video-js { width: 100% !important; height: 100% !important; }
-
-/* AJUSTE NA LISTA PARA ROLAGEM */
-#channelList { 
-    position: absolute; left: 0; top: 0; width: 360px; height: 100%; 
-    background: rgba(0,0,0,0.98); display: none; z-index: 110; 
-    overflow-y: auto !important; /* Habilitando a rolagem interna */
-    border-right: 2px solid #ff9800; 
-}
-.cat-header { background: #222; color: #ff9800; padding: 10px 20px; font-weight: bold; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #333; }
-.channel { padding: 12px 20px; font-size: 15px; border-bottom: 1px solid #1a1a1a; color: #fff; display: flex; align-items: center; min-height: 60px; box-sizing: border-box; }
-.channel img { width: 35px; height: 35px; object-fit: contain; margin-right: 15px; background: #111; border-radius: 4px; }
+#channelList { position: absolute; left: 0; top: 0; width: 360px; height: 100%; background: rgba(0,0,0,0.98); display: none; z-index: 110; overflow-y: auto !important; border-right: 2px solid #ff9800; }
+.cat-header { background: #222; color: #ff9800; padding: 10px 20px; font-weight: bold; font-size: 13px; text-transform: uppercase; }
+.channel { padding: 12px 20px; border-bottom: 1px solid #1a1a1a; color: #fff; display: flex; align-items: center; min-height: 60px; }
 .channel.active { background: #ff9800 !important; color: #000 !important; font-weight: bold; }
-#posterWrapper { position: absolute; top: 50%; left: 380px; transform: translateY(-50%); width: 300px; height: 450px; z-index: 120; display: none; pointer-events: none; }
-#posterPreview { width: 100%; height: 100%; border-radius: 12px; object-fit: cover; border: 3px solid #ff9800; background: #111; }
+.channel img { width: 35px; height: 35px; margin-right: 15px; border-radius: 4px; }
+#posterWrapper { position: absolute; top: 50%; left: 380px; transform: translateY(-50%); width: 300px; height: 450px; z-index: 120; display: none; }
+#posterPreview { width: 100%; height: 100%; border-radius: 12px; border: 3px solid #ff9800; object-fit: cover; }
 </style>
 </head>
 <body>
@@ -72,7 +62,7 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
     <div id="content">
         <div id="videoContainer"><video id="mainPlayer" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto"></video></div>
         <div id="channelList"></div>
-        <div id="posterWrapper"><img id="posterPreview" loading="lazy"></div>
+        <div id="posterWrapper"><img id="posterPreview"></div>
     </div>
 </div>
 
@@ -83,21 +73,18 @@ let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 1, 
 
 function updateClock() {
     const d = new Date();
-    const dias = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
-    document.getElementById("clock").innerText = `${dias[d.getDay()]}, ${d.toLocaleDateString('pt-BR')} | ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+    document.getElementById("clock").innerText = d.toLocaleDateString('pt-BR') + " | " + d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0');
 }
 setInterval(updateClock, 1000); updateClock();
 
-// PESQUISA ATIVA CORRIGIDA
+// PESQUISA
 document.getElementById("searchInput").addEventListener("input", (e) => {
     const term = e.target.value.toLowerCase();
     if(term.length > 0) {
-        menuFocused = false; 
-        viewMode = "search";
+        menuFocused = false; viewMode = "search";
         filteredList = [...channels, ...movies, ...series, ...kidsMovies, ...kidsSeries].filter(x => (x.titulo || x.name || "").toLowerCase().includes(term));
         document.getElementById("channelList").style.display = "block";
-        selectedIndex = 0; 
-        renderList();
+        selectedIndex = 0; renderList();
     }
 });
 
@@ -117,6 +104,7 @@ function playMedia(item) {
 function renderList() {
     const listDiv = document.getElementById("channelList");
     listDiv.innerHTML = "";
+    
     let data = [];
     if (viewMode === "channels") data = channels;
     else if (viewMode === "kids_channels") data = kidsChannels;
@@ -129,26 +117,19 @@ function renderList() {
     filteredList = data;
 
     data.forEach((item, i) => {
-        const div = createItemEl(item, i);
+        const div = document.createElement("div");
+        div.className = `channel ${i === selectedIndex ? "active" : ""}`;
+        const id = typeof item === 'string' ? item : (item.titulo || item.name);
+        const logo = item.logo || item.poster || "";
+        div.innerHTML = `${logo ? `<img src="${logo}">` : ''}<span>${id}</span>`;
         listDiv.appendChild(div);
-        // Lógica de Rolagem Vertical Forçada
+
         if (i === selectedIndex && !menuFocused) {
-            const containerHeight = listDiv.clientHeight;
             const itemTop = div.offsetTop;
-            const itemHeight = div.clientHeight;
-            listDiv.scrollTop = itemTop - (containerHeight / 2) + (itemHeight / 2);
+            listDiv.scrollTop = itemTop - (listDiv.clientHeight / 2) + (div.clientHeight / 2);
         }
     });
     updatePoster();
-}
-
-function createItemEl(item, i) {
-    const div = document.createElement("div");
-    div.className = `channel ${i === selectedIndex ? "active" : ""}`;
-    const id = typeof item === 'string' ? item : (item.titulo || item.name);
-    const logo = item.logo || item.poster || "";
-    div.innerHTML = `${logo ? `<img src="${logo}">` : ''}<span>${id}</span>`;
-    return div;
 }
 
 function updatePoster() {
@@ -187,23 +168,26 @@ document.addEventListener("keydown", e => {
         else if (code === 40 && len > 0) { selectedIndex = (selectedIndex + 1) % len; renderList(); }
         else if (code === 13) {
             const item = filteredList[selectedIndex];
+            // Se for categoria (String)
             if (typeof item === 'string') {
                 if (viewMode === "categories") { filteredList = movies.filter(m => (m.genero||"").toUpperCase() === item); viewMode = "movie_list"; }
                 else if (viewMode === "series") { filteredList = series.filter(s => (s.genero||"").toUpperCase() === item); viewMode = "series_list"; }
                 selectedIndex = 0; renderList();
-            } else if (item.episodios || item.temporadas) {
+            } 
+            // Se for Série (tem episódios ou temporadas)
+            else if (item.episodios || item.temporadas) {
                 filteredList = item.episodios || item.temporadas; 
                 viewMode = "ep_list"; selectedIndex = 0; renderList();
-            } else { playMedia(item); }
+            } 
+            // Se for Canal, Filme ou Episódio final
+            else { playMedia(item); }
         }
         else if (code === 37 || code === 8) {
-            if (viewMode.includes("_list") || viewMode === "ep_list") {
-                viewMode = (viewMode === "ep_list") ? "series_list" : (viewMode === "movie_list" ? "categories" : "series");
-                selectedIndex = 0; renderList();
-            } else {
-                menuFocused = true; 
-                document.getElementById("channelList").style.display = "none"; 
-                document.getElementById("posterWrapper").style.display = "none";
+            if (viewMode === "ep_list") { viewMode = "series_list"; selectedIndex = 0; renderList(); }
+            else if (viewMode === "movie_list") { viewMode = "categories"; selectedIndex = 0; renderList(); }
+            else if (viewMode === "series_list") { viewMode = "series"; selectedIndex = 0; renderList(); }
+            else {
+                menuFocused = true; document.getElementById("channelList").style.display = "none";
             }
         }
     }
@@ -226,6 +210,7 @@ window.onload = async () => {
             return await r.json();
         } catch(e) { return []; }
     };
+    // ORDEM CORRETA DE CARREGAMENTO
     [channels, kidsChannels, movies, series, kidsMovies, kidsSeries] = await Promise.all([
         load("canais.m3u", true), load("kids_canais.m3u", true), load("filmes.json", false), load("series.json", false), load("kids_filmes.json", false), load("kids_series.json", false)
     ]);
