@@ -1,8 +1,6 @@
 #EXTM3U
 #EXTINF:-1 tvg-logo="https://i.imgur.com/vHq9P92.png" group-title="TESTE",CANAL TESTE HD
 https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
-#EXTINF:-1 tvg-id="Globo.br" tvg-logo="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/globo.jpg" group-title="ABERTOS",Globo RJ
-http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/52814
 #EXTINF:-1 tvg-id="globo.rj" tvg-logo="https://i.imgur.com/ixAL3TR.jpeg" group-title="ABERTOS",Globo RJ
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/52814
 #EXTINF:-1 tvg-id="Globo" tvg-logo="https://i.imgur.com/ixAL3TR.jpeg" group-title="ABERTOS",Globo RJ
@@ -191,8 +189,6 @@ http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/47547
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/51203
 #EXTINF:-1 tvg-logo="https://i.imgur.com/9v6Q27q.png" group-title="FILMES",AMC HD
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53247
-#EXTINF:-1 tvg-logo="https://i.imgur.com/9v6Q27q.png" group-title="FILMES",Darkflix
-https://video01.soultv.com.br/darkflix/darkflix/playlist.m3u8
 #EXTINF:-1 tvg-logo="https://i.imgur.com/rN99V2E.png" group-title="JORNALISMO",Record News
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3833
 #EXTINF:-1 tvg-logo="https://i.imgur.com/m2p7x6L.png" group-title="JORNALISMO",CNN Brasil
@@ -239,8 +235,6 @@ http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53232
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3980
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/mariosanthos/arquivos/main/utvbrasil.png" group-title="🌎Variedades",Rede UTV Brasil
 https://utvsoultv.acessaradios.com.br/utvsoultv/utvsoultv.stream/chunklist_w955987097.m3u8
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/mariosanthos/arquivos/main/tve.png" group-title="🌎Variedades", TVE Bahia
-http://streaming.procergs.com.br:1935/tve/stve/playlist.m3u8
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/mariosanthos/arquivos/main/tvcamara.png" group-title="🌎Variedades", TV Camera
 https://stream3.camara.gov.br/tv1/manifest.m3u8
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/mariosanthos/arquivos/main/astraltv.png" group-title="🌎Variedades", Astraltv
@@ -277,10 +271,14 @@ https://cdn-1.nxplay.com.br/HISTORY_TK/index.m3u8
 https://cdn-1.nxplay.com.br/COM_BRASIL/index.m3u8
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/mariosanthos/arquivos/main/rittv.png", RIT TV
 https://cdn-1.nxplay.com.br/RIT_TV/index.m3u8
+#EXTINF:-1 tvg-logo="https://i.imgur.com/yO4m9Zp.png" tvg-id="COMBrasil" group-title="MÚSICA",COM Brasil
+https://br5093.streamingdevideo.com.br/abc/abc/playlist.m3u8
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/mariosanthos/arquivos/main/tvdestak.png" group-title="🌎Variedades",TV Destak
 https://video03.logicahost.com.br/pascoal/pascoal/playlist.m3u8
 #EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/mariosanthos/arquivos/main/1mus.png" group-title="🎶Música", 1Mus
 http://hz1.teleport.cc/HLS/HD.m3u8
+#EXTINF:-1 tvg-logo="https://i.imgur.com/yO4m9Zp.png" tvg-id="COMBrasil.br@SD",COM Brasil
+https://br5093.streamingdevideo.com.br/abc/abc/playlist.m3u8
 #EXTINF:-1 tvg-id="Pluto_Cine_Esp" tvg-logo="http://images.pluto.tv/channels/61c49a1b5ec8d40008673251/colorLogoPNG.png" group-title="Cinema em espanhol",Cortos | Pluto TV Espanha
 https://service-stitcher.clusters.pluto.tv/v1/stitch/embed/hls/channel/61c49a1b5ec8d40008673251/master.m3u8?deviceMake=samsung&deviceType=samsung-tvplus
 #EXTINF:-1 tvg-id="Horrorfy" tvg-logo="https://provider-static.plex.tv/epg/cms/production/fe3c7159-2d42-47c3-a112-2c0cd847e4ef/horrorfy_logo.png" group-title="Cinema em espanhol",Horrorfy
