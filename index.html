@@ -9,6 +9,7 @@
 <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
 
 <style>
+/* PRESERVANDO SEU LAYOUT ORIGINAL */
 * { overflow: hidden !important; scrollbar-width: none !important; -ms-overflow-style: none !important; touch-action: none; outline: none; }
 *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
 body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; width: 100vw; overflow: hidden; }
@@ -31,9 +32,16 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 #content { position: absolute; left: 280px; right: 0; top: 0; bottom: 0; background: #000; }
 #videoContainer { width: 100%; height: 100%; }
 .video-js { width: 100% !important; height: 100% !important; }
-#channelList { position: absolute; left: 0; top: 0; width: 360px; height: 100%; background: rgba(0,0,0,0.98); display: none; z-index: 110; overflow-y: scroll; border-right: 2px solid #ff9800; }
+
+/* AJUSTE NA LISTA PARA ROLAGEM */
+#channelList { 
+    position: absolute; left: 0; top: 0; width: 360px; height: 100%; 
+    background: rgba(0,0,0,0.98); display: none; z-index: 110; 
+    overflow-y: auto !important; /* Habilitando a rolagem interna */
+    border-right: 2px solid #ff9800; 
+}
 .cat-header { background: #222; color: #ff9800; padding: 10px 20px; font-weight: bold; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #333; }
-.channel { padding: 12px 20px; font-size: 15px; border-bottom: 1px solid #1a1a1a; color: #fff; display: flex; align-items: center; }
+.channel { padding: 12px 20px; font-size: 15px; border-bottom: 1px solid #1a1a1a; color: #fff; display: flex; align-items: center; min-height: 60px; box-sizing: border-box; }
 .channel img { width: 35px; height: 35px; object-fit: contain; margin-right: 15px; background: #111; border-radius: 4px; }
 .channel.active { background: #ff9800 !important; color: #000 !important; font-weight: bold; }
 #posterWrapper { position: absolute; top: 50%; left: 380px; transform: translateY(-50%); width: 300px; height: 450px; z-index: 120; display: none; pointer-events: none; }
@@ -42,9 +50,7 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 </head>
 <body>
 
-<div id="loadingScreen">
-    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-</div>
+<div id="loadingScreen"><img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png"></div>
 
 <div id="app">
     <div id="menu">
@@ -73,7 +79,6 @@ body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppi
 <script>
 let vPlayer = videojs('mainPlayer', { autoplay: true, controls: true, fill: true });
 let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [], kidsSeries = [];
-let favorites = JSON.parse(localStorage.getItem('flix_favs')) || [];
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 1, menuFocused = true;
 
 function updateClock() {
@@ -83,34 +88,28 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
-// PESQUISA ATIVA
+// PESQUISA ATIVA CORRIGIDA
 document.getElementById("searchInput").addEventListener("input", (e) => {
     const term = e.target.value.toLowerCase();
     if(term.length > 0) {
-        menuFocused = false; viewMode = "search";
+        menuFocused = false; 
+        viewMode = "search";
         filteredList = [...channels, ...movies, ...series, ...kidsMovies, ...kidsSeries].filter(x => (x.titulo || x.name || "").toLowerCase().includes(term));
         document.getElementById("channelList").style.display = "block";
-        selectedIndex = 0; renderList();
+        selectedIndex = 0; 
+        renderList();
     }
 });
 
 function playMedia(item) {
-    if (!item || typeof item === 'string') return;
+    if (!item) return;
     let url = item.url || item.link;
-    const id = item.titulo || item.name;
-
-    // PROXY SOMENTE PARA LINKS HTTP (RESOLVE GLOBO)
     if (url && url.startsWith("http://")) {
         url = "https://proxy.paixaoflix-vip.workers.dev/?url=" + encodeURIComponent(url);
     }
-
-    document.getElementById("currentTitle").innerText = id;
+    document.getElementById("currentTitle").innerText = item.titulo || item.name;
     vPlayer.src({ src: url, type: (url.includes(".mp4")) ? 'video/mp4' : 'application/x-mpegURL' });
-    vPlayer.play().catch(() => {
-        vPlayer.src({ src: url, type: 'video/mp4' });
-        vPlayer.play();
-    });
-
+    vPlayer.play().catch(() => { vPlayer.src({ src: url, type: 'video/mp4' }); vPlayer.play(); });
     document.getElementById("channelList").style.display = "none";
     document.getElementById("posterWrapper").style.display = "none";
 }
@@ -118,21 +117,28 @@ function playMedia(item) {
 function renderList() {
     const listDiv = document.getElementById("channelList");
     listDiv.innerHTML = "";
-    if (viewMode === "channels" || viewMode === "kids_channels") {
-        const source = (viewMode === "channels") ? channels : kidsChannels;
-        const groups = {};
-        source.forEach(c => { const cat = c.categoria || "Geral"; if (!groups[cat]) groups[cat] = []; groups[cat].push(c); });
-        let flatIndex = 0, flatData = [];
-        for (const cat in groups) {
-            const h = document.createElement("div"); h.className = "cat-header"; h.innerText = cat; listDiv.appendChild(h);
-            groups[cat].forEach(item => { flatData.push(item); listDiv.appendChild(createItemEl(item, flatIndex++)); });
+    let data = [];
+    if (viewMode === "channels") data = channels;
+    else if (viewMode === "kids_channels") data = kidsChannels;
+    else if (viewMode === "categories") data = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","CRIME","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
+    else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()))].filter(Boolean).sort();
+    else if (viewMode === "kids_movies") data = kidsMovies;
+    else if (viewMode === "kids_series") data = kidsSeries;
+    else data = filteredList;
+
+    filteredList = data;
+
+    data.forEach((item, i) => {
+        const div = createItemEl(item, i);
+        listDiv.appendChild(div);
+        // Lógica de Rolagem Vertical Forçada
+        if (i === selectedIndex && !menuFocused) {
+            const containerHeight = listDiv.clientHeight;
+            const itemTop = div.offsetTop;
+            const itemHeight = div.clientHeight;
+            listDiv.scrollTop = itemTop - (containerHeight / 2) + (itemHeight / 2);
         }
-        filteredList = flatData;
-    } else {
-        let data = (viewMode === "favorites") ? favorites : (viewMode === "categories") ? ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","CRIME","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"] : (viewMode === "series") ? [...new Set(series.map(s => s.genero?.toUpperCase()))].filter(Boolean).sort() : filteredList;
-        filteredList = data;
-        data.forEach((item, i) => listDiv.appendChild(createItemEl(item, i)));
-    }
+    });
     updatePoster();
 }
 
@@ -142,7 +148,6 @@ function createItemEl(item, i) {
     const id = typeof item === 'string' ? item : (item.titulo || item.name);
     const logo = item.logo || item.poster || "";
     div.innerHTML = `${logo ? `<img src="${logo}">` : ''}<span>${id}</span>`;
-    if (i === selectedIndex && !menuFocused) { div.scrollIntoView({ block: 'center', behavior: 'instant' }); }
     return div;
 }
 
@@ -155,7 +160,6 @@ function updatePoster() {
     } else { wrapper.style.display = "none"; }
 }
 
-// NAVEGAÇÃO COMPLETA RESTAURADA (TECLADO)
 document.addEventListener("keydown", e => {
     const code = e.keyCode;
     if([37,38,39,40,13].includes(code)) e.preventDefault();
@@ -179,8 +183,8 @@ document.addEventListener("keydown", e => {
         }
     } else {
         let len = filteredList.length;
-        if (code === 38) { selectedIndex = (selectedIndex - 1 + len) % len; renderList(); }
-        else if (code === 40) { selectedIndex = (selectedIndex + 1) % len; renderList(); }
+        if (code === 38 && len > 0) { selectedIndex = (selectedIndex - 1 + len) % len; renderList(); }
+        else if (code === 40 && len > 0) { selectedIndex = (selectedIndex + 1) % len; renderList(); }
         else if (code === 13) {
             const item = filteredList[selectedIndex];
             if (typeof item === 'string') {
@@ -188,17 +192,18 @@ document.addEventListener("keydown", e => {
                 else if (viewMode === "series") { filteredList = series.filter(s => (s.genero||"").toUpperCase() === item); viewMode = "series_list"; }
                 selectedIndex = 0; renderList();
             } else if (item.episodios || item.temporadas) {
-                filteredList = item.episodios || item.temporadas; viewMode = "ep_list"; selectedIndex = 0; renderList();
-            } else playMedia(item);
+                filteredList = item.episodios || item.temporadas; 
+                viewMode = "ep_list"; selectedIndex = 0; renderList();
+            } else { playMedia(item); }
         }
         else if (code === 37 || code === 8) {
-            if (viewMode.includes("_list")) { 
-                viewMode = (viewMode === "ep_list") ? "series_list" : (viewMode.includes("movie") ? "categories" : "series");
+            if (viewMode.includes("_list") || viewMode === "ep_list") {
+                viewMode = (viewMode === "ep_list") ? "series_list" : (viewMode === "movie_list" ? "categories" : "series");
                 selectedIndex = 0; renderList();
-            } else { 
+            } else {
                 menuFocused = true; 
                 document.getElementById("channelList").style.display = "none"; 
-                document.getElementById("posterWrapper").style.display = "none"; 
+                document.getElementById("posterWrapper").style.display = "none";
             }
         }
     }
