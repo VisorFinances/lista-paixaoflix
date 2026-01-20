@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV</title>
+<title>PaixãoFlix TV V20.1</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -45,8 +45,8 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 #ratingBadge { position: absolute; top: 15px; right: 15px; background: rgba(229, 9, 20, 0.9); color: #fff; padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 18px; display: flex; align-items: center; gap: 6px; }
 #yearBadge { position: absolute; bottom: 15px; left: 15px; background: rgba(0, 0, 0, 0.8); color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 16px; border: 1px solid #444; }
 
-/* Forçar o vídeo a ocupar 100% do container Clappr */
-[data-player] video { object-fit: fill !important; }
+/* Garante o preenchimento total da tela no Clappr */
+[data-player] video { object-fit: fill !important; width: 100% !important; height: 100% !important; }
 </style>
 </head>
 
@@ -80,6 +80,7 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 
 <script>
 let player;
+const PROXY_URL = "https://proxy.paixaoflix-vip.workers.dev/?url=";
 const channelList = document.getElementById("channelList");
 const posterPreview = document.getElementById("posterPreview");
 const posterWrapper = document.getElementById("posterWrapper");
@@ -105,11 +106,19 @@ setInterval(updateClock, 1000); updateClock();
 
 function playMedia(item) {
     if (!item || (!item.url && !item.link)) return;
-    const url = item.url || item.link;
+    
+    // SISTEMA DE AUTO-PROXY PARA HTTP EM HTTPS
+    let url = item.url || item.link;
+    if (url.startsWith('http:')) {
+        url = PROXY_URL + encodeURIComponent(url);
+    }
+
     currentTitleDisplay.innerText = item.titulo || item.name;
     channelList.style.display = "none"; 
     posterWrapper.style.display = "none";
+    
     if (player) { player.destroy(); }
+    
     player = new Clappr.Player({ 
         source: url, 
         parentId: "#player", 
@@ -117,8 +126,22 @@ function playMedia(item) {
         height: '100%', 
         autoPlay: true,
         actualLiveTime: true,
-        chromecast: { title: item.titulo || item.name },
-        stretch: 'fill' // Força o preenchimento total da tela
+        stretch: 'fill',
+        preload: 'auto',
+        playback: {
+            hlsjsConfig: {
+                maxBufferLength: 30,
+                enableWorker: true,
+                recoverMediaError: true
+            }
+        },
+        chromecast: { title: item.titulo || item.name }
+    });
+
+    // Força o redimensionamento após o carregamento
+    player.on(Clappr.Events.PLAYER_READY, () => {
+        const video = document.querySelector('[data-player] video');
+        if(video) video.style.objectFit = 'fill';
     });
 }
 
@@ -225,6 +248,7 @@ document.addEventListener("keydown", e => {
             viewMode = menuItems[menuIndex].dataset.type;
             if (viewMode === "kids_channels") filteredList = kidsChannels;
             else if (viewMode === "kids_movies") filteredList = kidsMovies;
+            else if (viewMode === "fav") filteredList = favorites;
             selectedIndex = 0; renderList();
             e.preventDefault();
         }
