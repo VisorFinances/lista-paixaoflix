@@ -1,10 +1,35 @@
 #EXTM3U
 
 
-########## ABERTOS ##########
+########## CANAL FILME - PREMIUM 2026 ##########
 
 #EXTINF:-1 tvg-id="HBO_Premium" tvg-logo="https://i.imgur.com/4zYfX6P.png" group-title="CANAL FILME",HBO HD (Dynamic)
 https://cloud1.stmdm.com/hbo/hbo/playlist.m3u8
+
+#EXTINF:-1 tvg-id="HBO_2_Dynamic" tvg-logo="https://i.imgur.com/uP1YpQY.png" group-title="CANAL FILME",HBO 2 HD
+https://edge-tok-01.cdnstream.io/hbo2/playlist.m3u8?token=dynamic_auth_paixaoflix
+
+#EXTINF:-1 tvg-id="TC_Premium_2026" tvg-logo="https://i.imgur.com/uG9XJpY.png" group-title="CANAL FILME",TELE CINE PREMIUM
+https://stmv1.srvif.com/telecinepremium/telecinepremium/playlist.m3u8
+
+#EXTINF:-1 tvg-id="TC_Action_2026" tvg-logo="https://i.imgur.com/f7jYyGj.png" group-title="CANAL FILME",TELE CINE ACTION
+https://stmv1.srvif.com/telecineaction/telecineaction/playlist.m3u8
+
+#EXTINF:-1 tvg-id="TC_Pipoca_2026" tvg-logo="https://i.imgur.com/E8w9k1n.png" group-title="CANAL FILME",TELE CINE PIPOCA
+https://stmv1.srvif.com/telecinepipoca/telecinepipoca/playlist.m3u8
+
+#EXTINF:-1 tvg-id="TC_Fun_2026" tvg-logo="https://i.imgur.com/vH9Yk1n.png" group-title="CANAL FILME",TELE CINE FUN
+https://stmv1.srvif.com/telecinefun/telecinefun/playlist.m3u8
+
+#EXTINF:-1 tvg-id="TC_Touch_2026" tvg-logo="https://i.imgur.com/sH9Yk1n.png" group-title="CANAL FILME",TELE CINE TOUCH
+https://stmv1.srvif.com/telecinetouch/telecinetouch/playlist.m3u8
+
+#EXTINF:-1 tvg-id="MAX_Dynamic" tvg-logo="https://i.imgur.com/kP1YpQY.png" group-title="CANAL FILME",MAX HD (Premium)
+https://edge-tok-02.cdnstream.io/maxhd/playlist.m3u8?token=dynamic_auth_paixaoflix
+
+
+########## ABERTOS ##########
+
 
 #EXTINF:-1 tvg-id="Globo.br" tvg-logo="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/globo.jpg" group-title="ABERTOS",Globo RJ
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/52814
