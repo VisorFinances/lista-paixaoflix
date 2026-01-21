@@ -11,8 +11,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
-* { overflow: -moz-scrollbars-none; -ms-overflow-style: none; scrollbar-width: none; touch-action: manipulation; }
-*::-webkit-scrollbar { display: none !important; }
+* { scrollbar-width: none; -ms-overflow-style: none; }
+*::-webkit-scrollbar { display: none; }
 
 html, body {
     margin: 0;
@@ -23,6 +23,22 @@ html, body {
     height: 100%;
     width: 100%;
     overflow: hidden;
+}
+
+/* ===== SPLASH SCREEN ===== */
+#splash {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#splash img {
+    width: 180px;
+    height: auto;
 }
 
 /* ===== APP ===== */
@@ -60,10 +76,6 @@ html, body {
     font-size: 12px;
     color: #aaa;
     margin-top: 8px;
-}
-
-#nowPlaying {
-    margin-top: 10px;
 }
 
 #currentTitle {
@@ -143,17 +155,6 @@ html, body {
     z-index: 200;
 }
 
-.channel {
-    padding: 12px;
-    border-bottom: 1px solid #222;
-    cursor: pointer;
-}
-
-.channel.active {
-    background: #ff9800;
-    color: #000;
-}
-
 /* ===== ROTATE OVERLAY ===== */
 #rotateOverlay {
     position: fixed;
@@ -181,13 +182,8 @@ html, body {
 
 /* ===== RESPONSIVO ===== */
 @media (max-width: 900px) {
-    #menu {
-        width: 220px;
-    }
-    #content {
-        left: 220px;
-        width: calc(100% - 220px);
-    }
+    #menu { width: 220px; }
+    #content { left: 220px; width: calc(100% - 220px); }
 }
 
 @media (max-width: 600px) {
@@ -202,23 +198,23 @@ html, body {
         height: calc(100vh - 260px);
         position: relative;
     }
-    #channelList {
-        width: 100%;
-    }
 }
 </style>
 </head>
 
 <body>
 
+<!-- SPLASH -->
+<div id="splash">
+    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
+</div>
+
 <div id="app">
     <div id="menu">
         <div id="menuHeader">
             <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
             <div id="clock"></div>
-            <div id="nowPlaying">
-                <div id="currentTitle">...</div>
-            </div>
+            <div id="currentTitle">...</div>
         </div>
 
         <input id="searchInput" placeholder="Pesquisar...">
@@ -239,14 +235,21 @@ html, body {
     </div>
 </div>
 
-<!-- OVERLAY ROTATION -->
+<!-- ROTATE -->
 <div id="rotateOverlay">
     <i class="fas fa-mobile-alt"></i>
     <h2>Gire o celular</h2>
-    <p>Use o aplicativo na horizontal para melhor experiência</p>
+    <p>Use o aplicativo na horizontal</p>
 </div>
 
 <script>
+/* ===== SPLASH CONTROL ===== */
+window.addEventListener("load", () => {
+    setTimeout(() => {
+        document.getElementById("splash").style.display = "none";
+    }, 1200);
+});
+
 /* ===== CLOCK ===== */
 function updateClock() {
     const d = new Date();
@@ -265,8 +268,8 @@ function isMobile() {
 
 function checkOrientation() {
     if (!isMobile()) return;
-    const overlay = document.getElementById("rotateOverlay");
-    overlay.style.display = (window.innerHeight > window.innerWidth) ? "flex" : "none";
+    document.getElementById("rotateOverlay").style.display =
+        (window.innerHeight > window.innerWidth) ? "flex" : "none";
 }
 
 async function lockLandscape() {
@@ -281,7 +284,7 @@ window.addEventListener("orientationchange", checkOrientation);
 checkOrientation();
 
 /* ===== PLAYER ===== */
-let player = new Clappr.Player({
+new Clappr.Player({
     source: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
     parentId: "#player",
     autoPlay: true,
