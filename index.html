@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V27.0</title>
+<title>PaixãoFlix TV V28.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -180,8 +180,17 @@ function renderList() {
     let data = getActiveData();
     let currentCat = "";
 
+    if (viewMode === "history") {
+        const btn = document.createElement("button");
+        btn.className = `btn-clear ${selectedIndex === 0 ? "active" : ""}`;
+        btn.innerHTML = '<i class="fas fa-trash"></i> LIMPAR HISTÓRICO';
+        btn.onclick = clearHistory;
+        channelList.appendChild(btn);
+    }
+
     data.forEach((item, i) => {
-        // Cabeçalhos apenas para TV ao Vivo (não Kids)
+        let displayIdx = (viewMode === "history") ? i + 1 : i;
+
         if(viewMode === "channels" && item.titulo) {
             let cat = channelCats.find(c => item.titulo.toUpperCase().startsWith(c));
             if(cat && cat !== currentCat) {
@@ -193,7 +202,7 @@ function renderList() {
         }
 
         const div = document.createElement("div");
-        div.className = `channel ${i === selectedIndex ? "active" : ""}`;
+        div.className = `channel ${displayIdx === selectedIndex ? "active" : ""}`;
         const label = (typeof item === 'string') ? item : (item.titulo || item.name || "Sem título");
         const logo = item.logo || "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png";
         const isFav = typeof item === 'object' && favorites.some(f => (f.titulo || f.name) === label);
@@ -203,12 +212,12 @@ function renderList() {
             <span>${label}</span> 
             ${typeof item === 'object' ? `<i class="fa-star ${isFav ? 'fas' : 'far'}" style="color:${isFav ? '#ffeb3b' : '#666'}"></i>` : ''}`;
         
-        div.onclick = () => { selectedIndex = i; handleAction(); };
+        div.onclick = () => { selectedIndex = displayIdx; handleAction(); };
         channelList.appendChild(div);
-        if (i === selectedIndex && !menuFocused) div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (displayIdx === selectedIndex && !menuFocused) div.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 
-    const cur = data[selectedIndex];
+    const cur = (viewMode === "history" && selectedIndex > 0) ? data[selectedIndex-1] : data[selectedIndex];
     if (!menuFocused && channelList.style.display !== "none" && selectedIndex !== -1 && cur && typeof cur === 'object' && cur.poster) { 
         posterPreview.src = cur.poster; posterWrapper.style.display = "block";
         ratingBadge.style.display = (cur.rating || cur.vote_average) ? "flex" : "none";
@@ -232,8 +241,9 @@ function getActiveData() {
 }
 
 async function handleAction() {
+    if (viewMode === "history" && selectedIndex === 0) { clearHistory(); return; }
     let data = getActiveData();
-    const item = data[selectedIndex];
+    const item = (viewMode === "history") ? data[selectedIndex - 1] : data[selectedIndex];
     if (!item) return;
 
     if (typeof item === 'string') {
@@ -276,22 +286,21 @@ searchInput.addEventListener("input", () => {
 document.addEventListener("keydown", e => {
     const code = e.keyCode;
     let data = getActiveData();
+    let maxIdx = (viewMode === "history") ? data.length : data.length - 1;
     
-    // Suporte CH+ e CH- (Troca d canais)
-    if (code === 427 || code === 33) { // CH+ / PageUp
+    if (code === 427 || code === 33) { 
         selectedIndex = (selectedIndex + 1) % data.length;
-        if(data[selectedIndex].url || data[selectedIndex].link) playMedia(data[selectedIndex]);
+        if(data[selectedIndex] && (data[selectedIndex].url || data[selectedIndex].link)) playMedia(data[selectedIndex]);
         renderList(); return;
     }
-    if (code === 428 || code === 34) { // CH- / PageDown
+    if (code === 428 || code === 34) { 
         selectedIndex = (selectedIndex - 1 + data.length) % data.length;
-        if(data[selectedIndex].url || data[selectedIndex].link) playMedia(data[selectedIndex]);
+        if(data[selectedIndex] && (data[selectedIndex].url || data[selectedIndex].link)) playMedia(data[selectedIndex]);
         renderList(); return;
     }
 
-    // Favoritos
     if (code === 70 || code === 405 || code === 106) {
-        const item = data[selectedIndex];
+        const item = (viewMode === "history" && selectedIndex > 0) ? data[selectedIndex-1] : data[selectedIndex];
         if (item) toggleFavorite(item);
         return;
     }
@@ -314,8 +323,8 @@ document.addEventListener("keydown", e => {
             menuFocused = false; channelList.style.display = "block"; viewMode = menuItems[menuIndex].dataset.type; selectedIndex = 0; renderList(); e.preventDefault(); 
         }
     } else {
-        if (code === 38) { if (selectedIndex > 0) selectedIndex--; else selectedIndex = data.length - 1; renderList(); e.preventDefault(); }
-        else if (code === 40) { if (selectedIndex < data.length - 1) selectedIndex++; else selectedIndex = 0; renderList(); e.preventDefault(); }
+        if (code === 38) { if (selectedIndex > 0) selectedIndex--; else selectedIndex = maxIdx; renderList(); e.preventDefault(); }
+        else if (code === 40) { if (selectedIndex < maxIdx) selectedIndex++; else selectedIndex = 0; renderList(); e.preventDefault(); }
         else if (code === 37) { 
             if (viewMode === "episode_list") { 
                 if (menuItems[menuIndex].dataset.type === "kids_series") { viewMode = "kids_series"; } 
