@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V29.4 - Stable Premium</title>
+<title>PaixãoFlix TV V29.5 - Premium Edition</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -34,17 +34,17 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 #videoContainer { width: 100%; height: 100%; background: #000; }
 .video-js { width: 100% !important; height: 100% !important; }
 
-#channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: auto; border-right: 2px solid #ff9800; }
+#channelList { position: absolute; top: 0; left: 0; width: 280px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: auto; border-right: 2px solid #ff9800; }
 .channel { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid #222; color: #bbb; display: flex; align-items: center; cursor: pointer; gap: 12px; white-space: pre-wrap; word-break: break-word; }
 .channel.active { background: #ff9800 !important; color: #000 !important; font-weight: 700; }
-.channel img { width: 45px; height: 45px; object-fit: contain; background: #fff; border-radius: 4px; padding: 2px; }
+.channel img { width: 40px; height: 40px; object-fit: contain; background: #fff; border-radius: 4px; padding: 2px; }
 .channel-meta { font-size: 10px; color: #ffeb3b; margin-top: 4px; display: block; }
 
-/* Categorias limitadas ao tamanho do texto */
 .channel.cat-item { width: fit-content; min-width: 150px; margin: 5px 15px; border-radius: 20px; background: #222; border: 1px solid #444; }
+.cat-header { background: rgba(255,152,0,0.1); color: #ff9800; font-weight: bold; cursor: default; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
 
 #nowPlaying { position: absolute; bottom: 20px; left: 20px; background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 10px; border-left: 5px solid #ff9800; z-index: 130; display: none; }
-#posterWrapper { position: absolute; top: 50%; right: 50px; transform: translateY(-50%); width: 320px; z-index: 120; display: none; }
+#posterWrapper { position: absolute; top: 50%; right: 50px; transform: translateY(-50%); width: 300px; z-index: 120; display: none; }
 #posterPreview { width: 100%; border-radius: 10px; border: 3px solid #ff9800; box-shadow: 0 0 30px #000; }
 
 #customModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; }
@@ -66,11 +66,11 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
     <div id="menu">
         <div id="menuHeader">
             <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-            <div id="clock">--:--</div>
+            <div id="clock">--/--/---- --:--</div>
         </div>
         <div id="searchBox"><input type="text" id="searchInput" placeholder="Pesquisar..." readonly></div>
         <div id="menuItemsContainer">
-            <div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> Tv ao Vivo</div>
+            <div class="menu-item active" data-type="channels_cats"><i class="fas fa-tv"></i> Tv ao Vivo</div>
             <div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
             <div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
             <div class="menu-item" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
@@ -79,7 +79,6 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
             <div class="menu-item" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
             <div class="menu-item" data-type="history"><i class="fas fa-history"></i> Histórico</div>
         </div>
-        <button id="clearHistory" style="margin-top:auto; background:transparent; border:1px solid #333; color:#555; font-size:10px; padding:5px; cursor:pointer">LIMPAR HISTÓRICO</button>
     </div>
 
     <div id="content">
@@ -98,24 +97,25 @@ let player;
 let channels = [], movies = [], series = [], kidsMovies = [], kidsSeries = [], kidsChannels = [];
 let favorites = JSON.parse(localStorage.getItem("paixaoflix_favs") || "[]");
 let historyData = JSON.parse(localStorage.getItem("paixaoflix_history") || "{}");
-let viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true, filteredList = [];
+let viewMode = "channels_cats", selectedIndex = 0, menuIndex = 0, menuFocused = true, filteredList = [];
 
+const tvCats = ["ABERTOS", "FILMES E SÉRIES", "ESPORTES", "INFANTIL", "NOTÍCIAS", "DOCUMENTÁRIOS", "VARIEDADES", "RELIGIOSOS", "24 HORAS", "ADULTOS"];
 const movieCats = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
 
 player = videojs('paixaoflix-player', { autoplay: true, fluid: true, hls: { overrideNative: true } });
 
 function updateClock() {
     const d = new Date();
-    const meses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-    document.getElementById("clock").innerText = `${d.getDate()}/${meses[d.getMonth()]}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+    const pad = (n) => n.toString().padStart(2, '0');
+    document.getElementById("clock").innerText = `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 setInterval(updateClock, 1000); updateClock();
 
 function getActiveData() {
-    if (viewMode === "channels") return channels;
+    if (viewMode === "channels_cats") return tvCats;
     if (viewMode === "categories") return movieCats;
     if (viewMode === "series") return [...new Set(series.map(s => s.genero).filter(Boolean))];
-    if (viewMode === "kids_channels") return kidsChannels;
+    if (viewMode === "history") return Object.keys(historyData).map(k => ({titulo: k, url: historyData[k].url, isHistory: true}));
     if (viewMode === "fav") return favorites;
     return filteredList;
 }
@@ -127,12 +127,16 @@ function formatLabel(str) {
 
 function renderList() {
     channelList.innerHTML = "";
-    posterPreview.src = ""; // Limpa capa anterior imediatamente
+    posterPreview.src = "";
     let data = getActiveData();
     
-    // Cabeçalho se for TV ao Vivo
-    if (viewMode === "channels") {
-        channelList.innerHTML = `<div class="channel cat-header">LISTA DE CANAIS PAIXÃOFLIX</div>`;
+    if (viewMode === "history") {
+        const btn = document.createElement("div");
+        btn.className = "channel active";
+        btn.style.background = "#d32f2f";
+        btn.innerHTML = "<b>LIMPAR HISTÓRICO</b>";
+        btn.onclick = () => { localStorage.removeItem("paixaoflix_history"); historyData = {}; renderList(); };
+        channelList.appendChild(btn);
     }
 
     data.forEach((item, i) => {
@@ -159,17 +163,16 @@ function renderList() {
     }
 }
 
-async function playMedia(item) {
+function playMedia(item) {
     if (!item || !item.url) return;
     document.getElementById("nowPlaying").style.display = "block";
     document.getElementById("currentTitle").innerText = item.titulo || "Canal";
     
-    // Lógica Continuar/Recomeçar
-    const savedTime = historyData[item.titulo];
-    if (savedTime && savedTime > 10) {
+    const saved = historyData[item.titulo];
+    if (saved && saved.time > 10 && !viewMode.includes("channels")) {
         document.getElementById("customModal").style.display = "flex";
-        document.getElementById("btnResume").onclick = () => { startVideo(item, savedTime); };
-        document.getElementById("btnRestart").onclick = () => { startVideo(item, 0); };
+        document.getElementById("btnResume").onclick = () => startVideo(item, saved.time);
+        document.getElementById("btnRestart").onclick = () => startVideo(item, 0);
     } else {
         startVideo(item, 0);
     }
@@ -181,9 +184,10 @@ function startVideo(item, time) {
     player.currentTime(time);
     player.play();
     
+    player.off('timeupdate');
     player.on('timeupdate', () => {
         if (!player.paused()) {
-            historyData[item.titulo] = player.currentTime();
+            historyData[item.titulo] = { time: player.currentTime(), url: item.url };
             localStorage.setItem("paixaoflix_history", JSON.stringify(historyData));
         }
     });
@@ -195,7 +199,10 @@ async function handleAction() {
     if (!item) return;
 
     if (typeof item === 'string') {
-        if (viewMode === "categories") {
+        if (viewMode === "channels_cats") {
+            filteredList = channels.filter(c => c.categoria === item);
+            viewMode = "channel_list";
+        } else if (viewMode === "categories") {
             filteredList = movies.filter(m => m.genero && m.genero.includes(item));
             viewMode = "movie_list";
         } else if (viewMode === "series") {
@@ -222,52 +229,48 @@ document.addEventListener("keydown", e => {
             selectedIndex = 0; renderList();
         }
     } else {
-        if (code === 38) { // Cima
+        if (code === 38) {
             selectedIndex = selectedIndex > 0 ? selectedIndex - 1 : data.length - 1;
             renderList();
-        } else if (code === 40) { // Baixo
+        } else if (code === 40) {
             selectedIndex = selectedIndex < data.length - 1 ? selectedIndex + 1 : 0;
             renderList();
-        } else if (code === 37) { // Esquerda (Voltar)
-            if (viewMode === "movie_list" || viewMode === "series_list") {
-                viewMode = viewMode.includes("movie") ? "categories" : "series";
+        } else if (code === 37) {
+            if (["channel_list", "movie_list", "series_list"].includes(viewMode)) {
+                viewMode = viewMode === "channel_list" ? "channels_cats" : (viewMode === "movie_list" ? "categories" : "series");
                 selectedIndex = 0; renderList();
             } else {
                 menuFocused = true; channelList.style.display = "none"; posterWrapper.style.display = "none";
             }
         } else if (code === 13) { handleAction(); }
-        
-        // Ch+ Ch-
-        if (code === 427 || code === 33) { // Ch+
-            selectedIndex = (selectedIndex + 1) % data.length; renderList(); playMedia(data[selectedIndex]);
-        }
-        if (code === 428 || code === 34) { // Ch-
-            selectedIndex = (selectedIndex - 1 + data.length) % data.length; renderList(); playMedia(data[selectedIndex]);
-        }
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
 
-function loadM3U(path, target) {
+function loadM3U(path, target, isLive = false) {
     fetch(path).then(r => r.text()).then(t => {
         let lines = t.split("\n"), temp = null;
         lines.forEach(l => {
             if(l.includes("#EXTINF")) {
-                let logoMatch = l.match(/tvg-logo="([^"]+)"/);
-                temp = { titulo: l.split(",").pop().trim(), logo: logoMatch ? logoMatch[1] : null };
+                let logo = l.match(/tvg-logo="([^"]+)"/);
+                let cat = l.match(/group-title="([^"]+)"/);
+                temp = { 
+                    titulo: l.split(",").pop().trim(), 
+                    logo: logo ? logo[1] : null,
+                    categoria: cat ? cat[1].toUpperCase() : "GERAL"
+                };
             }
             else if(l.startsWith("http") && temp) { temp.url = l.trim(); target.push(temp); temp = null; }
         });
-        if (target === channels && channels.length > 0) playMedia(channels[0]); // Autoplay 1º canal
+        if (isLive && channels.length > 0) playMedia(channels[0]);
     });
 }
 
 window.onload = () => {
-    loadM3U("data/canais.m3u", channels);
+    loadM3U("data/canais.m3u", channels, true);
     loadM3U("data/kids_canais.m3u", kidsChannels);
     fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d);
     fetch("data/series.json").then(r=>r.json()).then(d=>series=d);
-    document.getElementById("clearHistory").onclick = () => { localStorage.removeItem("paixaoflix_history"); historyData = {}; alert("Histórico limpo!"); };
 };
 </script>
 </body>
