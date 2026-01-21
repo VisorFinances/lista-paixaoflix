@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V24.0</title>
+<title>PaixãoFlix TV V25.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -30,15 +30,14 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 .menu-item.kids { border-bottom: 3px solid #ffeb3b; color: #ffeb3b; }
 #content { position: absolute; top: 0; left: 300px; width: calc(100% - 300px); height: 100%; z-index: 10; background: black; display: flex; justify-content: center; align-items: center; }
 #videoContainer { width: 100%; height: 100%; background: #000; }
-#channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: scroll; border-right: 1px solid #ff9800; }
-.channel { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid #222; color: #fff; display: flex; align-items: center; cursor: pointer; gap: 10px; word-wrap: break-word; overflow-wrap: break-word; }
-/* Estilo para categorias com largura reduzida e quebra de linha após 18 caracteres */
-.channel.category-item { max-width: 200px; line-height: 1.3; padding: 15px; margin-bottom: 5px; }
+#channelList { position: absolute; top: 0; left: 0; width: auto; min-width: 250px; max-width: 380px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: scroll; border-right: 1px solid #ff9800; }
+.channel { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid #222; color: #fff; display: flex; align-items: center; cursor: pointer; gap: 10px; }
+.channel.cat-header { background: #333; color: #ff9800; font-weight: bold; cursor: default; pointer-events: none; border-bottom: 2px solid #ff9800; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
 .channel img { width: 24px; height: 24px; border-radius: 4px; object-fit: contain; background: #333; }
-.channel span { flex: 1; display: inline-block; max-width: 100%; }
+.channel span { flex: 1; word-wrap: break-word; white-space: normal; max-width: 18ch; line-height: 1.2; }
 .channel.active { background: #ff9800 !important; color: #000 !important; font-weight: bold; }
 .channel i.fa-star { cursor: pointer; padding: 5px; }
-#posterWrapper { position: absolute; top: 50%; left: 360px; transform: translateY(-50%); width: 300px; height: 450px; z-index: 120; display: none; pointer-events: none; }
+#posterWrapper { position: absolute; top: 50%; left: 400px; transform: translateY(-50%); width: 300px; height: 450px; z-index: 120; display: none; pointer-events: none; }
 #posterPreview { width: 100%; height: 100%; border-radius: 12px; background: #222; object-fit: cover; border: 3px solid #ff9800; }
 #ratingBadge { position: absolute; top: 15px; right: 15px; background: rgba(229, 9, 20, 0.9); color: #fff; padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 18px; display: flex; align-items: center; gap: 6px; }
 #yearBadge { position: absolute; bottom: 15px; left: 15px; background: rgba(0, 0, 0, 0.8); color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 16px; border: 1px solid #444; }
@@ -98,6 +97,7 @@ let playbackPositions = JSON.parse(localStorage.getItem("paixaoflix_pos") || "{}
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true;
 
 const movieCats = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
+const channelCats = ["CANAIS ABERTOS", "DESENHOS", "DISCOVERY", "EDUCAÇÃO", "ESPORTES", "FILMES", "JORNALISMO", "RELIGIOSO", "SÉRIES", "VARIEDADES", "CINEMA EM ESPANHOL", "CINEMA INGLÊS", "CINEMA FRANCÊS", "MÚSICA"];
 
 function updateClock() {
     const d = new Date();
@@ -137,9 +137,7 @@ function playMedia(item) {
     if (url.startsWith('http:')) { url = PROXY_URL + encodeURIComponent(url); }
     currentTitleDisplay.innerText = item.titulo || item.name;
     channelList.style.display = "none"; hidePoster();
-    
     if (player) { player.destroy(); }
-    
     let options = { 
         source: url, parentId: "#player", width: '100%', height: '100%', 
         autoPlay: true, actualLiveTime: true, stretch: 'fill', preload: 'auto',
@@ -153,14 +151,10 @@ function playMedia(item) {
             }
         }
     };
-
     player = new Clappr.Player(options);
-
     if(item.type !== "channel" && playbackPositions[item.titulo || item.name]) {
         const savedPos = playbackPositions[item.titulo || item.name];
-        if(confirm("Deseja continuar de onde parou?")) {
-            player.seek(savedPos);
-        }
+        if(confirm("Deseja continuar de onde parou?")) { player.seek(savedPos); }
     }
 }
 
@@ -168,14 +162,6 @@ function hidePoster() { posterWrapper.style.display = "none"; posterPreview.src 
 
 function renderList() {
     channelList.innerHTML = "";
-    if (viewMode === "history") {
-        const btn = document.createElement("button");
-        btn.className = `btn-clear ${selectedIndex === -1 ? "active" : ""}`;
-        btn.innerHTML = `<i class="fas fa-trash"></i> Limpar Histórico`;
-        btn.onclick = clearHistory;
-        channelList.appendChild(btn);
-    }
-    
     let data = [];
     if (viewMode === "search") data = filteredList;
     else if (viewMode === "categories") data = movieCats;
@@ -187,12 +173,23 @@ function renderList() {
     else if (viewMode === "fav") data = favorites;
     else if (viewMode === "history") data = historyList;
     else data = filteredList;
-    
+
+    let currentCat = "";
     data.forEach((item, i) => {
+        // Lógica de Cabeçalhos para Canais (Não Kids)
+        if(viewMode === "channels" && item.titulo) {
+            let cat = channelCats.find(c => item.titulo.toUpperCase().startsWith(c));
+            if(cat && cat !== currentCat) {
+                const head = document.createElement("div");
+                head.className = "channel cat-header"; head.innerHTML = `<span>${cat}</span>`;
+                channelList.appendChild(head);
+                currentCat = cat;
+            }
+        }
+
         const div = document.createElement("div");
-        const isString = typeof item === 'string';
-        div.className = `channel ${i === selectedIndex ? "active" : ""} ${isString ? "category-item" : ""}`;
-        const label = isString ? item : (item.titulo || item.name || "Sem título");
+        div.className = `channel ${i === selectedIndex ? "active" : ""}`;
+        const label = (typeof item === 'string') ? item : (item.titulo || item.name || "Sem título");
         const logo = item.logo || "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png";
         const isFav = typeof item === 'object' && favorites.some(f => (f.titulo || f.name) === label);
         
@@ -217,7 +214,6 @@ function renderList() {
 }
 
 async function handleAction() {
-    if (viewMode === "history" && selectedIndex === -1) { clearHistory(); return; }
     let data = (viewMode === "search" || viewMode.includes("_list") || viewMode === "episode_list") ? filteredList : [];
     if(data.length === 0) {
         if (viewMode === "categories") data = movieCats;
@@ -261,39 +257,16 @@ async function handleAction() {
 searchInput.addEventListener("input", () => {
     const term = searchInput.value.toLowerCase();
     if (term.length > 0) {
-        viewMode = "search";
-        menuFocused = true;
-        channelList.style.display = "block";
-        filteredList = [
-            ...channels.filter(c => c.titulo.toLowerCase().includes(term)),
-            ...movies.filter(m => m.titulo.toLowerCase().includes(term)),
-            ...series.filter(s => s.titulo.toLowerCase().includes(term))
-        ];
-        selectedIndex = 0;
-        renderList();
+        viewMode = "search"; menuFocused = true; channelList.style.display = "block";
+        filteredList = [...channels.filter(c => c.titulo.toLowerCase().includes(term)), ...movies.filter(m => m.titulo.toLowerCase().includes(term)), ...series.filter(s => s.titulo.toLowerCase().includes(term))];
+        selectedIndex = 0; renderList();
     } else {
-        viewMode = menuItems[menuIndex].dataset.type;
-        renderList();
+        viewMode = menuItems[menuIndex].dataset.type; renderList();
     }
 });
 
 document.addEventListener("keydown", e => {
     const code = e.keyCode;
-    if (code === 405 || code === 70 || code === 106) {
-        let currentData = (viewMode === "search" || viewMode.includes("_list") || viewMode === "episode_list") ? filteredList : [];
-        if(currentData.length === 0) {
-            if (viewMode === "channels") currentData = channels;
-            else if (viewMode === "kids_channels") currentData = kidsChannels;
-            else if (viewMode === "kids_movies") currentData = kidsMovies;
-            else if (viewMode === "kids_series") currentData = kidsSeries;
-            else if (viewMode === "fav") currentData = favorites;
-            else if (viewMode === "history") currentData = historyList;
-        }
-        const item = currentData[selectedIndex];
-        if (item && typeof item === 'object') toggleFavorite(item);
-        return;
-    }
-
     let data = (viewMode === "search" || viewMode.includes("_list") || viewMode === "episode_list") ? filteredList : [];
     if(data.length === 0) {
         if (viewMode === "categories") data = movieCats;
@@ -308,41 +281,35 @@ document.addEventListener("keydown", e => {
     
     if (menuFocused) {
         if (code === 38) { 
-            if (menuIndex <= 1) { 
-                menuIndex = -1; searchInput.focus(); searchInput.classList.add("focused"); 
-            } else menuIndex -= 2; 
-            e.preventDefault(); 
+            if (menuIndex <= 1) { menuIndex = -1; searchInput.focus(); searchInput.classList.add("focused"); } 
+            else menuIndex -= 2; e.preventDefault(); 
         }
         else if (code === 40) { 
             if (menuIndex === -1) { 
-                menuIndex = 0; 
-                searchInput.value = ""; // Limpa ao descer
-                searchInput.blur(); 
-                searchInput.classList.remove("focused"); 
-                viewMode = menuItems[0].dataset.type; // Volta ao modo original
-                renderList();
-            } else if (menuIndex < menuItems.length - 2) menuIndex += 2; 
-            e.preventDefault(); 
+                menuIndex = 0; searchInput.value = ""; searchInput.blur(); searchInput.classList.remove("focused"); 
+                viewMode = menuItems[0].dataset.type; renderList();
+            } else if (menuIndex < menuItems.length - 2) menuIndex += 2; e.preventDefault(); 
         }
         else if (code === 37 && menuIndex % 2 !== 0) { menuIndex--; e.preventDefault(); }
         else if (code === 39) { if (menuIndex % 2 === 0 && menuIndex < menuItems.length - 1) { menuIndex++; e.preventDefault(); } else if (menuIndex !== -1) { menuFocused = false; channelList.style.display = "block"; viewMode = menuItems[menuIndex].dataset.type; selectedIndex = 0; renderList(); e.preventDefault(); } }
         else if (code === 13) { 
-            if(menuIndex === -1) { 
-                if(filteredList.length > 0) {
-                    menuFocused = false;
-                    searchInput.blur();
-                    searchInput.classList.remove("focused");
-                    selectedIndex = 0;
-                    renderList();
-                }
-                return;
-            }
+            if(menuIndex === -1) { if(filteredList.length > 0) { menuFocused = false; searchInput.blur(); searchInput.classList.remove("focused"); selectedIndex = 0; renderList(); } return; }
             menuFocused = false; channelList.style.display = "block"; viewMode = menuItems[menuIndex].dataset.type; selectedIndex = 0; renderList(); e.preventDefault(); 
         }
     } else {
-        if (code === 38) { if (viewMode === "history" && selectedIndex === 0) selectedIndex = -1; else if (selectedIndex > 0) selectedIndex--; else selectedIndex = data.length - 1; renderList(); e.preventDefault(); }
-        else if (code === 40) { if (viewMode === "history" && selectedIndex === -1) selectedIndex = 0; else if (selectedIndex < data.length - 1) selectedIndex++; else selectedIndex = (viewMode === "history") ? -1 : 0; renderList(); e.preventDefault(); }
-        else if (code === 37) { if (viewMode === "episode_list") { viewMode = "series_list"; selectedIndex = 0; renderList(); } else if (viewMode.includes("_list")) { viewMode = viewMode.includes("movie") ? "categories" : "series"; selectedIndex = 0; renderList(); } else { menuFocused = true; channelList.style.display = "none"; hidePoster(); } e.preventDefault(); }
+        if (code === 38) { if (selectedIndex > 0) selectedIndex--; else selectedIndex = data.length - 1; renderList(); e.preventDefault(); }
+        else if (code === 40) { if (selectedIndex < data.length - 1) selectedIndex++; else selectedIndex = 0; renderList(); e.preventDefault(); }
+        else if (code === 37) { 
+            if (viewMode === "episode_list") { 
+                // Especial Kids: Volta direto pra lista sem categorias
+                if (menuItems[menuIndex].dataset.type === "kids_series") { viewMode = "kids_series"; } 
+                else { viewMode = "series_list"; }
+                selectedIndex = 0; renderList(); 
+            } else if (viewMode.includes("_list")) { 
+                viewMode = viewMode.includes("movie") ? "categories" : "series"; selectedIndex = 0; renderList(); 
+            } else { menuFocused = true; channelList.style.display = "none"; hidePoster(); } 
+            e.preventDefault(); 
+        }
         else if (code === 13) { handleAction(); e.preventDefault(); }
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
@@ -353,8 +320,7 @@ function loadM3U(path, array, isMainCanais = false) {
         let temp=null;
         text.split("\n").forEach(l=>{
             if(l.startsWith("#EXTINF")) {
-                let logo = "";
-                if(l.includes('tvg-logo="')) logo = l.split('tvg-logo="')[1].split('"')[0];
+                let logo = ""; if(l.includes('tvg-logo="')) logo = l.split('tvg-logo="')[1].split('"')[0];
                 temp={titulo:l.split(",").pop().trim(), type: "channel", logo: logo};
             }
             else if(l.startsWith("http") && temp){ temp.url=l.trim(); array.push(temp); temp=null; }
