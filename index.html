@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V23.0</title>
+<title>PaixãoFlix TV V24.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -31,9 +31,11 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 #content { position: absolute; top: 0; left: 300px; width: calc(100% - 300px); height: 100%; z-index: 10; background: black; display: flex; justify-content: center; align-items: center; }
 #videoContainer { width: 100%; height: 100%; background: #000; }
 #channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: scroll; border-right: 1px solid #ff9800; }
-.channel { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid #222; color: #fff; display: flex; align-items: center; cursor: pointer; gap: 10px; }
+.channel { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid #222; color: #fff; display: flex; align-items: center; cursor: pointer; gap: 10px; word-wrap: break-word; overflow-wrap: break-word; }
+/* Estilo para categorias com largura reduzida e quebra de linha após 18 caracteres */
+.channel.category-item { max-width: 200px; line-height: 1.3; padding: 15px; margin-bottom: 5px; }
 .channel img { width: 24px; height: 24px; border-radius: 4px; object-fit: contain; background: #333; }
-.channel span { flex: 1; }
+.channel span { flex: 1; display: inline-block; max-width: 100%; }
 .channel.active { background: #ff9800 !important; color: #000 !important; font-weight: bold; }
 .channel i.fa-star { cursor: pointer; padding: 5px; }
 #posterWrapper { position: absolute; top: 50%; left: 360px; transform: translateY(-50%); width: 300px; height: 450px; z-index: 120; display: none; pointer-events: none; }
@@ -188,8 +190,9 @@ function renderList() {
     
     data.forEach((item, i) => {
         const div = document.createElement("div");
-        div.className = `channel ${i === selectedIndex ? "active" : ""}`;
-        const label = (typeof item === 'string') ? item : (item.titulo || item.name || "Sem título");
+        const isString = typeof item === 'string';
+        div.className = `channel ${i === selectedIndex ? "active" : ""} ${isString ? "category-item" : ""}`;
+        const label = isString ? item : (item.titulo || item.name || "Sem título");
         const logo = item.logo || "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png";
         const isFav = typeof item === 'object' && favorites.some(f => (f.titulo || f.name) === label);
         
@@ -204,7 +207,6 @@ function renderList() {
     });
 
     const cur = data[selectedIndex];
-    // Bloqueia exibição de capas se estiver apenas navegando no player
     if (!menuFocused && channelList.style.display !== "none" && selectedIndex !== -1 && cur && typeof cur === 'object' && cur.poster) { 
         posterPreview.src = cur.poster; posterWrapper.style.display = "block";
         ratingBadge.style.display = (cur.rating || cur.vote_average) ? "flex" : "none";
@@ -277,7 +279,6 @@ searchInput.addEventListener("input", () => {
 
 document.addEventListener("keydown", e => {
     const code = e.keyCode;
-    // Mapeamento Tecla Amarela (405) e Favoritos (70 ou 106)
     if (code === 405 || code === 70 || code === 106) {
         let currentData = (viewMode === "search" || viewMode.includes("_list") || viewMode === "episode_list") ? filteredList : [];
         if(currentData.length === 0) {
@@ -306,8 +307,23 @@ document.addEventListener("keydown", e => {
     }
     
     if (menuFocused) {
-        if (code === 38) { if (menuIndex <= 1) { menuIndex = -1; searchInput.focus(); searchInput.classList.add("focused"); } else menuIndex -= 2; e.preventDefault(); }
-        else if (code === 40) { if (menuIndex === -1) { menuIndex = 0; searchInput.blur(); searchInput.classList.remove("focused"); } else if (menuIndex < menuItems.length - 2) menuIndex += 2; e.preventDefault(); }
+        if (code === 38) { 
+            if (menuIndex <= 1) { 
+                menuIndex = -1; searchInput.focus(); searchInput.classList.add("focused"); 
+            } else menuIndex -= 2; 
+            e.preventDefault(); 
+        }
+        else if (code === 40) { 
+            if (menuIndex === -1) { 
+                menuIndex = 0; 
+                searchInput.value = ""; // Limpa ao descer
+                searchInput.blur(); 
+                searchInput.classList.remove("focused"); 
+                viewMode = menuItems[0].dataset.type; // Volta ao modo original
+                renderList();
+            } else if (menuIndex < menuItems.length - 2) menuIndex += 2; 
+            e.preventDefault(); 
+        }
         else if (code === 37 && menuIndex % 2 !== 0) { menuIndex--; e.preventDefault(); }
         else if (code === 39) { if (menuIndex % 2 === 0 && menuIndex < menuItems.length - 1) { menuIndex++; e.preventDefault(); } else if (menuIndex !== -1) { menuFocused = false; channelList.style.display = "block"; viewMode = menuItems[menuIndex].dataset.type; selectedIndex = 0; renderList(); e.preventDefault(); } }
         else if (code === 13) { 
@@ -316,7 +332,6 @@ document.addEventListener("keydown", e => {
                     menuFocused = false;
                     searchInput.blur();
                     searchInput.classList.remove("focused");
-                    searchInput.value = ""; 
                     selectedIndex = 0;
                     renderList();
                 }
@@ -344,7 +359,6 @@ function loadM3U(path, array, isMainCanais = false) {
             }
             else if(l.startsWith("http") && temp){ temp.url=l.trim(); array.push(temp); temp=null; }
         });
-        // Ordenação por categorias (ex: BRA:, USA:) apenas para Tv ao Vivo principal
         if(isMainCanais) array.sort((a,b) => a.titulo.localeCompare(b.titulo));
         if(isMainCanais && array.length > 0) playMedia(array[0]);
     });
