@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V25.0</title>
+<title>PaixãoFlix TV V26.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 #menu { width: 300px; background: #1a1a1a; display: flex; flex-direction: column; z-index: 100; padding: 12px; box-sizing: border-box; border-right: 1px solid #333; height: 100%; }
 #menuHeader { padding: 15px 10px; text-align: center; border-bottom: 1px solid #222; margin-bottom: 15px; }
 #menuHeader img { height: 80px; width: auto; object-fit: contain; }
-#clock { margin-top: 10px; font-size: 13px; color: #aaa; }
+#clock { margin-top: 10px; font-size: 13px; color: #aaa; text-transform: capitalize; }
 #nowPlaying { margin: 10px 0; text-align: center; }
 #nowPlaying span { display: block; font-size: 12px; color: #fff; font-weight: 700; margin-bottom: 5px; }
 #currentTitle { display: inline-block; padding: 6px 10px; color: #fff; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 400; background: rgba(0,0,0,0.6); border-radius: 4px; max-width: 260px; word-wrap: break-word; white-space: normal; line-height: 1.4; }
@@ -101,13 +101,20 @@ const channelCats = ["CANAIS ABERTOS", "DESENHOS", "DISCOVERY", "EDUCAÇÃO", "E
 
 function updateClock() {
     const d = new Date();
-    const meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-    document.getElementById("clock").innerText = `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()} | ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+    const dias = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+    const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+    const diaSemana = dias[d.getDay()];
+    const dia = d.getDate();
+    const mes = meses[d.getMonth()];
+    const ano = String(d.getFullYear()).slice(-2);
+    const hora = String(d.getHours()).padStart(2, "0");
+    const min = String(d.getMinutes()).padStart(2, "0");
+    document.getElementById("clock").innerText = `${diaSemana}, ${dia} de ${mes} de ${ano}   | ${hora}:${min}`;
 }
 setInterval(updateClock, 1000); updateClock();
 
 function toggleFavorite(item) {
-    if (!item) return;
+    if (!item || typeof item !== 'object') return;
     const itemName = item.titulo || item.name;
     const index = favorites.findIndex(f => (f.titulo || f.name) === itemName);
     if (index > -1) favorites.splice(index, 1);
@@ -141,7 +148,14 @@ function playMedia(item) {
     let options = { 
         source: url, parentId: "#player", width: '100%', height: '100%', 
         autoPlay: true, actualLiveTime: true, stretch: 'fill', preload: 'auto',
-        playback: { hlsjsConfig: { maxBufferLength: 30, enableWorker: true, recoverMediaError: true } },
+        playback: { hlsjsConfig: { 
+            enableWorker: true, 
+            recoverMediaError: true,
+            maxBufferLength: 10,
+            maxMaxBufferLength: 20,
+            startLevel: -1,
+            liveSyncDurationCount: 3
+        } },
         events: {
             onTimeUpdate: (e) => {
                 if(item.type !== "channel") {
@@ -162,21 +176,10 @@ function hidePoster() { posterWrapper.style.display = "none"; posterPreview.src 
 
 function renderList() {
     channelList.innerHTML = "";
-    let data = [];
-    if (viewMode === "search") data = filteredList;
-    else if (viewMode === "categories") data = movieCats;
-    else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    else if (viewMode === "channels") data = channels;
-    else if (viewMode === "kids_channels") data = kidsChannels;
-    else if (viewMode === "kids_movies") data = kidsMovies;
-    else if (viewMode === "kids_series") data = kidsSeries;
-    else if (viewMode === "fav") data = favorites;
-    else if (viewMode === "history") data = historyList;
-    else data = filteredList;
+    let data = getActiveData();
 
     let currentCat = "";
     data.forEach((item, i) => {
-        // Lógica de Cabeçalhos para Canais (Não Kids)
         if(viewMode === "channels" && item.titulo) {
             let cat = channelCats.find(c => item.titulo.toUpperCase().startsWith(c));
             if(cat && cat !== currentCat) {
@@ -213,18 +216,21 @@ function renderList() {
     } else { hidePoster(); }
 }
 
+function getActiveData() {
+    if (viewMode === "search") return filteredList;
+    if (viewMode === "categories") return movieCats;
+    if (viewMode === "series") return [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    if (viewMode === "channels") return channels;
+    if (viewMode === "kids_channels") return kidsChannels;
+    if (viewMode === "kids_movies") return kidsMovies;
+    if (viewMode === "kids_series") return kidsSeries;
+    if (viewMode === "fav") return favorites;
+    if (viewMode === "history") return historyList;
+    return filteredList;
+}
+
 async function handleAction() {
-    let data = (viewMode === "search" || viewMode.includes("_list") || viewMode === "episode_list") ? filteredList : [];
-    if(data.length === 0) {
-        if (viewMode === "categories") data = movieCats;
-        else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-        else if (viewMode === "channels") data = channels;
-        else if (viewMode === "kids_channels") data = kidsChannels;
-        else if (viewMode === "kids_movies") data = kidsMovies;
-        else if (viewMode === "kids_series") data = kidsSeries;
-        else if (viewMode === "fav") data = favorites;
-        else if (viewMode === "history") data = historyList;
-    }
+    let data = getActiveData();
     const item = data[selectedIndex];
     if (!item) return;
 
@@ -267,18 +273,15 @@ searchInput.addEventListener("input", () => {
 
 document.addEventListener("keydown", e => {
     const code = e.keyCode;
-    let data = (viewMode === "search" || viewMode.includes("_list") || viewMode === "episode_list") ? filteredList : [];
-    if(data.length === 0) {
-        if (viewMode === "categories") data = movieCats;
-        else if (viewMode === "series") data = [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-        else if (viewMode === "channels") data = channels;
-        else if (viewMode === "kids_channels") data = kidsChannels;
-        else if (viewMode === "kids_movies") data = kidsMovies;
-        else if (viewMode === "kids_series") data = kidsSeries;
-        else if (viewMode === "fav") data = favorites;
-        else if (viewMode === "history") data = historyList;
-    }
+    let data = getActiveData();
     
+    // Funções de Favoritos (Tecla F, Tecla Amarela/Favoritos SmartTV)
+    if (code === 70 || code === 405 || code === 106) {
+        const item = data[selectedIndex];
+        if (item) toggleFavorite(item);
+        return;
+    }
+
     if (menuFocused) {
         if (code === 38) { 
             if (menuIndex <= 1) { menuIndex = -1; searchInput.focus(); searchInput.classList.add("focused"); } 
@@ -301,7 +304,6 @@ document.addEventListener("keydown", e => {
         else if (code === 40) { if (selectedIndex < data.length - 1) selectedIndex++; else selectedIndex = 0; renderList(); e.preventDefault(); }
         else if (code === 37) { 
             if (viewMode === "episode_list") { 
-                // Especial Kids: Volta direto pra lista sem categorias
                 if (menuItems[menuIndex].dataset.type === "kids_series") { viewMode = "kids_series"; } 
                 else { viewMode = "series_list"; }
                 selectedIndex = 0; renderList(); 
