@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V22.0</title>
+<title>PaixãoFlix TV V23.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -31,7 +31,9 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 #content { position: absolute; top: 0; left: 300px; width: calc(100% - 300px); height: 100%; z-index: 10; background: black; display: flex; justify-content: center; align-items: center; }
 #videoContainer { width: 100%; height: 100%; background: #000; }
 #channelList { position: absolute; top: 0; left: 0; width: 340px; height: 100%; background: rgba(0, 0, 0, 0.98); display: none; z-index: 110; overflow-y: scroll; border-right: 1px solid #ff9800; }
-.channel { padding: 15px 20px; font-size: 16px; border-bottom: 1px solid #222; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.channel { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid #222; color: #fff; display: flex; align-items: center; cursor: pointer; gap: 10px; }
+.channel img { width: 24px; height: 24px; border-radius: 4px; object-fit: contain; background: #333; }
+.channel span { flex: 1; }
 .channel.active { background: #ff9800 !important; color: #000 !important; font-weight: bold; }
 .channel i.fa-star { cursor: pointer; padding: 5px; }
 #posterWrapper { position: absolute; top: 50%; left: 360px; transform: translateY(-50%); width: 300px; height: 450px; z-index: 120; display: none; pointer-events: none; }
@@ -103,6 +105,7 @@ function updateClock() {
 setInterval(updateClock, 1000); updateClock();
 
 function toggleFavorite(item) {
+    if (!item) return;
     const itemName = item.titulo || item.name;
     const index = favorites.findIndex(f => (f.titulo || f.name) === itemName);
     if (index > -1) favorites.splice(index, 1);
@@ -187,15 +190,22 @@ function renderList() {
         const div = document.createElement("div");
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
         const label = (typeof item === 'string') ? item : (item.titulo || item.name || "Sem título");
+        const logo = item.logo || "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png";
         const isFav = typeof item === 'object' && favorites.some(f => (f.titulo || f.name) === label);
-        div.innerHTML = `<span>${label}</span> ${typeof item === 'object' ? `<i class="fa-star ${isFav ? 'fas' : 'far'}" style="color:${isFav ? '#ffeb3b' : '#666'}"></i>` : ''}`;
+        
+        div.innerHTML = `
+            ${typeof item === 'object' && viewMode.includes("channels") ? `<img src="${logo}" onerror="this.src='https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png'">` : ''}
+            <span>${label}</span> 
+            ${typeof item === 'object' ? `<i class="fa-star ${isFav ? 'fas' : 'far'}" style="color:${isFav ? '#ffeb3b' : '#666'}"></i>` : ''}`;
+        
         div.onclick = () => { selectedIndex = i; handleAction(); };
         channelList.appendChild(div);
         if (i === selectedIndex && !menuFocused) div.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 
     const cur = data[selectedIndex];
-    if (!menuFocused && selectedIndex !== -1 && cur && typeof cur === 'object' && cur.poster) { 
+    // Bloqueia exibição de capas se estiver apenas navegando no player
+    if (!menuFocused && channelList.style.display !== "none" && selectedIndex !== -1 && cur && typeof cur === 'object' && cur.poster) { 
         posterPreview.src = cur.poster; posterWrapper.style.display = "block";
         ratingBadge.style.display = (cur.rating || cur.vote_average) ? "flex" : "none";
         ratingValue.innerText = cur.rating || cur.vote_average || "0.0";
@@ -267,6 +277,22 @@ searchInput.addEventListener("input", () => {
 
 document.addEventListener("keydown", e => {
     const code = e.keyCode;
+    // Mapeamento Tecla Amarela (405) e Favoritos (70 ou 106)
+    if (code === 405 || code === 70 || code === 106) {
+        let currentData = (viewMode === "search" || viewMode.includes("_list") || viewMode === "episode_list") ? filteredList : [];
+        if(currentData.length === 0) {
+            if (viewMode === "channels") currentData = channels;
+            else if (viewMode === "kids_channels") currentData = kidsChannels;
+            else if (viewMode === "kids_movies") currentData = kidsMovies;
+            else if (viewMode === "kids_series") currentData = kidsSeries;
+            else if (viewMode === "fav") currentData = favorites;
+            else if (viewMode === "history") currentData = historyList;
+        }
+        const item = currentData[selectedIndex];
+        if (item && typeof item === 'object') toggleFavorite(item);
+        return;
+    }
+
     let data = (viewMode === "search" || viewMode.includes("_list") || viewMode === "episode_list") ? filteredList : [];
     if(data.length === 0) {
         if (viewMode === "categories") data = movieCats;
@@ -290,7 +316,6 @@ document.addEventListener("keydown", e => {
                     menuFocused = false;
                     searchInput.blur();
                     searchInput.classList.remove("focused");
-                    const currentVal = searchInput.value;
                     searchInput.value = ""; 
                     selectedIndex = 0;
                     renderList();
@@ -304,7 +329,6 @@ document.addEventListener("keydown", e => {
         else if (code === 40) { if (viewMode === "history" && selectedIndex === -1) selectedIndex = 0; else if (selectedIndex < data.length - 1) selectedIndex++; else selectedIndex = (viewMode === "history") ? -1 : 0; renderList(); e.preventDefault(); }
         else if (code === 37) { if (viewMode === "episode_list") { viewMode = "series_list"; selectedIndex = 0; renderList(); } else if (viewMode.includes("_list")) { viewMode = viewMode.includes("movie") ? "categories" : "series"; selectedIndex = 0; renderList(); } else { menuFocused = true; channelList.style.display = "none"; hidePoster(); } e.preventDefault(); }
         else if (code === 13) { handleAction(); e.preventDefault(); }
-        else if (code === 106 || code === 70) { const item = data[selectedIndex]; if (item && typeof item === 'object') toggleFavorite(item); }
     }
     menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
 });
@@ -313,9 +337,15 @@ function loadM3U(path, array, isMainCanais = false) {
     fetch(path).then(r=>r.text()).then(text=>{
         let temp=null;
         text.split("\n").forEach(l=>{
-            if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop().trim(), type: "channel"};
+            if(l.startsWith("#EXTINF")) {
+                let logo = "";
+                if(l.includes('tvg-logo="')) logo = l.split('tvg-logo="')[1].split('"')[0];
+                temp={titulo:l.split(",").pop().trim(), type: "channel", logo: logo};
+            }
             else if(l.startsWith("http") && temp){ temp.url=l.trim(); array.push(temp); temp=null; }
         });
+        // Ordenação por categorias (ex: BRA:, USA:) apenas para Tv ao Vivo principal
+        if(isMainCanais) array.sort((a,b) => a.titulo.localeCompare(b.titulo));
         if(isMainCanais && array.length > 0) playMedia(array[0]);
     });
 }
