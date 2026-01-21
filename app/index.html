@@ -1,297 +1,75 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<title>PaixãoFlix TV V28.0</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
-
-<style>
-* { scrollbar-width: none; -ms-overflow-style: none; }
-*::-webkit-scrollbar { display: none; }
-
-html, body {
-    margin: 0;
-    padding: 0;
-    background: #000;
-    color: #fff;
-    font-family: Arial, sans-serif;
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-}
-
-/* ===== SPLASH SCREEN ===== */
-#splash {
-    position: fixed;
-    inset: 0;
-    background: #000;
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#splash img {
-    width: 180px;
-    height: auto;
-}
-
-/* ===== APP ===== */
-#app {
-    display: flex;
-    height: 100%;
-    width: 100%;
-    position: relative;
-}
-
-/* ===== MENU ===== */
-#menu {
-    width: 300px;
-    background: #1a1a1a;
-    display: flex;
-    flex-direction: column;
-    z-index: 100;
-    padding: 12px;
-    box-sizing: border-box;
-    border-right: 1px solid #333;
-}
-
-#menuHeader {
-    text-align: center;
-    border-bottom: 1px solid #222;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-}
-
-#menuHeader img {
-    height: 70px;
-}
-
-#clock {
-    font-size: 12px;
-    color: #aaa;
-    margin-top: 8px;
-}
-
-#currentTitle {
-    font-size: 13px;
-    background: rgba(0,0,0,.6);
-    padding: 6px;
-    border-radius: 4px;
-}
-
-/* ===== SEARCH ===== */
-#searchInput {
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: 2px solid #333;
-    background: #000;
-    color: #fff;
-    outline: none;
-    margin-bottom: 10px;
-}
-
-/* ===== MENU ITEMS ===== */
-#menuItemsContainer {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.menu-item {
-    width: 48%;
-    background: #222;
-    border: 1px solid #333;
-    border-radius: 8px;
-    padding: 10px;
-    font-size: 13px;
-    text-align: center;
-    cursor: pointer;
-}
-
-.menu-item.active {
-    border-color: #ff9800;
-    background: #333;
-}
-
-/* ===== CONTENT ===== */
-#content {
-    position: absolute;
-    left: 300px;
-    top: 0;
-    width: calc(100% - 300px);
-    height: 100%;
-    background: #000;
-}
-
-/* ===== VIDEO ===== */
-#videoContainer,
-#player,
-[data-player] {
-    width: 100% !important;
-    height: 100% !important;
-}
-
-[data-player] video {
-    object-fit: fill !important;
-}
-
-/* ===== CHANNEL LIST ===== */
-#channelList {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    background: rgba(0,0,0,.97);
-    min-width: 260px;
-    display: none;
-    overflow-y: auto;
-    z-index: 200;
-}
-
-/* ===== ROTATE OVERLAY ===== */
-#rotateOverlay {
-    position: fixed;
-    inset: 0;
-    background: #000;
-    z-index: 9999;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    text-align: center;
-    gap: 20px;
-}
-
-#rotateOverlay i {
-    font-size: 60px;
-    animation: rotatePhone 2s infinite ease-in-out;
-}
-
-@keyframes rotatePhone {
-    0% { transform: rotate(0deg); }
-    50% { transform: rotate(90deg); }
-    100% { transform: rotate(0deg); }
-}
-
-/* ===== RESPONSIVO ===== */
-@media (max-width: 900px) {
-    #menu { width: 220px; }
-    #content { left: 220px; width: calc(100% - 220px); }
-}
-
-@media (max-width: 600px) {
-    #menu {
-        width: 100%;
-        flex-direction: row;
-        flex-wrap: wrap;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PaixãoFlix Mobile</title>
+  <style>
+    /* Reset básico */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
+
+    body, html {
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    /* Tela de carregamento */
+    #loader {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #loader img {
+      width: 180px;
+      height: 180px;
+      margin-bottom: 20px;
+      animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Conteúdo real escondido até carregar */
     #content {
-        left: 0;
-        width: 100%;
-        height: calc(100vh - 260px);
-        position: relative;
+      display: none;
+      width: 100%;
+      height: 100%;
     }
-}
-</style>
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
 </head>
-
 <body>
+  <div id="loader">
+    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" alt="PaixãoFlix Logo">
+    <p>Carregando PaixãoFlix...</p>
+  </div>
 
-<!-- SPLASH -->
-<div id="splash">
-    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-</div>
+  <div id="content">
+    <!-- Aqui você pode carregar a interface principal via iframe se quiser -->
+    <iframe src="app.html"></iframe>
+  </div>
 
-<div id="app">
-    <div id="menu">
-        <div id="menuHeader">
-            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-            <div id="clock"></div>
-            <div id="currentTitle">...</div>
-        </div>
-
-        <input id="searchInput" placeholder="Pesquisar...">
-
-        <div id="menuItemsContainer">
-            <div class="menu-item active">Tv ao Vivo</div>
-            <div class="menu-item">Cinema</div>
-            <div class="menu-item">Séries</div>
-            <div class="menu-item">Favoritos</div>
-        </div>
-    </div>
-
-    <div id="content">
-        <div id="videoContainer">
-            <div id="player"></div>
-        </div>
-        <div id="channelList"></div>
-    </div>
-</div>
-
-<!-- ROTATE -->
-<div id="rotateOverlay">
-    <i class="fas fa-mobile-alt"></i>
-    <h2>Gire o celular</h2>
-    <p>Use o aplicativo na horizontal</p>
-</div>
-
-<script>
-/* ===== SPLASH CONTROL ===== */
-window.addEventListener("load", () => {
-    setTimeout(() => {
-        document.getElementById("splash").style.display = "none";
-    }, 1200);
-});
-
-/* ===== CLOCK ===== */
-function updateClock() {
-    const d = new Date();
-    document.getElementById("clock").innerText =
-        d.toLocaleDateString("pt-BR", { weekday:"long", day:"2-digit", month:"short" }) +
-        " | " +
-        d.toLocaleTimeString("pt-BR", { hour:"2-digit", minute:"2-digit" });
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-/* ===== ORIENTATION ===== */
-function isMobile() {
-    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
-function checkOrientation() {
-    if (!isMobile()) return;
-    document.getElementById("rotateOverlay").style.display =
-        (window.innerHeight > window.innerWidth) ? "flex" : "none";
-}
-
-async function lockLandscape() {
-    if (screen.orientation && screen.orientation.lock) {
-        try { await screen.orientation.lock("landscape"); } catch(e){}
-    }
-}
-
-document.addEventListener("click", lockLandscape);
-window.addEventListener("resize", checkOrientation);
-window.addEventListener("orientationchange", checkOrientation);
-checkOrientation();
-
-/* ===== PLAYER ===== */
-new Clappr.Player({
-    source: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
-    parentId: "#player",
-    autoPlay: true,
-    width: "100%",
-    height: "100%"
-});
-</script>
-
-</body>
-</html>
+  <script>
+    // Simula carregamento, depois mostra conteúdo real
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        document.getElementById("loader").style.display = "none";
