@@ -2,28 +2,21 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.4</title>
+<title>PaixãoFlix TV V.28.1.5</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
-    /* REMOÇÃO TOTAL DE BARRAS DE ROLAGEM */
-    * { 
-        overflow: hidden !important; 
-        touch-action: manipulation; 
-        box-sizing: border-box; 
-        outline: none; 
-        -ms-overflow-style: none; 
-        scrollbar-width: none; 
-    }
+    /* RESET E REMOÇÃO DE ROLAGEM VISÍVEL */
+    * { overflow: hidden !important; touch-action: manipulation; box-sizing: border-box; outline: none; -ms-overflow-style: none; scrollbar-width: none; }
     *::-webkit-scrollbar { display: none !important; }
 
     body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; width: 100vw; }
     #app { display: flex; height: 100vh; width: 100vw; position: relative; }
 
-    /* MENU LATERAL */
+    /* MENU LATERAL - APENAS CLIQUE/OK */
     #menu { width: 320px; background: #0a0a0a; padding: 20px; border-right: 1px solid #222; flex-shrink: 0; z-index: 100; }
     #menuHeader img { width: 85%; display: block; margin: 0 auto 30px; }
     #menuItemsContainer { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -35,7 +28,7 @@
     }
     .btn-3d.focused { border-color: #ff9800; background: #222; color: #fff; border-bottom: 5px solid #c67600; transform: scale(1.05); }
 
-    /* CONTEÚDO */
+    /* CONTEÚDO PRINCIPAL */
     #content { flex: 1; position: relative; background: #000; display: flex; }
 
     /* LISTA E PREVIEW LATERAL */
@@ -43,29 +36,45 @@
     .channel { padding: 18px; border-bottom: 1px solid #1a1a1a; font-size: 15px; cursor: pointer; color: #ccc; }
     .channel.active { background: #ff9800; color: #000; font-weight: bold; }
 
-    #sidePreview { position: absolute; left: 260px; top:0; height:100%; width: calc(100% - 260px); display: none; align-items: center; justify-content: center; }
-    #sidePoster { width: 340px; height: 500px; border-radius: 15px; border: 4px solid #ff9800; object-fit: cover; }
+    #sidePreview { position: absolute; left: 260px; top:0; height:100%; width: 400px; display: none; align-items: center; justify-content: center; }
+    #sidePoster { width: 320px; height: 460px; border-radius: 15px; border: 4px solid #ff9800; object-fit: cover; }
 
-    /* TOP 6 MONUMENTAL */
-    #top6Section { width: 100%; height: 100%; padding: 40px; display: none; flex-direction: column; align-items: center; }
-    #top6Title { 
-        font-size: 75px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #ff9800;
-        margin-bottom: 50px; text-transform: uppercase; text-align: center; line-height: 1;
-    }
-    .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 80px 60px; }
-    .top6-item { position: relative; width: 240px; height: 350px; }
+    /* TOP 6 COM TÍTULO FIXO E ROLAGEM */
+    #top6Section { width: 100%; height: 100%; display: none; flex-direction: column; position: relative; }
+    #top6Header { padding: 40px 0; background: #000; z-index: 20; text-align: center; flex-shrink: 0; }
+    #top6Title { font-size: 70px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #ff9800; text-transform: uppercase; line-height: 1; }
+    
+    #top6ScrollArea { flex: 1; overflow-y: auto !important; padding: 20px 40px 100px; }
+    .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 100px 40px; }
+    .top6-item { position: relative; width: 220px; height: 320px; margin: 0 auto; }
     .top6-number { 
-        position: absolute; left: -60px; bottom: -30px; font-size: 200px; font-weight: 900; 
-        color: #000; -webkit-text-stroke: 4px #666; z-index: 1; pointer-events: none;
+        position: absolute; left: -50px; bottom: -20px; font-size: 180px; font-weight: 900; 
+        color: transparent; -webkit-text-stroke: 3px #fff; z-index: 1; line-height: 1; pointer-events: none;
     }
-    .top6-item.focused .top6-number { -webkit-text-stroke: 4px #ff9800; color: rgba(255,152,0,0.05); }
-    .top6-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 15px; position: relative; z-index: 2; border: 3px solid #333; }
+    .top6-item.focused .top6-number { -webkit-text-stroke: 3px #ff9800; }
+    .top6-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; position: relative; z-index: 2; border: 3px solid #333; }
     .top6-item.focused .top6-poster { border-color: #ff9800; transform: scale(1.1); }
 
-    /* DETALHES */
-    #detailsPage { position: absolute; inset: 0; background: #000; z-index: 200; display: none; padding: 60px; flex-direction: column; }
-    #detailsPoster { width: 340px; height: 500px; border-radius: 15px; border: 4px solid #ff9800; }
-    
+    /* PÁGINA DE DETALHES ELEGANTE (ESTILO PREMIUM) */
+    #detailsPage { 
+        position: absolute; inset: 0; z-index: 200; display: none; flex-direction: column; padding: 40px;
+        background: linear-gradient(to right, #000 35%, rgba(0,0,0,0.6)), var(--bg-img);
+        background-size: cover; background-position: center;
+    }
+    #detailsMain { display: flex; gap: 50px; align-items: flex-start; flex: 1; }
+    #detailsPoster { width: 320px; height: 480px; border-radius: 15px; border: 4px solid #ff9800; box-shadow: 0 0 50px #000; }
+    #detailsInfo { flex: 1; max-width: 800px; }
+    #detTitleLarge { font-size: 55px; font-weight: 900; color: #ff9800; margin-bottom: 10px; text-transform: uppercase; }
+    .det-meta { font-size: 20px; font-weight: bold; color: #FFCE44; margin-bottom: 20px; display: flex; gap: 20px; }
+    #detDescription { font-size: 18px; line-height: 1.6; color: #eee; margin-bottom: 30px; max-height: 150px; overflow-y: auto; }
+
+    /* INDICAÇÕES NO RODAPÉ */
+    #recommendationsArea { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+    #recTitle { color: #E50914; font-weight: 900; margin-bottom: 15px; font-size: 20px; }
+    #recGrid { display: flex; gap: 20px; }
+    .rec-card { width: 220px; height: 125px; border-radius: 10px; border: 2px solid #333; object-fit: cover; cursor: pointer; }
+    .rec-card.focused { border-color: #ff9800; transform: scale(1.05); }
+
     #videoContainer { position: absolute; inset: 0; z-index: 500; display: none; background: #000; }
 </style>
 </head>
@@ -75,14 +84,14 @@
     <div id="menu">
         <div id="menuHeader"><img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png"></div>
         <div id="menuItemsContainer">
-            <div class="btn-3d focused" data-type="channels">Canais</div>
-            <div class="btn-3d" data-type="categories">Cinema</div>
-            <div class="btn-3d" data-type="series">Séries</div>
-            <div class="btn-3d" data-type="kids_channels">Kids TV</div>
-            <div class="btn-3d" data-type="kids_movies">Kids Filmes</div>
-            <div class="btn-3d" data-type="kids_series">Kids Séries</div>
-            <div class="btn-3d" data-type="top6">Top 6</div>
-            <div class="btn-3d" data-type="fav">Favoritos</div>
+            <div class="btn-3d focused" data-type="channels" onclick="selectMenu(0)">Canais</div>
+            <div class="btn-3d" data-type="categories" onclick="selectMenu(1)">Cinema</div>
+            <div class="btn-3d" data-type="series" onclick="selectMenu(2)">Séries</div>
+            <div class="btn-3d" data-type="kids_channels" onclick="selectMenu(3)">Kids TV</div>
+            <div class="btn-3d" data-type="kids_movies" onclick="selectMenu(4)">Kids Filmes</div>
+            <div class="btn-3d" data-type="kids_series" onclick="selectMenu(5)">Kids Séries</div>
+            <div class="btn-3d" data-type="top6" onclick="selectMenu(6)">Top 6</div>
+            <div class="btn-3d" data-type="fav" onclick="selectMenu(7)">Favoritos</div>
         </div>
     </div>
 
@@ -91,19 +100,32 @@
         <div id="sidePreview"><img id="sidePoster" src=""></div>
 
         <div id="top6Section">
-            <div id="top6Title">Top 6 PaixãoFlix</div>
-            <div class="top6-grid" id="top6List"></div>
+            <div id="top6Header"><div id="top6Title">Top 6 PaixãoFlix</div></div>
+            <div id="top6ScrollArea">
+                <div class="top6-grid" id="top6List"></div>
+            </div>
         </div>
 
         <div id="detailsPage">
-            <div style="display: flex; gap: 60px;">
+            <div id="detailsMain">
                 <img id="detailsPoster" src="">
                 <div id="detailsInfo">
-                    <div id="detailsTitle" style="font-size: 50px; font-weight: 900; color: #ff9800;">NOME</div>
-                    <div id="detailsDesc" style="margin: 30px 0; font-size: 18px; color: #ccc; max-width: 600px;">Descrição do conteúdo...</div>
-                    <div id="btnWatch" class="btn-3d" style="width: 300px; color: #fff;">ASSISTIR AGORA</div>
-                    <div id="btnBackDetails" class="btn-3d" style="width: 200px; margin-top: 20px;">VOLTAR</div>
+                    <div id="detTitleLarge">TÍTULO</div>
+                    <div class="det-meta">
+                        <span><i class="fas fa-star"></i> <span id="detRatingVal">0.0</span></span>
+                        <span style="color: #aaa;" id="detYearVal">2026</span>
+                    </div>
+                    <div id="detDescription">Descrição aqui...</div>
+                    <div id="detActions">
+                        <div id="btnWatchNow" class="btn-3d" style="width: 300px; color: #fff; margin-bottom: 15px;">ASSISTIR AGORA</div>
+                        <div id="detEpGrid" style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px;"></div>
+                        <div id="btnBackTo" class="btn-3d" style="width: 180px; margin-top: 20px;">VOLTAR</div>
+                    </div>
                 </div>
+            </div>
+            <div id="recommendationsArea">
+                <div id="recTitle">INDICAÇÕES DO PAIXÃOFLIX</div>
+                <div id="recGrid"></div>
             </div>
         </div>
 
@@ -115,7 +137,8 @@
 let player;
 let movies = [], series = [], kidsMovies = [], kidsSeries = [];
 let currentFocus = "menu", menuIndex = 0, selectedIndex = 0, viewMode = "channels";
-let detailIndex = 0; 
+let detailIndex = 0, recIndex = 0, epIndex = 0;
+let currentItem = null;
 
 async function loadData() {
     const fetchJSON = async (url) => { try { const r = await fetch(url); return await r.json(); } catch(e) { return []; } };
@@ -139,17 +162,56 @@ function buildTop6() {
     });
 }
 
+function openDetails(item) {
+    currentItem = item;
+    currentFocus = "details";
+    detailIndex = 0; recIndex = 0;
+    const page = document.getElementById("detailsPage");
+    page.style.display = "flex";
+    page.style.setProperty('--bg-img', `url(${item.poster})`);
+    
+    document.getElementById("detailsPoster").src = item.poster;
+    document.getElementById("detTitleLarge").innerText = item.titulo || item.name;
+    document.getElementById("detRatingVal").innerText = item.rating || "0.0";
+    document.getElementById("detYearVal").innerText = item.year || "----";
+    document.getElementById("detDescription").innerText = item.desc || "Sem descrição disponível.";
+
+    load48hRecommendations();
+    updateDetailSelection();
+}
+
+function load48hRecommendations() {
+    const seed = Math.floor(Date.now() / (1000 * 60 * 60 * 48));
+    const all = [...movies, ...series, ...kidsMovies, ...kidsSeries];
+    const grid = document.getElementById("recGrid");
+    grid.innerHTML = "";
+    for(let i=0; i<4; i++) {
+        const idx = (seed + i * 13) % all.length;
+        const r = all[idx];
+        const img = document.createElement("img");
+        img.className = "rec-card";
+        img.src = r.poster;
+        img.onclick = () => openDetails(r);
+        grid.appendChild(img);
+    }
+}
+
+function selectMenu(idx) {
+    menuIndex = idx;
+    viewMode = document.querySelectorAll(".btn-3d[data-type]")[idx].dataset.type;
+    selectedIndex = 0;
+    currentFocus = (viewMode === "top6") ? "top6" : "list";
+    updateUI();
+}
+
 function updateUI() {
     document.querySelectorAll(".btn-3d[data-type]").forEach((m, i) => m.classList.toggle("focused", currentFocus === "menu" && i === menuIndex));
-    
     document.getElementById("channelList").style.display = (currentFocus === "list") ? "block" : "none";
     document.getElementById("sidePreview").style.display = (currentFocus === "list") ? "flex" : "none";
     document.getElementById("top6Section").style.display = (currentFocus === "top6") ? "flex" : "none";
-
     if (currentFocus === "list") renderListData();
-    if (currentFocus === "top6") {
-        document.querySelectorAll(".top6-item").forEach((it, i) => it.classList.toggle("focused", i === selectedIndex));
-    }
+    if (currentFocus === "top6") document.querySelectorAll(".top6-item").forEach((it, i) => it.classList.toggle("focused", i === selectedIndex));
+    if (currentFocus === "details") updateDetailSelection();
 }
 
 function renderListData() {
@@ -163,7 +225,7 @@ function renderListData() {
         div.onclick = () => { selectedIndex = i; if(typeof item === 'object') openDetails(item); };
         listDiv.appendChild(div);
         if (i === selectedIndex) {
-            div.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            div.scrollIntoView({ block: 'center' });
             if (item.poster) document.getElementById("sidePoster").src = item.poster;
         }
     });
@@ -172,66 +234,51 @@ function renderListData() {
 function getActiveData() {
     if (viewMode === "categories") return ["AÇÃO","ANIME","COMÉDIA","DRAMA","TERROR","FICÇÃO"].sort();
     if (viewMode === "series") return [...new Set(series.map(s => s.genero))].sort();
-    if (viewMode === "kids_movies") return kidsMovies;
-    if (viewMode === "kids_series") return kidsSeries;
     return movies;
 }
 
-function openDetails(item) {
-    currentFocus = "details";
-    document.getElementById("detailsPage").style.display = "flex";
-    document.getElementById("detailsTitle").innerText = item.titulo || item.name;
-    document.getElementById("detailsPoster").src = item.poster;
-    document.getElementById("detailsDesc").innerText = item.desc || "Sem descrição disponível.";
-    updateDetailFocus();
+function updateDetailSelection() {
+    const btnW = document.getElementById("btnWatchNow");
+    const btnB = document.getElementById("btnBackTo");
+    const recs = document.querySelectorAll(".rec-card");
+    [btnW, btnB, ...recs].forEach(el => el.classList.remove("focused"));
+    if (detailIndex === 0) btnW.classList.add("focused");
+    else if (detailIndex === 1) btnB.classList.add("focused");
+    else if (detailIndex === 2) if(recs[recIndex]) recs[recIndex].classList.add("focused");
 }
 
-function updateDetailFocus() {
-    document.getElementById("btnWatch").classList.toggle("focused", detailIndex === 0);
-    document.getElementById("btnBackDetails").classList.toggle("focused", detailIndex === 1);
-}
-
-// NAVEGAÇÃO INFINITA E CORREÇÃO DE SETAS
+// NAVEGAÇÃO REESCRITA PARA BLOQUEAR ABERTURA DE MENU POR SETAS
 document.addEventListener("keydown", e => {
     const key = e.keyCode;
-    const menus = document.querySelectorAll(".btn-3d[data-type]");
     const data = getActiveData();
 
     if (currentFocus === "menu") {
-        if (key === 40) menuIndex = (menuIndex + 1) % menus.length; // Baixo
-        if (key === 38) menuIndex = (menuIndex - 1 + menus.length) % menus.length; // Cima
-        if (key === 39 || key === 13) { // Direita ou Enter
-            viewMode = menus[menuIndex].dataset.type;
-            selectedIndex = 0;
-            currentFocus = (viewMode === "top6") ? "top6" : "list";
-        }
+        if (key === 40) menuIndex = (menuIndex + 1) % 8;
+        if (key === 38) menuIndex = (menuIndex - 1 + 8) % 8;
+        if (key === 13) selectMenu(menuIndex);
     } 
     else if (currentFocus === "list") {
         if (key === 40) selectedIndex = (selectedIndex + 1) % data.length;
         if (key === 38) selectedIndex = (selectedIndex - 1 + data.length) % data.length;
-        if (key === 37) currentFocus = "menu"; // Só volta se apertar esquerda
+        if (key === 37) { /* Bloqueado abrir menu por seta */ }
         if (key === 13) if (typeof data[selectedIndex] === 'object') openDetails(data[selectedIndex]);
     }
     else if (currentFocus === "top6") {
-        if (key === 39) { // Direita
-            if (selectedIndex === 2 || selectedIndex === 5) { /* trava na borda direita */ }
-            else selectedIndex++;
-        }
-        if (key === 37) { // Esquerda
-            if (selectedIndex % 3 === 0) currentFocus = "menu";
-            else selectedIndex--;
-        }
-        if (key === 40) selectedIndex = (selectedIndex + 3) % 6;
-        if (key === 38) selectedIndex = (selectedIndex - 3 + 6) % 6;
+        if (key === 39 && selectedIndex < 5) selectedIndex++;
+        if (key === 37 && selectedIndex > 0) selectedIndex--;
+        if (key === 40 && selectedIndex < 3) selectedIndex += 3;
+        if (key === 38 && selectedIndex >= 3) selectedIndex -= 3;
         if (key === 13) openDetails(movies[selectedIndex]);
     }
     else if (currentFocus === "details") {
-        if (key === 40 || key === 38) detailIndex = (detailIndex === 0) ? 1 : 0;
-        if (key === 37 || (key === 13 && detailIndex === 1)) {
-            document.getElementById("detailsPage").style.display = "none";
-            currentFocus = (viewMode === "top6") ? "top6" : "list";
+        if (key === 40) detailIndex = Math.min(2, detailIndex + 1);
+        if (key === 38) detailIndex = Math.max(0, detailIndex - 1);
+        if (key === 39 && detailIndex === 2) recIndex = Math.min(3, recIndex + 1);
+        if (key === 37 && detailIndex === 2) recIndex = Math.max(0, recIndex - 1);
+        if (key === 13) {
+            if (detailIndex === 1) { document.getElementById("detailsPage").style.display = "none"; currentFocus = (viewMode === "top6") ? "top6" : "list"; }
+            else if (detailIndex === 2) openDetails(document.querySelectorAll(".rec-card")[recIndex].__data__); // Simplified
         }
-        updateDetailFocus();
     }
     updateUI();
 });
