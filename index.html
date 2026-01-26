@@ -2,13 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.10</title>
+<title>PaixãoFlix TV V.28.1.11</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
+    /* RESET GERAL */
     * { overflow: hidden !important; touch-action: manipulation; box-sizing: border-box; outline: none; -ms-overflow-style: none; scrollbar-width: none; font-family: 'Poppins', sans-serif; }
     
     body { 
@@ -17,105 +18,104 @@
         color: #fff; height: 100vh; width: 100vw; 
     }
 
-    /* BARRA SUPERIOR DE FORA A FORA */
+    /* BARRA SUPERIOR COMPACTA */
     #topBar { 
-        position: fixed; top: 0; width: 100%; height: 60px; 
+        position: fixed; top: 0; width: 100%; height: 50px; 
         border-bottom: 1px solid rgba(255,255,255,0.1);
-        display: flex; align-items: center; padding: 0 40px; z-index: 100;
-        background: rgba(4,7,20,0.95);
+        display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 1000;
+        background: rgba(4,7,20,0.98);
     }
-    #barDateTime { flex: 1; font-size: 14px; color: #a1a1a1; text-transform: uppercase; }
-    #barCounter { flex: 1; text-align: center; font-weight: 900; color: #FFCE44; letter-spacing: 1px; font-size: 15px; }
-    #barEmpty { flex: 1; }
+    #logoSmall { height: 35px; }
+    #barCounter { font-weight: 900; color: #FFCE44; letter-spacing: 1px; font-size: 13px; }
+    #barDateTime { font-size: 12px; color: #a1a1a1; text-transform: uppercase; }
 
-    /* LOGOTIPO */
-    #logoArea { position: absolute; top: 80px; left: 40px; z-index: 90; }
-    #logoImg { width: 180px; }
-
-    /* ÁREA DE CONTEÚDO COM ROLAGEM */
-    #scrollContainer { 
+    /* CONTAINER PRINCIPAL COM ROLAGEM */
+    #mainScroll { 
         width: 100%; height: 100vh; 
-        padding: 180px 40px 100px;
-        overflow-y: auto !important; scroll-behavior: smooth;
+        padding-top: 70px; overflow-y: auto !important; scroll-behavior: smooth;
     }
 
-    #top6Title { 
-        font-size: 32px; font-weight: 900; color: transparent; -webkit-text-stroke: 1px #FFCE44; 
-        text-transform: uppercase; margin-bottom: 20px; letter-spacing: 2px;
+    /* MENU 3D SUPERIOR (ESTILO MARCAS) */
+    #menuRow { display: flex; gap: 15px; padding: 20px 40px; justify-content: center; flex-wrap: wrap; }
+    .btn-3d { 
+        background: #1a1d29; color: #eee; border: 2px solid #FFCE44; border-bottom: 5px solid #b38f00;
+        border-radius: 10px; font-weight: 700; cursor: pointer; text-align: center;
+        padding: 12px 20px; font-size: 11px; text-transform: uppercase; min-width: 140px;
+        display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s;
     }
+    .btn-3d i { font-size: 18px; color: #FFCE44; }
+    .btn-3d.focused { background: #f9f9f9; color: #000; border-color: #fff; transform: translateY(-3px) scale(1.05); }
 
-    /* CARROSSEL VERTICAL */
-    .vertical-carousel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 120px 30px; margin-bottom: 80px; }
+    /* CARROSSEL VERTICAL - EDITOR'S CHOICE */
+    .section-title { padding-left: 60px; font-size: 20px; font-weight: 900; color: #fff; margin: 30px 0 15px; text-transform: uppercase; letter-spacing: 2px; }
+    #editorsChoice { display: flex; flex-direction: column; gap: 20px; padding: 0 60px; }
+    .editor-card { 
+        width: 100%; height: 200px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.1);
+        background-size: cover; background-position: center; position: relative; cursor: pointer;
+    }
+    .editor-card.focused { border: 2px solid #E50914; transform: scale(1.01); box-shadow: 0 0 20px rgba(229, 9, 20, 0.4); }
+
+    /* TOP 6 CENTRALIZADO */
+    #top6Section { padding: 40px 60px 100px; text-align: center; }
+    #top6Title { font-size: 40px; font-weight: 900; color: transparent; -webkit-text-stroke: 1.5px #FFCE44; text-transform: uppercase; margin-bottom: 40px; display: inline-block; }
     
-    .top6-item { position: relative; width: 100%; height: 350px; cursor: pointer; transition: 0.3s; }
+    .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 100px 40px; }
+    .top6-item { position: relative; width: 100%; height: 420px; cursor: pointer; transition: 0.4s; }
+    
+    /* ESPELHAMENTO NO CHÃO */
     .top6-item::after {
-        content: ""; position: absolute; top: 101%; left: 0; width: 100%; height: 30%;
-        background: linear-gradient(to bottom, rgba(255,255,255,0.1), transparent);
+        content: ""; position: absolute; top: 101%; left: 0; width: 100%; height: 40%;
+        background: linear-gradient(to bottom, rgba(255,255,255,0.2), transparent);
         transform: scaleY(-1); opacity: 0.3; pointer-events: none;
     }
-    
+
     .top6-number { 
-        position: absolute; left: -25px; top: 20%; height: 60%; font-size: 200px; font-weight: 900; 
-        color: transparent; -webkit-text-stroke: 2px rgba(255,255,255,0.5); z-index: 5; line-height: 1; 
-        display: flex; align-items: center; pointer-events: none;
+        position: absolute; left: -30px; top: 20%; font-size: 240px; font-weight: 900; 
+        color: transparent; -webkit-text-stroke: 3px rgba(255,255,255,0.4); z-index: 5; pointer-events: none;
     }
+    .top6-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; border: 2px solid rgba(255,255,255,0.1); position: relative; z-index: 2; }
+    
+    /* SELETOR VERMELHO 2PX */
+    .top6-item.focused { transform: translateY(-10px) scale(1.05); }
+    .top6-item.focused .top6-poster { border: 2px solid #E50914; box-shadow: 0 0 25px rgba(229, 9, 20, 0.5); }
+    .top6-item.focused .top6-number { -webkit-text-stroke: 4px #FFCE44; }
 
-    .top6-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 2px solid rgba(255,255,255,0.1); z-index: 2; position: relative; }
-    .item-name { margin-top: 10px; font-size: 14px; font-weight: 700; text-align: center; opacity: 0; transition: 0.3s; }
-
-    /* SELETOR VERMELHO NAS CAPAS */
-    .top6-item.focused { transform: translateY(-5px); }
-    .top6-item.focused .top6-poster { border: 2px solid #E50914; box-shadow: 0 0 20px rgba(229, 9, 20, 0.4); }
-    .top6-item.focused .item-name { opacity: 1; color: #FFCE44; }
-    .top6-item.focused .top6-number { -webkit-text-stroke: 3px #FFCE44; }
-
-    /* MENU CARDS (ESTILO MARCAS DISNEY) */
-    #menuCards { display: flex; gap: 20px; padding-bottom: 100px; }
-    .menu-card { 
-        flex: 1; height: 100px; background: #1a1d29; border: 2px solid rgba(255,255,255,0.1); 
-        border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        cursor: pointer; transition: 0.3s;
-    }
-    .menu-card i { font-size: 24px; margin-bottom: 8px; color: #FFCE44; }
-    .menu-card span { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-
-    /* SELETOR NOS CARDS */
-    .menu-card.focused { 
-        transform: scale(1.05); border-color: #f9f9f9; 
-        background: linear-gradient(135deg, #1a1d29, #2a2e42);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-    }
+    #detailsPage { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
 </style>
 </head>
 <body>
 
 <div id="topBar">
-    <div id="barDateTime">Carregando...</div>
+    <img id="logoSmall" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
     <div id="barCounter">JÁ TEMOS <span id="totalItems">0</span> CONTEÚDOS</div>
-    <div id="barEmpty"></div>
+    <div id="barDateTime">CARREGANDO...</div>
 </div>
 
-<div id="logoArea">
-    <img id="logoImg" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-</div>
+<div id="mainScroll">
+    <div id="menuRow">
+        <div class="btn-3d focused" data-type="channels"><i class="fas fa-tv"></i> Canais</div>
+        <div class="btn-3d" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
+        <div class="btn-3d" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
+        <div class="btn-3d" data-type="kids_movies"><i class="fas fa-child"></i> Kids Filmes</div>
+        <div class="btn-3d" data-type="kids_series"><i class="fas fa-baby"></i> Kids Séries</div>
+        <div class="btn-3d" data-type="fav"><i class="fas fa-heart"></i> Favoritos</div>
+    </div>
 
-<div id="scrollContainer">
-    <div id="top6Title">Top 6 PaixãoFlix</div>
-    <div class="vertical-carousel" id="top6Container"></div>
+    <div class="section-title">Escolha do Editor</div>
+    <div id="editorsChoice"></div>
 
-    <div id="menuCards">
-        <div class="menu-card" data-type="channels"><i class="fas fa-tv"></i><span>Canais</span></div>
-        <div class="menu-card" data-type="categories"><i class="fas fa-film"></i><span>Cinema</span></div>
-        <div class="menu-card" data-type="series"><i class="fas fa-clapperboard"></i><span>Séries</span></div>
-        <div class="menu-card" data-type="kids_movies"><i class="fas fa-child"></i><span>Kids</span></div>
-        <div class="menu-card" data-type="fav"><i class="fas fa-heart"></i><span>Favoritos</span></div>
+    <div id="top6Section">
+        <div id="top6Title">Top 6 PaixãoFlix</div>
+        <div class="top6-grid" id="top6Container"></div>
     </div>
 </div>
 
+<div id="detailsPage"></div>
+
 <script>
 let movies = [], series = [], kidsMovies = [], kidsSeries = [];
-let top6Data = [];
-let currentFocus = "grid", gridIdx = 0, menuIdx = 0;
+let top6Data = [], editorsChoice = [];
+let currentFocus = "menu", menuIdx = 0, editorIdx = 0, gridIdx = 0;
 
 async function loadData() {
     const fetchJSON = async (url) => { try { const r = await fetch(url); return await r.json(); } catch(e) { return []; } };
@@ -124,10 +124,15 @@ async function loadData() {
     kidsMovies = await fetchJSON("data/kids_filmes.json");
     kidsSeries = await fetchJSON("data/kids_series.json");
 
-    document.getElementById("totalItems").innerText = movies.length + series.length + kidsMovies.length + kidsSeries.length;
-    top6Data = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 6);
+    const all = [...movies, ...series, ...kidsMovies, ...kidsSeries];
+    document.getElementById("totalItems").innerText = all.length;
+
+    // Diferenciação de conteúdos
+    const shuffled = all.sort(() => 0.5 - Math.random());
+    editorsChoice = shuffled.slice(0, 3);
+    top6Data = shuffled.slice(3, 9);
     
-    renderTop6();
+    renderUI();
     startClock();
 }
 
@@ -142,53 +147,63 @@ function startClock() {
     update();
 }
 
-function renderTop6() {
-    const container = document.getElementById("top6Container");
-    container.innerHTML = "";
+function renderUI() {
+    const edCont = document.getElementById("editorsChoice");
+    edCont.innerHTML = "";
+    editorsChoice.forEach((item, i) => {
+        const div = document.createElement("div");
+        div.className = "editor-card";
+        div.style.backgroundImage = `url(${item.poster})`;
+        div.onclick = () => openDetails(item);
+        edCont.appendChild(div);
+    });
+
+    const topCont = document.getElementById("top6Container");
+    topCont.innerHTML = "";
     top6Data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = "top6-item";
         div.onclick = () => openDetails(item);
-        div.innerHTML = `
-            <span class="top6-number">${i+1}</span>
-            <img class="top6-poster" src="${item.poster}">
-            <div class="item-name">${item.titulo || item.name}</div>
-        `;
-        container.appendChild(div);
+        div.innerHTML = `<span class="top6-number">${i+1}</span><img class="top6-poster" src="${item.poster}">`;
+        topCont.appendChild(div);
     });
 }
 
 function openDetails(item) {
-    console.log("Abrindo:", item.titulo);
-    // Gatilho para index congelado
+    console.log("Ação OK/Clique em:", item.titulo || item.name);
 }
 
 function updateFocus() {
-    const items = document.querySelectorAll(".top6-item");
-    const cards = document.querySelectorAll(".menu-card");
-    
-    items.forEach((it, i) => it.classList.toggle("focused", currentFocus === "grid" && i === gridIdx));
-    cards.forEach((c, i) => c.classList.toggle("focused", currentFocus === "menu" && i === menuIdx));
-    
-    // Auto-scroll
-    const target = currentFocus === "grid" ? items[gridIdx] : cards[menuIdx];
+    const btns = document.querySelectorAll(".btn-3d");
+    const eds = document.querySelectorAll(".editor-card");
+    const grid = document.querySelectorAll(".top6-item");
+
+    btns.forEach((b, i) => b.classList.toggle("focused", currentFocus === "menu" && i === menuIdx));
+    eds.forEach((e, i) => e.classList.toggle("focused", currentFocus === "editor" && i === editorIdx));
+    grid.forEach((g, i) => g.classList.toggle("focused", currentFocus === "grid" && i === gridIdx));
+
+    const target = document.querySelector(".focused");
     if(target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 document.addEventListener("keydown", e => {
     const key = e.keyCode;
-    if (currentFocus === "grid") {
+    if (currentFocus === "menu") {
+        if (key === 39) menuIdx = (menuIdx + 1) % 6;
+        if (key === 37) menuIdx = (menuIdx - 1 + 6) % 6;
+        if (key === 40) currentFocus = "editor";
+    } 
+    else if (currentFocus === "editor") {
+        if (key === 40) { if(editorIdx === 2) currentFocus = "grid"; else editorIdx++; }
+        if (key === 38) { if(editorIdx === 0) currentFocus = "menu"; else editorIdx--; }
+        if (key === 13) openDetails(editorsChoice[editorIdx]);
+    }
+    else if (currentFocus === "grid") {
         if (key === 39) if (gridIdx % 3 !== 2) gridIdx = Math.min(5, gridIdx + 1);
         if (key === 37) if (gridIdx % 3 !== 0) gridIdx--;
-        if (key === 40) { if (gridIdx >= 3) currentFocus = "menu"; else gridIdx += 3; }
-        if (key === 38 && gridIdx >= 3) gridIdx -= 3;
+        if (key === 40) if (gridIdx < 3) gridIdx += 3;
+        if (key === 38) { if(gridIdx < 3) currentFocus = "editor"; else gridIdx -= 3; }
         if (key === 13) openDetails(top6Data[gridIdx]);
-    } 
-    else if (currentFocus === "menu") {
-        if (key === 39) menuIdx = (menuIdx + 1) % 5;
-        if (key === 37) menuIdx = (menuIdx - 1 + 5) % 5;
-        if (key === 38) currentFocus = "grid";
-        if (key === 13) console.log("Menu Card acionado");
     }
     updateFocus();
 });
