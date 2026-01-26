@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V28.4.2</title>
+<title>PaixãoFlix TV V28.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -56,23 +56,23 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 </div>
 <div id="searchBox"><input type="text" id="searchInput" placeholder="Posso te ajudar?"></div>
 <div id="menuItemsContainer">
-    <div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> Tv ao Vivo</div>
-    <div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
-    <div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
-    <div class="menu-item" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
-    <div class="menu-item kids" data-type="kids_channels"><i class="fas fa-child"></i> Tv Kids</div>
-    <div class="menu-item kids" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
-    <div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
-    <div class="menu-item" data-type="history"><i class="fas fa-history"></i> Histórico</div>
+    <div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> Tv ao Vivo</div>
+    <div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
+    <div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
+    <div class="menu-item" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
+    <div class="menu-item kids" data-type="kids_channels"><i class="fas fa-child"></i> Tv Kids</div>
+    <div class="menu-item kids" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
+    <div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
+    <div class="menu-item" data-type="history"><i class="fas fa-history"></i> Histórico</div>
 </div>
 </div>
 <div id="content">
 <div id="videoContainer"><div id="player" style="width:100%; height:100%;"></div></div>
 <div id="channelList"></div>
 <div id="posterWrapper">
-    <img id="posterPreview" loading="lazy">
-    <div id="ratingBadge"><i class="fas fa-star" style="color:#ffeb3b"></i> <span id="ratingValue">0.0</span></div>
-    <div id="yearBadge">0000</div>
+    <img id="posterPreview" loading="lazy">
+    <div id="ratingBadge"><i class="fas fa-star" style="color:#ffeb3b"></i> <span id="ratingValue">0.0</span></div>
+    <div id="yearBadge">0000</div>
 </div>
 </div>
 </div>
@@ -85,7 +85,7 @@ const posterPreview = document.getElementById("posterPreview");
 const posterWrapper = document.getElementById("posterWrapper");
 const ratingValue = document.getElementById("ratingValue");
 const ratingBadge = document.getElementById("ratingBadge");
-const yearBadge = document.getElementById("yearBadge"); 
+const yearBadge = document.getElementById("yearBadge"); 
 const searchInput = document.getElementById("searchInput");
 const menuItems = document.querySelectorAll(".menu-item");
 const currentTitleDisplay = document.getElementById("currentTitle");
@@ -100,7 +100,38 @@ const movieCats = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","
 const channelCats = ["CANAIS ABERTOS", "DESENHOS", "DISCOVERY", "EDUCAÇÃO", "ESPORTES", "FILMES", "JORNALISMO", "RELIGIOSO", "SÉRIES", "VARIEDADES", "CINEMA EM ESPANHOL", "CINEMA INGLÊS", "CINEMA FRANCÊS", "MÚSICA"];
 
 function updateClock() {
-    const d = new Date();
-    const dias = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
-    const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
-    const diaSemana = dias
+    const d = new Date();
+    const dias = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+    const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+    const diaSemana = dias[d.getDay()];
+    const dia = d.getDate();
+    const mes = meses[d.getMonth()];
+    const ano = String(d.getFullYear()).slice(-2);
+    const hora = String(d.getHours()).padStart(2, "0");
+    const min = String(d.getMinutes()).padStart(2, "0");
+    document.getElementById("clock").innerText = `${diaSemana}, ${dia} de ${mes} de ${ano}   | ${hora}:${min}`;
+}
+setInterval(updateClock, 1000); updateClock();
+
+function toggleFavorite(item) {
+    if (!item || typeof item !== 'object') return;
+    const itemName = item.titulo || item.name;
+    const index = favorites.findIndex(f => (f.titulo || f.name) === itemName);
+    if (index > -1) favorites.splice(index, 1);
+    else favorites.push(item);
+    localStorage.setItem("paixaoflix_favs", JSON.stringify(favorites));
+    renderList();
+}
+
+function addToHistory(item) {
+    const itemName = item.titulo || item.name;
+    historyList = historyList.filter(h => (h.titulo || h.name) !== itemName);
+    historyList.unshift(item);
+    if (historyList.length > 50) historyList.pop();
+    localStorage.setItem("paixaoflix_history", JSON.stringify(historyList));
+}
+
+function clearHistory() {
+    historyList = [];
+    localStorage.setItem("paixaoflix_history", JSON.stringify(historyList));
+    selected
