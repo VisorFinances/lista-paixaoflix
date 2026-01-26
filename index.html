@@ -12,17 +12,24 @@
     * { overflow: hidden; touch-action: manipulation; box-sizing: border-box; }
     body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; width: 100vw; }
     #app { display: flex; height: 100%; width: 100%; }
-    #menu { width: 300px; background: #1a1a1a; padding: 12px; border-right: 1px solid #333; z-index: 100; }
+    
+    /* Menu Lateral */
+    #menu { width: 300px; background: #1a1a1a; padding: 12px; border-right: 1px solid #333; z-index: 100; flex-shrink: 0; }
     #menuHeader img { height: 60px; width: auto; display: block; margin: 0 auto 15px; }
     #menuItemsContainer { display: flex; flex-wrap: wrap; gap: 8px; }
     .menu-item { width: 48%; padding: 12px 5px; font-size: 13px; border-radius: 8px; background: #222; border: 1px solid #333; color: #ccc; cursor: pointer; text-align: center; }
     .menu-item.active { border-color: #ff9800; background: #333; color: #fff; font-weight: bold; }
+    
+    /* Área de Conteúdo */
     #content { flex: 1; position: relative; background: #000; }
-    #videoContainer { width: 100%; height: 100%; }
+    #videoContainer { width: 100%; height: 100%; position: absolute; top:0; left:0; }
+    
+    /* Lista de Canais/Filmes */
     #channelList { position: absolute; top: 0; left: 0; width: 350px; height: 100%; background: rgba(0,0,0,0.95); display: none; z-index: 110; overflow-y: auto; border-right: 2px solid #ff9800; }
-    .channel { padding: 15px; border-bottom: 1px solid #222; cursor: pointer; font-size: 14px; }
+    .channel { padding: 15px; border-bottom: 1px solid #222; cursor: pointer; font-size: 14px; color: #eee; }
     .channel.active { background: #ff9800; color: #000; font-weight: bold; }
-    #currentTitle { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); padding: 5px 15px; border-radius: 5px; z-index: 50; }
+    
+    #currentTitle { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); padding: 5px 15px; border-radius: 5px; z-index: 50; font-size: 14px; }
 </style>
 </head>
 <body>
@@ -41,8 +48,8 @@
         </div>
     </div>
     <div id="content">
-        <div id="currentTitle">...</div>
-        <div id="videoContainer"><div id="player"></div></div>
+        <div id="currentTitle">PaixãoFlix</div>
+        <div id="videoContainer"><div id="player" style="width:100%; height:100%;"></div></div>
         <div id="channelList"></div>
     </div>
 </div>
@@ -54,28 +61,69 @@ let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, 
 
 const movieCats = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
 
-function getActiveData() {
+// --- 1. CARREGAMENTO DE ARQUIVOS CORRIGIDO ---
+async function loadAllData() {
     try {
-        switch(viewMode) {
-            case "channels": return channels;
-            case "categories": return movieCats;
-            case "series": return [...new Set(series.map(s => s.genero).filter(Boolean))];
-            case "kids_channels": return kidsChannels;
-            case "kids_movies": return kidsMovies;
-            case "kids_series": return [...new Set(kidsSeries.map(s => s.genero).filter(Boolean))];
-            case "movie_list": 
-            case "series_list":
-            case "episode_list": return filteredList;
-            default: return [];
-        }
-    } catch(e) { return []; }
+        // Carregar Canais (M3U)
+        const respCanais = await fetch("data/canais.m3u").catch(() => null);
+        if (respCanais) parseM3U(await respCanais.text(), channels);
+
+        const respKidsCanais = await fetch("data/kids_canais.m3u").catch(() => null);
+        if (respKidsCanais) parseM3U(await respKidsCanais.text(), kidsChannels);
+
+        // Carregar JSONs
+        const loadJSON = async (file) => {
+            const r = await fetch(`data/${file}`).catch(() => null);
+            return r ? await r.json() : [];
+        };
+
+        movies = (await loadJSON("filmes.json")).map(m => ({...m, type: 'movie'}));
+        series = (await loadJSON("series.json")).map(s => ({...s, type: 'serie'}));
+        kidsMovies = (await loadJSON("kids_filmes.json")).map(m => ({...m, type: 'movie'}));
+        kidsSeries = (await loadJSON("kids_series.json")).map(s => ({...s, type: 'serie'}));
+
+        console.log("Dados carregados com sucesso");
+        renderList(); 
+    } catch (e) {
+        console.error("Erro no carregamento:", e);
+    }
 }
 
+function parseM3U(text, array) {
+    let temp = null;
+    text.split("\n").forEach(line => {
+        if (line.startsWith("#EXTINF")) {
+            temp = { titulo: line.split(",").pop().trim(), type: "channel" };
+        } else if (line.startsWith("http") && temp) {
+            temp.url = line.trim();
+            array.push(temp);
+            temp = null;
+        }
+    });
+}
+
+// --- 2. FILTRAGEM DE DADOS POR MENU ---
+function getActiveData() {
+    switch(viewMode) {
+        case "channels": return channels;
+        case "categories": return movieCats;
+        case "series": return [...new Set(series.map(s => s.genero).filter(Boolean))];
+        case "kids_channels": return kidsChannels;
+        case "kids_movies": return kidsMovies;
+        case "kids_series": return [...new Set(kidsSeries.map(s => s.genero).filter(Boolean))];
+        case "movie_list": 
+        case "series_list":
+        case "episode_list": return filteredList;
+        default: return [];
+    }
+}
+
+// --- 3. RENDERIZAÇÃO E NAVEGAÇÃO ---
 function renderList() {
     const listDiv = document.getElementById("channelList");
-    listDiv.innerHTML = "";
     const data = getActiveData();
     
+    listDiv.innerHTML = "";
     if (menuFocused) { listDiv.style.display = "none"; return; }
     listDiv.style.display = "block";
 
@@ -89,29 +137,23 @@ function renderList() {
     });
 }
 
-function updateMenu() {
+function updateMenuUI() {
     const items = document.querySelectorAll(".menu-item");
     items.forEach((item, i) => {
         item.classList.toggle("active", i === menuIndex);
-        item.onclick = () => {
-            menuIndex = i;
-            viewMode = item.dataset.type;
-            menuFocused = false;
-            selectedIndex = 0;
-            renderList();
-            updateMenu();
-        };
     });
 }
 
+// Navegação por Teclado/Controle
 document.addEventListener("keydown", e => {
     const data = getActiveData();
     if (menuFocused) {
         if (e.keyCode === 40) menuIndex = Math.min(7, menuIndex + 1);
         if (e.keyCode === 38) menuIndex = Math.max(0, menuIndex - 1);
         if (e.keyCode === 39 || e.keyCode === 13) {
+            const item = document.querySelectorAll(".menu-item")[menuIndex];
+            viewMode = item.dataset.type;
             menuFocused = false;
-            viewMode = document.querySelectorAll(".menu-item")[menuIndex].dataset.type;
             selectedIndex = 0;
         }
     } else {
@@ -120,8 +162,20 @@ document.addEventListener("keydown", e => {
         if (e.keyCode === 37) menuFocused = true;
         if (e.keyCode === 13) handleAction();
     }
-    updateMenu();
+    updateMenuUI();
     renderList();
+});
+
+// Clique nos itens do menu
+document.querySelectorAll(".menu-item").forEach((item, i) => {
+    item.onclick = () => {
+        menuIndex = i;
+        viewMode = item.dataset.type;
+        menuFocused = false;
+        selectedIndex = 0;
+        updateMenuUI();
+        renderList();
+    };
 });
 
 async function handleAction() {
@@ -130,23 +184,35 @@ async function handleAction() {
     if (!item) return;
 
     if (typeof item === 'string') {
+        // Entrar em categorias (Filmes ou Séries)
         if (viewMode === "categories") {
             filteredList = movies.filter(m => (m.genero || "").includes(item));
             viewMode = "movie_list";
-        } else if (viewMode === "series") {
-            filteredList = series.filter(s => s.genero === item);
+        } else if (viewMode === "series" || viewMode === "kids_series") {
+            const base = (viewMode === "series") ? series : kidsSeries;
+            filteredList = base.filter(s => s.genero === item);
             viewMode = "series_list";
         }
         selectedIndex = 0;
     } else if (item.type === "serie") {
-        const resp = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
-        const meta = await resp.json();
-        filteredList = meta.files.filter(f => f.name.endsWith(".mp4")).map(f => ({
-            titulo: f.name,
-            url: `https://archive.org/download/${item.identificador_archive}/${f.name}`
-        }));
-        viewMode = "episode_list";
-        selectedIndex = 0;
+        // Carregar episódios do Archive.org
+        const listDiv = document.getElementById("channelList");
+        listDiv.innerHTML = "<div class='channel'>Carregando episódios...</div>";
+        try {
+            const resp = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
+            const meta = await resp.json();
+            filteredList = meta.files
+                .filter(f => f.name.endsWith(".mp4") || f.name.endsWith(".mkv"))
+                .map(f => ({
+                    titulo: f.name.split('/').pop().replace(/_/g, ' '),
+                    url: `https://archive.org/download/${item.identificador_archive}/${f.name}`,
+                    type: "episode"
+                }));
+            viewMode = "episode_list";
+            selectedIndex = 0;
+        } catch (e) {
+            alert("Erro ao carregar episódios");
+        }
     } else {
         playMedia(item);
     }
@@ -154,17 +220,25 @@ async function handleAction() {
 }
 
 function playMedia(item) {
-    const url = item.url.startsWith('http:') ? "https://proxy.paixaoflix-vip.workers.dev/?url=" + encodeURIComponent(item.url) : item.url;
+    let url = item.url || item.link;
+    if (url.startsWith('http:')) {
+        url = "https://proxy.paixaoflix-vip.workers.dev/?url=" + encodeURIComponent(url);
+    }
     document.getElementById("currentTitle").innerText = item.titulo || item.name;
+    document.getElementById("channelList").style.display = "none";
     if (player) player.destroy();
-    player = new Clappr.Player({ source: url, parentId: "#player", width: '100%', height: '100%', autoPlay: true });
+    player = new Clappr.Player({
+        source: url,
+        parentId: "#player",
+        width: '100%',
+        height: '100%',
+        autoPlay: true,
+        actualLiveTime: true,
+        stretch: 'fill'
+    });
 }
 
-window.onload = () => {
-    updateMenu();
-    fetch("data/series.json").then(r => r.json()).then(d => series = d.map(s => ({...s, type: "serie"}))).catch(e => console.log("Erro série"));
-    fetch("data/filmes.json").then(r => r.json()).then(d => movies = d).catch(e => console.log("Erro filmes"));
-};
+window.onload = loadAllData;
 </script>
 </body>
 </html>
