@@ -2,62 +2,70 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.3</title>
+<title>PaixãoFlix TV V.28.1.4</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
-    * { overflow: hidden !important; touch-action: manipulation; box-sizing: border-box; outline: none; }
-    body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; }
-    
-    #app { display: flex; height: 100vh; width: 100vw; }
+    /* REMOÇÃO TOTAL DE BARRAS DE ROLAGEM */
+    * { 
+        overflow: hidden !important; 
+        touch-action: manipulation; 
+        box-sizing: border-box; 
+        outline: none; 
+        -ms-overflow-style: none; 
+        scrollbar-width: none; 
+    }
+    *::-webkit-scrollbar { display: none !important; }
 
-    /* MENU LATERAL - BOTÕES GRANDES */
+    body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; width: 100vw; }
+    #app { display: flex; height: 100vh; width: 100vw; position: relative; }
+
+    /* MENU LATERAL */
     #menu { width: 320px; background: #0a0a0a; padding: 20px; border-right: 1px solid #222; flex-shrink: 0; z-index: 100; }
-    #menuHeader img { width: 80%; display: block; margin: 0 auto 30px; }
+    #menuHeader img { width: 85%; display: block; margin: 0 auto 30px; }
     #menuItemsContainer { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     
     .btn-3d { 
         background: #1a1a1a; color: #888; border: 1px solid #333; border-bottom: 5px solid #000;
         border-radius: 10px; font-weight: 700; cursor: pointer; text-align: center;
-        padding: 22px 5px; font-size: 14px; text-transform: uppercase; transition: 0.1s;
+        padding: 22px 5px; font-size: 14px; text-transform: uppercase;
     }
     .btn-3d.focused { border-color: #ff9800; background: #222; color: #fff; border-bottom: 5px solid #c67600; transform: scale(1.05); }
 
-    /* CONTEÚDO PRINCIPAL */
-    #content { flex: 1; position: relative; display: flex; background: #000; }
+    /* CONTEÚDO */
+    #content { flex: 1; position: relative; background: #000; display: flex; }
 
-    /* LISTA E PREVIEW */
-    #channelList { width: 250px; height: 100%; background: rgba(0,0,0,0.95); display: none; overflow-y: auto !important; border-right: 2px solid #ff9800; z-index: 10; }
-    .channel { padding: 18px; border-bottom: 1px solid #1a1a1a; font-size: 15px; cursor: pointer; }
+    /* LISTA E PREVIEW LATERAL */
+    #channelList { width: 260px; height: 100%; background: rgba(0,0,0,0.95); display: none; z-index: 10; border-right: 2px solid #ff9800; }
+    .channel { padding: 18px; border-bottom: 1px solid #1a1a1a; font-size: 15px; cursor: pointer; color: #ccc; }
     .channel.active { background: #ff9800; color: #000; font-weight: bold; }
 
-    #sidePreview { position: absolute; left: 250px; top:0; height:100%; width: 400px; display: none; align-items: center; justify-content: center; }
-    #sidePoster { width: 320px; height: 460px; border-radius: 15px; border: 4px solid #ff9800; object-fit: cover; }
+    #sidePreview { position: absolute; left: 260px; top:0; height:100%; width: calc(100% - 260px); display: none; align-items: center; justify-content: center; }
+    #sidePoster { width: 340px; height: 500px; border-radius: 15px; border: 4px solid #ff9800; object-fit: cover; }
 
-    /* TOP 6 ESTILIZADO */
-    #top6Section { width: 100%; height: 100%; padding: 40px; display: none; flex-direction: column; overflow-y: auto !important; }
+    /* TOP 6 MONUMENTAL */
+    #top6Section { width: 100%; height: 100%; padding: 40px; display: none; flex-direction: column; align-items: center; }
     #top6Title { 
-        font-size: 70px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #ff9800;
-        margin-bottom: 40px; text-transform: uppercase; text-align: center;
+        font-size: 75px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #ff9800;
+        margin-bottom: 50px; text-transform: uppercase; text-align: center; line-height: 1;
     }
-    .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 80px 40px; padding: 20px; }
-    .top6-item { position: relative; width: 220px; height: 320px; margin: 0 auto; }
+    .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 80px 60px; }
+    .top6-item { position: relative; width: 240px; height: 350px; }
     .top6-number { 
         position: absolute; left: -60px; bottom: -30px; font-size: 200px; font-weight: 900; 
-        color: #000; -webkit-text-stroke: 4px #666; z-index: 1; line-height: 1;
+        color: #000; -webkit-text-stroke: 4px #666; z-index: 1; pointer-events: none;
     }
-    .top6-item.focused .top6-number { -webkit-text-stroke: 4px #ff9800; }
-    .top6-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; position: relative; z-index: 2; border: 3px solid #333; }
+    .top6-item.focused .top6-number { -webkit-text-stroke: 4px #ff9800; color: rgba(255,152,0,0.05); }
+    .top6-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 15px; position: relative; z-index: 2; border: 3px solid #333; }
     .top6-item.focused .top6-poster { border-color: #ff9800; transform: scale(1.1); }
 
-    /* PÁGINA DE DETALHES */
-    #detailsPage { position: absolute; inset: 0; background: #000; z-index: 200; display: none; padding: 50px; flex-direction: column; }
-    #detailsPoster { width: 320px; height: 480px; border-radius: 15px; border: 4px solid #ff9800; }
-    #detailsTitle { font-size: 50px; font-weight: 900; color: #ff9800; }
-
+    /* DETALHES */
+    #detailsPage { position: absolute; inset: 0; background: #000; z-index: 200; display: none; padding: 60px; flex-direction: column; }
+    #detailsPoster { width: 340px; height: 500px; border-radius: 15px; border: 4px solid #ff9800; }
+    
     #videoContainer { position: absolute; inset: 0; z-index: 500; display: none; background: #000; }
 </style>
 </head>
@@ -91,8 +99,8 @@
             <div style="display: flex; gap: 60px;">
                 <img id="detailsPoster" src="">
                 <div id="detailsInfo">
-                    <div id="detailsTitle">NOME</div>
-                    <div id="detailsDesc" style="margin: 30px 0; font-size: 18px; color: #ccc;">Descrição do conteúdo...</div>
+                    <div id="detailsTitle" style="font-size: 50px; font-weight: 900; color: #ff9800;">NOME</div>
+                    <div id="detailsDesc" style="margin: 30px 0; font-size: 18px; color: #ccc; max-width: 600px;">Descrição do conteúdo...</div>
                     <div id="btnWatch" class="btn-3d" style="width: 300px; color: #fff;">ASSISTIR AGORA</div>
                     <div id="btnBackDetails" class="btn-3d" style="width: 200px; margin-top: 20px;">VOLTAR</div>
                 </div>
@@ -132,23 +140,15 @@ function buildTop6() {
 }
 
 function updateUI() {
-    // Menu
-    const menus = document.querySelectorAll(".btn-3d[data-type]");
-    menus.forEach((m, i) => m.classList.toggle("focused", currentFocus === "menu" && i === menuIndex));
-
-    // Listas
-    const list = document.getElementById("channelList");
-    const side = document.getElementById("sidePreview");
-    const top6 = document.getElementById("top6Section");
-
-    list.style.display = (currentFocus === "list") ? "block" : "none";
-    side.style.display = (currentFocus === "list") ? "flex" : "none";
-    top6.style.display = (currentFocus === "top6") ? "flex" : "none";
+    document.querySelectorAll(".btn-3d[data-type]").forEach((m, i) => m.classList.toggle("focused", currentFocus === "menu" && i === menuIndex));
+    
+    document.getElementById("channelList").style.display = (currentFocus === "list") ? "block" : "none";
+    document.getElementById("sidePreview").style.display = (currentFocus === "list") ? "flex" : "none";
+    document.getElementById("top6Section").style.display = (currentFocus === "top6") ? "flex" : "none";
 
     if (currentFocus === "list") renderListData();
     if (currentFocus === "top6") {
-        const t6Items = document.querySelectorAll(".top6-item");
-        t6Items.forEach((it, i) => it.classList.toggle("focused", i === selectedIndex));
+        document.querySelectorAll(".top6-item").forEach((it, i) => it.classList.toggle("focused", i === selectedIndex));
     }
 }
 
@@ -160,9 +160,10 @@ function renderListData() {
         const div = document.createElement("div");
         div.className = `channel ${i === selectedIndex ? "active" : ""}`;
         div.innerText = item.titulo || item.name || item;
+        div.onclick = () => { selectedIndex = i; if(typeof item === 'object') openDetails(item); };
         listDiv.appendChild(div);
         if (i === selectedIndex) {
-            div.scrollIntoView({ block: 'center' });
+            div.scrollIntoView({ block: 'center', behavior: 'smooth' });
             if (item.poster) document.getElementById("sidePoster").src = item.poster;
         }
     });
@@ -179,52 +180,56 @@ function getActiveData() {
 function openDetails(item) {
     currentFocus = "details";
     document.getElementById("detailsPage").style.display = "flex";
-    document.getElementById("detailsTitle").innerText = item.titulo;
+    document.getElementById("detailsTitle").innerText = item.titulo || item.name;
     document.getElementById("detailsPoster").src = item.poster;
-    document.getElementById("detailsDesc").innerText = item.desc || "Sem descrição.";
+    document.getElementById("detailsDesc").innerText = item.desc || "Sem descrição disponível.";
     updateDetailFocus();
 }
 
 function updateDetailFocus() {
-    const btnW = document.getElementById("btnWatch");
-    const btnB = document.getElementById("btnBackDetails");
-    btnW.classList.toggle("focused", detailIndex === 0);
-    btnB.classList.toggle("focused", detailIndex === 1);
+    document.getElementById("btnWatch").classList.toggle("focused", detailIndex === 0);
+    document.getElementById("btnBackDetails").classList.toggle("focused", detailIndex === 1);
 }
 
-// SISTEMA DE NAVEGAÇÃO REPARADO
+// NAVEGAÇÃO INFINITA E CORREÇÃO DE SETAS
 document.addEventListener("keydown", e => {
+    const key = e.keyCode;
+    const menus = document.querySelectorAll(".btn-3d[data-type]");
+    const data = getActiveData();
+
     if (currentFocus === "menu") {
-        if (e.keyCode === 40) menuIndex = Math.min(7, menuIndex + 1);
-        if (e.keyCode === 38) menuIndex = Math.max(0, menuIndex - 1);
-        if (e.keyCode === 39 || e.keyCode === 13) {
-            viewMode = document.querySelectorAll(".btn-3d[data-type]")[menuIndex].dataset.type;
+        if (key === 40) menuIndex = (menuIndex + 1) % menus.length; // Baixo
+        if (key === 38) menuIndex = (menuIndex - 1 + menus.length) % menus.length; // Cima
+        if (key === 39 || key === 13) { // Direita ou Enter
+            viewMode = menus[menuIndex].dataset.type;
             selectedIndex = 0;
             currentFocus = (viewMode === "top6") ? "top6" : "list";
         }
     } 
     else if (currentFocus === "list") {
-        if (e.keyCode === 40) selectedIndex++;
-        if (e.keyCode === 38) selectedIndex = Math.max(0, selectedIndex - 1);
-        if (e.keyCode === 37) currentFocus = "menu";
-        if (e.keyCode === 13) {
-            const data = getActiveData();
-            if (typeof data[selectedIndex] === 'object') openDetails(data[selectedIndex]);
-        }
+        if (key === 40) selectedIndex = (selectedIndex + 1) % data.length;
+        if (key === 38) selectedIndex = (selectedIndex - 1 + data.length) % data.length;
+        if (key === 37) currentFocus = "menu"; // Só volta se apertar esquerda
+        if (key === 13) if (typeof data[selectedIndex] === 'object') openDetails(data[selectedIndex]);
     }
     else if (currentFocus === "top6") {
-        if (e.keyCode === 39) selectedIndex = Math.min(5, selectedIndex + 1);
-        if (e.keyCode === 37) { if (selectedIndex % 3 === 0) currentFocus = "menu"; else selectedIndex--; }
-        if (e.keyCode === 40) selectedIndex = Math.min(5, selectedIndex + 3);
-        if (e.keyCode === 38) selectedIndex = Math.max(0, selectedIndex - 3);
-        if (e.keyCode === 13) openDetails(movies[selectedIndex]);
+        if (key === 39) { // Direita
+            if (selectedIndex === 2 || selectedIndex === 5) { /* trava na borda direita */ }
+            else selectedIndex++;
+        }
+        if (key === 37) { // Esquerda
+            if (selectedIndex % 3 === 0) currentFocus = "menu";
+            else selectedIndex--;
+        }
+        if (key === 40) selectedIndex = (selectedIndex + 3) % 6;
+        if (key === 38) selectedIndex = (selectedIndex - 3 + 6) % 6;
+        if (key === 13) openDetails(movies[selectedIndex]);
     }
     else if (currentFocus === "details") {
-        if (e.keyCode === 40) detailIndex = 1;
-        if (e.keyCode === 38) detailIndex = 0;
-        if (e.keyCode === 13) {
-            if (detailIndex === 1) { document.getElementById("detailsPage").style.display = "none"; currentFocus = "list"; }
-            else { /* Play Video Logic */ }
+        if (key === 40 || key === 38) detailIndex = (detailIndex === 0) ? 1 : 0;
+        if (key === 37 || (key === 13 && detailIndex === 1)) {
+            document.getElementById("detailsPage").style.display = "none";
+            currentFocus = (viewMode === "top6") ? "top6" : "list";
         }
         updateDetailFocus();
     }
