@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.12</title>
+<title>PaixãoFlix TV V.28.1.13</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -20,72 +20,81 @@
 
     /* BARRA SUPERIOR */
     #topBar { 
-        position: fixed; top: 0; width: 100%; height: 70px; 
+        position: fixed; top: 0; width: 100%; height: 75px; 
         border-bottom: 1px solid rgba(255,255,255,0.1);
         display: flex; align-items: center; justify-content: space-between; padding: 0 40px; z-index: 1000;
         background: rgba(4,7,20,0.98);
     }
-    #logoMain { height: 55px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
-    #barCounter { font-weight: 900; color: #FFCE44; letter-spacing: 1px; font-size: 15px; text-shadow: 2px 2px 4px #000; }
+    #logoMain { height: 60px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
+    #barCounter { font-weight: 900; color: #FFCE44; font-size: 16px; text-shadow: 2px 2px 4px #000; }
     #barDateTime { font-size: 14px; color: #f9f9f9; text-transform: uppercase; font-weight: 500; }
 
     /* CONTAINER COM ROLAGEM */
     #mainScroll { 
         width: 100%; height: 100vh; 
-        padding-top: 80px; overflow-y: auto !important; scroll-behavior: smooth;
+        padding-top: 85px; overflow-y: auto !important; scroll-behavior: smooth;
     }
 
-    /* CARROSSEL EDITOR'S CHOICE (ESTILO DISNEY+) */
-    #carouselContainer { width: 100%; padding: 20px 40px; position: relative; }
+    /* CARROSSEL EDITOR'S CHOICE */
+    #carouselContainer { width: 100%; padding: 20px 40px; }
     #editorSlider { 
-        width: 100%; height: 350px; border-radius: 15px; 
+        width: 100%; height: 420px; border-radius: 20px; 
         background-size: cover; background-position: center;
-        border: 3px solid rgba(255,255,255,0.1);
-        transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex; align-items: flex-end; padding: 40px;
+        border: 4px solid rgba(255,255,255,0.1);
+        transition: 0.6s ease-in-out;
+        display: flex; align-items: flex-end; padding: 50px;
+        position: relative;
     }
-    #editorSlider.focused { border-color: #f9f9f9; box-shadow: 0 0 30px rgba(255,255,255,0.2); }
-    #editorTitle { font-size: 30px; font-weight: 900; text-shadow: 3px 3px 10px #000; }
+    #editorSlider::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, #040714 10%, transparent 70%); border-radius: 16px; }
+    #editorSlider.focused { border-color: #f9f9f9; box-shadow: 0 0 40px rgba(255,255,255,0.2); transform: scale(1.01); }
+    
+    #editorInfo { position: relative; z-index: 10; }
+    #editorTitle { font-size: 38px; font-weight: 900; margin-bottom: 10px; }
+    #editorMeta { font-size: 16px; color: #FFCE44; font-weight: 500; margin-bottom: 20px; }
+    .btn-watch { background: #FFCE44; color: #000; padding: 12px 30px; border-radius: 8px; font-weight: 900; display: inline-block; }
 
-    /* MENU CARDS (MARCAS DISNEY) - ABAIXO DO CARROSSEL */
-    #menuBrands { display: flex; gap: 20px; padding: 30px 40px; justify-content: center; }
+    /* MENU CARDS COM EFEITO METÁLICO */
+    #menuBrands { display: flex; gap: 15px; padding: 40px; justify-content: center; flex-wrap: wrap; }
     .brand-card { 
-        flex: 1; height: 110px; background: linear-gradient(135deg, #1a1d29, #2a2e42);
+        width: 170px; height: 100px; background: linear-gradient(135deg, #1a1d29, #2a2e42);
         border: 2px solid #FFCE44; border-bottom: 6px solid #b38f00; border-radius: 12px;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        cursor: pointer; transition: 0.3s; color: #fff;
+        cursor: pointer; transition: 0.3s; color: #fff; position: relative; overflow: hidden;
     }
-    .brand-card i { font-size: 28px; margin-bottom: 8px; color: #FFCE44; }
-    .brand-card span { font-size: 11px; font-weight: 900; text-transform: uppercase; }
-    .brand-card.focused { transform: scale(1.1); background: #f9f9f9; color: #000; border-color: #fff; box-shadow: 0 15px 30px rgba(0,0,0,0.6); }
+    .brand-card i { font-size: 24px; margin-bottom: 5px; color: #FFCE44; }
+    .brand-card span { font-size: 10px; font-weight: 900; text-transform: uppercase; text-align: center; }
+
+    /* EFEITO BRILHO METÁLICO */
+    .brand-card.focused::before {
+        content: ""; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: shine 1.5s infinite;
+    }
+    @keyframes shine { 100% { left: 150%; } }
+    .brand-card.focused { transform: scale(1.1); background: #f9f9f9; color: #000; border-color: #fff; }
     .brand-card.focused i { color: #000; }
 
-    /* TOP 6 CENTRALIZADO */
-    #top6Section { padding: 60px 40px; text-align: center; }
-    #top6Title { font-size: 55px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #FFCE44; text-transform: uppercase; margin-bottom: 50px; }
+    /* TOP 6 */
+    #top6Section { padding: 80px 40px; text-align: center; min-height: 100vh; }
+    #top6Title { font-size: 75px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #FFCE44; text-transform: uppercase; margin-bottom: 60px; }
     
-    .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 120px 40px; }
-    .top6-item { position: relative; width: 100%; height: 450px; cursor: pointer; transition: 0.4s; }
+    .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 130px 40px; }
+    .top6-item { position: relative; width: 100%; height: 480px; cursor: pointer; transition: 0.5s; }
     
-    /* NÚMEROS COM BORDA PRETA */
     .top6-number { 
-        position: absolute; left: -45px; top: 15%; font-size: 280px; font-weight: 900; 
-        color: rgba(255,255,255,0.9); -webkit-text-stroke: 8px #000; z-index: 5; pointer-events: none;
+        position: absolute; left: -50px; top: 10%; font-size: 320px; font-weight: 900; 
+        color: rgba(255,255,255,0.9); -webkit-text-stroke: 10px #000; z-index: 5; pointer-events: none;
         paint-order: stroke fill;
     }
+    .top6-poster { width: 100%; height: 100%; object-fit: contain; border-radius: 12px; border: 2px solid rgba(255,255,255,0.1); position: relative; z-index: 2; background: #000; }
 
-    .top6-poster { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; border: 2px solid rgba(255,255,255,0.1); position: relative; z-index: 2; background: #000; }
-    .item-label { margin-top: 15px; font-weight: 700; font-size: 16px; color: #FFCE44; opacity: 0; }
-
-    /* SELETOR VERMELHO 2PX */
-    .top6-item.focused { transform: translateY(-15px) scale(1.05); }
-    .top6-item.focused .top6-poster { border: 2px solid #E50914; box-shadow: 0 0 30px rgba(229, 9, 20, 0.6); }
-    .top6-item.focused .item-label { opacity: 1; }
-    .top6-item.focused .top6-number { -webkit-text-stroke: 8px #E50914; color: #fff; }
+    .top6-item.focused { transform: translateY(-20px) scale(1.1); }
+    .top6-item.focused .top6-poster { border: 3px solid #E50914; box-shadow: 0 0 40px rgba(229, 9, 20, 0.7); }
+    .top6-item.focused .top6-number { -webkit-text-stroke: 10px #E50914; color: #fff; }
 
     /* RODAPÉ */
-    #footer { padding: 60px 40px 100px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
-    #footerText { font-style: italic; font-weight: 500; color: #888; font-size: 16px; }
+    #footer { padding: 100px 40px; text-align: center; }
+    #footerText { font-style: italic; font-weight: 500; color: #aaa; font-size: 18px; letter-spacing: 1px; }
 
     #detailsPage { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
 </style>
@@ -101,7 +110,11 @@
 <div id="mainScroll">
     <div id="carouselContainer">
         <div id="editorSlider" class="focused">
-            <div id="editorTitle">EDITOR'S CHOICE</div>
+            <div id="editorInfo">
+                <div id="editorTitle">CARREGANDO...</div>
+                <div id="editorMeta">GENERO • ANO • ★ 0.0</div>
+                <div class="btn-watch">ASSISTIR AGORA</div>
+            </div>
         </div>
     </div>
 
@@ -109,7 +122,9 @@
         <div class="brand-card" data-type="channels"><i class="fas fa-tv"></i><span>Canais</span></div>
         <div class="brand-card" data-type="categories"><i class="fas fa-film"></i><span>Cinema</span></div>
         <div class="brand-card" data-type="series"><i class="fas fa-clapperboard"></i><span>Séries</span></div>
-        <div class="brand-card" data-type="kids_movies"><i class="fas fa-child"></i><span>Kids</span></div>
+        <div class="brand-card" data-type="kids_channels"><i class="fas fa-child"></i><span>Kids Canais</span></div>
+        <div class="brand-card" data-type="kids_movies"><i class="fas fa-baby"></i><span>Kids Filmes</span></div>
+        <div class="brand-card" data-type="kids_series"><i class="fas fa-robot"></i><span>Kids Séries</span></div>
         <div class="brand-card" data-type="fav"><i class="fas fa-heart"></i><span>Favoritos</span></div>
     </div>
 
@@ -122,6 +137,8 @@
         <div id="footerText">PaixãoFlix, transformando momentos de lazer em lembranças felizes!</div>
     </div>
 </div>
+
+<div id="detailsPage"></div>
 
 <script>
 let movies = [], series = [], kidsMovies = [], kidsSeries = [];
@@ -138,7 +155,6 @@ async function loadData() {
     const all = [...movies, ...series, ...kidsMovies, ...kidsSeries];
     document.getElementById("totalItems").innerText = all.length;
 
-    // Carrossel Dinâmico
     editorsChoice = all.sort(() => 0.5 - Math.random()).slice(0, 5);
     top6Data = all.sort(() => 0.5 - Math.random()).slice(0, 6);
     
@@ -151,12 +167,13 @@ function startCarousel() {
     const update = () => {
         const item = editorsChoice[edIdx];
         const slider = document.getElementById("editorSlider");
-        slider.style.backgroundImage = `linear-gradient(to top, #040714, transparent), url(${item.poster})`;
+        slider.style.backgroundImage = `url(${item.poster})`;
         document.getElementById("editorTitle").innerText = item.titulo || item.name;
+        document.getElementById("editorMeta").innerText = `${item.genero || 'Geral'} • ${item.year || '2026'} • ★ ${item.rating || '8.5'}`;
         edIdx = (edIdx + 1) % editorsChoice.length;
     };
     update();
-    setInterval(update, 5000);
+    setInterval(update, 6000);
 }
 
 function startClock() {
@@ -166,8 +183,7 @@ function startClock() {
         const hora = now.toLocaleTimeString('pt-BR', { hour12: false });
         document.getElementById("barDateTime").innerText = `${data} | ${hora}`;
     };
-    setInterval(update, 1000);
-    update();
+    setInterval(update, 1000); update();
 }
 
 function renderTop6() {
@@ -177,17 +193,13 @@ function renderTop6() {
         const div = document.createElement("div");
         div.className = "top6-item";
         div.onclick = () => openDetails(item);
-        div.innerHTML = `
-            <span class="top6-number">${i+1}</span>
-            <img class="top6-poster" src="${item.poster}">
-            <div class="item-label">${item.titulo || item.name}</div>
-        `;
+        div.innerHTML = `<span class="top6-number">${i+1}</span><img class="top6-poster" src="${item.poster}">`;
         cont.appendChild(div);
     });
 }
 
 function openDetails(item) {
-    console.log("Abrindo detalhes de:", item.titulo);
+    console.log("Abrindo:", item.titulo);
 }
 
 function updateFocus() {
@@ -210,15 +222,14 @@ document.addEventListener("keydown", e => {
         if (key === 13) openDetails(editorsChoice[edIdx === 0 ? 4 : edIdx-1]);
     } 
     else if (currentFocus === "menu") {
-        if (key === 39) menuIdx = (menuIdx + 1) % 5;
-        if (key === 37) menuIdx = (menuIdx - 1 + 5) % 5;
+        if (key === 39) menuIdx = (menuIdx + 1) % 7;
+        if (key === 37) menuIdx = (menuIdx - 1 + 7) % 7;
         if (key === 40) currentFocus = "grid";
         if (key === 38) currentFocus = "editor";
     }
     else if (currentFocus === "grid") {
         if (key === 39) if (gridIdx % 3 !== 2) gridIdx = Math.min(5, gridIdx + 1);
         if (key === 37) if (gridIdx % 3 !== 0) gridIdx--;
-        if (key === 40) console.log("Fim da página");
         if (key === 38) { if(gridIdx < 3) currentFocus = "menu"; else gridIdx -= 3; }
         if (key === 13) openDetails(top6Data[gridIdx]);
     }
