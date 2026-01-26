@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V28.0</title>
+<title>PaixãoFlix TV V28.0.8</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -178,59 +178,5 @@ function hidePoster() { posterWrapper.style.display = "none"; posterPreview.src 
 function renderList() {
     channelList.innerHTML = "";
     let data = getActiveData();
-    let currentCat = "";
-
-    if (viewMode === "history") {
-        const btn = document.createElement("button");
-        btn.className = `btn-clear ${selectedIndex === 0 ? "active" : ""}`;
-        btn.innerHTML = '<i class="fas fa-trash"></i> LIMPAR HISTÓRICO';
-        btn.onclick = clearHistory;
-        channelList.appendChild(btn);
-    }
-
-    data.forEach((item, i) => {
-        let displayIdx = (viewMode === "history") ? i + 1 : i;
-
-        if(viewMode === "channels" && item.titulo) {
-            let cat = channelCats.find(c => item.titulo.toUpperCase().startsWith(c));
-            if(cat && cat !== currentCat) {
-                const head = document.createElement("div");
-                head.className = "channel cat-header"; head.innerHTML = `<span>${cat}</span>`;
-                channelList.appendChild(head);
-                currentCat = cat;
-            }
-        }
-
-        const div = document.createElement("div");
-        div.className = `channel ${displayIdx === selectedIndex ? "active" : ""}`;
-        const label = (typeof item === 'string') ? item : (item.titulo || item.name || "Sem título");
-        const logo = item.logo || "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png";
-        const isFav = typeof item === 'object' && favorites.some(f => (f.titulo || f.name) === label);
-        
-        div.innerHTML = `
-            ${typeof item === 'object' && viewMode.includes("channels") ? `<img src="${logo}" onerror="this.src='https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png'">` : ''}
-            <span>${label}</span> 
-            ${typeof item === 'object' ? `<i class="fa-star ${isFav ? 'fas' : 'far'}" style="color:${isFav ? '#ffeb3b' : '#666'}"></i>` : ''}`;
-        
-        div.onclick = () => { selectedIndex = displayIdx; handleAction(); };
-        channelList.appendChild(div);
-        if (displayIdx === selectedIndex && !menuFocused) div.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-
-    const cur = (viewMode === "history" && selectedIndex > 0) ? data[selectedIndex-1] : data[selectedIndex];
-    if (!menuFocused && channelList.style.display !== "none" && selectedIndex !== -1 && cur && typeof cur === 'object' && cur.poster) { 
-        posterPreview.src = cur.poster; posterWrapper.style.display = "block";
-        ratingBadge.style.display = (cur.rating || cur.vote_average) ? "flex" : "none";
-        ratingValue.innerText = cur.rating || cur.vote_average || "0.0";
-        yearBadge.innerText = cur.year || "";
-        yearBadge.style.display = cur.year ? "block" : "none";
-    } else { hidePoster(); }
-}
-
-function getActiveData() {
-    if (viewMode === "search") return filteredList;
-    if (viewMode === "categories") return movieCats;
-    if (viewMode === "series") return [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
-    if (viewMode === "channels") return channels;
-    if (viewMode === "kids_channels") return kidsChannels;
-    if (viewMode === "kids_movies")
+    if (!data) return; // Segurança contra travamento
+    let currentCat
