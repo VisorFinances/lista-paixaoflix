@@ -56,23 +56,23 @@ html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 
 </div>
 <div id="searchBox"><input type="text" id="searchInput" placeholder="Posso te ajudar?"></div>
 <div id="menuItemsContainer">
-    <div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> Tv ao Vivo</div>
-    <div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
-    <div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
-    <div class="menu-item" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
-    <div class="menu-item kids" data-type="kids_channels"><i class="fas fa-child"></i> Tv Kids</div>
-    <div class="menu-item kids" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
-    <div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
-    <div class="menu-item" data-type="history"><i class="fas fa-history"></i> Histórico</div>
+    <div class="menu-item active" data-type="channels"><i class="fas fa-tv"></i> Tv ao Vivo</div>
+    <div class="menu-item" data-type="categories"><i class="fas fa-film"></i> Cinema</div>
+    <div class="menu-item" data-type="series"><i class="fas fa-clapperboard"></i> Séries</div>
+    <div class="menu-item" data-type="fav"><i class="fas fa-star" style="color:#ffeb3b"></i> Favoritos</div>
+    <div class="menu-item kids" data-type="kids_channels"><i class="fas fa-child"></i> Tv Kids</div>
+    <div class="menu-item kids" data-type="kids_movies"><i class="fas fa-icons"></i> Filmes Kids</div>
+    <div class="menu-item kids" data-type="kids_series"><i class="fas fa-robot"></i> Séries Kids</div>
+    <div class="menu-item" data-type="history"><i class="fas fa-history"></i> Histórico</div>
 </div>
 </div>
 <div id="content">
 <div id="videoContainer"><div id="player" style="width:100%; height:100%;"></div></div>
 <div id="channelList"></div>
 <div id="posterWrapper">
-    <img id="posterPreview" loading="lazy">
-    <div id="ratingBadge"><i class="fas fa-star" style="color:#ffeb3b"></i> <span id="ratingValue">0.0</span></div>
-    <div id="yearBadge">0000</div>
+    <img id="posterPreview" loading="lazy">
+    <div id="ratingBadge"><i class="fas fa-star" style="color:#ffeb3b"></i> <span id="ratingValue">0.0</span></div>
+    <div id="yearBadge">0000</div>
 </div>
 </div>
 </div>
@@ -85,7 +85,7 @@ const posterPreview = document.getElementById("posterPreview");
 const posterWrapper = document.getElementById("posterWrapper");
 const ratingValue = document.getElementById("ratingValue");
 const ratingBadge = document.getElementById("ratingBadge");
-const yearBadge = document.getElementById("yearBadge"); 
+const yearBadge = document.getElementById("yearBadge"); 
 const searchInput = document.getElementById("searchInput");
 const menuItems = document.querySelectorAll(".menu-item");
 const currentTitleDisplay = document.getElementById("currentTitle");
@@ -100,38 +100,137 @@ const movieCats = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","
 const channelCats = ["CANAIS ABERTOS", "DESENHOS", "DISCOVERY", "EDUCAÇÃO", "ESPORTES", "FILMES", "JORNALISMO", "RELIGIOSO", "SÉRIES", "VARIEDADES", "CINEMA EM ESPANHOL", "CINEMA INGLÊS", "CINEMA FRANCÊS", "MÚSICA"];
 
 function updateClock() {
-    const d = new Date();
-    const dias = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
-    const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
-    const diaSemana = dias[d.getDay()];
-    const dia = d.getDate();
-    const mes = meses[d.getMonth()];
-    const ano = String(d.getFullYear()).slice(-2);
-    const hora = String(d.getHours()).padStart(2, "0");
-    const min = String(d.getMinutes()).padStart(2, "0");
-    document.getElementById("clock").innerText = `${diaSemana}, ${dia} de ${mes} de ${ano}   | ${hora}:${min}`;
+    const d = new Date();
+    const dias = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+    const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+    const diaSemana = dias[d.getDay()];
+    const dia = d.getDate();
+    const mes = meses[d.getMonth()];
+    const ano = String(d.getFullYear()).slice(-2);
+    const hora = String(d.getHours()).padStart(2, "0");
+    const min = String(d.getMinutes()).padStart(2, "0");
+    document.getElementById("clock").innerText = `${diaSemana}, ${dia} de ${mes} de ${ano}   | ${hora}:${min}`;
 }
 setInterval(updateClock, 1000); updateClock();
 
 function toggleFavorite(item) {
-    if (!item || typeof item !== 'object') return;
-    const itemName = item.titulo || item.name;
-    const index = favorites.findIndex(f => (f.titulo || f.name) === itemName);
-    if (index > -1) favorites.splice(index, 1);
-    else favorites.push(item);
-    localStorage.setItem("paixaoflix_favs", JSON.stringify(favorites));
-    renderList();
+    if (!item || typeof item !== 'object') return;
+    const itemName = item.titulo || item.name;
+    const index = favorites.findIndex(f => (f.titulo || f.name) === itemName);
+    if (index > -1) favorites.splice(index, 1);
+    else favorites.push(item);
+    localStorage.setItem("paixaoflix_favs", JSON.stringify(favorites));
+    renderList();
 }
 
 function addToHistory(item) {
-    const itemName = item.titulo || item.name;
-    historyList = historyList.filter(h => (h.titulo || h.name) !== itemName);
-    historyList.unshift(item);
-    if (historyList.length > 50) historyList.pop();
-    localStorage.setItem("paixaoflix_history", JSON.stringify(historyList));
+    const itemName = item.titulo || item.name;
+    historyList = historyList.filter(h => (h.titulo || h.name) !== itemName);
+    historyList.unshift(item);
+    if (historyList.length > 50) historyList.pop();
+    localStorage.setItem("paixaoflix_history", JSON.stringify(historyList));
 }
 
 function clearHistory() {
-    historyList = [];
-    localStorage.setItem("paixaoflix_history", JSON.stringify(historyList));
-    selected
+    historyList = [];
+    localStorage.setItem("paixaoflix_history", JSON.stringify(historyList));
+    selectedIndex = 0; renderList();
+}
+
+function playMedia(item) {
+    if (!item || (!item.url && !item.link)) return;
+    addToHistory(item);
+    let url = item.url || item.link;
+    if (url.startsWith('http:')) { url = PROXY_URL + encodeURIComponent(url); }
+    currentTitleDisplay.innerText = item.titulo || item.name;
+    channelList.style.display = "none"; hidePoster();
+    if (player) { player.destroy(); }
+    let options = { 
+        source: url, parentId: "#player", width: '100%', height: '100%', 
+        autoPlay: true, actualLiveTime: true, stretch: 'fill', preload: 'auto',
+        playback: { hlsjsConfig: { 
+            enableWorker: true, 
+            recoverMediaError: true,
+            maxBufferLength: 10,
+            maxMaxBufferLength: 20,
+            startLevel: -1,
+            liveSyncDurationCount: 3
+        } },
+        events: {
+            onTimeUpdate: (e) => {
+                if(item.type !== "channel") {
+                    playbackPositions[item.titulo || item.name] = e.current;
+                    localStorage.setItem("paixaoflix_pos", JSON.stringify(playbackPositions));
+                }
+            },
+            onError: (e) => { console.log("Erro no Player, ignorando..."); }
+        }
+    };
+    player = new Clappr.Player(options);
+    if(item.type !== "channel" && playbackPositions[item.titulo || item.name]) {
+        const savedPos = playbackPositions[item.titulo || item.name];
+        if(confirm("Deseja continuar de onde parou?")) { player.seek(savedPos); }
+    }
+}
+
+function hidePoster() { posterWrapper.style.display = "none"; posterPreview.src = ""; }
+
+function renderList() {
+    channelList.innerHTML = "";
+    let data = getActiveData();
+    let currentCat = "";
+
+    if (viewMode === "history") {
+        const btn = document.createElement("button");
+        btn.className = `btn-clear ${selectedIndex === 0 ? "active" : ""}`;
+        btn.innerHTML = '<i class="fas fa-trash"></i> LIMPAR HISTÓRICO';
+        btn.onclick = clearHistory;
+        channelList.appendChild(btn);
+    }
+
+    data.forEach((item, i) => {
+        let displayIdx = (viewMode === "history") ? i + 1 : i;
+
+        if(viewMode === "channels" && item.titulo) {
+            let cat = channelCats.find(c => item.titulo.toUpperCase().startsWith(c));
+            if(cat && cat !== currentCat) {
+                const head = document.createElement("div");
+                head.className = "channel cat-header"; head.innerHTML = `<span>${cat}</span>`;
+                channelList.appendChild(head);
+                currentCat = cat;
+            }
+        }
+
+        const div = document.createElement("div");
+        div.className = `channel ${displayIdx === selectedIndex ? "active" : ""}`;
+        const label = (typeof item === 'string') ? item : (item.titulo || item.name || "Sem título");
+        const logo = item.logo || "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png";
+        const isFav = typeof item === 'object' && favorites.some(f => (f.titulo || f.name) === label);
+        
+        div.innerHTML = `
+            ${typeof item === 'object' && viewMode.includes("channels") ? `<img src="${logo}" onerror="this.src='https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png'">` : ''}
+            <span>${label}</span> 
+            ${typeof item === 'object' ? `<i class="fa-star ${isFav ? 'fas' : 'far'}" style="color:${isFav ? '#ffeb3b' : '#666'}"></i>` : ''}`;
+        
+        div.onclick = () => { selectedIndex = displayIdx; handleAction(); };
+        channelList.appendChild(div);
+        if (displayIdx === selectedIndex && !menuFocused) div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    const cur = (viewMode === "history" && selectedIndex > 0) ? data[selectedIndex-1] : data[selectedIndex];
+    if (!menuFocused && channelList.style.display !== "none" && selectedIndex !== -1 && cur && typeof cur === 'object' && cur.poster) { 
+        posterPreview.src = cur.poster; posterWrapper.style.display = "block";
+        ratingBadge.style.display = (cur.rating || cur.vote_average) ? "flex" : "none";
+        ratingValue.innerText = cur.rating || cur.vote_average || "0.0";
+        yearBadge.innerText = cur.year || "";
+        yearBadge.style.display = cur.year ? "block" : "none";
+    } else { hidePoster(); }
+}
+
+function getActiveData() {
+    if (viewMode === "search") return filteredList;
+    if (viewMode === "categories") return movieCats;
+    if (viewMode === "series") return [...new Set(series.map(s => s.genero?.toUpperCase()).filter(Boolean))];
+    if (viewMode === "channels") return channels;
+    if (viewMode === "kids_channels") return kidsChannels;
+    if (viewMode === "kids_movies")
