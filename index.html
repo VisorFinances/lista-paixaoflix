@@ -2,73 +2,63 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.2</title>
+<title>PaixãoFlix TV V.28.1.3</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
-    * { overflow: hidden !important; touch-action: manipulation; box-sizing: border-box; -ms-overflow-style: none; scrollbar-width: none; }
-    *::-webkit-scrollbar { display: none !important; }
-
-    body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; width: 100vw; }
-    #app { display: flex; height: 100%; width: 100%; position: relative; }
+    * { overflow: hidden !important; touch-action: manipulation; box-sizing: border-box; outline: none; }
+    body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; }
     
-    /* BOTÃO 3D PADRÃO */
+    #app { display: flex; height: 100vh; width: 100vw; }
+
+    /* MENU LATERAL - BOTÕES GRANDES */
+    #menu { width: 320px; background: #0a0a0a; padding: 20px; border-right: 1px solid #222; flex-shrink: 0; z-index: 100; }
+    #menuHeader img { width: 80%; display: block; margin: 0 auto 30px; }
+    #menuItemsContainer { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    
     .btn-3d { 
-        background: #222; color: #888; border: 1px solid #333; border-bottom: 4px solid #000;
-        border-radius: 8px; font-weight: 700; cursor: pointer; text-align: center;
+        background: #1a1a1a; color: #888; border: 1px solid #333; border-bottom: 5px solid #000;
+        border-radius: 10px; font-weight: 700; cursor: pointer; text-align: center;
+        padding: 22px 5px; font-size: 14px; text-transform: uppercase; transition: 0.1s;
     }
-    .btn-3d.focused { border-color: #ff9800; background: #333; color: #fff; border-bottom: 4px solid #c67600; transform: translateY(-2px); }
-    .btn-3d.active { background: #ff9800; color: #000; border-bottom: 4px solid #a36100; }
+    .btn-3d.focused { border-color: #ff9800; background: #222; color: #fff; border-bottom: 5px solid #c67600; transform: scale(1.05); }
 
-    /* MENU LATERAL VOLTADO AO TAMANHO GRANDE */
-    #menu { width: 300px; background: #0a0a0a; padding: 15px; border-right: 1px solid #222; z-index: 100; flex-shrink: 0; }
-    #menuHeader img { height: 70px; width: auto; display: block; margin: 0 auto 25px; }
-    #menuItemsContainer { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .menu-item { padding: 20px 5px; font-size: 13px; text-transform: uppercase; }
+    /* CONTEÚDO PRINCIPAL */
+    #content { flex: 1; position: relative; display: flex; background: #000; }
 
-    /* LISTA E PREVIEW LATERAL (RESTAURADO) */
-    #content { flex: 1; position: relative; background: #000; display: flex; }
-    #channelList { width: 220px; height: 100%; background: rgba(0,0,0,0.95); display: none; z-index: 110; border-right: 2px solid #ff9800; overflow-y: auto !important; }
-    .channel { padding: 15px; border-bottom: 1px solid #1a1a1a; cursor: pointer; font-size: 14px; word-wrap: break-word; white-space: normal; }
-    .channel.active { background: #ff9800; color: #000; font-weight: 700; }
+    /* LISTA E PREVIEW */
+    #channelList { width: 250px; height: 100%; background: rgba(0,0,0,0.95); display: none; overflow-y: auto !important; border-right: 2px solid #ff9800; z-index: 10; }
+    .channel { padding: 18px; border-bottom: 1px solid #1a1a1a; font-size: 15px; cursor: pointer; }
+    .channel.active { background: #ff9800; color: #000; font-weight: bold; }
 
-    #sidePreview { 
-        position: absolute; left: 220px; top: 0; height: 100%; width: 300px; 
-        z-index: 115; display: none; align-items: center; justify-content: center; padding-left: 15px;
+    #sidePreview { position: absolute; left: 250px; top:0; height:100%; width: 400px; display: none; align-items: center; justify-content: center; }
+    #sidePoster { width: 320px; height: 460px; border-radius: 15px; border: 4px solid #ff9800; object-fit: cover; }
+
+    /* TOP 6 ESTILIZADO */
+    #top6Section { width: 100%; height: 100%; padding: 40px; display: none; flex-direction: column; overflow-y: auto !important; }
+    #top6Title { 
+        font-size: 70px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #ff9800;
+        margin-bottom: 40px; text-transform: uppercase; text-align: center;
     }
-    #sidePoster { width: 260px; height: 380px; border-radius: 10px; border: 3px solid #ff9800; object-fit: cover; }
-
-    /* PÁGINA DE DETALHES (AJUSTADA) */
-    #detailsPage { 
-        position: absolute; top:0; left:0; width: 100%; height: 100%; 
-        background: linear-gradient(to right, #000 40%, rgba(0,0,0,0.6)), var(--bg-img);
-        background-size: cover; background-position: center;
-        z-index: 200; display: none; flex-direction: column; padding: 40px;
-    }
-    #detailsPoster { width: 300px; height: 450px; border-radius: 15px; border: 4px solid #ff9800; object-fit: cover; }
-    #detailsTitle { font-size: 40px; font-weight: 900; color: #ff9800; margin-bottom: 10px; line-height: 1.1; }
-    #detailsDesc { font-size: 16px; color: #eee; line-height: 1.5; margin: 20px 0; max-height: 150px; overflow: hidden; }
-
-    /* TOP 6 COM NÚMEROS GIGANTES */
-    #top6Section { padding: 20px; display: none; z-index: 105; width: 100%; background: #000; }
-    .top6-wrapper { display: flex; gap: 40px; padding: 40px 20px; }
-    .top6-item { position: relative; width: 180px; height: 260px; flex-shrink: 0; }
+    .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 80px 40px; padding: 20px; }
+    .top6-item { position: relative; width: 220px; height: 320px; margin: 0 auto; }
     .top6-number { 
-        position: absolute; left: -45px; bottom: -20px; font-size: 160px; font-weight: 900; 
-        color: #000; -webkit-text-stroke: 3px #555; z-index: 1; 
+        position: absolute; left: -60px; bottom: -30px; font-size: 200px; font-weight: 900; 
+        color: #000; -webkit-text-stroke: 4px #666; z-index: 1; line-height: 1;
     }
-    .top6-item.focused .top6-number { -webkit-text-stroke: 3px #ff9800; }
-    .top6-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; position: relative; z-index: 2; border: 2px solid #333; }
+    .top6-item.focused .top6-number { -webkit-text-stroke: 4px #ff9800; }
+    .top6-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; position: relative; z-index: 2; border: 3px solid #333; }
+    .top6-item.focused .top6-poster { border-color: #ff9800; transform: scale(1.1); }
 
-    /* INDICAÇÕES MAIORES */
-    #recommendations { margin-top: auto; }
-    .rec-card { width: 220px; height: 125px; border-radius: 8px; border: 2px solid #333; object-fit: cover; }
-    .rec-card.focused { border-color: #ff9800; transform: scale(1.05); }
+    /* PÁGINA DE DETALHES */
+    #detailsPage { position: absolute; inset: 0; background: #000; z-index: 200; display: none; padding: 50px; flex-direction: column; }
+    #detailsPoster { width: 320px; height: 480px; border-radius: 15px; border: 4px solid #ff9800; }
+    #detailsTitle { font-size: 50px; font-weight: 900; color: #ff9800; }
 
-    #videoContainer { position: absolute; top:0; left:0; width: 100%; height: 100%; z-index: 500; display: none; background: #000; }
+    #videoContainer { position: absolute; inset: 0; z-index: 500; display: none; background: #000; }
 </style>
 </head>
 <body>
@@ -77,14 +67,14 @@
     <div id="menu">
         <div id="menuHeader"><img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png"></div>
         <div id="menuItemsContainer">
-            <div class="menu-item btn-3d focused" data-type="channels">Canais</div>
-            <div class="menu-item btn-3d" data-type="categories">Cinema</div>
-            <div class="menu-item btn-3d" data-type="series">Séries</div>
-            <div class="menu-item btn-3d" data-type="kids_channels">Kids TV</div>
-            <div class="menu-item btn-3d" data-type="kids_movies">Kids Filmes</div>
-            <div class="menu-item btn-3d" data-type="kids_series">Kids Séries</div>
-            <div class="menu-item btn-3d" data-type="top6">Top 6</div>
-            <div class="menu-item btn-3d" data-type="fav">Favoritos</div>
+            <div class="btn-3d focused" data-type="channels">Canais</div>
+            <div class="btn-3d" data-type="categories">Cinema</div>
+            <div class="btn-3d" data-type="series">Séries</div>
+            <div class="btn-3d" data-type="kids_channels">Kids TV</div>
+            <div class="btn-3d" data-type="kids_movies">Kids Filmes</div>
+            <div class="btn-3d" data-type="kids_series">Kids Séries</div>
+            <div class="btn-3d" data-type="top6">Top 6</div>
+            <div class="btn-3d" data-type="fav">Favoritos</div>
         </div>
     </div>
 
@@ -93,28 +83,19 @@
         <div id="sidePreview"><img id="sidePoster" src=""></div>
 
         <div id="top6Section">
-            <h2 style="color:#ff9800; margin-left:20px;">TOP 6 DO PAIXÃOFLIX</h2>
-            <div class="top6-wrapper" id="top6List"></div>
+            <div id="top6Title">Top 6 PaixãoFlix</div>
+            <div class="top6-grid" id="top6List"></div>
         </div>
-        
+
         <div id="detailsPage">
-            <div style="display: flex; gap: 50px; align-items: flex-start;">
+            <div style="display: flex; gap: 60px;">
                 <img id="detailsPoster" src="">
                 <div id="detailsInfo">
-                    <div id="detailsTitle">TÍTULO COMPLETO</div>
-                    <div style="color: #FFCE44; font-weight: bold; font-size: 22px;">
-                        <i class="fas fa-star"></i> <span id="detRating">0.0</span> 
-                        <span style="color: #aaa; margin-left: 20px;" id="detYear">2026</span>
-                    </div>
-                    <div id="detailsDesc">Descrição...</div>
-                    <div id="btnWatch" class="btn-3d" style="width: 280px; padding: 20px; font-size: 18px; margin-bottom: 20px;">ASSISTIR AGORA</div>
-                    <div id="episodeGrid" style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px;"></div>
-                    <div id="btnBack" class="btn-3d" style="width: 160px; padding: 12px; margin-top: 30px;">VOLTAR</div>
+                    <div id="detailsTitle">NOME</div>
+                    <div id="detailsDesc" style="margin: 30px 0; font-size: 18px; color: #ccc;">Descrição do conteúdo...</div>
+                    <div id="btnWatch" class="btn-3d" style="width: 300px; color: #fff;">ASSISTIR AGORA</div>
+                    <div id="btnBackDetails" class="btn-3d" style="width: 200px; margin-top: 20px;">VOLTAR</div>
                 </div>
-            </div>
-            <div id="recommendations">
-                <h3 style="color: #E50914;">INDICAÇÕES QUE MUDAM A CADA 48H</h3>
-                <div id="recGrid" style="display: flex; gap: 20px;"></div>
             </div>
         </div>
 
@@ -124,10 +105,9 @@
 
 <script>
 let player;
-let channels = [], movies = [], series = [], kidsMovies = [], kidsSeries = [];
+let movies = [], series = [], kidsMovies = [], kidsSeries = [];
 let currentFocus = "menu", menuIndex = 0, selectedIndex = 0, viewMode = "channels";
-let detailIndex = 0, epIndex = 0, recIndex = 0;
-let currentItem = null;
+let detailIndex = 0; 
 
 async function loadData() {
     const fetchJSON = async (url) => { try { const r = await fetch(url); return await r.json(); } catch(e) { return []; } };
@@ -139,121 +119,117 @@ async function loadData() {
 }
 
 function buildTop6() {
-    const container = document.getElementById("top6List");
+    const grid = document.getElementById("top6List");
     const top6 = [...movies].slice(0, 6);
-    container.innerHTML = "";
+    grid.innerHTML = "";
     top6.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = "top6-item";
         div.innerHTML = `<span class="top6-number">${i+1}</span><img class="top6-poster" src="${item.poster}">`;
         div.onclick = () => openDetails(item);
-        container.appendChild(div);
-    });
-}
-
-function openDetails(item) {
-    currentItem = item;
-    currentFocus = "details";
-    detailIndex = 0; epIndex = 0;
-    const page = document.getElementById("detailsPage");
-    page.style.display = "flex";
-    page.style.setProperty('--bg-img', `url(${item.poster})`);
-    
-    document.getElementById("detailsPoster").src = item.poster;
-    document.getElementById("detailsTitle").innerText = item.titulo;
-    document.getElementById("detRating").innerText = item.rating;
-    document.getElementById("detYear").innerText = item.year;
-    document.getElementById("detailsDesc").innerText = item.desc;
-
-    if (item.type === "serie") {
-        document.getElementById("btnWatch").style.display = "none";
-        loadEpisodes(item);
-    } else {
-        document.getElementById("btnWatch").style.display = "block";
-        document.getElementById("episodeGrid").innerHTML = "";
-    }
-    load48hRecommendations();
-    updateDetailSelection();
-}
-
-function load48hRecommendations() {
-    // Lógica 48h: usa a data atual dividida por 2 para manter as mesmas indicações por 48h
-    const seed = Math.floor(Date.now() / (1000 * 60 * 60 * 48));
-    const all = [...movies, ...series, ...kidsMovies, ...kidsSeries];
-    const grid = document.getElementById("recGrid");
-    grid.innerHTML = "";
-    for(let i=0; i<4; i++) {
-        const idx = (seed + i * 7) % all.length;
-        const r = all[idx];
-        const img = document.createElement("img");
-        img.className = "rec-card";
-        img.src = r.poster;
-        img.onclick = () => openDetails(r);
-        grid.appendChild(img);
-    }
-}
-
-// CONTROLE TOTAL (RESTAURADO E REFORÇADO)
-document.addEventListener("keydown", e => {
-    const items = document.querySelectorAll(".menu-item");
-    if (currentFocus === "menu") {
-        if (e.keyCode === 40) menuIndex = Math.min(7, menuIndex + 1);
-        if (e.keyCode === 38) menuIndex = Math.max(0, menuIndex - 1);
-        if (e.keyCode === 39 || e.keyCode === 13) {
-            viewMode = items[menuIndex].dataset.type;
-            if (viewMode === "top6") { currentFocus = "top6"; document.getElementById("top6Section").style.display = "block"; }
-            else { currentFocus = "list"; renderList(); }
-        }
-    } 
-    else if (currentFocus === "list") {
-        if (e.keyCode === 40) selectedIndex++;
-        if (e.keyCode === 38) selectedIndex--;
-        if (e.keyCode === 37) { currentFocus = "menu"; document.getElementById("sidePreview").style.display = "none"; }
-        if (e.keyCode === 13) handleListAction();
-    }
-    else if (currentFocus === "details") {
-        if (e.keyCode === 40) detailIndex = Math.min(2, detailIndex + 1);
-        if (e.keyCode === 38) detailIndex = Math.max(0, detailIndex - 1);
-        if (e.keyCode === 13) handleDetailAction();
-        if (e.keyCode === 37 && detailIndex !== 2) { document.getElementById("detailsPage").style.display = "none"; currentFocus = "list"; }
-    }
-    updateUI();
-});
-
-function renderList() {
-    const listDiv = document.getElementById("channelList");
-    const preview = document.getElementById("sidePreview");
-    listDiv.style.display = "block";
-    listDiv.innerHTML = "";
-    const data = getActiveData();
-    data.forEach((item, i) => {
-        const div = document.createElement("div");
-        div.className = `channel ${i === selectedIndex ? "active" : ""}`;
-        div.innerText = item.titulo || item.name || item;
-        div.onclick = () => { selectedIndex = i; handleListAction(); };
-        listDiv.appendChild(div);
-        if (i === selectedIndex) {
-            div.scrollIntoView({ block: 'center' });
-            if (item.poster) { preview.style.display = "flex"; document.getElementById("sidePoster").src = item.poster; }
-        }
+        grid.appendChild(div);
     });
 }
 
 function updateUI() {
-    document.querySelectorAll(".menu-item").forEach((it, i) => it.classList.toggle("focused", i === menuIndex && currentFocus === "menu"));
-    if (currentFocus === "list") renderList();
-    if (currentFocus === "details") updateDetailSelection();
+    // Menu
+    const menus = document.querySelectorAll(".btn-3d[data-type]");
+    menus.forEach((m, i) => m.classList.toggle("focused", currentFocus === "menu" && i === menuIndex));
+
+    // Listas
+    const list = document.getElementById("channelList");
+    const side = document.getElementById("sidePreview");
+    const top6 = document.getElementById("top6Section");
+
+    list.style.display = (currentFocus === "list") ? "block" : "none";
+    side.style.display = (currentFocus === "list") ? "flex" : "none";
+    top6.style.display = (currentFocus === "top6") ? "flex" : "none";
+
+    if (currentFocus === "list") renderListData();
+    if (currentFocus === "top6") {
+        const t6Items = document.querySelectorAll(".top6-item");
+        t6Items.forEach((it, i) => it.classList.toggle("focused", i === selectedIndex));
+    }
 }
 
-function updateDetailSelection() {
-    const recs = document.querySelectorAll(".rec-card");
-    const btnW = document.getElementById("btnWatch");
-    const btnB = document.getElementById("btnBack");
-    [btnW, btnB, ...recs].forEach(el => el.classList.remove("focused"));
-    if (detailIndex === 0) btnW.classList.add("focused");
-    if (detailIndex === 1) btnB.classList.add("focused");
-    if (detailIndex === 2) recs[recIndex].classList.add("focused");
+function renderListData() {
+    const listDiv = document.getElementById("channelList");
+    const data = getActiveData();
+    listDiv.innerHTML = "";
+    data.forEach((item, i) => {
+        const div = document.createElement("div");
+        div.className = `channel ${i === selectedIndex ? "active" : ""}`;
+        div.innerText = item.titulo || item.name || item;
+        listDiv.appendChild(div);
+        if (i === selectedIndex) {
+            div.scrollIntoView({ block: 'center' });
+            if (item.poster) document.getElementById("sidePoster").src = item.poster;
+        }
+    });
 }
+
+function getActiveData() {
+    if (viewMode === "categories") return ["AÇÃO","ANIME","COMÉDIA","DRAMA","TERROR","FICÇÃO"].sort();
+    if (viewMode === "series") return [...new Set(series.map(s => s.genero))].sort();
+    if (viewMode === "kids_movies") return kidsMovies;
+    if (viewMode === "kids_series") return kidsSeries;
+    return movies;
+}
+
+function openDetails(item) {
+    currentFocus = "details";
+    document.getElementById("detailsPage").style.display = "flex";
+    document.getElementById("detailsTitle").innerText = item.titulo;
+    document.getElementById("detailsPoster").src = item.poster;
+    document.getElementById("detailsDesc").innerText = item.desc || "Sem descrição.";
+    updateDetailFocus();
+}
+
+function updateDetailFocus() {
+    const btnW = document.getElementById("btnWatch");
+    const btnB = document.getElementById("btnBackDetails");
+    btnW.classList.toggle("focused", detailIndex === 0);
+    btnB.classList.toggle("focused", detailIndex === 1);
+}
+
+// SISTEMA DE NAVEGAÇÃO REPARADO
+document.addEventListener("keydown", e => {
+    if (currentFocus === "menu") {
+        if (e.keyCode === 40) menuIndex = Math.min(7, menuIndex + 1);
+        if (e.keyCode === 38) menuIndex = Math.max(0, menuIndex - 1);
+        if (e.keyCode === 39 || e.keyCode === 13) {
+            viewMode = document.querySelectorAll(".btn-3d[data-type]")[menuIndex].dataset.type;
+            selectedIndex = 0;
+            currentFocus = (viewMode === "top6") ? "top6" : "list";
+        }
+    } 
+    else if (currentFocus === "list") {
+        if (e.keyCode === 40) selectedIndex++;
+        if (e.keyCode === 38) selectedIndex = Math.max(0, selectedIndex - 1);
+        if (e.keyCode === 37) currentFocus = "menu";
+        if (e.keyCode === 13) {
+            const data = getActiveData();
+            if (typeof data[selectedIndex] === 'object') openDetails(data[selectedIndex]);
+        }
+    }
+    else if (currentFocus === "top6") {
+        if (e.keyCode === 39) selectedIndex = Math.min(5, selectedIndex + 1);
+        if (e.keyCode === 37) { if (selectedIndex % 3 === 0) currentFocus = "menu"; else selectedIndex--; }
+        if (e.keyCode === 40) selectedIndex = Math.min(5, selectedIndex + 3);
+        if (e.keyCode === 38) selectedIndex = Math.max(0, selectedIndex - 3);
+        if (e.keyCode === 13) openDetails(movies[selectedIndex]);
+    }
+    else if (currentFocus === "details") {
+        if (e.keyCode === 40) detailIndex = 1;
+        if (e.keyCode === 38) detailIndex = 0;
+        if (e.keyCode === 13) {
+            if (detailIndex === 1) { document.getElementById("detailsPage").style.display = "none"; currentFocus = "list"; }
+            else { /* Play Video Logic */ }
+        }
+        updateDetailFocus();
+    }
+    updateUI();
+});
 
 window.onload = loadData;
 </script>
