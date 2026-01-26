@@ -2,100 +2,100 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.7</title>
+<title>PaixãoFlix TV V.28.1.8</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
-    /* RESET E FONTE ÚNICA */
-    * { 
-        overflow: hidden !important; 
-        touch-action: manipulation; 
-        box-sizing: border-box; 
-        outline: none; 
-        font-family: 'Poppins', sans-serif;
+    /* RESET ABSOLUTO */
+    * { overflow: hidden !important; touch-action: manipulation; box-sizing: border-box; outline: none; -ms-overflow-style: none; scrollbar-width: none; font-family: 'Poppins', sans-serif; }
+    *::-webkit-scrollbar { display: none !important; }
+
+    body { margin: 0; padding: 0; background: radial-gradient(circle at top right, #1a1d29, #040714); color: #fff; height: 100vh; width: 100vw; }
+
+    /* HEADER ESTILO DISNEY+ */
+    #headerDisney { 
+        position: fixed; top: 0; width: 100%; padding: 20px 60px; 
+        display: flex; justify-content: space-between; align-items: center; z-index: 100;
+        background: linear-gradient(to bottom, rgba(4,7,20,0.8), transparent);
     }
-
-    body { margin: 0; padding: 0; background: #000; color: #fff; height: 100vh; width: 100vw; }
-
-    /* HEADER - INFORMAÇÕES E LOGO */
-    #mainHeader { 
-        position: absolute; top: 0; left: 0; width: 100%; height: 220px; 
-        display: flex; justify-content: space-between; align-items: flex-start; padding: 30px 50px; z-index: 50;
-    }
-
-    #logoCentral { position: absolute; left: 50%; transform: translateX(-50%); width: 280px; }
+    #logoLeft { width: 180px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
     
     #infoRight { text-align: right; }
-    #counterBox { font-size: 18px; font-weight: 700; color: #FFCE44; margin-bottom: 5px; }
-    #dateTimeBox { font-size: 16px; color: #ccc; text-transform: capitalize; }
+    #counterBox { font-size: 16px; font-weight: 700; color: #FFCE44; letter-spacing: 1px; }
+    #dateTimeBox { font-size: 14px; color: #a1a1a1; margin-top: 4px; }
 
     /* LAYOUT PRINCIPAL */
-    #homeContainer { display: flex; width: 100%; height: 100%; padding-top: 220px; }
+    #app { display: flex; height: 100vh; width: 100vw; padding-top: 100px; }
 
-    /* MENU VERTICAL ESQUERDO */
-    #leftMenu { width: 350px; display: flex; flex-direction: column; gap: 12px; padding-left: 50px; justify-content: center; }
+    /* MENU LATERAL ESQUERDO */
+    #sideMenu { width: 280px; display: flex; flex-direction: column; gap: 15px; padding: 40px 60px; z-index: 100; }
     .btn-3d { 
-        background: #111; color: #eee; border: 2px solid #FFCE44; border-bottom: 6px solid #b38f00;
-        border-radius: 12px; font-weight: 900; cursor: pointer; text-align: center;
-        padding: 18px 10px; font-size: 16px; text-transform: uppercase; width: 220px; transition: 0.1s;
+        background: #1a1d29; color: #f9f9f9; border: 2px solid #FFCE44; border-bottom: 5px solid #b38f00;
+        border-radius: 8px; font-weight: 700; cursor: pointer; text-align: center;
+        padding: 15px 5px; font-size: 13px; text-transform: uppercase; width: 180px;
     }
-    .btn-3d.focused { background: #FFCE44; color: #000; transform: scale(1.1) translateX(10px); }
+    .btn-3d.focused { background: #f9f9f9; color: #000; border-color: #fff; transform: scale(1.08); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
 
-    /* ÁREA CENTRAL - TOP 6 */
-    #centerContent { flex: 1; display: flex; flex-direction: column; align-items: center; padding-right: 50px; }
-    #top6HomeTitle { 
-        font-size: 55px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #FFCE44; 
-        text-transform: uppercase; margin-bottom: 30px; letter-spacing: 2px;
+    /* CONTEÚDO CENTRAL - TOP 6 ALEATÓRIO */
+    #mainContent { flex: 1; padding: 20px 60px 0 0; display: flex; flex-direction: column; }
+    #top6Title { 
+        font-size: 40px; font-weight: 900; color: transparent; -webkit-text-stroke: 1.5px #FFCE44; 
+        text-transform: uppercase; margin-bottom: 25px; letter-spacing: 3px;
     }
 
-    .home-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
-    .top6-item { position: relative; width: 200px; height: 300px; cursor: pointer; }
+    #top6ScrollArea { overflow-y: auto !important; height: calc(100vh - 250px); padding-bottom: 100px; }
+    .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 80px 40px; }
+    
+    .top6-item { position: relative; width: 220px; height: 320px; margin: 0 auto; cursor: pointer; transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
     .top6-number { 
-        position: absolute; left: -25px; top: 0; height: 100%; font-size: 280px; font-weight: 900; 
-        color: transparent; -webkit-text-stroke: 3px #fff; z-index: 5; line-height: 0.9; pointer-events: none;
-        display: flex; align-items: center;
+        position: absolute; left: -35px; top: 0; height: 100%; font-size: 260px; font-weight: 900; 
+        color: transparent; -webkit-text-stroke: 3px #fff; z-index: 5; line-height: 1; pointer-events: none;
+        display: flex; align-items: center; text-shadow: 0 0 20px rgba(0,0,0,0.8);
     }
     .top6-item.focused .top6-number { -webkit-text-stroke: 4px #FFCE44; }
-    .top6-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; border: 3px solid #333; z-index: 2; position: relative; }
-    .top6-item.focused .top6-poster { border-color: #FFCE44; transform: scale(1.05); }
+    .top6-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; border: 3px solid #333; z-index: 2; position: relative; box-shadow: 0 15px 30px rgba(0,0,0,0.7); }
+    .top6-item.focused .top6-poster { border-color: #f9f9f9; transform: scale(1.1); box-shadow: 0 20px 40px rgba(0,0,0,0.9); }
 
-    /* PÁGINA DE DETALHES E LISTAS (CONGELADOS CONFORME SOLICITADO) */
-    #detailsPage, #listView { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; padding: 50px; }
+    /* PÁGINA DE DETALHES (CONGELADA) */
+    #detailsPage { position: fixed; inset: 0; z-index: 500; display: none; background: #040714; }
 </style>
 </head>
 <body>
 
-<div id="mainHeader">
-    <div></div> <img id="logoCentral" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
+<div id="headerDisney">
+    <img id="logoLeft" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
     <div id="infoRight">
-        <div id="counterBox">Já temos <span id="totalCount">0</span> conteúdos</div>
-        <div id="dateTimeBox">Carregando data...</div>
+        <div id="counterBox">JÁ TEMOS <span id="totalItems">0</span> CONTEÚDOS</div>
+        <div id="dateTimeBox">CARREGANDO...</div>
     </div>
 </div>
 
-<div id="homeContainer">
-    <div id="leftMenu">
-        <div class="btn-3d focused" data-type="channels">Canais</div>
-        <div class="btn-3d" data-type="categories">Cinema</div>
-        <div class="btn-3d" data-type="series">Séries</div>
-        <div class="btn-3d" data-type="kids_movies">Kids Filmes</div>
-        <div class="btn-3d" data-type="fav">Favoritos</div>
+<div id="app">
+    <div id="sideMenu">
+        <div class="btn-3d focused" data-type="channels" onclick="selectAction('channels')">Canais</div>
+        <div class="btn-3d" data-type="categories" onclick="selectAction('categories')">Cinema</div>
+        <div class="btn-3d" data-type="series" onclick="selectAction('series')">Séries</div>
+        <div class="btn-3d" data-type="kids_movies" onclick="selectAction('kids_movies')">Kids Filmes</div>
+        <div class="btn-3d" data-type="kids_series" onclick="selectAction('kids_series')">Kids Séries</div>
+        <div class="btn-3d" data-type="fav" onclick="selectAction('fav')">Favoritos</div>
     </div>
 
-    <div id="centerContent">
-        <div id="top6HomeTitle">Top 6 PaixãoFlix</div>
-        <div class="home-grid" id="top6List"></div>
+    <div id="mainContent">
+        <div id="top6Title">Top 6 PaixãoFlix</div>
+        <div id="top6ScrollArea">
+            <div class="top6-grid" id="top6Container"></div>
+        </div>
     </div>
 </div>
 
-<div id="detailsPage">
-    </div>
+<div id="detailsPage"></div>
 
 <script>
 let movies = [], series = [], kidsMovies = [], kidsSeries = [];
+let top6Data = [];
 let currentFocus = "menu", menuIdx = 0, gridIdx = 0;
 
 async function loadData() {
@@ -104,11 +104,14 @@ async function loadData() {
     series = await fetchJSON("data/series.json");
     kidsMovies = await fetchJSON("data/kids_filmes.json");
     kidsSeries = await fetchJSON("data/kids_series.json");
-    
-    // Soma total dinâmica
-    const total = movies.length + series.length + kidsMovies.length + kidsSeries.length;
-    document.getElementById("totalCount").innerText = total;
 
+    const total = movies.length + series.length + kidsMovies.length + kidsSeries.length;
+    document.getElementById("totalItems").innerText = total;
+
+    // Gera Top 6 Aleatório entre Filmes e Séries
+    const pool = [...movies, ...series].sort(() => 0.5 - Math.random());
+    top6Data = pool.slice(0, 6);
+    
     renderTop6();
     startClock();
 }
@@ -116,56 +119,57 @@ async function loadData() {
 function startClock() {
     const update = () => {
         const now = new Date();
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const dataStr = now.toLocaleDateString('pt-BR', options);
-        const horaStr = now.toLocaleTimeString('pt-BR', { hour12: false });
-        document.getElementById("dateTimeBox").innerText = `${dataStr} | ${horaStr}`;
+        const data = now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const hora = now.toLocaleTimeString('pt-BR', { hour12: false });
+        document.getElementById("dateTimeBox").innerText = `${data} | ${hora}`.toUpperCase();
     };
     setInterval(update, 1000);
     update();
 }
 
 function renderTop6() {
-    const grid = document.getElementById("top6List");
-    grid.innerHTML = "";
-    movies.slice(0, 6).forEach((item, i) => {
+    const container = document.getElementById("top6Container");
+    container.innerHTML = "";
+    top6Data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = "top6-item";
         div.onclick = () => openDetails(item);
         div.innerHTML = `<span class="top6-number">${i+1}</span><img class="top6-poster" src="${item.poster}">`;
-        grid.appendChild(div);
+        container.appendChild(div);
     });
+}
+
+function selectAction(type) {
+    console.log("Ação para:", type);
+    // Aqui dispara sua lógica de navegação das listas existentes
+}
+
+function openDetails(item) {
+    console.log("Abrindo Detalhes de:", item.titulo || item.name);
+    // Dispara a página de detalhes que já está no seu index
 }
 
 function updateFocus() {
     const btns = document.querySelectorAll(".btn-3d");
     const items = document.querySelectorAll(".top6-item");
-    
     btns.forEach((b, i) => b.classList.toggle("focused", currentFocus === "menu" && i === menuIdx));
     items.forEach((it, i) => it.classList.toggle("focused", currentFocus === "grid" && i === gridIdx));
 }
 
-function openDetails(item) {
-    // Função disparada ao clicar ou OK nas capas
-    console.log("Abrindo detalhes de:", item.titulo);
-    // Aqui entra sua lógica de detalhes congelada
-}
-
 document.addEventListener("keydown", e => {
     const key = e.keyCode;
-
     if (currentFocus === "menu") {
-        if (key === 40) menuIdx = (menuIdx + 1) % 5;
-        if (key === 38) menuIdx = (menuIdx - 1 + 5) % 5;
+        if (key === 40) menuIdx = (menuIdx + 1) % 6;
+        if (key === 38) menuIdx = (menuIdx - 1 + 6) % 6;
         if (key === 39) currentFocus = "grid";
-        if (key === 13) console.log("Ação do menu acionada");
+        if (key === 13) selectAction(document.querySelectorAll(".btn-3d")[menuIdx].dataset.type);
     } 
     else if (currentFocus === "grid") {
         if (key === 37) { if (gridIdx % 3 === 0) currentFocus = "menu"; else gridIdx--; }
         if (key === 39) if (gridIdx % 3 !== 2) gridIdx = Math.min(5, gridIdx + 1);
         if (key === 40) gridIdx = Math.min(5, gridIdx + 3);
         if (key === 38) gridIdx = Math.max(0, gridIdx - 3);
-        if (key === 13) openDetails(movies[gridIdx]);
+        if (key === 13) openDetails(top6Data[gridIdx]);
     }
     updateFocus();
 });
