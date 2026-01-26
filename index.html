@@ -2,40 +2,63 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.0.7</title>
+<title>PaixãoFlix TV V.28.0.8</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
-    /* REMOÇÃO DE TODAS AS BARRAS DE NAVEGAÇÃO/SCROLL */
     * { overflow: hidden !important; touch-action: manipulation; box-sizing: border-box; -ms-overflow-style: none; scrollbar-width: none; }
     *::-webkit-scrollbar { display: none !important; }
 
     body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Poppins', sans-serif; height: 100vh; width: 100vw; }
     #app { display: flex; height: 100%; width: 100%; }
     
-    /* Menu Lateral */
-    #menu { width: 300px; background: #0a0a0a; padding: 15px; border-right: 1px solid #222; z-index: 100; flex-shrink: 0; }
+    #menu { width: 280px; background: #0a0a0a; padding: 15px; border-right: 1px solid #222; z-index: 100; flex-shrink: 0; }
     #menuHeader img { height: 60px; width: auto; display: block; margin: 0 auto 20px; }
     #menuItemsContainer { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .menu-item { padding: 12px 5px; font-size: 12px; border-radius: 8px; background: #1a1a1a; border: 2px solid transparent; color: #888; cursor: pointer; text-align: center; }
+    .menu-item { padding: 12px 5px; font-size: 11px; border-radius: 8px; background: #1a1a1a; border: 2px solid transparent; color: #888; cursor: pointer; text-align: center; }
     .menu-item.focused { border-color: #ff9800; background: #252525; color: #fff; }
     .menu-item.active { background: #ff9800; color: #000; font-weight: bold; }
 
-    /* Área de Conteúdo */
     #content { flex: 1; position: relative; background: #000; display: flex; }
     #videoContainer { position: absolute; top:0; left:0; width: 100%; height: 100%; z-index: 1; }
     
-    /* Lista de Conteúdo */
-    #channelList { width: 400px; height: 100%; background: rgba(0,0,0,0.92); display: none; z-index: 110; overflow-y: auto !important; border-right: 1px solid #333; }
-    .channel { padding: 15px 20px; border-bottom: 1px solid #111; cursor: pointer; font-size: 14px; color: #ccc; transition: 0.1s; }
-    .channel.active { background: #ff9800; color: #000; font-weight: 700; padding-left: 30px; }
+    /* Barra de Conteúdo com largura ajustada */
+    #channelList { 
+        width: fit-content; 
+        min-width: 250px; 
+        max-width: 400px; 
+        height: 100%; 
+        background: rgba(0,0,0,0.92); 
+        display: none; 
+        z-index: 110; 
+        overflow-y: auto !important; 
+        border-right: 1px solid #333; 
+    }
+    .channel { 
+        padding: 15px 20px; 
+        border-bottom: 1px solid #111; 
+        cursor: pointer; 
+        font-size: 14px; 
+        color: #ccc; 
+        word-wrap: break-word; 
+        white-space: normal; /* Permite quebra de linha */
+        line-height: 1.4;
+    }
+    .channel.active { background: #ff9800; color: #000; font-weight: 700; }
     
-    /* Preview da Capa */
-    #previewWrapper { flex: 1; z-index: 120; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
-    #posterImg { width: 320px; height: 480px; border-radius: 15px; border: 4px solid #ff9800; object-fit: cover; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+    /* Preview da Capa Reforçado */
+    #previewWrapper { flex: 1; z-index: 120; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); position: relative; }
+    #posterContainer { position: relative; width: 320px; height: 480px; }
+    #posterImg { width: 100%; height: 100%; border-radius: 15px; border: 4px solid #ff9800; object-fit: cover; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+    
+    /* Badges de Ano e Avaliação */
+    .info-badge { position: absolute; background: rgba(0,0,0,0.8); padding: 5px 12px; border-radius: 5px; font-weight: bold; font-size: 14px; border: 1px solid #333; }
+    #yearBadge { bottom: 15px; left: 15px; color: #fff; }
+    #ratingBadge { top: 15px; right: 15px; color: #fff; display: flex; align-items: center; gap: 5px; }
+    .fa-star.pipoca { color: #FFCE44; } /* Amarelo Pipoca */
     
     #currentTitle { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.8); padding: 8px 15px; border-radius: 5px; z-index: 50; border-left: 4px solid #ff9800; font-size: 13px; }
 </style>
@@ -58,10 +81,16 @@
     </div>
 
     <div id="content">
-        <div id="currentTitle">PaixãoFlix V.28.0.7</div>
+        <div id="currentTitle">PaixãoFlix V.28.0.8</div>
         <div id="videoContainer"><div id="player" style="width:100%; height:100%;"></div></div>
         <div id="channelList"></div>
-        <div id="previewWrapper"><img id="posterImg" src=""></div>
+        <div id="previewWrapper">
+            <div id="posterContainer">
+                <img id="posterImg" src="">
+                <div id="ratingBadge" class="info-badge"><i class="fas fa-star pipoca"></i> <span id="ratingVal">0.0</span></div>
+                <div id="yearBadge" class="info-badge">0000</div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -69,8 +98,6 @@
 let player;
 let channels = [], movies = [], series = [], kidsChannels = [], kidsMovies = [], kidsSeries = [];
 let filteredList = [], viewMode = "channels", selectedIndex = 0, menuIndex = 0, menuFocused = true;
-
-const movieCats = ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"];
 
 const sortAlpha = (arr) => arr.sort((a, b) => (a.titulo || a.name || "").localeCompare(b.titulo || b.name || ""));
 
@@ -80,6 +107,7 @@ async function loadData() {
     fetch("data/canais.m3u").then(r => r.text()).then(t => parseM3U(t, channels));
     fetch("data/kids_canais.m3u").then(r => r.text()).then(t => parseM3U(t, kidsChannels));
 
+    // Carregamento independente de cada JSON
     movies = sortAlpha((await fetchJSON("data/filmes.json")).map(m => ({...m, type: 'movie'})));
     series = sortAlpha((await fetchJSON("data/series.json")).map(s => ({...s, type: 'serie'})));
     kidsMovies = sortAlpha((await fetchJSON("data/kids_filmes.json")).map(m => ({...m, type: 'movie'})));
@@ -96,11 +124,11 @@ function parseM3U(text, array) {
 
 function getActiveData() {
     if (viewMode === "channels") return channels;
-    if (viewMode === "categories") return movieCats.sort();
+    if (viewMode === "categories") return ["AÇÃO","AVENTURA","ANIME","ANIMAÇÃO","COMÉDIA","DRAMA","DORAMA","SUSPENSE","POLICIAL","TERROR","DOCUMENTÁRIOS","FICÇÃO","CLÁSSICOS","FAROESTE","NACIONAL","ROMANCE","RELIGIOSO","ADULTO"].sort();
     if (viewMode === "series") return [...new Set(series.map(s => s.genero).filter(Boolean))].sort();
     if (viewMode === "kids_channels") return kidsChannels;
     if (viewMode === "kids_movies") return kidsMovies;
-    if (viewMode === "kids_series") return kidsSeries;
+    if (viewMode === "kids_series") return kidsSeries; // Puxa kids_series.json corretamente
     if (["movie_list", "series_list", "episode_list"].includes(viewMode)) return filteredList;
     return [];
 }
@@ -137,21 +165,22 @@ function renderList() {
 function updatePoster(item) {
     const img = document.getElementById("posterImg");
     const wrapper = document.getElementById("previewWrapper");
-    // Mostra o poster apenas para filmes e séries (não para canais ou categorias de texto)
-    if (item && item.capa) {
-        img.src = item.capa;
+    const yearB = document.getElementById("yearBadge");
+    const ratB = document.getElementById("ratingVal");
+
+    // Ajuste para ler "poster", "year" e "rating" do seu JSON
+    if (item && item.poster) {
+        img.src = item.poster;
+        yearB.innerText = item.year || "----";
+        ratB.innerText = item.rating || "0.0";
         wrapper.style.visibility = "visible";
-    } else if (item && item.type === "channel") {
-        // Se quiser logo de canal, pode usar item.logo
-        wrapper.style.visibility = "hidden";
     } else {
         wrapper.style.visibility = "hidden";
     }
 }
 
 function updateMenuUI() {
-    const items = document.querySelectorAll(".menu-item");
-    items.forEach((item, i) => {
+    document.querySelectorAll(".menu-item").forEach((item, i) => {
         item.classList.toggle("focused", i === menuIndex && menuFocused);
     });
 }
@@ -202,13 +231,14 @@ async function handleAction() {
                 .map(f => ({
                     titulo: f.name.split('/').pop().replace(/_/g, ' '),
                     url: `https://archive.org/download/${item.identificador_archive}/${f.name}`,
-                    type: "episode",
-                    capa: item.capa // Mantém a capa da série nos episódios
+                    poster: item.poster,
+                    year: item.year,
+                    rating: item.rating
                 }));
             viewMode = "episode_list";
             selectedIndex = 0;
             renderList();
-        } catch (e) { console.error("Archive Error"); }
+        } catch (e) { console.error("Erro Archive"); }
     } else {
         playMedia(item);
     }
