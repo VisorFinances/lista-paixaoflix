@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V28.0</title>
+<title>PaixãoFlix TV V28.0.7</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
@@ -103,181 +103,16 @@ function updateClock() {
     const d = new Date();
     const dias = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
     const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
-    const diaSemana = dias[d.getDay()];
-    const dia = d.getDate();
-    const mes = meses[d.getMonth()];
-    const ano = String(d.getFullYear()).slice(-2);
-    const hora = String(d.getHours()).padStart(2, "0");
-    const min = String(d.getMinutes()).padStart(2, "0");
-    document.getElementById("clock").innerText = `${diaSemana}, ${dia} de ${mes} de ${ano}   | ${hora}:${min}`;
+    document.getElementById("clock").innerText = `${dias[d.getDay()]}, ${d.getDate()} de ${meses[d.getMonth()]} | ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 setInterval(updateClock, 1000); updateClock();
 
-// --- CORREÇÃO DE NAVEGAÇÃO MULTI-DISPOSITIVO ---
+// --- LÓGICA DE DADOS CORRIGIDA ---
 function getActiveData() {
-    try {
-        if (viewMode === "search") return filteredList || [];
-        if (viewMode === "categories") return movieCats;
-        if (viewMode === "series") return [...new Set(series.map(s => s.genero).filter(Boolean))];
-        if (viewMode === "channels") return channels;
-        if (viewMode === "kids_channels") return kidsChannels;
-        if (viewMode === "kids_movies") return kidsMovies;
-        if (viewMode === "kids_series") return [...new Set(kidsSeries.map(s => s.genero).filter(Boolean))];
-        if (viewMode === "fav") return favorites;
-        if (viewMode === "history") return historyList;
-        if (viewMode.includes("_list")) return filteredList || [];
-        return [];
-    } catch(e) { return []; }
-}
-
-function renderList() {
-    channelList.innerHTML = "";
-    let data = getActiveData();
-    if (!data || !Array.isArray(data)) return;
-    
-    let currentCat = "";
-    if (viewMode === "history") {
-        const btn = document.createElement("button");
-        btn.className = `btn-clear ${selectedIndex === 0 ? "active" : ""}`;
-        btn.innerHTML = '<i class="fas fa-trash"></i> LIMPAR HISTÓRICO';
-        btn.onclick = (e) => { e.stopPropagation(); clearHistory(); };
-        channelList.appendChild(btn);
-    }
-
-    data.forEach((item, i) => {
-        let displayIdx = (viewMode === "history") ? i + 1 : i;
-        if(viewMode === "channels" && item.titulo) {
-            let cat = channelCats.find(c => item.titulo.toUpperCase().startsWith(c));
-            if(cat && cat !== currentCat) {
-                const head = document.createElement("div");
-                head.className = "channel cat-header"; head.innerHTML = `<span>${cat}</span>`;
-                channelList.appendChild(head);
-                currentCat = cat;
-            }
-        }
-
-        const div = document.createElement("div");
-        div.className = `channel ${displayIdx === selectedIndex ? "active" : ""}`;
-        const label = (typeof item === 'string') ? item : (item.titulo || item.name || "Sem título");
-        const logo = item.logo || "https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png";
-        
-        div.innerHTML = `<span>${label}</span>`;
-        div.onclick = (e) => { 
-            e.stopPropagation();
-            menuFocused = false;
-            selectedIndex = displayIdx; 
-            handleAction(); 
-        };
-        channelList.appendChild(div);
-        if (displayIdx === selectedIndex && !menuFocused) div.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-}
-
-// Configura cliques nos itens do menu lateral (Touch/Mouse)
-menuItems.forEach((item, idx) => {
-    item.onclick = () => {
-        menuIndex = idx;
-        menuFocused = true;
-        viewMode = item.dataset.type;
-        channelList.style.display = "block";
-        selectedIndex = 0;
-        renderList();
-        updateMenuSelection();
-    };
-});
-
-function updateMenuSelection() {
-    menuItems.forEach((m, i) => m.classList.toggle("active", i === menuIndex));
-}
-
-// Global KeyDown para TV e Teclado
-document.addEventListener("keydown", e => {
-    const code = e.keyCode;
-    let data = getActiveData();
-    let maxIdx = (viewMode === "history") ? data.length : data.length - 1;
-
-    if (menuFocused) {
-        if (code === 38) { // Cima
-            if (menuIndex <= 1) { menuIndex = -1; searchInput.focus(); searchInput.classList.add("focused"); } 
-            else menuIndex -= 2; 
-        } else if (code === 40) { // Baixo
-            if (menuIndex === -1) { menuIndex = 0; searchInput.blur(); searchInput.classList.remove("focused"); }
-            else if (menuIndex < menuItems.length - 2) menuIndex += 2;
-        } else if (code === 37 && menuIndex % 2 !== 0) { menuIndex--; } // Esquerda
-        else if (code === 39) { // Direita
-            if (menuIndex % 2 === 0 && menuIndex < menuItems.length - 1) menuIndex++;
-            else { menuFocused = false; channelList.style.display = "block"; renderList(); }
-        } else if (code === 13) { // Enter
-            menuFocused = false; channelList.style.display = "block"; renderList();
-        }
-    } else {
-        if (code === 38) { selectedIndex = Math.max(0, selectedIndex - 1); renderList(); }
-        else if (code === 40) { selectedIndex = Math.min(maxIdx, selectedIndex + 1); renderList(); }
-        else if (code === 37) { menuFocused = true; renderList(); } // Volta pro menu
-        else if (code === 13) { handleAction(); }
-    }
-    updateMenuSelection();
-});
-
-// Funções de Media e Archive (Originais mantidas)
-async function handleAction() {
-    let data = getActiveData();
-    const item = (viewMode === "history") ? data[selectedIndex - 1] : data[selectedIndex];
-    if (!item) return;
-
-    if (typeof item === 'string') {
-        if (viewMode === "categories") {
-            filteredList = movies.filter(m => (m.genero || "").split(',').includes(item));
-            viewMode = "movie_list";
-        } else if (viewMode === "series" || viewMode === "kids_series") {
-            filteredList = (viewMode === "series" ? series : kidsSeries).filter(s => s.genero === item);
-            viewMode = "series_list";
-        }
-        selectedIndex = 0; renderList();
-    } else if (item.type === "serie") {
-        try {
-            const resp = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
-            const meta = await resp.json();
-            filteredList = meta.files.filter(f => f.name.endsWith(".mp4") || f.name.endsWith(".mkv")).map(f => ({
-                titulo: f.name.split('/').pop().replace(/_/g, ' '),
-                url: `https://archive.org/download/${item.identificador_archive}/${f.name}`,
-                type: "episode"
-            }));
-            viewMode = "episode_list"; selectedIndex = 0; renderList();
-        } catch (e) { console.error(e); }
-    } else { playMedia(item); }
-}
-
-function playMedia(item) {
-    if (!item || (!item.url && !item.link)) return;
-    let url = item.url || item.link;
-    if (url.startsWith('http:')) url = PROXY_URL + encodeURIComponent(url);
-    currentTitleDisplay.innerText = item.titulo || item.name;
-    channelList.style.display = "none";
-    if (player) player.destroy();
-    player = new Clappr.Player({
-        source: url, parentId: "#player", width: '100%', height: '100%', autoPlay: true, stretch: 'fill'
-    });
-}
-
-function loadM3U(path, array) {
-    fetch(path).then(r=>r.text()).then(text=>{
-        let temp=null;
-        text.split("\n").forEach(l=>{
-            if(l.startsWith("#EXTINF")) temp={titulo:l.split(",").pop().trim(), type: "channel"};
-            else if(l.startsWith("http") && temp){ temp.url=l.trim(); array.push(temp); temp=null; }
-        });
-    });
-}
-
-window.onload = () => {
-    loadM3U("data/canais.m3u", channels);
-    loadM3U("data/kids_canais.m3u", kidsChannels);
-    fetch("data/filmes.json").then(r=>r.json()).then(d=>movies=d.map(m=>({...m, type:"movie"})));
-    fetch("data/series.json").then(r=>r.json()).then(d=>series=d.map(s=>({...s, type:"serie"})));
-    fetch("data/kids_filmes.json").then(r=>r.json()).then(d=>kidsMovies=d.map(m=>({...m, type:"movie"})));
-    fetch("data/kids_series.json").then(r=>r.json()).then(d=>kidsSeries=d.map(s=>({...s, type:"serie"})));
-};
-</script>
-</body>
-</html>
+    if (viewMode === "search") return filteredList;
+    if (viewMode === "categories") return movieCats;
+    if (viewMode === "series") return [...new Set(series.map(s => s.genero).filter(Boolean))].sort();
+    if (viewMode === "channels") return channels;
+    if (viewMode === "kids_channels") return kidsChannels;
+    if (viewMode === "kids_movies") return kidsMovies;
+    if (viewMode === "kids_series") return [...new Set(kidsSeries.map(s => s
