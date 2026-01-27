@@ -2,14 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.21</title>
+<title>PaixãoFlix TV V.28.1.22</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
-    /* RESET INTEGRAL E PRESERVAÇÃO DE CÓDIGO */
+    /* RESET INTEGRAL E MANUTENÇÃO DE CÓDIGO */
     * { 
         overflow: hidden !important; 
         touch-action: manipulation; 
@@ -26,40 +26,37 @@
         color: #fff; height: 100vh; width: 100vw; 
     }
 
-    /* BARRA SUPERIOR FIXA */
+    /* BARRA SUPERIOR PADRÃO */
     #topBar { 
         position: fixed; top: 0; width: 100%; height: 80px; 
         border-bottom: 1px solid rgba(255,255,255,0.15);
         display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 1000;
         background: rgba(4,7,20,0.98);
     }
-    #logoMain { height: 65px; filter: drop-shadow(0 0 15px rgba(0,0,0,0.6)); cursor: pointer; transition: 0.3s; }
-    #logoMain:active { transform: scale(0.9); }
+    #logoMain { height: 65px; filter: drop-shadow(0 0 15px rgba(0,0,0,0.6)); cursor: pointer; }
     #barCounter { font-weight: 900; color: #FFCE44; font-size: 18px; }
     #barDateTime { font-size: 15px; color: #ffffff; text-transform: uppercase; font-weight: 400; }
 
-    /* MENU DE NAVEGAÇÃO SECUNDÁRIO (ABAIXO DA TOPBAR) */
-    #navMenuGlobal { 
-        position: fixed; top: 80px; width: 100%; height: 60px; 
-        background: rgba(255, 255, 255, 0.05); 
-        display: flex; align-items: center; justify-content: center; gap: 20px; z-index: 999;
+    /* MENU DE NAVEGAÇÃO INTERNO (SÓ APARECE EM CANAIS) */
+    #navMenuCanais { 
+        display: none; position: fixed; top: 80px; width: 100%; height: 60px; 
+        background: rgba(255, 255, 255, 0.05); align-items: center; justify-content: center; gap: 20px; z-index: 999;
         backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     .nav-item { 
         color: #fff; font-size: 13px; font-weight: 700; text-transform: uppercase; 
         cursor: pointer; padding: 5px 15px; border-radius: 20px; border: 1px solid transparent;
-        transition: 0.3s;
     }
     .nav-item.focused { border-color: #FFCE44; background: #FFCE44; color: #000; }
 
-    /* CONTAINER PRINCIPAL DE SCROLL */
+    /* CONTAINER PRINCIPAL */
     #mainScroll { 
         width: 100%; height: 100vh; 
-        padding-top: 150px; overflow-y: auto !important; scroll-behavior: smooth;
+        padding-top: 90px; overflow-y: auto !important; scroll-behavior: smooth;
     }
 
     /* CARROSSEL */
-    #carouselContainer { width: 100%; padding: 0 50px 25px 50px; }
+    #carouselContainer { width: 100%; padding: 25px 50px; }
     #editorSlider { 
         width: 100%; height: 480px; border-radius: 25px; 
         background-size: cover; background-position: center;
@@ -74,12 +71,11 @@
         z-index: 1;
     }
     #editorSlider.focused { border-color: #FFCE44; transform: scale(1.01); }
-    #editorInfo { position: relative; z-index: 10; }
     #editorTitle { font-size: 45px; font-weight: 900; margin-bottom: 5px; text-shadow: 2px 2px 10px #000; }
     #editorMeta { font-size: 18px; color: #FFCE44; font-weight: 500; margin-bottom: 20px; }
     .btn-watch { background: #FFCE44; color: #000; padding: 10px 30px; border-radius: 8px; font-weight: 900; font-size: 13px; text-transform: uppercase; display: inline-block; }
 
-    /* MENU DE MARCAS (HOME) */
+    /* MENU BRANDS (HOME) */
     #menuBrands { display: flex; gap: 15px; padding: 30px 50px; justify-content: center; width: 100%; }
     .brand-card { 
         flex: 1; height: 100px; background: linear-gradient(135deg, #1a1d29, #2a2e42);
@@ -92,47 +88,37 @@
     .brand-card.focused { transform: scale(1.1); background: #f9f9f9; color: #000; border-color: #fff; z-index: 10; }
 
     /* TOP 6 */
-    #top6Section { padding: 80px 50px; text-align: center; width: 100%; transition: 0.5s; }
+    #top6Section { padding: 80px 50px; text-align: center; width: 100%; }
     #top6Title { font-size: 95px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #FFCE44; text-transform: uppercase; margin-bottom: 80px; }
     .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 160px 50px; }
     .top6-item { position: relative; width: 100%; height: 550px; cursor: pointer; transition: 0.4s; }
     .top6-number { position: absolute; left: -60px; top: 0; font-size: 380px; font-weight: 900; color: rgba(255,255,255,0.9); -webkit-text-stroke: 12px #000; z-index: 5; pointer-events: none; }
     .top6-poster { width: 100%; height: 100%; object-fit: contain; border-radius: 20px; border: 3px solid rgba(255,255,255,0.1); background: #000; position: relative; z-index: 2; }
-    .item-meta-info { margin-top: 15px; font-size: 18px; font-weight: 700; color: #FFCE44; text-transform: uppercase; }
     .top6-item.focused { transform: translateY(-30px) scale(1.08); z-index: 20; }
     .top6-item.focused .top6-poster { border: 4px solid #E50914; box-shadow: 0 0 50px rgba(229, 9, 20, 0.7); }
 
-    /* TELA DE CANAIS OVERLAY */
+    /* TELA DE CANAIS */
     #channelsOverlay { 
         position: fixed; inset: 0; background: #040714; z-index: 3000; 
-        display: none; flex-direction: column; padding-top: 150px;
+        display: none; flex-direction: column; padding-top: 140px;
     }
-    #channelsScroll { overflow-y: auto !important; height: calc(100vh - 250px); padding: 20px 50px; }
+    #channelsScroll { overflow-y: auto !important; height: calc(100vh - 220px); padding: 20px 50px; }
     .category-container { width: 100%; margin-bottom: 50px; }
-    .channel-category-title { 
-        font-size: 32px; font-weight: 900; color: #FFCE44; 
-        margin-bottom: 25px; display: flex; align-items: center; gap: 15px;
-        text-transform: uppercase;
-    }
+    .channel-category-title { font-size: 32px; font-weight: 900; color: #FFCE44; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; text-transform: uppercase; }
     .channels-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 25px; }
-    
-    /* LOGOTIPOS LIMPOS PADRONIZADOS */
-    .channel-card { 
-        aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center;
-        cursor: pointer; transition: 0.3s; position: relative; 
-    }
+    .channel-card { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
     .channel-card img { width: 100%; height: 100%; object-fit: contain; }
     .channel-card.focused { transform: scale(1.25); filter: drop-shadow(0 0 15px rgba(255,206,68,0.4)); }
 
-    /* RODAPÉ FIXO EM TODAS AS PÁGINAS */
+    /* RODAPÉ FIXO ONIPRESENTE */
     #globalFooter { 
         position: fixed; bottom: 0; width: 100%; height: 80px; 
         background: linear-gradient(transparent, rgba(4,7,20,1));
-        display: flex; align-items: center; justify-content: center; z-index: 2000;
+        display: flex; align-items: center; justify-content: center; z-index: 4000;
     }
     #footerText { font-style: italic; font-weight: 500; color: #ffffff; font-size: 20px; text-shadow: 2px 2px 4px #000; }
 
-    /* PLAYER TELA CHEIA */
+    /* PLAYER */
     #playerOverlay { position: fixed; inset: 0; background: #000; z-index: 9000; display: none; }
 </style>
 </head>
@@ -144,12 +130,12 @@
     <div id="barDateTime">CARREGANDO...</div>
 </div>
 
-<div id="navMenuGlobal">
-    <div class="nav-item" id="navHome" onclick="hardReset()">Início</div>
-    <div class="nav-item" id="navCinema">Cinema</div>
-    <div class="nav-item" id="navSeries">Séries</div>
-    <div class="nav-item" id="navKids">Kids TV</div>
-    <div class="nav-item" id="navFav">Favoritos</div>
+<div id="navMenuCanais">
+    <div class="nav-item">Cinema</div>
+    <div class="nav-item">Séries</div>
+    <div class="nav-item">Kids TV</div>
+    <div class="nav-item">Favoritos</div>
+    <div class="nav-item" onclick="hardReset()">Início</div>
 </div>
 
 <div id="mainScroll">
@@ -180,10 +166,7 @@
     <div style="height: 150px;"></div>
 </div>
 
-<div id="channelsOverlay">
-    <div id="channelsScroll"></div>
-</div>
-
+<div id="channelsOverlay"><div id="channelsScroll"></div></div>
 <div id="playerOverlay"><div id="player" style="width:100%; height:100%;"></div></div>
 
 <div id="globalFooter">
@@ -193,15 +176,13 @@
 <script>
 let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [];
 let top6Data = [], editorsChoice = [], edIdx = 0;
-let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0, navIdx = 0;
+let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0;
 let isChannelsOpen = false, isPlayerOpen = false, player = null;
 
-// MAPEAMENTO DE CONTROLE REMOTO UNIVERSAL (LG, SAMSUNG, ANDROID, BOX)
 const Keys = {
     UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], 
-    ENTER: [13, 29443, 10009], BACK: [8, 27, 461, 10009],
-    CH_UP: [427, 33, 513], CH_DOWN: [428, 34, 514],
-    VOL_UP: [447, 190], VOL_DOWN: [448, 188]
+    ENTER: [13, 29443, 117], BACK: [8, 27, 461, 10009],
+    CH_UP: [427, 33], CH_DOWN: [428, 34]
 };
 
 async function loadData() {
@@ -210,20 +191,12 @@ async function loadData() {
     series = await fetchJSON("data/series.json");
     kidsMovies = await fetchJSON("data/kids_filmes.json");
     kidsSeries = await fetchJSON("data/kids_series.json");
-
-    try {
-        const resp = await fetch("data/ativa_canais.m3u");
-        const text = await resp.text();
-        parseM3U(text);
-    } catch(e) {}
+    try { const r = await fetch("data/ativa_canais.m3u"); const t = await r.text(); parseM3U(t); } catch(e) {}
 
     document.getElementById("totalItems").innerText = movies.length + series.length + kidsMovies.length + kidsSeries.length;
     editorsChoice = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 10);
     top6Data = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 6);
-
-    startCarousel();
-    renderTop6();
-    startClock();
+    startCarousel(); renderTop6(); startClock();
 }
 
 function parseM3U(content) {
@@ -250,7 +223,7 @@ function renderChannels(cats) {
     Object.keys(cats).forEach(cat => {
         const div = document.createElement("div");
         div.className = "category-container";
-        div.innerHTML = `<div class="channel-category-title"><i class="fas fa-play-circle"></i> ${cat}</div>`;
+        div.innerHTML = `<div class="channel-category-title"><i class="fas fa-star"></i> ${cat}</div>`;
         const row = document.createElement("div");
         row.className = "channels-row";
         cats[cat].forEach(c => {
@@ -268,6 +241,7 @@ function renderChannels(cats) {
 function openChannelsPage() {
     isChannelsOpen = true;
     document.getElementById("mainScroll").style.display = "none";
+    document.getElementById("navMenuCanais").style.display = "flex";
     document.getElementById("channelsOverlay").style.display = "flex";
     updateFocus();
 }
@@ -276,16 +250,12 @@ function playChannel(url) {
     isPlayerOpen = true;
     document.getElementById("playerOverlay").style.display = "block";
     if(player) player.destroy();
-    player = new Clappr.Player({
-        source: url, parentId: "#player",
-        width: "100%", height: "100%", autoPlay: true
-    });
+    player = new Clappr.Player({ source: url, parentId: "#player", width: "100%", height: "100%", autoPlay: true });
 }
 
 function zapping(dir) {
     let idx = channels.findIndex(c => c.url === player.options.source);
-    if(dir === "up") idx = (idx + 1) % channels.length;
-    else idx = (idx - 1 + channels.length) % channels.length;
+    idx = (dir === "up") ? (idx + 1) % channels.length : (idx - 1 + channels.length) % channels.length;
     playChannel(channels[idx].url);
 }
 
@@ -295,62 +265,51 @@ function updateFocus() {
         const cards = document.querySelectorAll(".channel-card");
         cards.forEach((c, i) => c.classList.toggle("focused", i === chanIdx));
         cards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
+    } else {
+        document.getElementById("editorSlider").classList.toggle("focused", currentFocus === "editor");
+        document.querySelectorAll(".brand-card").forEach((b, i) => b.classList.toggle("focused", currentFocus === "menu" && i === menuIdx));
+        document.querySelectorAll(".top6-item").forEach((g, i) => g.classList.toggle("focused", currentFocus === "grid" && i === gridIdx));
+        const target = document.querySelector(".focused");
+        if(target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-    document.getElementById("editorSlider").classList.toggle("focused", currentFocus === "editor");
-    document.querySelectorAll(".brand-card").forEach((b, i) => b.classList.toggle("focused", currentFocus === "menu" && i === menuIdx));
-    document.querySelectorAll(".top6-item").forEach((g, i) => g.classList.toggle("focused", currentFocus === "grid" && i === gridIdx));
-    const target = document.querySelector(".focused");
-    if(target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 document.addEventListener("keydown", e => {
-    const key = e.keyCode;
-    
-    // PLAYER / ZAPPING
+    const k = e.keyCode;
     if(isPlayerOpen) {
-        if(Keys.BACK.includes(key)) { player.destroy(); document.getElementById("playerOverlay").style.display = "none"; isPlayerOpen = false; }
-        if(Keys.UP.includes(key) || Keys.CH_UP.includes(key)) zapping("up");
-        if(Keys.DOWN.includes(key) || Keys.CH_DOWN.includes(key)) zapping("down");
+        if(Keys.BACK.includes(k)) { player.destroy(); document.getElementById("playerOverlay").style.display = "none"; isPlayerOpen = false; }
+        if(Keys.UP.includes(k) || Keys.CH_UP.includes(k)) zapping("up");
+        if(Keys.DOWN.includes(k) || Keys.CH_DOWN.includes(k)) zapping("down");
         return;
     }
-
-    // CHANNELS
     if(isChannelsOpen) {
         const cards = document.querySelectorAll(".channel-card");
-        if(Keys.RIGHT.includes(key)) chanIdx = Math.min(cards.length - 1, chanIdx + 1);
-        if(Keys.LEFT.includes(key)) chanIdx = Math.max(0, chanIdx - 1);
-        if(Keys.DOWN.includes(key)) chanIdx = Math.min(cards.length - 1, chanIdx + 8);
-        if(Keys.UP.includes(key)) chanIdx = Math.max(0, chanIdx - 8);
-        if(Keys.ENTER.includes(key)) cards[chanIdx].click();
-        if(Keys.BACK.includes(key)) hardReset();
-        updateFocus(); return;
-    }
-
-    // HOME
-    if(currentFocus === "editor") {
-        if(Keys.DOWN.includes(key)) currentFocus = "menu";
-        if(Keys.ENTER.includes(key)) openDetails();
-    }
-    else if(currentFocus === "menu") {
-        if(Keys.RIGHT.includes(key)) menuIdx = (menuIdx + 1) % 7;
-        if(Keys.LEFT.includes(key)) menuIdx = (menuIdx - 1 + 7) % 7;
-        if(Keys.DOWN.includes(key)) { currentFocus = "grid"; gridIdx = 0; }
-        if(Keys.UP.includes(key)) currentFocus = "editor";
-        if(Keys.ENTER.includes(key) && menuIdx === 0) openChannelsPage();
-    }
-    else if(currentFocus === "grid") {
-        if(Keys.RIGHT.includes(key)) if(gridIdx % 3 !== 2) gridIdx = Math.min(5, gridIdx + 1);
-        if(Keys.LEFT.includes(key)) if(gridIdx % 3 !== 0) gridIdx--;
-        if(Keys.DOWN.includes(key)) if(gridIdx < 3) gridIdx += 3;
-        if(Keys.UP.includes(key)) { if(gridIdx < 3) currentFocus = "menu"; else gridIdx -= 3; }
-        if(Keys.ENTER.includes(key)) openDetails();
+        if(Keys.RIGHT.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 1);
+        if(Keys.LEFT.includes(k)) chanIdx = Math.max(0, chanIdx - 1);
+        if(Keys.DOWN.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 8);
+        if(Keys.UP.includes(k)) chanIdx = Math.max(0, chanIdx - 8);
+        if(Keys.ENTER.includes(k)) cards[chanIdx].click();
+        if(Keys.BACK.includes(k)) hardReset();
+    } else {
+        if(currentFocus === "editor") { if(Keys.DOWN.includes(k)) currentFocus = "menu"; }
+        else if(currentFocus === "menu") {
+            if(Keys.RIGHT.includes(k)) menuIdx = (menuIdx + 1) % 7;
+            if(Keys.LEFT.includes(k)) menuIdx = (menuIdx - 1 + 7) % 7;
+            if(Keys.DOWN.includes(k)) { currentFocus = "grid"; gridIdx = 0; }
+            if(Keys.UP.includes(k)) currentFocus = "editor";
+            if(Keys.ENTER.includes(k) && menuIdx === 0) openChannelsPage();
+        }
+        else if(currentFocus === "grid") {
+            if(Keys.RIGHT.includes(k)) if(gridIdx % 3 !== 2) gridIdx = Math.min(5, gridIdx + 1);
+            if(Keys.LEFT.includes(k)) if(gridIdx % 3 !== 0) gridIdx--;
+            if(Keys.DOWN.includes(k)) if(gridIdx < 3) gridIdx += 3;
+            if(Keys.UP.includes(k)) { if(gridIdx < 3) currentFocus = "menu"; else gridIdx -= 3; }
+        }
     }
     updateFocus();
 });
 
 function hardReset() { location.reload(); }
-
 function startCarousel() {
     const slider = document.getElementById("editorSlider");
     setInterval(() => {
@@ -365,24 +324,16 @@ function startCarousel() {
         }, 800);
     }, 8000);
 }
-
 function renderTop6() {
     const cont = document.getElementById("top6Container");
     top6Data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = "top6-item";
-        div.innerHTML = `<span class="top6-number">${i+1}</span><img class="top6-poster" src="${item.poster}"><div class="item-meta-info">${item.year || '2026'} • ★ ${item.rating || '8.8'}</div>`;
+        div.innerHTML = `<span class="top6-number">${i+1}</span><img class="top6-poster" src="${item.poster}">`;
         cont.appendChild(div);
     });
 }
-
-function startClock() {
-    setInterval(() => {
-        const now = new Date();
-        document.getElementById("barDateTime").innerText = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase();
-    }, 1000);
-}
-
+function startClock() { setInterval(() => { const now = new Date(); document.getElementById("barDateTime").innerText = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase(); }, 1000); }
 window.onload = loadData;
 </script>
 </body>
