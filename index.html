@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.32</title>
+<title>PaixãoFlix TV V.28.1.33</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -90,13 +90,28 @@
         position: fixed; inset: 0; background: #040714; z-index: 4000; 
         display: none; flex-direction: column; padding-top: 80px;
     }
-    #channelsScroll { overflow-y: auto !important; height: calc(100vh - 280px); padding: 20px 50px 100px 50px; }
-    .category-container { width: 100%; margin-bottom: 50px; }
+    .channels-menu { margin-bottom: 40px !important; } /* ORDEM: Aumento de espaçamento */
+    #channelsScroll { 
+        overflow-y: auto !important; height: calc(100vh - 280px); 
+        padding: 0 50px 100px 50px; 
+    }
+    .category-container { width: 100%; margin-bottom: 50px; overflow: visible !important; }
     .channel-category-title { font-size: 32px; font-weight: 900; color: #FFCE44; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; text-transform: uppercase; }
-    .channels-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 25px; }
-    .channel-card { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; filter: none !important; box-shadow: none !important; }
-    .channel-card img { width: 100%; height: 100%; object-fit: contain; }
-    .channel-card.focused { transform: scale(1.2); border: 3px solid #FFCE44; border-radius: 12px; z-index: 10; background: rgba(255,255,255,0.05); }
+    .channels-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 30px; overflow: visible !important; }
+    
+    /* ORDEM: Canais sem borda, sombra ou fundo. Logotipo padrão */
+    .channel-card { 
+        aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; 
+        cursor: pointer; transition: 0.3s ease; filter: none !important; 
+        box-shadow: none !important; border: none !important; background: transparent !important;
+        overflow: visible !important;
+    }
+    .channel-card img { 
+        width: 100%; height: 100%; object-fit: contain; 
+        filter: none !important;
+    }
+    /* ORDEM: Zoom sem corte */
+    .channel-card.focused { transform: scale(1.35); z-index: 100; }
 
     /* RODAPÉ FIXO */
     #globalFooter { 
@@ -254,14 +269,21 @@ function playChannel(url, name) {
     document.getElementById("playerOverlay").style.display = "block";
     document.getElementById("channelSticker").innerText = name;
     if(playerInstance) playerInstance.destroy();
+    
+    // ORDEM: Áudio forçado e volume máximo
     playerInstance = new Clappr.Player({ 
         source: url, 
         parentId: "#player", 
         width: "100%", 
         height: "100%", 
         autoPlay: true,
-        mute: false, 
-        volume: 1
+        mute: false,
+        volume: 1,
+        events: {
+            onPlay: function() {
+                playerInstance.setVolume(100);
+            }
+        }
     });
 }
 
@@ -302,20 +324,12 @@ document.addEventListener("keydown", e => {
     }
     if(isChannelsOpen) {
         const cards = document.querySelectorAll("#channelsScroll .channel-card");
+        // ORDEM: Navegação fluida sem travas em categorias
         if(Keys.RIGHT.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 1);
         if(Keys.LEFT.includes(k)) chanIdx = Math.max(0, chanIdx - 1);
+        if(Keys.DOWN.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 8);
+        if(Keys.UP.includes(k)) chanIdx = Math.max(0, chanIdx - 8);
         
-        if(Keys.DOWN.includes(k) || Keys.UP.includes(k)) {
-            const currentCat = channels[chanIdx].cat;
-            let nextIdx = (Keys.DOWN.includes(k)) ? chanIdx + 1 : chanIdx - 1;
-            while(nextIdx >= 0 && nextIdx < channels.length) {
-                if(channels[nextIdx].cat !== currentCat) {
-                    chanIdx = nextIdx;
-                    break;
-                }
-                nextIdx = (Keys.DOWN.includes(k)) ? nextIdx + 1 : nextIdx - 1;
-            }
-        }
         if(Keys.ENTER.includes(k)) cards[chanIdx].click();
         if(Keys.BACK.includes(k)) location.reload();
     } else {
@@ -342,15 +356,18 @@ function startCarousel() {
     setInterval(() => {
         slider.style.opacity = 0;
         setTimeout(() => {
-            const item = editorsChoice[edIdx];
-            slider.style.backgroundImage = `url(${item.poster})`;
-            document.getElementById("editorTitle").innerText = item.titulo || item.name;
-            document.getElementById("editorMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.5'}`;
-            slider.style.opacity = 1;
-            edIdx = (edIdx + 1) % editorsChoice.length;
+            if(editorsChoice.length > 0) {
+                const item = editorsChoice[edIdx];
+                slider.style.backgroundImage = `url(${item.poster})`;
+                document.getElementById("editorTitle").innerText = item.titulo || item.name;
+                document.getElementById("editorMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.5'}`;
+                slider.style.opacity = 1;
+                edIdx = (edIdx + 1) % editorsChoice.length;
+            }
         }, 800);
     }, 8000);
 }
+
 function renderTop6() {
     const cont = document.getElementById("top6Container");
     top6Data.forEach((item, i) => {
@@ -360,7 +377,9 @@ function renderTop6() {
         cont.appendChild(div);
     });
 }
+
 function startClock() { setInterval(() => { const now = new Date(); document.getElementById("barDateTime").innerText = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase(); }, 1000); }
+
 window.onload = loadData;
 </script>
 </body>
