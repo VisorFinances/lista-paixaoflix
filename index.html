@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.30</title>
+<title>PaixãoFlix TV V.28.1.31</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -37,7 +37,7 @@
     #barCounter { font-weight: 900; color: #FFCE44; font-size: 18px; }
     #barDateTime { font-size: 15px; color: #ffffff; text-transform: uppercase; font-weight: 400; }
 
-    /* BARRA DE MENU PARA PÁGINAS INTERNAS - PADRÃO ÚNICO */
+    /* BARRA DE BOTÕES ORIGINAL DO SISTEMA */
     #navMenuInterno { 
         position: fixed; top: 80px; width: 100%; height: 60px; 
         background: rgba(255, 255, 255, 0.05); 
@@ -47,7 +47,6 @@
     .nav-btn { 
         color: #fff; font-size: 13px; font-weight: 700; text-transform: uppercase; 
         cursor: pointer; padding: 5px 15px; border-radius: 20px; border: 1px solid transparent;
-        transition: 0.3s;
     }
     .nav-btn.focused { border-color: #FFCE44; background: #FFCE44; color: #000; }
 
@@ -99,7 +98,7 @@
     .top6-item.focused { transform: translateY(-30px) scale(1.08); z-index: 20; }
     .top6-item.focused .top6-poster { border: 4px solid #E50914; box-shadow: 0 0 50px rgba(229, 9, 20, 0.7); }
 
-    /* PÁGINA DE CANAIS - SEM SOMBRAS E SEM LIXO VISUAL */
+    /* PÁGINA DE CANAIS */
     #channelsOverlay { 
         position: fixed; inset: 0; background: #040714; z-index: 4000; 
         display: none; flex-direction: column; padding-top: 140px;
@@ -120,8 +119,11 @@
     }
     #footerText { font-style: italic; font-weight: 500; color: #ffffff; font-size: 20px; text-shadow: 2px 2px 4px #000; }
 
-    /* PLAYER */
+    /* PLAYER E ADESIVOS */
     #playerOverlay { position: fixed; inset: 0; background: #000; z-index: 9000; display: none; }
+    #btnClosePlayer { position: absolute; top: 30px; right: 30px; background: rgba(255,255,255,0.2); color: #fff; border: none; padding: 10px 20px; border-radius: 5px; font-weight: 900; cursor: pointer; z-index: 10000; backdrop-filter: blur(10px); }
+    #btnClosePlayer:hover { background: #E50914; }
+    #channelSticker { position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.6); color: #FFCE44; padding: 5px 15px; border-radius: 5px; font-size: 12px; font-weight: 700; z-index: 10000; text-transform: uppercase; }
 </style>
 </head>
 <body>
@@ -168,8 +170,15 @@
     <div style="height: 150px;"></div>
 </div>
 
-<div id="channelsOverlay"><div id="channelsScroll"></div></div>
-<div id="playerOverlay"><div id="player" style="width:100%; height:100%;"></div></div>
+<div id="channelsOverlay">
+    <div id="channelsScroll"></div>
+</div>
+
+<div id="playerOverlay">
+    <button id="btnClosePlayer" onclick="closePlayer()">SAIR DO PLAY</button>
+    <div id="channelSticker"></div>
+    <div id="player" style="width:100%; height:100%;"></div>
+</div>
 
 <div id="globalFooter">
     <div id="footerText">PaixãoFlix, transformando momentos de lazer em lembranças felizes!</div>
@@ -208,24 +217,24 @@ function parseM3U(content) {
         if(line.startsWith("#EXTINF")) {
             const name = line.split(',')[1] || "Canal";
             const logo = line.match(/tvg-logo="([^"]+)"/)?.[1] || "";
-            // UNIFICAÇÃO: Normalização do nome da categoria para evitar duplicatas
-            const catRaw = line.match(/group-title="([^"]+)"/)?.[1] || "Geral";
-            const cat = catRaw.trim(); 
+            const cat = line.match(/group-title="([^"]+)"/)?.[1]?.trim() || "Geral";
             const url = lines[i+1]?.trim();
             if(url && url.startsWith("http")) {
                 if(!cats[cat]) cats[cat] = [];
                 cats[cat].push({ name, logo, url });
-                channels.push({ name, logo, url, cat });
             }
         }
     });
+    // Limpeza de categorias vazias e unificação visual
     renderChannels(cats);
 }
 
 function renderChannels(cats) {
     const cont = document.getElementById("channelsScroll");
-    cont.innerHTML = ""; // Limpa para evitar lixo visual
+    cont.innerHTML = "";
+    channels = []; // Limpa lista global para remapeamento total
     Object.keys(cats).forEach(cat => {
+        if(cats[cat].length === 0) return;
         const div = document.createElement("div");
         div.className = "category-container";
         div.innerHTML = `<div class="channel-category-title"><i class="fas fa-play"></i> ${cat}</div>`;
@@ -234,9 +243,10 @@ function renderChannels(cats) {
         cats[cat].forEach(c => {
             const card = document.createElement("div");
             card.className = "channel-card";
-            card.onclick = () => playChannel(c.url);
+            card.onclick = () => playChannel(c.url, c.name);
             card.innerHTML = `<img src="${c.logo}" onerror="this.src='https://via.placeholder.com/150?text=PaixãoFlix'">`;
             row.appendChild(card);
+            channels.push({ ...c, cat });
         });
         div.appendChild(row);
         cont.appendChild(div);
@@ -248,24 +258,36 @@ function openChannelsPage() {
     document.getElementById("mainScroll").style.display = "none";
     document.getElementById("navMenuInterno").style.display = "flex";
     document.getElementById("channelsOverlay").style.display = "flex";
-    chanIdx = 0; // Sempre inicia no primeiro canal
+    chanIdx = 0;
     updateFocus();
 }
 
-function playChannel(url) {
+function playChannel(url, name) {
     isPlayerOpen = true;
     document.getElementById("playerOverlay").style.display = "block";
+    document.getElementById("channelSticker").innerText = name;
     if(playerInstance) playerInstance.destroy();
     playerInstance = new Clappr.Player({ 
-        source: url, parentId: "#player", width: "100%", height: "100%", autoPlay: true,
-        playback: { hlsjsConfig: { enableWorker: true } }
+        source: url, 
+        parentId: "#player", 
+        width: "100%", 
+        height: "100%", 
+        autoPlay: true,
+        mute: false, // ORDEM: Iniciar com áudio
+        volume: 100
     });
+}
+
+function closePlayer() {
+    if(playerInstance) playerInstance.destroy();
+    document.getElementById("playerOverlay").style.display = "none";
+    isPlayerOpen = false;
 }
 
 function zapping(dir) {
     let idx = channels.findIndex(c => c.url === playerInstance.options.source);
     idx = (dir === "up") ? (idx + 1) % channels.length : (idx - 1 + channels.length) % channels.length;
-    playChannel(channels[idx].url);
+    playChannel(channels[idx].url, channels[idx].name);
 }
 
 function updateFocus() {
@@ -286,7 +308,7 @@ function updateFocus() {
 document.addEventListener("keydown", e => {
     const k = e.keyCode;
     if(isPlayerOpen) {
-        if(Keys.BACK.includes(k)) { playerInstance.destroy(); document.getElementById("playerOverlay").style.display = "none"; isPlayerOpen = false; }
+        if(Keys.BACK.includes(k)) closePlayer();
         if(Keys.UP.includes(k) || Keys.CH_UP.includes(k)) zapping("up");
         if(Keys.DOWN.includes(k) || Keys.CH_DOWN.includes(k)) zapping("down");
         return;
@@ -295,15 +317,22 @@ document.addEventListener("keydown", e => {
         const cards = document.querySelectorAll(".channel-card");
         if(Keys.RIGHT.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 1);
         if(Keys.LEFT.includes(k)) chanIdx = Math.max(0, chanIdx - 1);
-        // NAVEGAÇÃO DE GRADE (8 COLUNAS) SEM PULAR CATEGORIAS
-        if(Keys.DOWN.includes(k)) { 
-            let next = chanIdx + 8; 
-            if(next < cards.length) chanIdx = next;
+        
+        // NAVEGAÇÃO ENTRE CATEGORIAS (SELETOR INTELIGENTE)
+        if(Keys.DOWN.includes(k) || Keys.UP.includes(k)) {
+            const currentCat = channels[chanIdx].cat;
+            let nextIdx = (Keys.DOWN.includes(k)) ? chanIdx + 1 : chanIdx - 1;
+            
+            while(nextIdx >= 0 && nextIdx < channels.length) {
+                if(channels[nextIdx].cat !== currentCat) {
+                    // Achou nova categoria, foca no primeiro item dela
+                    chanIdx = nextIdx;
+                    break;
+                }
+                nextIdx = (Keys.DOWN.includes(k)) ? nextIdx + 1 : nextIdx - 1;
+            }
         }
-        if(Keys.UP.includes(k)) { 
-            let prev = chanIdx - 8; 
-            if(prev >= 0) chanIdx = prev;
-        }
+        
         if(Keys.ENTER.includes(k)) cards[chanIdx].click();
         if(Keys.BACK.includes(k)) location.reload();
     } else {
