@@ -2,14 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.18</title>
+<title>PaixãoFlix TV V.28.1.19</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
-    /* RESET INTEGRAL E PRESERVAÇÃO */
+    /* RESET INTEGRAL - PRESERVAÇÃO TOTAL */
     * { 
         overflow: hidden !important; 
         touch-action: manipulation; 
@@ -33,7 +33,7 @@
         display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 1000;
         background: rgba(4,7,20,0.98);
     }
-    #logoMain { height: 65px; filter: drop-shadow(0 0 15px rgba(0,0,0,0.6)); }
+    #logoMain { height: 65px; filter: drop-shadow(0 0 15px rgba(0,0,0,0.6)); cursor: pointer; }
     #barCounter { font-weight: 900; color: #FFCE44; font-size: 18px; }
     #barDateTime { font-size: 15px; color: #ffffff; text-transform: uppercase; font-weight: 400; }
 
@@ -59,14 +59,10 @@
         z-index: 1;
     }
     #editorSlider.focused { border-color: #FFCE44; transform: scale(1.01); }
-    
     #editorInfo { position: relative; z-index: 10; }
     #editorTitle { font-size: 45px; font-weight: 900; margin-bottom: 5px; text-shadow: 2px 2px 10px #000; }
     #editorMeta { font-size: 18px; color: #FFCE44; font-weight: 500; margin-bottom: 20px; }
-    .btn-watch { 
-        background: #FFCE44; color: #000; padding: 10px 30px; border-radius: 8px; 
-        font-weight: 900; font-size: 13px; text-transform: uppercase; display: inline-block; 
-    }
+    .btn-watch { background: #FFCE44; color: #000; padding: 10px 30px; border-radius: 8px; font-weight: 900; font-size: 13px; text-transform: uppercase; display: inline-block; }
 
     /* MENU BRANDS */
     #menuBrands { display: flex; gap: 15px; padding: 30px 50px; justify-content: center; width: 100%; }
@@ -83,30 +79,40 @@
     /* TOP 6 */
     #top6Section { padding: 80px 50px; text-align: center; width: 100%; transition: 0.5s; }
     #top6Title { font-size: 95px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #FFCE44; text-transform: uppercase; margin-bottom: 80px; }
-    
     .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 160px 50px; }
     .top6-item { position: relative; width: 100%; height: 550px; cursor: pointer; transition: 0.4s; }
-    
-    .top6-number { 
-        position: absolute; left: -60px; top: 0; font-size: 380px; font-weight: 900; 
-        color: rgba(255,255,255,0.9); -webkit-text-stroke: 12px #000; z-index: 5; pointer-events: none;
-    }
+    .top6-number { position: absolute; left: -60px; top: 0; font-size: 380px; font-weight: 900; color: rgba(255,255,255,0.9); -webkit-text-stroke: 12px #000; z-index: 5; pointer-events: none; }
     .top6-poster { width: 100%; height: 100%; object-fit: contain; border-radius: 20px; border: 3px solid rgba(255,255,255,0.1); background: #000; position: relative; z-index: 2; }
     .item-meta-info { margin-top: 15px; font-size: 18px; font-weight: 700; color: #FFCE44; text-transform: uppercase; }
-
     .top6-item.focused { transform: translateY(-30px) scale(1.08); z-index: 20; }
     .top6-item.focused .top6-poster { border: 4px solid #E50914; box-shadow: 0 0 50px rgba(229, 9, 20, 0.7); }
-    .top6-item.focused .top6-number { -webkit-text-stroke: 12px #E50914; color: #fff; }
 
-    /* PÁGINA DE CANAIS (OVERLAY) */
+    /* TELA DE CANAIS CUSTOMIZADA */
     #channelsOverlay { 
         position: fixed; inset: 0; background: #040714; z-index: 3000; 
-        display: none; flex-direction: column; padding: 40px; 
+        display: none; flex-direction: column; padding: 100px 50px 40px 50px;
     }
-    .channels-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; overflow-y: auto !important; padding: 20px; }
-    .channel-card { background: #1a1d29; border: 2px solid #333; border-radius: 10px; padding: 15px; text-align: center; transition: 0.3s; cursor: pointer; }
-    .channel-card.focused { border-color: #FFCE44; transform: scale(1.1); background: #2a2e42; }
-    .channel-card img { width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px; }
+    #channelsScroll { overflow-y: auto !important; height: 100%; padding-bottom: 50px; }
+    .channel-category-title { 
+        font-size: 35px; font-weight: 900; color: #FFCE44; 
+        margin: 40px 0 20px 0; text-transform: uppercase; border-left: 8px solid #FFCE44; padding-left: 20px;
+    }
+    .channels-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 25px; margin-bottom: 50px; }
+    .channel-card { 
+        aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: 0.3s; position: relative; border-radius: 15px;
+    }
+    .channel-card img { width: 85%; height: 85%; object-fit: contain; }
+    
+    /* SELETOR PADRONIZADO PARA CANAIS */
+    .channel-card.focused { 
+        background: #f9f9f9; transform: scale(1.15); box-shadow: 0 0 30px rgba(255,206,68,0.5); 
+    }
+    .channel-card.focused::before {
+        content: ""; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+        animation: shine 1.5s infinite;
+    }
 
     /* RODAPÉ */
     #footer { padding: 120px 50px; text-align: center; }
@@ -116,14 +122,14 @@
 <body>
 
 <div id="topBar">
-    <img id="logoMain" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
-    <div id="barCounter">JÁ TEMOS <span id="totalItems">0</span> CONTEÚDOS</div>
+    <img id="logoMain" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" onclick="location.reload()">
+    <div id="barCounter">PAIXÃOFLIX TV | <span id="totalItems">0</span> ATIVOS</div>
     <div id="barDateTime">CARREGANDO...</div>
 </div>
 
 <div id="mainScroll">
     <div id="carouselContainer">
-        <div id="editorSlider" class="focused" onclick="openDetails(editorsChoice[edIdx])">
+        <div id="editorSlider" class="focused" onclick="openDetails()">
             <div id="editorInfo">
                 <div id="editorTitle">...</div>
                 <div id="editorMeta">ANO • ★ 0.0</div>
@@ -153,23 +159,30 @@
 </div>
 
 <div id="channelsOverlay">
-    <h1 id="top6Title" style="font-size: 50px; text-align: center;">Todos os Canais</h1>
-    <div class="channels-grid" id="channelsContainer"></div>
+    <div id="channelsScroll"></div>
 </div>
 
 <script>
-let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [];
+let movies = [], series = [], kidsMovies = [], kidsSeries = [], allChannels = {};
 let top6Data = [], editorsChoice = [], edIdx = 0;
-let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0;
+let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0, chanCatIdx = "";
 let isChannelsOpen = false;
 
 async function loadData() {
     const fetchJSON = async (url) => { try { const r = await fetch(url); return await r.json(); } catch(e) { return []; } };
+    
+    // CARGA DE FILMES E SERIES
     movies = await fetchJSON("data/filmes.json");
     series = await fetchJSON("data/series.json");
     kidsMovies = await fetchJSON("data/kids_filmes.json");
     kidsSeries = await fetchJSON("data/kids_series.json");
-    channels = await fetchJSON("data/canais.json");
+    
+    // PARSER M3U PARA CANAIS
+    try {
+        const response = await fetch("data/ativa_canais.m3u");
+        const data = await response.text();
+        parseM3U(data);
+    } catch(e) { console.error("M3U não encontrado"); }
 
     const all = [...movies, ...series, ...kidsMovies, ...kidsSeries];
     document.getElementById("totalItems").innerText = all.length;
@@ -181,55 +194,54 @@ async function loadData() {
     startClock();
 }
 
-function startCarousel() {
-    const slider = document.getElementById("editorSlider");
-    const update = () => {
-        slider.style.opacity = 0;
-        setTimeout(() => {
-            const item = editorsChoice[edIdx];
-            slider.style.backgroundImage = `url(${item.poster})`;
-            document.getElementById("editorTitle").innerText = item.titulo || item.name;
-            document.getElementById("editorMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.0'}`;
-            slider.style.opacity = 1;
-            edIdx = (edIdx + 1) % editorsChoice.length;
-        }, 800);
-    };
-    update();
-    setInterval(update, 8000);
-}
-
-function renderTop6() {
-    const cont = document.getElementById("top6Container");
-    cont.innerHTML = "";
-    top6Data.forEach((item, i) => {
-        const div = document.createElement("div");
-        div.className = "top6-item";
-        div.onclick = () => openDetails(item);
-        div.innerHTML = `<span class="top6-number">${i+1}</span><img class="top6-poster" src="${item.poster}"><div class="item-meta-info">${item.year || '2026'} • ★ ${item.rating || '8.5'}</div>`;
-        cont.appendChild(div);
+function parseM3U(content) {
+    const lines = content.split('\n');
+    let currentCat = "Geral";
+    lines.forEach(line => {
+        if(line.startsWith("#EXTINF")) {
+            const name = line.split(',')[1] || "Canal";
+            const logo = line.match(/tvg-logo="([^"]+)"/)?.[1] || "";
+            const category = line.match(/group-title="([^"]+)"/)?.[1] || "Geral";
+            const url = lines[lines.indexOf(line) + 1];
+            
+            if(!allChannels[category]) allChannels[category] = [];
+            allChannels[category].push({ name, logo, url });
+        }
     });
 }
 
 function openChannelsPage() {
     isChannelsOpen = true;
     const ov = document.getElementById("channelsOverlay");
-    const cont = document.getElementById("channelsContainer");
+    const scrollCont = document.getElementById("channelsScroll");
     ov.style.display = "flex";
-    cont.innerHTML = "";
-    channels.forEach((c, i) => {
-        const d = document.createElement("div");
-        d.className = "channel-card";
-        d.innerHTML = `<img src="${c.logo || c.poster}"><div>${c.name || c.titulo}</div>`;
-        cont.appendChild(d);
+    scrollCont.innerHTML = "";
+
+    Object.keys(allChannels).forEach(cat => {
+        const title = document.createElement("div");
+        title.className = "channel-category-title";
+        title.innerText = cat;
+        scrollCont.appendChild(title);
+
+        const row = document.createElement("div");
+        row.className = "channels-row";
+        allChannels[cat].forEach((chan, i) => {
+            const card = document.createElement("div");
+            card.className = "channel-card";
+            card.onclick = () => playChannel(chan.url);
+            card.innerHTML = `<img src="${chan.logo}">`;
+            row.appendChild(card);
+        });
+        scrollCont.appendChild(row);
     });
     updateFocus();
 }
 
 function updateFocus() {
     if(isChannelsOpen) {
-        const cards = document.querySelectorAll(".channel-card");
-        cards.forEach((c, i) => c.classList.toggle("focused", i === chanIdx));
-        cards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const allCards = document.querySelectorAll(".channel-card");
+        allCards.forEach((c, i) => c.classList.toggle("focused", i === chanIdx));
+        allCards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
     }
     const slider = document.getElementById("editorSlider");
@@ -249,10 +261,12 @@ function updateFocus() {
 document.addEventListener("keydown", e => {
     const key = e.keyCode;
     if(isChannelsOpen) {
-        if(key === 39) chanIdx = Math.min(channels.length - 1, chanIdx + 1);
+        const allCards = document.querySelectorAll(".channel-card");
+        if(key === 39) chanIdx = Math.min(allCards.length - 1, chanIdx + 1);
         if(key === 37) chanIdx = Math.max(0, chanIdx - 1);
-        if(key === 40) chanIdx = Math.min(channels.length - 1, chanIdx + 6);
-        if(key === 38) chanIdx = Math.max(0, chanIdx - 6);
+        if(key === 40) chanIdx = Math.min(allCards.length - 1, chanIdx + 8);
+        if(key === 38) chanIdx = Math.max(0, chanIdx - 8);
+        if(key === 13) allCards[chanIdx].click();
         if(key === 8 || key === 27) { document.getElementById("channelsOverlay").style.display = "none"; isChannelsOpen = false; }
         updateFocus(); return;
     }
@@ -271,20 +285,41 @@ document.addEventListener("keydown", e => {
     else if (currentFocus === "grid") {
         if (key === 39) if (gridIdx % 3 !== 2) gridIdx = Math.min(5, gridIdx + 1);
         if (key === 37) if (gridIdx % 3 !== 0) gridIdx--;
-        if (key === 40) { 
-            if (gridIdx < 3) gridIdx += 3; // Pula da Capa 1 para Capa 4
-            else currentFocus = "footer";
-        }
-        if (key === 38) { 
-            if(gridIdx < 3) { currentFocus = "menu"; menuIdx = 0; } // Sobe direto pro Menu Canais
-            else gridIdx -= 3; 
-        }
+        if (key === 40) { if (gridIdx < 3) gridIdx += 3; else currentFocus = "footer"; }
+        if (key === 38) { if(gridIdx < 3) { currentFocus = "menu"; menuIdx = 0; } else gridIdx -= 3; }
         if (key === 13) openDetails(top6Data[gridIdx]);
     }
     else if (currentFocus === "footer") { if (key === 38) { currentFocus = "grid"; gridIdx = 3; } }
     updateFocus();
 });
 
+function playChannel(url) { console.log("Reproduzindo Canal:", url); }
+function openDetails(item) { console.log("Detalhes acionados"); }
+function startCarousel() {
+    const slider = document.getElementById("editorSlider");
+    setInterval(() => {
+        slider.style.opacity = 0;
+        setTimeout(() => {
+            const item = editorsChoice[edIdx];
+            slider.style.backgroundImage = `url(${item.poster})`;
+            document.getElementById("editorTitle").innerText = item.titulo || item.name;
+            document.getElementById("editorMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.5'}`;
+            slider.style.opacity = 1;
+            edIdx = (edIdx + 1) % editorsChoice.length;
+        }, 800);
+    }, 8000);
+}
+function renderTop6() {
+    const cont = document.getElementById("top6Container");
+    cont.innerHTML = "";
+    top6Data.forEach((item, i) => {
+        const div = document.createElement("div");
+        div.className = "top6-item";
+        div.onclick = () => openDetails(item);
+        div.innerHTML = `<span class="top6-number">${i+1}</span><img class="top6-poster" src="${item.poster}"><div class="item-meta-info">${item.year || '2026'} • ★ ${item.rating || '8.8'}</div>`;
+        cont.appendChild(div);
+    });
+}
 function startClock() {
     setInterval(() => {
         const now = new Date();
