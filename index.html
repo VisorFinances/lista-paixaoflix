@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.33</title>
+<title>PaixãoFlix TV V.28.1.34</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -90,27 +90,22 @@
         position: fixed; inset: 0; background: #040714; z-index: 4000; 
         display: none; flex-direction: column; padding-top: 80px;
     }
-    .channels-menu { margin-bottom: 40px !important; } /* ORDEM: Aumento de espaçamento */
+    .channels-menu { margin-bottom: 0px !important; } 
     #channelsScroll { 
         overflow-y: auto !important; height: calc(100vh - 280px); 
-        padding: 0 50px 100px 50px; 
+        padding: 40px 50px 100px 50px; /* ORDEM: Espaçamento acima do primeiro título */
     }
     .category-container { width: 100%; margin-bottom: 50px; overflow: visible !important; }
     .channel-category-title { font-size: 32px; font-weight: 900; color: #FFCE44; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; text-transform: uppercase; }
     .channels-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 30px; overflow: visible !important; }
     
-    /* ORDEM: Canais sem borda, sombra ou fundo. Logotipo padrão */
     .channel-card { 
         aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; 
         cursor: pointer; transition: 0.3s ease; filter: none !important; 
         box-shadow: none !important; border: none !important; background: transparent !important;
         overflow: visible !important;
     }
-    .channel-card img { 
-        width: 100%; height: 100%; object-fit: contain; 
-        filter: none !important;
-    }
-    /* ORDEM: Zoom sem corte */
+    .channel-card img { width: 100%; height: 100%; object-fit: contain; }
     .channel-card.focused { transform: scale(1.35); z-index: 100; }
 
     /* RODAPÉ FIXO */
@@ -258,9 +253,10 @@ function renderChannels(cats) {
 
 function openChannelsPage() {
     isChannelsOpen = true;
+    currentFocus = "chan_menu"; // Inicia foco nos botões de menu da página de canais
+    menuIdx = 1; // Foca no Cinema por padrão já que o Canais tá oculto
     document.getElementById("mainScroll").style.display = "none";
     document.getElementById("channelsOverlay").style.display = "flex";
-    chanIdx = 0;
     updateFocus();
 }
 
@@ -269,21 +265,9 @@ function playChannel(url, name) {
     document.getElementById("playerOverlay").style.display = "block";
     document.getElementById("channelSticker").innerText = name;
     if(playerInstance) playerInstance.destroy();
-    
-    // ORDEM: Áudio forçado e volume máximo
     playerInstance = new Clappr.Player({ 
-        source: url, 
-        parentId: "#player", 
-        width: "100%", 
-        height: "100%", 
-        autoPlay: true,
-        mute: false,
-        volume: 1,
-        events: {
-            onPlay: function() {
-                playerInstance.setVolume(100);
-            }
-        }
+        source: url, parentId: "#player", width: "100%", height: "100%", autoPlay: true, mute: false, volume: 1,
+        events: { onPlay: function() { playerInstance.setVolume(100); } }
     });
 }
 
@@ -301,14 +285,27 @@ function zapping(dir) {
 
 function updateFocus() {
     if(isPlayerOpen) return;
+    
+    // Reseta todos os focos antes de aplicar
+    document.querySelectorAll(".brand-card").forEach(b => b.classList.remove("focused"));
+    document.querySelectorAll(".channel-card").forEach(c => c.classList.remove("focused"));
+    document.getElementById("editorSlider").classList.remove("focused");
+    document.querySelectorAll(".top6-item").forEach(t => t.classList.remove("focused"));
+
     if(isChannelsOpen) {
-        const cards = document.querySelectorAll("#channelsScroll .channel-card");
-        cards.forEach((c, i) => c.classList.toggle("focused", i === chanIdx));
-        cards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if(currentFocus === "chan_menu") {
+            const btns = document.querySelectorAll(".channels-menu .brand-card");
+            btns[menuIdx]?.classList.add("focused");
+        } else {
+            const cards = document.querySelectorAll("#channelsScroll .channel-card");
+            cards[chanIdx]?.classList.add("focused");
+            cards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     } else {
-        document.getElementById("editorSlider").classList.toggle("focused", currentFocus === "editor");
-        document.querySelectorAll(".main-menu .brand-card").forEach((b, i) => b.classList.toggle("focused", currentFocus === "menu" && i === menuIdx));
-        document.querySelectorAll(".top6-item").forEach((g, i) => g.classList.toggle("focused", currentFocus === "grid" && i === gridIdx));
+        if(currentFocus === "editor") document.getElementById("editorSlider").classList.add("focused");
+        if(currentFocus === "menu") document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
+        if(currentFocus === "grid") document.querySelectorAll(".top6-item")[gridIdx]?.classList.add("focused");
+        
         const target = document.querySelector(".focused");
         if(target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -322,15 +319,24 @@ document.addEventListener("keydown", e => {
         if(Keys.DOWN.includes(k) || Keys.CH_DOWN.includes(k)) zapping("down");
         return;
     }
+    
     if(isChannelsOpen) {
-        const cards = document.querySelectorAll("#channelsScroll .channel-card");
-        // ORDEM: Navegação fluida sem travas em categorias
-        if(Keys.RIGHT.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 1);
-        if(Keys.LEFT.includes(k)) chanIdx = Math.max(0, chanIdx - 1);
-        if(Keys.DOWN.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 8);
-        if(Keys.UP.includes(k)) chanIdx = Math.max(0, chanIdx - 8);
-        
-        if(Keys.ENTER.includes(k)) cards[chanIdx].click();
+        if(currentFocus === "chan_menu") {
+            if(Keys.RIGHT.includes(k)) menuIdx = Math.min(7, menuIdx + 1);
+            if(Keys.LEFT.includes(k)) menuIdx = Math.max(1, menuIdx - 1);
+            if(Keys.DOWN.includes(k)) { currentFocus = "chan_grid"; chanIdx = 0; }
+            if(Keys.ENTER.includes(k)) { if(menuIdx === 7) location.reload(); }
+        } else {
+            const cards = document.querySelectorAll("#channelsScroll .channel-card");
+            if(Keys.RIGHT.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 1);
+            if(Keys.LEFT.includes(k)) chanIdx = Math.max(0, chanIdx - 1);
+            if(Keys.DOWN.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 8);
+            if(Keys.UP.includes(k)) {
+                if(chanIdx < 8) { currentFocus = "chan_menu"; menuIdx = 1; }
+                else { chanIdx -= 8; }
+            }
+            if(Keys.ENTER.includes(k)) cards[chanIdx].click();
+        }
         if(Keys.BACK.includes(k)) location.reload();
     } else {
         if(currentFocus === "editor") { if(Keys.DOWN.includes(k)) currentFocus = "menu"; }
