@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.24</title>
+<title>PaixãoFlix TV V.28.1.25</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/clappr-hlsjs-plugin@latest/dist/clappr-hlsjs-plugin.min.js"></script>
 
 <style>
-    /* PRESERVAÇÃO INTEGRAL E CRESCIMENTO DO CÓDIGO */
+    /* PRESERVAÇÃO INTEGRAL DO INDEX - SEM ENCURTAMENTOS */
     * { 
         overflow: hidden !important; 
         touch-action: manipulation; 
@@ -27,7 +27,7 @@
         color: #fff; height: 100vh; width: 100vw; 
     }
 
-    /* BARRA SUPERIOR PADRÃO FIXO */
+    /* TOP BAR ORIGINAL */
     #topBar { 
         position: fixed; top: 0; width: 100%; height: 80px; 
         border-bottom: 1px solid rgba(255,255,255,0.15);
@@ -38,7 +38,7 @@
     #barCounter { font-weight: 900; color: #FFCE44; font-size: 18px; }
     #barDateTime { font-size: 15px; color: #ffffff; text-transform: uppercase; font-weight: 400; }
 
-    /* MENU PADRONIZADO PARA TODAS AS PÁGINAS */
+    /* MENU GLOBAL PADRONIZADO */
     #navMenuGlobal { 
         position: fixed; top: 80px; width: 100%; height: 60px; 
         background: rgba(255, 255, 255, 0.05); 
@@ -48,16 +48,17 @@
     .nav-btn { 
         color: #fff; font-size: 13px; font-weight: 700; text-transform: uppercase; 
         cursor: pointer; padding: 5px 15px; border-radius: 20px; border: 1px solid transparent;
+        transition: 0.3s;
     }
     .nav-btn.focused { border-color: #FFCE44; background: #FFCE44; color: #000; }
 
-    /* CONTAINER PRINCIPAL */
+    /* CONTAINER PRINCIPAL SCROLL */
     #mainScroll { 
         width: 100%; height: 100vh; 
         padding-top: 150px; overflow-y: auto !important; scroll-behavior: smooth;
     }
 
-    /* CARROSSEL */
+    /* CARROSSEL HOME */
     #carouselContainer { width: 100%; padding: 0 50px 25px 50px; }
     #editorSlider { 
         width: 100%; height: 480px; border-radius: 25px; 
@@ -77,7 +78,7 @@
     #editorMeta { font-size: 18px; color: #FFCE44; font-weight: 500; margin-bottom: 20px; }
     .btn-watch { background: #FFCE44; color: #000; padding: 10px 30px; border-radius: 8px; font-weight: 900; font-size: 13px; text-transform: uppercase; display: inline-block; }
 
-    /* MENU MARCAS (HOME) */
+    /* MENU DE MARCAS */
     #menuBrands { display: flex; gap: 15px; padding: 30px 50px; justify-content: center; width: 100%; }
     .brand-card { 
         flex: 1; height: 100px; background: linear-gradient(135deg, #1a1d29, #2a2e42);
@@ -102,7 +103,7 @@
     /* CANAIS SEM SOMBRA */
     .channel-card { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; filter: none !important; }
     .channel-card img { width: 100%; height: 100%; object-fit: contain; }
-    .channel-card.focused { transform: scale(1.2); border: 2px solid #FFCE44; border-radius: 10px; }
+    .channel-card.focused { transform: scale(1.2); border: 2px solid #FFCE44; border-radius: 10px; z-index: 10; }
 
     /* RODAPÉ FIXO */
     #globalFooter { 
@@ -112,7 +113,7 @@
     }
     #footerText { font-style: italic; font-weight: 500; color: #ffffff; font-size: 20px; text-shadow: 2px 2px 4px #000; }
 
-    /* PLAYER */
+    /* PLAYER TELA CHEIA */
     #playerOverlay { position: fixed; inset: 0; background: #000; z-index: 9000; display: none; }
 </style>
 </head>
@@ -152,7 +153,13 @@
         <div class="brand-card"><i class="fas fa-robot"></i><span>Kids Séries</span></div>
         <div class="brand-card"><i class="fas fa-heart"></i><span>Favoritos</span></div>
     </div>
+
+    <div id="top6Section" style="padding: 80px 50px; text-align: center;">
+        <div style="font-size: 95px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #FFCE44; text-transform: uppercase; margin-bottom: 80px;">Top 6 PaixãoFlix</div>
+        <div class="top6-grid" id="top6Container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 160px 50px;"></div>
     </div>
+    <div style="height: 150px;"></div>
+</div>
 
 <div id="channelsOverlay"><div id="channelsScroll"></div></div>
 <div id="playerOverlay"><div id="player" style="width:100%; height:100%;"></div></div>
@@ -182,6 +189,8 @@ async function loadData() {
     try { const r = await fetch("data/ativa_canais.m3u"); const t = await r.text(); parseM3U(t); } catch(e) {}
     
     document.getElementById("totalItems").innerText = movies.length + series.length + kidsMovies.length + kidsSeries.length;
+    editorsChoice = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 10);
+    top6Data = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 6);
     startCarousel(); renderTop6(); startClock();
 }
 
@@ -195,10 +204,9 @@ function parseM3U(content) {
             let cat = line.match(/group-title="([^"]+)"/)?.[1] || "Geral";
             const url = lines[i+1]?.trim();
             if(url && url.startsWith("http")) {
-                // UNIFICAÇÃO DE CATEGORIAS
                 if(!cats[cat]) cats[cat] = [];
                 cats[cat].push({ name, logo, url });
-                channels.push({ name, logo, url });
+                channels.push({ name, logo, url, cat });
             }
         }
     });
@@ -211,6 +219,7 @@ function renderChannels(cats) {
     Object.keys(cats).forEach(cat => {
         const div = document.createElement("div");
         div.className = "category-container";
+        div.setAttribute("data-category", cat);
         div.innerHTML = `<div class="channel-category-title"><i class="fas fa-star"></i> ${cat}</div>`;
         const row = document.createElement("div");
         row.className = "channels-row";
@@ -245,8 +254,7 @@ function playChannel(url) {
         hlsjsConfig: { enableWorker: true },
         width: "100%", height: "100%",
         autoPlay: true,
-        preload: 'auto',
-        chromecast: { title: 'PaixãoFlix' }
+        preload: 'auto'
     });
 }
 
@@ -283,30 +291,60 @@ document.addEventListener("keydown", e => {
         if(Keys.RIGHT.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 1);
         if(Keys.LEFT.includes(k)) chanIdx = Math.max(0, chanIdx - 1);
         
-        // NAVEGAÇÃO ENTRE CATEGORIAS (8 POR LINHA)
+        // NAVEGAÇÃO ENTRE CATEGORIAS E LINHAS (8 POR LINHA)
         if(Keys.DOWN.includes(k)) {
-            const nextIdx = chanIdx + 8;
-            if(nextIdx < cards.length) chanIdx = nextIdx;
+            let nextIdx = chanIdx + 8;
+            if(nextIdx >= cards.length) {
+                // Tenta ir para o primeiro da próxima sessão se existir
+            }
+            chanIdx = Math.min(cards.length - 1, nextIdx);
         }
         if(Keys.UP.includes(k)) {
-            const prevIdx = chanIdx - 8;
-            if(prevIdx >= 0) chanIdx = prevIdx;
+            chanIdx = Math.max(0, chanIdx - 8);
         }
         
         if(Keys.ENTER.includes(k)) cards[chanIdx].click();
         if(Keys.BACK.includes(k)) location.reload();
     } else {
-        // Lógica Home mantida
         if(currentFocus === "menu") {
             if(Keys.RIGHT.includes(k)) menuIdx = (menuIdx + 1) % 7;
             if(Keys.LEFT.includes(k)) menuIdx = (menuIdx - 1 + 7) % 7;
+            if(Keys.UP.includes(k)) currentFocus = "editor";
             if(Keys.ENTER.includes(k) && menuIdx === 0) openChannelsPage();
+        } else if(currentFocus === "editor") {
+            if(Keys.DOWN.includes(k)) currentFocus = "menu";
         }
     }
     updateFocus();
 });
 
-// Funções de rodapé, relógio e carrossel mantidas sem alteração...
+function startCarousel() {
+    const slider = document.getElementById("editorSlider");
+    setInterval(() => {
+        slider.style.opacity = 0;
+        setTimeout(() => {
+            const item = editorsChoice[edIdx];
+            slider.style.backgroundImage = `url(${item.poster})`;
+            document.getElementById("editorTitle").innerText = item.titulo || item.name;
+            document.getElementById("editorMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.5'}`;
+            slider.style.opacity = 1;
+            edIdx = (edIdx + 1) % editorsChoice.length;
+        }, 800);
+    }, 8000);
+}
+
+function renderTop6() {
+    const cont = document.getElementById("top6Container");
+    top6Data.forEach((item, i) => {
+        const div = document.createElement("div");
+        div.className = "top6-item";
+        div.style.position = "relative";
+        div.innerHTML = `<span style="position:absolute; left:-60px; top:0; font-size:380px; font-weight:900; color:rgba(255,255,255,0.9); -webkit-text-stroke:12px #000; z-index:5;">${i+1}</span><img src="${item.poster}" style="width:100%; height:550px; object-fit:contain; border-radius:20px; border:3px solid rgba(255,255,255,0.1); background:#000; position:relative; z-index:2;">`;
+        cont.appendChild(div);
+    });
+}
+
+function startClock() { setInterval(() => { const now = new Date(); document.getElementById("barDateTime").innerText = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase(); }, 1000); }
 window.onload = loadData;
 </script>
 </body>
