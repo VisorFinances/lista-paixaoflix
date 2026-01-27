@@ -2,14 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.19</title>
+<title>PaixãoFlix TV V.28.1.20</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
-    /* RESET INTEGRAL - PRESERVAÇÃO TOTAL */
+    /* RESET INTEGRAL */
     * { 
         overflow: hidden !important; 
         touch-action: manipulation; 
@@ -26,7 +26,7 @@
         color: #fff; height: 100vh; width: 100vw; 
     }
 
-    /* BARRA SUPERIOR */
+    /* BARRA SUPERIOR ORIGINAL */
     #topBar { 
         position: fixed; top: 0; width: 100%; height: 80px; 
         border-bottom: 1px solid rgba(255,255,255,0.15);
@@ -64,7 +64,7 @@
     #editorMeta { font-size: 18px; color: #FFCE44; font-weight: 500; margin-bottom: 20px; }
     .btn-watch { background: #FFCE44; color: #000; padding: 10px 30px; border-radius: 8px; font-weight: 900; font-size: 13px; text-transform: uppercase; display: inline-block; }
 
-    /* MENU BRANDS */
+    /* MENU PRINCIPAL (HOME) */
     #menuBrands { display: flex; gap: 15px; padding: 30px 50px; justify-content: center; width: 100%; }
     .brand-card { 
         flex: 1; height: 100px; background: linear-gradient(135deg, #1a1d29, #2a2e42);
@@ -75,6 +75,11 @@
     .brand-card i { font-size: 26px; margin-bottom: 8px; color: #FFCE44; }
     .brand-card span { font-size: 15px; font-weight: 200; text-transform: uppercase; }
     .brand-card.focused { transform: scale(1.1); background: #f9f9f9; color: #000; border-color: #fff; z-index: 10; }
+
+    /* SUB-MENU (DENTRO DAS PÁGINAS) */
+    #subMenu { display: none; gap: 10px; padding: 15px 50px; background: rgba(255,255,255,0.05); margin-top: 80px; }
+    .sub-btn { padding: 8px 20px; border: 1px solid #FFCE44; border-radius: 20px; font-size: 12px; font-weight: 700; color: #FFCE44; cursor: pointer; text-transform: uppercase; }
+    .sub-btn.focused { background: #FFCE44; color: #000; }
 
     /* TOP 6 */
     #top6Section { padding: 80px 50px; text-align: center; width: 100%; transition: 0.5s; }
@@ -87,34 +92,33 @@
     .top6-item.focused { transform: translateY(-30px) scale(1.08); z-index: 20; }
     .top6-item.focused .top6-poster { border: 4px solid #E50914; box-shadow: 0 0 50px rgba(229, 9, 20, 0.7); }
 
-    /* TELA DE CANAIS CUSTOMIZADA */
+    /* TELA DE CANAIS OVERLAY */
     #channelsOverlay { 
         position: fixed; inset: 0; background: #040714; z-index: 3000; 
-        display: none; flex-direction: column; padding: 100px 50px 40px 50px;
+        display: none; flex-direction: column; 
     }
-    #channelsScroll { overflow-y: auto !important; height: 100%; padding-bottom: 50px; }
+    #channelsScroll { overflow-y: auto !important; height: 100%; padding: 20px 50px 100px 50px; }
+    .category-container { width: 100%; margin-bottom: 40px; }
     .channel-category-title { 
-        font-size: 35px; font-weight: 900; color: #FFCE44; 
-        margin: 40px 0 20px 0; text-transform: uppercase; border-left: 8px solid #FFCE44; padding-left: 20px;
+        font-size: 30px; font-weight: 900; color: #fff; 
+        margin-bottom: 20px; display: flex; align-items: center; gap: 15px;
     }
-    .channels-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 25px; margin-bottom: 50px; }
-    .channel-card { 
-        aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center;
-        cursor: pointer; transition: 0.3s; position: relative; border-radius: 15px;
-    }
-    .channel-card img { width: 85%; height: 85%; object-fit: contain; }
+    .channel-category-title i { color: #FFCE44; }
+    .channels-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px; }
     
-    /* SELETOR PADRONIZADO PARA CANAIS */
-    .channel-card.focused { 
-        background: #f9f9f9; transform: scale(1.15); box-shadow: 0 0 30px rgba(255,206,68,0.5); 
+    /* LOGOTIPOS PADRONIZADOS */
+    .channel-card { 
+        width: 140px; height: 140px; display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: 0.2s; border-radius: 12px; background: rgba(255,255,255,0.03);
+        border: 3px solid transparent; padding: 10px;
     }
-    .channel-card.focused::before {
-        content: ""; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-        animation: shine 1.5s infinite;
-    }
+    .channel-card img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .channel-card.focused { border-color: #FFCE44; background: rgba(255,206,68,0.1); transform: scale(1.1); }
 
-    /* RODAPÉ */
+    /* PLAYER CONTAINER */
+    #playerOverlay { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; }
+
+    /* RODAPÉ FIXO */
     #footer { padding: 120px 50px; text-align: center; }
     #footerText { font-style: italic; font-weight: 500; color: #ffffff; font-size: 22px; }
 </style>
@@ -123,8 +127,16 @@
 
 <div id="topBar">
     <img id="logoMain" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" onclick="location.reload()">
-    <div id="barCounter">PAIXÃOFLIX TV | <span id="totalItems">0</span> ATIVOS</div>
+    <div id="barCounter">JÁ TEMOS <span id="totalItems">0</span> CONTEÚDOS</div>
     <div id="barDateTime">CARREGANDO...</div>
+</div>
+
+<div id="subMenu">
+    <div class="sub-btn" onclick="location.reload()">Início</div>
+    <div class="sub-btn">Cinema</div>
+    <div class="sub-btn">Séries</div>
+    <div class="sub-btn">Kids TV</div>
+    <div class="sub-btn">Favoritos</div>
 </div>
 
 <div id="mainScroll">
@@ -160,34 +172,36 @@
 
 <div id="channelsOverlay">
     <div id="channelsScroll"></div>
+    <div id="footer" style="padding: 50px;"><div id="footerText">PaixãoFlix, transformando momentos de lazer em lembranças felizes!</div></div>
 </div>
+
+<div id="playerOverlay"><div id="player"></div></div>
 
 <script>
 let movies = [], series = [], kidsMovies = [], kidsSeries = [], allChannels = {};
 let top6Data = [], editorsChoice = [], edIdx = 0;
-let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0, chanCatIdx = "";
-let isChannelsOpen = false;
+let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0, subIdx = 0;
+let isChannelsOpen = false, isPlayerOpen = false, playerInstance = null;
+let currentChanList = [];
 
 async function loadData() {
     const fetchJSON = async (url) => { try { const r = await fetch(url); return await r.json(); } catch(e) { return []; } };
-    
-    // CARGA DE FILMES E SERIES
     movies = await fetchJSON("data/filmes.json");
     series = await fetchJSON("data/series.json");
     kidsMovies = await fetchJSON("data/kids_filmes.json");
     kidsSeries = await fetchJSON("data/kids_series.json");
     
-    // PARSER M3U PARA CANAIS
     try {
         const response = await fetch("data/ativa_canais.m3u");
         const data = await response.text();
         parseM3U(data);
-    } catch(e) { console.error("M3U não encontrado"); }
+    } catch(e) { console.error("M3U Offline"); }
 
-    const all = [...movies, ...series, ...kidsMovies, ...kidsSeries];
-    document.getElementById("totalItems").innerText = all.length;
-    editorsChoice = all.sort(() => 0.5 - Math.random()).slice(0, 10);
-    top6Data = all.sort(() => 0.5 - Math.random()).slice(0, 6);
+    const total = movies.length + series.length + kidsMovies.length + kidsSeries.length;
+    document.getElementById("totalItems").innerText = total;
+    
+    editorsChoice = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 10);
+    top6Data = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 6);
     
     startCarousel();
     renderTop6();
@@ -196,70 +210,89 @@ async function loadData() {
 
 function parseM3U(content) {
     const lines = content.split('\n');
-    let currentCat = "Geral";
-    lines.forEach(line => {
+    currentChanList = [];
+    lines.forEach((line, i) => {
         if(line.startsWith("#EXTINF")) {
             const name = line.split(',')[1] || "Canal";
             const logo = line.match(/tvg-logo="([^"]+)"/)?.[1] || "";
-            const category = line.match(/group-title="([^"]+)"/)?.[1] || "Geral";
-            const url = lines[lines.indexOf(line) + 1];
-            
-            if(!allChannels[category]) allChannels[category] = [];
-            allChannels[category].push({ name, logo, url });
+            const category = line.match(/group-title="([^"]+)"/)?.[1] || "Variedades";
+            const url = lines[i + 1]?.trim();
+            if(url && url.startsWith("http")) {
+                if(!allChannels[category]) allChannels[category] = [];
+                const chanObj = { name, logo, url };
+                allChannels[category].push(chanObj);
+                currentChanList.push(chanObj);
+            }
         }
     });
 }
 
 function openChannelsPage() {
     isChannelsOpen = true;
+    document.getElementById("mainScroll").style.display = "none";
+    document.getElementById("subMenu").style.display = "flex";
     const ov = document.getElementById("channelsOverlay");
     const scrollCont = document.getElementById("channelsScroll");
     ov.style.display = "flex";
     scrollCont.innerHTML = "";
 
     Object.keys(allChannels).forEach(cat => {
-        const title = document.createElement("div");
-        title.className = "channel-category-title";
-        title.innerText = cat;
-        scrollCont.appendChild(title);
-
+        const container = document.createElement("div");
+        container.className = "category-container";
+        container.innerHTML = `<div class="channel-category-title"><i class="fas fa-star"></i> ${cat}</div>`;
         const row = document.createElement("div");
         row.className = "channels-row";
-        allChannels[cat].forEach((chan, i) => {
+        allChannels[cat].forEach(chan => {
             const card = document.createElement("div");
             card.className = "channel-card";
             card.onclick = () => playChannel(chan.url);
             card.innerHTML = `<img src="${chan.logo}">`;
             row.appendChild(card);
         });
-        scrollCont.appendChild(row);
+        container.appendChild(row);
+        scrollCont.appendChild(container);
     });
     updateFocus();
 }
 
+function playChannel(url) {
+    isPlayerOpen = true;
+    document.getElementById("playerOverlay").style.display = "block";
+    if(playerInstance) playerInstance.destroy();
+    playerInstance = new Clappr.Player({
+        source: url,
+        parentId: "#player",
+        width: "100%", height: "100%",
+        autoPlay: true,
+        flushLiveURLCache: true
+    });
+}
+
 function updateFocus() {
+    if(isPlayerOpen) return;
     if(isChannelsOpen) {
-        const allCards = document.querySelectorAll(".channel-card");
-        allCards.forEach((c, i) => c.classList.toggle("focused", i === chanIdx));
-        allCards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const cards = document.querySelectorAll(".channel-card");
+        cards.forEach((c, i) => c.classList.toggle("focused", i === chanIdx));
+        cards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
     }
     const slider = document.getElementById("editorSlider");
     const brands = document.querySelectorAll(".brand-card");
     const grid = document.querySelectorAll(".top6-item");
-    const footer = document.getElementById("footer");
-
     slider.classList.toggle("focused", currentFocus === "editor");
     brands.forEach((b, i) => b.classList.toggle("focused", currentFocus === "menu" && i === menuIdx));
     grid.forEach((g, i) => g.classList.toggle("focused", currentFocus === "grid" && i === gridIdx));
-    footer.classList.toggle("focused", currentFocus === "footer");
-
     const target = document.querySelector(".focused");
     if(target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 document.addEventListener("keydown", e => {
     const key = e.keyCode;
+    if(isPlayerOpen) {
+        if(key === 8 || key === 27) { playerInstance.destroy(); document.getElementById("playerOverlay").style.display = "none"; isPlayerOpen = false; }
+        if(key === 38 || key === 40) { /* Lógica de troca de canal aqui */ }
+        return;
+    }
     if(isChannelsOpen) {
         const allCards = document.querySelectorAll(".channel-card");
         if(key === 39) chanIdx = Math.min(allCards.length - 1, chanIdx + 1);
@@ -267,34 +300,27 @@ document.addEventListener("keydown", e => {
         if(key === 40) chanIdx = Math.min(allCards.length - 1, chanIdx + 8);
         if(key === 38) chanIdx = Math.max(0, chanIdx - 8);
         if(key === 13) allCards[chanIdx].click();
-        if(key === 8 || key === 27) { document.getElementById("channelsOverlay").style.display = "none"; isChannelsOpen = false; }
+        if(key === 8 || key === 27) { isChannelsOpen = false; location.reload(); }
         updateFocus(); return;
     }
-
-    if (currentFocus === "editor") {
-        if (key === 40) { currentFocus = "menu"; menuIdx = 0; }
-        if (key === 13) openDetails();
-    } 
-    else if (currentFocus === "menu") {
-        if (key === 39) menuIdx = (menuIdx + 1) % 7;
-        if (key === 37) menuIdx = (menuIdx - 1 + 7) % 7;
-        if (key === 40) { currentFocus = "grid"; gridIdx = 0; }
-        if (key === 38) currentFocus = "editor";
-        if (key === 13 && menuIdx === 0) openChannelsPage();
+    // NAVEGAÇÃO HOME PADRÃO (CONFORME SOLICITADO)
+    if(currentFocus === "editor") { if(key === 40) currentFocus = "menu"; if(key === 13) openDetails(); }
+    else if(currentFocus === "menu") {
+        if(key === 39) menuIdx = (menuIdx + 1) % 7;
+        if(key === 37) menuIdx = (menuIdx - 1 + 7) % 7;
+        if(key === 40) { currentFocus = "grid"; gridIdx = 0; }
+        if(key === 38) currentFocus = "editor";
+        if(key === 13 && menuIdx === 0) openChannelsPage();
     }
-    else if (currentFocus === "grid") {
-        if (key === 39) if (gridIdx % 3 !== 2) gridIdx = Math.min(5, gridIdx + 1);
-        if (key === 37) if (gridIdx % 3 !== 0) gridIdx--;
-        if (key === 40) { if (gridIdx < 3) gridIdx += 3; else currentFocus = "footer"; }
-        if (key === 38) { if(gridIdx < 3) { currentFocus = "menu"; menuIdx = 0; } else gridIdx -= 3; }
-        if (key === 13) openDetails(top6Data[gridIdx]);
+    else if(currentFocus === "grid") {
+        if(key === 39) if(gridIdx % 3 !== 2) gridIdx = Math.min(5, gridIdx + 1);
+        if(key === 37) if(gridIdx % 3 !== 0) gridIdx--;
+        if(key === 40) { if(gridIdx < 3) gridIdx += 3; }
+        if(key === 38) { if(gridIdx < 3) currentFocus = "menu"; else gridIdx -= 3; }
     }
-    else if (currentFocus === "footer") { if (key === 38) { currentFocus = "grid"; gridIdx = 3; } }
     updateFocus();
 });
 
-function playChannel(url) { console.log("Reproduzindo Canal:", url); }
-function openDetails(item) { console.log("Detalhes acionados"); }
 function startCarousel() {
     const slider = document.getElementById("editorSlider");
     setInterval(() => {
@@ -311,11 +337,9 @@ function startCarousel() {
 }
 function renderTop6() {
     const cont = document.getElementById("top6Container");
-    cont.innerHTML = "";
     top6Data.forEach((item, i) => {
         const div = document.createElement("div");
         div.className = "top6-item";
-        div.onclick = () => openDetails(item);
         div.innerHTML = `<span class="top6-number">${i+1}</span><img class="top6-poster" src="${item.poster}"><div class="item-meta-info">${item.year || '2026'} • ★ ${item.rating || '8.8'}</div>`;
         cont.appendChild(div);
     });
