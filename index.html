@@ -2,15 +2,23 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.14</title>
+<title>PaixãoFlix TV V.28.1.15</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
-    /* RESET ABSOLUTO */
-    * { overflow: hidden !important; touch-action: manipulation; box-sizing: border-box; outline: none; -ms-overflow-style: none; scrollbar-width: none; font-family: 'Poppins', sans-serif; }
+    /* RESET COMPLETO - NADA SERÁ REMOVIDO */
+    * { 
+        overflow: hidden !important; 
+        touch-action: manipulation; 
+        box-sizing: border-box; 
+        outline: none; 
+        -ms-overflow-style: none; 
+        scrollbar-width: none; 
+        font-family: 'Poppins', sans-serif; 
+    }
     
     body { 
         margin: 0; padding: 0; 
@@ -18,112 +26,124 @@
         color: #fff; height: 100vh; width: 100vw; 
     }
 
-    /* BARRA SUPERIOR */
+    /* BARRA SUPERIOR ROBUSTA */
     #topBar { 
-        position: fixed; top: 0; width: 100%; height: 75px; 
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        display: flex; align-items: center; justify-content: space-between; padding: 0 40px; z-index: 1000;
+        position: fixed; top: 0; width: 100%; height: 80px; 
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+        display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 1000;
         background: rgba(4,7,20,0.98);
     }
-    #logoMain { height: 65px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
-    #barCounter { font-weight: 900; color: #FFCE44; font-size: 16px; }
-    #barDateTime { font-size: 14px; color: #f9f9f9; text-transform: uppercase; font-weight: 400; }
+    #logoMain { height: 65px; filter: drop-shadow(0 0 15px rgba(0,0,0,0.6)); cursor: pointer; }
+    #barCounter { font-weight: 900; color: #FFCE44; font-size: 18px; text-shadow: 2px 2px 5px #000; }
+    #barDateTime { font-size: 15px; color: #ffffff; text-transform: uppercase; font-weight: 400; letter-spacing: 1px; }
 
-    /* CONTAINER COM ROLAGEM */
+    /* CONTAINER PRINCIPAL DE ROLAGEM */
     #mainScroll { 
         width: 100%; height: 100vh; 
-        padding-top: 85px; overflow-y: auto !important; scroll-behavior: smooth;
+        padding-top: 90px; overflow-y: auto !important; scroll-behavior: smooth;
     }
 
-    /* CARROSSEL EDITOR'S CHOICE - AJUSTE DE PROPORÇÃO */
-    #carouselContainer { width: 100%; padding: 20px 40px; }
+    /* CARROSSEL DE DESTAQUE - PREENCHIMENTO COM QUALIDADE */
+    #carouselContainer { width: 100%; padding: 25px 50px; }
     #editorSlider { 
-        width: 100%; height: 450px; border-radius: 20px; 
-        background-size: contain; background-repeat: no-repeat; background-position: center right;
-        background-color: #000;
-        border: 4px solid rgba(255,255,255,0.1);
-        transition: 0.6s ease-in-out;
+        width: 100%; height: 480px; border-radius: 25px; 
+        background-size: cover; background-position: center 20%;
+        border: 5px solid rgba(255,255,255,0.1);
+        transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1), border-color 0.3s;
         display: flex; align-items: flex-end; padding: 60px;
-        position: relative; overflow: hidden;
+        position: relative; overflow: hidden; cursor: pointer;
     }
     #editorSlider::before { 
         content: ""; position: absolute; inset: 0; 
-        background: linear-gradient(90deg, #040714 30%, transparent 80%); 
+        background: linear-gradient(to top, rgba(4,7,20,1) 5%, rgba(4,7,20,0.4) 40%, transparent 100%); 
         z-index: 1;
     }
-    #editorSlider.focused { border-color: #f9f9f9; box-shadow: 0 0 40px rgba(255,255,255,0.2); }
+    #editorSlider.focused { border-color: #f9f9f9; box-shadow: 0 0 50px rgba(255,255,255,0.25); transform: scale(1.01); }
     
-    #editorInfo { position: relative; z-index: 10; width: 50%; }
-    #editorTitle { font-size: 42px; font-weight: 900; margin-bottom: 5px; line-height: 1.1; }
-    #editorMeta { font-size: 18px; color: #FFCE44; font-weight: 400; margin-bottom: 25px; }
+    #editorInfo { position: relative; z-index: 10; width: 60%; }
+    #editorTitle { font-size: 50px; font-weight: 900; margin-bottom: 10px; line-height: 1; text-shadow: 3px 3px 15px #000; }
+    #editorMeta { font-size: 20px; color: #FFCE44; font-weight: 500; margin-bottom: 30px; text-shadow: 2px 2px 5px #000; }
     .btn-watch { 
-        background: #FFCE44; color: #000; padding: 15px 40px; border-radius: 8px; 
-        font-weight: 900; display: inline-block; cursor: pointer; transition: 0.2s;
+        background: #FFCE44; color: #000; padding: 18px 50px; border-radius: 12px; 
+        font-weight: 900; font-size: 18px; text-transform: uppercase; display: inline-block; 
+        box-shadow: 0 10px 20px rgba(0,0,0,0.4);
     }
-    .focused .btn-watch { transform: scale(1.05); box-shadow: 0 0 20px #FFCE44; }
 
-    /* MENU CARDS EM LINHA ÚNICA - FONTE 200 */
-    #menuBrands { display: flex; gap: 12px; padding: 30px 40px; justify-content: center; width: 100%; }
+    /* MENU EM LINHA ÚNICA - FONTE 200 */
+    #menuBrands { display: flex; gap: 15px; padding: 40px 50px; justify-content: center; width: 100%; }
     .brand-card { 
-        flex: 1; height: 90px; background: linear-gradient(135deg, #1a1d29, #2a2e42);
-        border: 2px solid #FFCE44; border-bottom: 4px solid #b38f00; border-radius: 10px;
+        flex: 1; height: 100px; background: linear-gradient(135deg, #1a1d29, #2a2e42);
+        border: 2px solid #FFCE44; border-bottom: 5px solid #b38f00; border-radius: 15px;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        cursor: pointer; transition: 0.3s; color: #fff; position: relative; overflow: hidden;
+        cursor: pointer; transition: 0.4s; color: #fff; position: relative; overflow: hidden;
     }
-    .brand-card i { font-size: 20px; margin-bottom: 5px; color: #FFCE44; }
-    .brand-card span { font-size: 14px; font-weight: 200; text-transform: uppercase; text-align: center; letter-spacing: 1px; }
+    .brand-card i { font-size: 26px; margin-bottom: 8px; color: #FFCE44; }
+    .brand-card span { font-size: 15px; font-weight: 200; text-transform: uppercase; text-align: center; letter-spacing: 1.5px; }
 
+    /* EFEITO BRILHO METÁLICO */
     .brand-card.focused::before {
         content: ""; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        animation: shine 1.8s infinite;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: shine 2s infinite;
     }
     @keyframes shine { 100% { left: 150%; } }
-    .brand-card.focused { transform: scale(1.08); background: #f9f9f9; color: #000; border-color: #fff; }
+    .brand-card.focused { transform: scale(1.1); background: #f9f9f9; color: #000; border-color: #fff; box-shadow: 0 15px 35px rgba(0,0,0,0.7); }
     .brand-card.focused i { color: #000; }
 
-    /* TOP 6 CENTRALIZADO */
-    #top6Section { padding: 100px 40px; text-align: center; }
-    #top6Title { font-size: 85px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #FFCE44; text-transform: uppercase; margin-bottom: 80px; }
-    
-    .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 150px 40px; }
-    .top6-item { position: relative; width: 100%; height: 500px; cursor: pointer; transition: 0.5s; }
-    
-    .top6-number { 
-        position: absolute; left: -55px; top: 5%; font-size: 350px; font-weight: 900; 
-        color: rgba(255,255,255,0.9); -webkit-text-stroke: 10px #000; z-index: 5; pointer-events: none;
-        paint-order: stroke fill;
+    /* TOP 6 SECTION - CENTRALIZADO E GIGANTE */
+    #top6Section { padding: 100px 50px; text-align: center; width: 100%; }
+    #top6Title { 
+        font-size: 100px; font-weight: 900; color: transparent; 
+        -webkit-text-stroke: 3px #FFCE44; text-transform: uppercase; 
+        margin-bottom: 100px; display: inline-block; 
     }
-    .top6-poster { width: 100%; height: 100%; object-fit: contain; border-radius: 15px; border: 2px solid rgba(255,255,255,0.1); position: relative; z-index: 2; background: #000; }
     
-    .item-meta { margin-top: 15px; font-size: 16px; font-weight: 500; color: #FFCE44; opacity: 0.8; }
+    .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 160px 50px; }
+    .top6-item { position: relative; width: 100%; height: 550px; cursor: pointer; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    
+    /* NÚMEROS TOP 6 */
+    .top6-number { 
+        position: absolute; left: -60px; top: 0; font-size: 400px; font-weight: 900; 
+        color: rgba(255,255,255,0.95); -webkit-text-stroke: 12px #000; z-index: 5; pointer-events: none;
+        paint-order: stroke fill; line-height: 1;
+    }
+    .top6-poster { width: 100%; height: 100%; object-fit: contain; border-radius: 20px; border: 3px solid rgba(255,255,255,0.1); position: relative; z-index: 2; background: #000; }
+    
+    /* METADADOS DAS CAPAS */
+    .item-meta-info { 
+        margin-top: 20px; font-size: 18px; font-weight: 700; color: #FFCE44; 
+        text-shadow: 2px 2px 4px #000; letter-spacing: 1px;
+    }
 
-    .top6-item.focused { transform: translateY(-30px) scale(1.05); }
-    .top6-item.focused .top6-poster { border: 3px solid #E50914; box-shadow: 0 0 50px rgba(229, 9, 20, 0.6); }
-    .top6-item.focused .top6-number { -webkit-text-stroke: 10px #E50914; color: #fff; }
+    /* SELETOR NAS CAPAS */
+    .top6-item.focused { transform: translateY(-40px) scale(1.08); z-index: 100; }
+    .top6-item.focused .top6-poster { border: 4px solid #E50914; box-shadow: 0 0 60px rgba(229, 9, 20, 0.8); }
+    .top6-item.focused .top6-number { -webkit-text-stroke: 12px #E50914; color: #fff; }
 
-    /* RODAPÉ */
-    #footer { padding: 120px 40px; text-align: center; }
-    #footerText { font-style: italic; font-weight: 500; color: #aaa; font-size: 20px; letter-spacing: 1px; }
+    /* RODAPÉ - VISÍVEL PELO SELETOR */
+    #footer { padding: 150px 50px; text-align: center; transition: 0.3s; }
+    #footer.focused { transform: scale(1.1); }
+    #footerText { font-style: italic; font-weight: 500; color: #ffffff; font-size: 22px; letter-spacing: 1px; text-shadow: 2px 2px 10px #000; }
 
+    /* PÁGINA DE DETALHES (CONGELADA NO INDEX) */
     #detailsPage { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
 </style>
 </head>
 <body>
 
 <div id="topBar">
-    <img id="logoMain" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
+    <img id="logoMain" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" onclick="location.reload()">
     <div id="barCounter">JÁ TEMOS <span id="totalItems">0</span> CONTEÚDOS</div>
     <div id="barDateTime">CARREGANDO...</div>
 </div>
 
 <div id="mainScroll">
     <div id="carouselContainer">
-        <div id="editorSlider" class="focused" onclick="openDetails(editorsChoice[edIdx === 0 ? editorsChoice.length-1 : edIdx-1])">
+        <div id="editorSlider" class="focused" onclick="openDetails(editorsChoice[edIdx])">
             <div id="editorInfo">
-                <div id="editorTitle">CARREGANDO...</div>
+                <div id="editorTitle">PAIXÃOFLIX DESTAQUE</div>
                 <div id="editorMeta">GENERO • ANO • ★ 0.0</div>
-                <div class="btn-watch">ASSISTIR AGORA</div>
+                <div class="btn-watch" onclick="openDetails(editorsChoice[edIdx])">ASSISTIR AGORA</div>
             </div>
         </div>
     </div>
@@ -142,122 +162,3 @@
         <div id="top6Title">Top 6 PaixãoFlix</div>
         <div class="top6-grid" id="top6Container"></div>
     </div>
-
-    <div id="footer">
-        <div id="footerText">PaixãoFlix, transformando momentos de lazer em lembranças felizes!</div>
-    </div>
-</div>
-
-<script>
-let movies = [], series = [], kidsMovies = [], kidsSeries = [];
-let top6Data = [], editorsChoice = [], edIdx = 0;
-let currentFocus = "editor", menuIdx = 0, gridIdx = 0;
-
-async function loadData() {
-    const fetchJSON = async (url) => { try { const r = await fetch(url); return await r.json(); } catch(e) { return []; } };
-    movies = await fetchJSON("data/filmes.json");
-    series = await fetchJSON("data/series.json");
-    kidsMovies = await fetchJSON("data/kids_filmes.json");
-    kidsSeries = await fetchJSON("data/kids_series.json");
-
-    const all = [...movies, ...series, ...kidsMovies, ...kidsSeries];
-    document.getElementById("totalItems").innerText = all.length;
-
-    editorsChoice = all.sort(() => 0.5 - Math.random()).slice(0, 10);
-    top6Data = all.sort(() => 0.5 - Math.random()).slice(0, 6);
-    
-    startCarousel();
-    renderTop6();
-    startClock();
-}
-
-function startCarousel() {
-    const update = () => {
-        const item = editorsChoice[edIdx];
-        const slider = document.getElementById("editorSlider");
-        slider.style.backgroundImage = `url(${item.poster})`;
-        document.getElementById("editorTitle").innerText = item.titulo || item.name;
-        document.getElementById("editorMeta").innerText = `${item.genero || 'Geral'} • ${item.year || '2026'} • ★ ${item.rating || '9.0'}`;
-        edIdx = (edIdx + 1) % editorsChoice.length;
-    };
-    update();
-    setInterval(update, 7000);
-}
-
-function startClock() {
-    const update = () => {
-        const now = new Date();
-        const data = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
-        const hora = now.toLocaleTimeString('pt-BR', { hour12: false });
-        document.getElementById("barDateTime").innerText = `${data} | ${hora}`;
-    };
-    setInterval(update, 1000); update();
-}
-
-function renderTop6() {
-    const cont = document.getElementById("top6Container");
-    cont.innerHTML = "";
-    top6Data.forEach((item, i) => {
-        const div = document.createElement("div");
-        div.className = "top6-item";
-        div.onclick = () => openDetails(item);
-        div.innerHTML = `
-            <span class="top6-number">${i+1}</span>
-            <img class="top6-poster" src="${item.poster}">
-            <div class="item-meta">${item.year || '2026'} • ★ ${item.rating || '8.5'}</div>
-        `;
-        cont.appendChild(div);
-    });
-}
-
-function openDetails(item) {
-    if(!item) return;
-    console.log("Comando OK: Abrindo Detalhes de", item.titulo || item.name);
-    // Sua função interna de abrir detalhes vai aqui
-}
-
-function selectAction(type) {
-    console.log("Navegando para:", type);
-}
-
-function updateFocus() {
-    const slider = document.getElementById("editorSlider");
-    const brands = document.querySelectorAll(".brand-card");
-    const grid = document.querySelectorAll(".top6-item");
-
-    slider.classList.toggle("focused", currentFocus === "editor");
-    brands.forEach((b, i) => b.classList.toggle("focused", currentFocus === "menu" && i === menuIdx));
-    grid.forEach((g, i) => g.classList.toggle("focused", currentFocus === "grid" && i === gridIdx));
-
-    const target = document.querySelector(".focused");
-    if(target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-document.addEventListener("keydown", e => {
-    const key = e.keyCode;
-    if (currentFocus === "editor") {
-        if (key === 40) currentFocus = "menu";
-        if (key === 13) openDetails(editorsChoice[edIdx === 0 ? editorsChoice.length-1 : edIdx-1]);
-    } 
-    else if (currentFocus === "menu") {
-        if (key === 39) menuIdx = (menuIdx + 1) % 7;
-        if (key === 37) menuIdx = (menuIdx - 1 + 7) % 7;
-        if (key === 40) currentFocus = "grid";
-        if (key === 38) currentFocus = "editor";
-        if (key === 13) selectAction(document.querySelectorAll(".brand-card")[menuIdx].dataset.type);
-    }
-    else if (currentFocus === "grid") {
-        if (key === 39) if (gridIdx % 3 !== 2) gridIdx = Math.min(5, gridIdx + 1);
-        if (key === 37) if (gridIdx % 3 !== 0) gridIdx--;
-        if (key === 40 && gridIdx < 3) gridIdx += 3;
-        else if (key === 40 && gridIdx >= 3) { /* Fim da página / Rodapé */ }
-        if (key === 38) { if(gridIdx < 3) currentFocus = "menu"; else gridIdx -= 3; }
-        if (key === 13) openDetails(top6Data[gridIdx]);
-    }
-    updateFocus();
-});
-
-window.onload = loadData;
-</script>
-</body>
-</html>
