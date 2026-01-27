@@ -2,14 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.47</title>
+<title>PaixãoFlix TV V.28.1.48</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
-    /* PRESERVAÇÃO INTEGRAL E EXPANSÃO DE PERFORMANCE */
+    /* PRESERVAÇÃO INTEGRAL E EXPANSÃO DE PERFORMANCE - NÃO REMOVER NADA */
     * { 
         overflow: hidden !important; 
         touch-action: manipulation; 
@@ -27,7 +27,7 @@
         color: #fff; height: 100vh; width: 100vw; 
     }
 
-    /* BARRA SUPERIOR */
+    /* BARRA SUPERIOR E CONTADORES */
     #topBar { 
         position: fixed; top: 0; width: 100%; height: 80px; 
         border-bottom: 1px solid rgba(255,255,255,0.15);
@@ -38,14 +38,14 @@
     #barCounter { font-weight: 900; color: #FFCE44; font-size: 18px; }
     #barDateTime { font-size: 15px; color: #ffffff; text-transform: uppercase; font-weight: 400; }
 
-    /* CONTAINER HOME */
+    /* CONTAINER PRINCIPAL DA HOME */
     #mainScroll { 
         width: 100%; height: 100vh; 
         padding-top: 90px; overflow-y: auto !important; scroll-behavior: smooth;
         display: block;
     }
 
-    /* CARROSSEL OTIMIZADO */
+    /* CARROSSEL DE DESTAQUES */
     #carouselContainer { width: 100%; padding: 25px 50px; }
     #editorSlider { 
         width: 100%; height: 480px; border-radius: 25px; 
@@ -53,7 +53,7 @@
         border: 5px solid rgba(255,255,255,0.1);
         display: flex; align-items: flex-end; padding: 50px;
         position: relative; overflow: hidden; cursor: pointer;
-        transition: opacity 0.5s ease-in-out;
+        transition: opacity 0.5s ease-in-out, transform 0.3s ease;
         will-change: background-image;
         background-color: #1a1d29;
     }
@@ -66,7 +66,7 @@
     #editorTitle { font-size: 45px; font-weight: 900; margin-bottom: 5px; text-shadow: 2px 2px 10px #000; z-index: 2; }
     #editorMeta { font-size: 18px; color: #FFCE44; font-weight: 500; margin-bottom: 20px; z-index: 2; }
 
-    /* MENU MARCAS */
+    /* MENU DE CATEGORIAS/MARCAS */
     #menuBrands { display: flex; gap: 15px; padding: 30px 50px; justify-content: center; width: 100%; }
     .brand-card { 
         flex: 1; height: 100px; background: linear-gradient(135deg, #1a1d29, #2a2e42);
@@ -78,7 +78,7 @@
     .brand-card span { font-size: 13px; font-weight: 200; text-transform: uppercase; text-align: center; }
     .brand-card.focused { transform: scale(1.1); background: #f9f9f9; color: #000; border-color: #E50914; z-index: 10; border-width: 3px; }
 
-    /* TOP 6 */
+    /* SEÇÃO TOP 6 */
     #top6Section { padding: 80px 50px; text-align: center; width: 100%; }
     #top6Title { font-size: 95px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #FFCE44; text-transform: uppercase; margin-bottom: 80px; }
     .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 160px 50px; }
@@ -87,7 +87,7 @@
     .top6-poster { width: 100%; height: 100%; object-fit: contain; border-radius: 20px; border: 3px solid rgba(255,255,255,0.1); background: #000; position: relative; z-index: 2; }
     .top6-item.focused { transform: translateY(-30px) scale(1.08); z-index: 20; }
 
-    /* OVERLAYS */
+    /* OVERLAYS COMPLETOS */
     #channelsOverlay, #moviesOverlay, #detailsOverlay { 
         position: fixed; inset: 0; background: #040714; z-index: 4000; 
         display: none; flex-direction: column; padding-top: 80px;
@@ -97,7 +97,7 @@
         padding: 40px 50px 100px 50px; 
     }
 
-    /* ESTILO CINEMA E ESPAÇAMENTO */
+    /* ESTILO CINEMA (GRID E CATEGORIAS) */
     .category-container { width: 100%; margin-bottom: 120px; } 
     .channel-category-title { 
         font-size: 28px; font-weight: 900; color: #FFCE44; margin-bottom: 25px; 
@@ -117,7 +117,7 @@
     }
     .toggle-category-btn.focused { background: #E50914 !important; color: #fff !important; border-color: #E50914 !important; }
 
-    /* PÁGINA DE DETALHES */
+    /* PÁGINA DE DETALHES (LAYOUT ORIGINAL) */
     #detailsContent { display: flex; padding: 60px 100px; gap: 60px; align-items: flex-start; }
     #detailsPoster { width: 350px; border-radius: 20px; border: 5px solid rgba(255,255,255,0.1); box-shadow: 0 0 50px rgba(0,0,0,0.8); }
     #detailsInfo { flex: 1; }
@@ -128,4 +128,283 @@
     .det-btn { padding: 15px 40px; border-radius: 10px; font-weight: 900; font-size: 16px; text-transform: uppercase; cursor: pointer; border: 3px solid transparent; transition: 0.2s; }
     .det-btn-play { background: #E50914; color: #fff; }
     .det-btn-trailer { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.2); }
-    .det-btn.focused { border-color: #FFCE44; transform: scale(1.1); box-shadow: 0 0 20px rgba(255, 20
+    .det-btn.focused { border-color: #FFCE44; transform: scale(1.1); box-shadow: 0 0 20px rgba(255, 206, 68, 0.4); }
+
+    /* ESTILO CANAIS (GRID ORIGINAL) */
+    .channels-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 25px; }
+    .movie-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 40px !important; }
+    .channel-card { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; border: none; background: transparent; }
+    .channel-card img { width: 100%; height: 100%; object-fit: contain; max-width: 120px; }
+    .channel-card.focused { transform: scale(1.3); filter: drop-shadow(0 0 10px #E50914); }
+
+    /* RODAPÉ GLOBAL */
+    #globalFooter { position: fixed; bottom: 0; width: 100%; height: 80px; background: linear-gradient(transparent, rgba(4,7,20,1)); display: flex; align-items: center; justify-content: center; z-index: 6000; }
+    #footerText { font-style: italic; font-weight: 500; color: #ffffff; font-size: 20px; text-shadow: 2px 2px 4px #000; }
+
+    /* PLAYER OVERLAY */
+    #playerOverlay { position: fixed; inset: 0; background: #000; z-index: 9000; display: none; }
+    #btnClosePlayer { position: absolute; top: 30px; right: 30px; background: rgba(255,255,255,0.2); color: #fff; border: none; padding: 10px 20px; border-radius: 5px; font-weight: 900; cursor: pointer; z-index: 10000; }
+</style>
+</head>
+<body>
+
+<div id="topBar">
+    <img id="logoMain" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" onclick="location.reload()">
+    <div id="barCounter">JÁ TEMOS <span id="totalItems">0</span> CONTEÚDOS</div>
+    <div id="barDateTime">CARREGANDO...</div>
+</div>
+
+<div id="mainScroll">
+    <div id="carouselContainer">
+        <div id="editorSlider" onclick="if(editorsChoice[edIdx]) openDetails(editorsChoice[edIdx])">
+            <div id="editorInfo">
+                <div id="editorTitle">PaixãoFlix</div>
+                <div id="editorMeta">Sincronizando biblioteca...</div>
+                <div class="det-btn det-btn-play" style="display:inline-block">ASSISTIR AGORA</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="menuBrands" class="main-menu">
+        <div class="brand-card" onclick="openChannelsPage()"><i class="fas fa-tv"></i><span>Canais</span></div>
+        <div class="brand-card" onclick="openMoviesPage()"><i class="fas fa-film"></i><span>Cinema</span></div>
+        <div class="brand-card"><i class="fas fa-clapperboard"></i><span>Séries</span></div>
+        <div class="brand-card"><i class="fas fa-child"></i><span>Kids TV</span></div>
+        <div class="brand-card"><i class="fas fa-baby"></i><span>Kids Filmes</span></div>
+        <div class="brand-card"><i class="fas fa-robot"></i><span>Kids Séries</span></div>
+        <div class="brand-card"><i class="fas fa-heart"></i><span>Favoritos</span></div>
+    </div>
+
+    <div id="top6Section">
+        <div id="top6Title">Top 6 PaixãoFlix</div>
+        <div class="top6-grid" id="top6Container"></div>
+    </div>
+    <div style="height: 150px;"></div>
+</div>
+
+<div id="channelsOverlay">
+    <div id="menuBrands" class="channels-menu">
+        <div class="brand-card" onclick="openMoviesPage()"><i class="fas fa-film"></i><span>Cinema</span></div>
+        <div class="brand-card"><i class="fas fa-clapperboard"></i><span>Séries</span></div>
+        <div class="brand-card"><i class="fas fa-child"></i><span>Kids TV</span></div>
+        <div class="brand-card"><i class="fas fa-baby"></i><span>Kids Filmes</span></div>
+        <div class="brand-card"><i class="fas fa-robot"></i><span>Kids Séries</span></div>
+        <div class="brand-card"><i class="fas fa-heart"></i><span>Favoritos</span></div>
+        <div class="brand-card" onclick="location.reload()"><i class="fas fa-home"></i><span>Início</span></div>
+    </div>
+    <div id="channelsScroll"></div>
+</div>
+
+<div id="moviesOverlay">
+    <div id="menuBrands" class="movies-menu">
+        <div class="brand-card" onclick="openChannelsPage()"><i class="fas fa-tv"></i><span>Canais</span></div>
+        <div class="brand-card"><i class="fas fa-clapperboard"></i><span>Séries</span></div>
+        <div class="brand-card"><i class="fas fa-child"></i><span>Kids TV</span></div>
+        <div class="brand-card"><i class="fas fa-baby"></i><span>Kids Filmes</span></div>
+        <div class="brand-card"><i class="fas fa-robot"></i><span>Kids Séries</span></div>
+        <div class="brand-card"><i class="fas fa-heart"></i><span>Favoritos</span></div>
+        <div class="brand-card" onclick="location.reload()"><i class="fas fa-home"></i><span>Início</span></div>
+    </div>
+    <div id="moviesScroll"></div>
+</div>
+
+<div id="detailsOverlay">
+    <div id="detailsContent">
+        <img id="detailsPoster" src="">
+        <div id="detailsInfo">
+            <h1 id="detTitle">...</h1>
+            <div id="detMeta">
+                <span id="detYear">0000</span>
+                <span><i class="fas fa-star" style="color:#FFCE44"></i> <span id="detRating">0.0</span></span>
+                <span id="detCat">Categoria</span>
+            </div>
+            <p id="detSinopse">Carregando...</p>
+            <div class="details-actions">
+                <div class="det-btn det-btn-play" id="btnPlayMovie">Assistir Agora</div>
+                <div class="det-btn det-btn-trailer" id="btnTrailerMovie">Ver Trailer</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="playerOverlay">
+    <button id="btnClosePlayer" onclick="closePlayer()">SAIR DO PLAYER</button>
+    <div id="player" style="width:100%; height:100%;"></div>
+</div>
+
+<div id="globalFooter">
+    <div id="footerText">PaixãoFlix, transformando momentos de lazer em lembranças felizes!</div>
+</div>
+
+<script>
+// VARIAVEIS GLOBAIS - PRESERVAÇÃO INTEGRAL
+let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [];
+let top6Data = [], editorsChoice = [], edIdx = 0;
+let currentFocus = "menu", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0; 
+let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, isDetailsOpen = false, playerInstance = null;
+
+const Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443, 117], BACK: [8, 27, 461, 10009] };
+
+async function loadData() {
+    console.log("Iniciando carregamento V.28.1.48...");
+    const fetchJSON = async (url) => { 
+        try { const r = await fetch(url); return r.ok ? await r.json() : []; } 
+        catch(e) { console.error("Falha ao ler:", url); return []; } 
+    };
+
+    movies = await fetchJSON("data/filmes.json");
+    series = await fetchJSON("data/series.json");
+    kidsMovies = await fetchJSON("data/kids_filmes.json");
+    kidsSeries = await fetchJSON("data/kids_series.json");
+
+    // M3U independente para evitar travamento
+    fetch("data/ativa_canais.m3u").then(r => r.text()).then(t => parseM3U(t)).catch(e => console.log("Erro M3U"));
+
+    initInterface();
+}
+
+function initInterface() {
+    const allContent = [...movies, ...series].filter(i => i && i.poster);
+    document.getElementById("totalItems").innerText = allContent.length + kidsMovies.length + kidsSeries.length;
+    
+    editorsChoice = allContent.sort(() => 0.5 - Math.random()).slice(0, 10);
+    top6Data = allContent.sort(() => 0.5 - Math.random()).slice(0, 6);
+    
+    renderTop6();
+    startCarousel();
+    startClock();
+    updateFocus();
+}
+
+// LOGICA DE CINEMA REESTRUTURADA SEM REDUÇÃO
+function openMoviesPage() {
+    isChannelsOpen = false; isMoviesOpen = true; isDetailsOpen = false;
+    document.getElementById("mainScroll").style.display = "none";
+    document.getElementById("channelsOverlay").style.display = "none";
+    document.getElementById("detailsOverlay").style.display = "none";
+    document.getElementById("moviesOverlay").style.display = "flex";
+    renderMovies(); 
+    currentFocus = "movie_menu"; menuIdx = 1; updateFocus();
+}
+
+function renderMovies() {
+    const cont = document.getElementById("moviesScroll");
+    if(!cont) return;
+    cont.innerHTML = "";
+    
+    const safeYear = (m) => String(m.year || m.ano || "0");
+    const cats = {};
+    
+    movies.forEach(m => {
+        const cat = m.genero || m.categoria || "Geral";
+        if(!cats[cat]) cats[cat] = [];
+        cats[cat].push(m);
+    });
+
+    Object.keys(cats).sort().forEach(catName => {
+        const section = document.createElement("div");
+        section.className = "category-container";
+        section.innerHTML = `<div class="channel-category-title" data-nav="movie-cat">${catName}</div><div class="channels-row movie-grid"></div>`;
+        renderMovieGrid(section.querySelector(".movie-grid"), cats[catName], false, catName);
+        cont.appendChild(section);
+    });
+}
+
+function renderMovieGrid(grid, list, isFull, catTitle) {
+    grid.innerHTML = "";
+    const displayList = isFull ? list : list.slice(0, 4);
+    displayList.forEach(m => {
+        const card = document.createElement("div");
+        card.className = "movie-card";
+        card.setAttribute("data-nav", "movie-card");
+        card.innerHTML = `<img class="movie-poster" src="${m.poster}" loading="lazy">`;
+        card.onclick = () => openDetails(m);
+        grid.appendChild(card);
+    });
+    
+    const btn = document.createElement("div");
+    btn.className = "toggle-category-btn";
+    btn.setAttribute("data-nav", "movie-btn");
+    btn.innerText = isFull ? "FECHAR CATEGORIA" : "VEJA MAIS";
+    btn.onclick = (e) => { 
+        e.stopPropagation(); 
+        const wasFull = isFull;
+        renderMovieGrid(grid, list, !isFull, catTitle);
+        if(!wasFull) {
+            const allItems = Array.from(document.querySelectorAll("#moviesScroll [data-nav]"));
+            movieIdx = allItems.findIndex(el => el.closest('.category-container').querySelector('.channel-category-title').innerText === catTitle) + 1;
+        }
+        updateFocus(); 
+    };
+    grid.appendChild(btn);
+}
+
+// DETALHES E PLAYER
+function openDetails(item) {
+    if(!item) return;
+    isDetailsOpen = true; currentFocus = "details"; detIdx = 0;
+    document.getElementById("moviesOverlay").style.display = "none";
+    document.getElementById("mainScroll").style.display = "none";
+    document.getElementById("detailsOverlay").style.display = "flex";
+    document.getElementById("detailsPoster").src = item.poster;
+    document.getElementById("detTitle").innerText = item.titulo || item.name;
+    document.getElementById("detYear").innerText = item.year || item.ano || "2026";
+    document.getElementById("detRating").innerText = item.rating || "9.5";
+    document.getElementById("detCat").innerText = item.genero || item.categoria || "Cinema";
+    document.getElementById("detSinopse").innerText = item.sinopse || "Sem sinopse disponível.";
+    document.getElementById("btnPlayMovie").onclick = () => playChannel(item.url, item.titulo);
+    document.getElementById("btnTrailerMovie").onclick = () => playChannel(item.trailer, "Trailer: " + item.titulo);
+    updateFocus();
+}
+
+function playChannel(url, name) {
+    if(!url) return;
+    isPlayerOpen = true; document.getElementById("playerOverlay").style.display = "block";
+    if(playerInstance) playerInstance.destroy();
+    playerInstance = new Clappr.Player({ source: url, parentId: "#player", width: "100%", height: "100%", autoPlay: true });
+}
+
+function closePlayer() { if(playerInstance) playerInstance.destroy(); document.getElementById("playerOverlay").style.display = "none"; isPlayerOpen = false; }
+
+// NAVEGAÇÃO POR TECLADO - PRESERVAÇÃO DE CÓDIGO EXTENSO
+function updateFocus() {
+    if(isPlayerOpen) return;
+    document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
+    
+    if(isDetailsOpen) {
+        document.querySelectorAll(".det-btn")[detIdx]?.classList.add("focused");
+    } else if(isMoviesOpen) {
+        if(currentFocus === "movie_menu") document.querySelectorAll(".movies-menu .brand-card")[menuIdx]?.classList.add("focused");
+        else {
+            const items = document.querySelectorAll("#moviesScroll [data-nav]");
+            items[movieIdx]?.classList.add("focused");
+            items[movieIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    } else if(isChannelsOpen) {
+        if(currentFocus === "chan_menu") document.querySelectorAll(".channels-menu .brand-card")[menuIdx]?.classList.add("focused");
+        else {
+            const cards = document.querySelectorAll("#channelsScroll .channel-card");
+            cards[chanIdx]?.classList.add("focused");
+            cards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    } else {
+        if(currentFocus === "editor") document.getElementById("editorSlider")?.classList.add("focused");
+        if(currentFocus === "menu") document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
+        if(currentFocus === "grid") document.querySelectorAll(".top6-item")[gridIdx]?.classList.add("focused");
+        document.querySelector(".focused")?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+document.addEventListener("keydown", e => {
+    const k = e.keyCode;
+    if(isPlayerOpen && Keys.BACK.includes(k)) { closePlayer(); return; }
+    
+    if(isDetailsOpen) {
+        if(Keys.RIGHT.includes(k)) detIdx = 1;
+        if(Keys.LEFT.includes(k)) detIdx = 0;
+        if(Keys.ENTER.includes(k)) document.querySelectorAll(".det-btn")[detIdx].click();
+        if(Keys.BACK.includes(k)) { isDetailsOpen = false; openMoviesPage(); }
+    } else if(isMoviesOpen) {
+        const items = document.querySelectorAll("#moviesScroll [data-nav]");
+        if(currentFocus === "movie_menu") {
+            if(Keys.RIGHT.includes(k)) menuIdx
