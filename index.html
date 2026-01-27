@@ -2,14 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.16</title>
+<title>PaixãoFlix TV V.28.1.17</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
-    /* RESET INTEGRAL */
+    /* RESET INTEGRAL E PRESERVAÇÃO DE CÓDIGO */
     * { 
         overflow: hidden !important; 
         touch-action: manipulation; 
@@ -37,80 +37,97 @@
     #barCounter { font-weight: 900; color: #FFCE44; font-size: 18px; }
     #barDateTime { font-size: 15px; color: #ffffff; text-transform: uppercase; font-weight: 400; }
 
-    /* CONTAINER SCROLL */
+    /* CONTAINER PRINCIPAL */
     #mainScroll { 
         width: 100%; height: 100vh; 
         padding-top: 90px; overflow-y: auto !important; scroll-behavior: smooth;
     }
 
-    /* CARROSSEL COM FADE E QUALIDADE */
+    /* CARROSSEL COM FADE E BOTÃO REDUZIDO */
     #carouselContainer { width: 100%; padding: 25px 50px; position: relative; }
     #editorSlider { 
         width: 100%; height: 480px; border-radius: 25px; 
         background-size: cover; background-position: center;
         border: 5px solid rgba(255,255,255,0.1);
-        display: flex; align-items: flex-end; padding: 60px;
+        display: flex; align-items: flex-end; padding: 50px;
         position: relative; overflow: hidden; cursor: pointer;
         transition: border-color 0.3s, transform 0.3s, opacity 0.8s ease-in-out;
     }
     #editorSlider::before { 
         content: ""; position: absolute; inset: 0; 
-        background: linear-gradient(to top, rgba(4,7,20,1) 5%, transparent 100%); 
+        background: linear-gradient(to top, rgba(4,7,20,1) 10%, transparent 100%); 
         z-index: 1;
     }
-    #editorSlider.focused { border-color: #f9f9f9; transform: scale(1.01); }
+    #editorSlider.focused { border-color: #FFCE44; transform: scale(1.01); }
     
     #editorInfo { position: relative; z-index: 10; }
-    #editorTitle { font-size: 50px; font-weight: 900; margin-bottom: 5px; }
-    #editorMeta { font-size: 20px; color: #FFCE44; font-weight: 500; margin-bottom: 25px; }
-    .btn-watch { background: #FFCE44; color: #000; padding: 15px 40px; border-radius: 10px; font-weight: 900; font-size: 16px; text-transform: uppercase; }
+    #editorTitle { font-size: 45px; font-weight: 900; margin-bottom: 5px; text-shadow: 2px 2px 10px #000; }
+    #editorMeta { font-size: 18px; color: #FFCE44; font-weight: 500; margin-bottom: 20px; }
+    
+    /* BOTÃO ASSISTIR AGORA REDUZIDO */
+    .btn-watch { 
+        background: #FFCE44; color: #000; 
+        padding: 10px 30px; border-radius: 8px; 
+        font-weight: 900; font-size: 13px; 
+        text-transform: uppercase; letter-spacing: 1px;
+        display: inline-block; transition: 0.3s;
+    }
+    #editorSlider.focused .btn-watch { background: #fff; box-shadow: 0 0 15px #fff; }
 
-    /* MENU EM LINHA - FONTE 200 */
+    /* MENU EM LINHA - PESO 200 */
     #menuBrands { display: flex; gap: 15px; padding: 30px 50px; justify-content: center; width: 100%; }
     .brand-card { 
         flex: 1; height: 100px; background: linear-gradient(135deg, #1a1d29, #2a2e42);
         border: 2px solid #FFCE44; border-bottom: 5px solid #b38f00; border-radius: 15px;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        cursor: pointer; transition: 0.4s; color: #fff; position: relative; overflow: hidden;
+        cursor: pointer; transition: 0.2s; color: #fff; position: relative; overflow: hidden;
     }
     .brand-card i { font-size: 26px; margin-bottom: 8px; color: #FFCE44; }
     .brand-card span { font-size: 15px; font-weight: 200; text-transform: uppercase; letter-spacing: 1px; }
 
-    /* BRILHO METÁLICO */
+    .brand-card.focused { transform: scale(1.1); background: #f9f9f9; color: #000; border-color: #fff; z-index: 10; }
     .brand-card.focused::before {
         content: ""; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
         background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
         animation: shine 2s infinite;
     }
     @keyframes shine { 100% { left: 150%; } }
-    .brand-card.focused { transform: scale(1.1); background: #f9f9f9; color: #000; border-color: #fff; }
 
     /* TOP 6 CENTRALIZADO */
     #top6Section { padding: 80px 50px; text-align: center; width: 100%; }
-    #top6Title { font-size: 90px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #FFCE44; text-transform: uppercase; margin-bottom: 80px; }
+    #top6Title { font-size: 95px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #FFCE44; text-transform: uppercase; margin-bottom: 80px; }
     
     .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 160px 50px; }
-    .top6-item { position: relative; width: 100%; height: 550px; cursor: pointer; transition: 0.5s; }
+    .top6-item { position: relative; width: 100%; height: 550px; cursor: pointer; transition: 0.4s; }
     
     .top6-number { 
         position: absolute; left: -60px; top: 0; font-size: 380px; font-weight: 900; 
         color: rgba(255,255,255,0.9); -webkit-text-stroke: 12px #000; z-index: 5; pointer-events: none;
         paint-order: stroke fill;
     }
-    .top6-poster { width: 100%; height: 100%; object-fit: contain; border-radius: 20px; border: 3px solid rgba(255,255,255,0.1); position: relative; z-index: 2; background: #000; }
-    
-    .item-meta-info { margin-top: 15px; font-size: 18px; font-weight: 700; color: #FFCE44; }
 
-    .top6-item.focused { transform: translateY(-30px) scale(1.08); }
+    /* SISTEMA DE TRATAMENTO DE IMAGEM AUTOMÁTICO (POSTER-FIT) */
+    .top6-poster { 
+        width: 100%; height: 100%; 
+        object-fit: contain; /* Garante que a imagem apareça inteira sem cortes */
+        border-radius: 20px; 
+        border: 3px solid rgba(255,255,255,0.1); 
+        position: relative; z-index: 2; 
+        background: #000; /* Preenche sobras de imagens fora do padrão */
+        box-shadow: inset 0 0 50px rgba(0,0,0,1);
+    }
+    
+    .item-meta-info { margin-top: 15px; font-size: 18px; font-weight: 700; color: #FFCE44; text-transform: uppercase; }
+
+    .top6-item.focused { transform: translateY(-30px) scale(1.08); z-index: 20; }
     .top6-item.focused .top6-poster { border: 4px solid #E50914; box-shadow: 0 0 50px rgba(229, 9, 20, 0.7); }
     .top6-item.focused .top6-number { -webkit-text-stroke: 12px #E50914; color: #fff; }
 
     /* RODAPÉ */
-    #footer { padding: 120px 50px; text-align: center; }
+    #footer { padding: 120px 50px; text-align: center; transition: 0.3s; }
     #footer.focused { transform: scale(1.1); }
     #footerText { font-style: italic; font-weight: 500; color: #ffffff; font-size: 22px; }
 
-    /* DETAILS PAGE (CONGELADA) */
     #detailsPage { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
 </style>
 </head>
@@ -128,7 +145,7 @@
             <div id="editorInfo">
                 <div id="editorTitle">...</div>
                 <div id="editorMeta">ANO • ★ 0.0</div>
-                <div class="btn-watch">ASSISTIR AGORA</div>
+                <div class="btn-watch">Assistir Agora</div>
             </div>
         </div>
     </div>
@@ -165,9 +182,9 @@ async function loadData() {
     kidsMovies = await fetchJSON("data/kids_filmes.json");
     kidsSeries = await fetchJSON("data/kids_series.json");
 
-    document.getElementById("totalItems").innerText = movies.length + series.length + kidsMovies.length + kidsSeries.length;
-
     const all = [...movies, ...series, ...kidsMovies, ...kidsSeries];
+    document.getElementById("totalItems").innerText = all.length;
+
     editorsChoice = all.sort(() => 0.5 - Math.random()).slice(0, 10);
     top6Data = all.sort(() => 0.5 - Math.random()).slice(0, 6);
     
@@ -179,13 +196,13 @@ async function loadData() {
 function startCarousel() {
     const slider = document.getElementById("editorSlider");
     const update = () => {
-        slider.style.opacity = 0; // Inicia o Fade out
+        slider.style.opacity = 0;
         setTimeout(() => {
             const item = editorsChoice[edIdx];
             slider.style.backgroundImage = `url(${item.poster})`;
             document.getElementById("editorTitle").innerText = item.titulo || item.name;
-            document.getElementById("editorMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.0'}`;
-            slider.style.opacity = 1; // Fade in
+            document.getElementById("editorMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.2'}`;
+            slider.style.opacity = 1;
             edIdx = (edIdx + 1) % editorsChoice.length;
         }, 800);
     };
@@ -219,10 +236,10 @@ function renderTop6() {
 
 function openDetails(item) {
     const target = item || editorsChoice[(edIdx === 0 ? editorsChoice.length : edIdx) - 1];
-    console.log("Comando OK para:", target.titulo || target.name);
+    console.log("Comando OK: Abrindo Detalhes de", target.titulo || target.name);
 }
 
-function selectAction(type) { console.log("Menu:", type); }
+function selectAction(type) { console.log("Menu Selecionado:", type); }
 
 function updateFocus() {
     const slider = document.getElementById("editorSlider");
@@ -241,26 +258,30 @@ function updateFocus() {
 
 document.addEventListener("keydown", e => {
     const key = e.keyCode;
+
     if (currentFocus === "editor") {
-        if (key === 40) currentFocus = "menu";
+        if (key === 40) { currentFocus = "menu"; menuIdx = 0; }
         if (key === 13) openDetails();
     } 
     else if (currentFocus === "menu") {
         if (key === 39) menuIdx = (menuIdx + 1) % 7;
         if (key === 37) menuIdx = (menuIdx - 1 + 7) % 7;
-        if (key === 40) currentFocus = "grid";
-        if (key === 38) currentFocus = "editor";
+        if (key === 40) { currentFocus = "grid"; gridIdx = 0; } // Desce para Top 6
+        if (key === 38) currentFocus = "editor"; // Sobe para o Carrossel
         if (key === 13) selectAction(document.querySelectorAll(".brand-card")[menuIdx].dataset.type);
     }
     else if (currentFocus === "grid") {
-        if (key === 39) if (gridIdx % 3 !== 2) gridIdx = Math.min(5, gridIdx + 1);
-        if (key === 37) if (gridIdx % 3 !== 0) gridIdx--;
+        if (key === 39) { if (gridIdx % 3 !== 2) gridIdx = Math.min(5, gridIdx + 1); }
+        if (key === 37) { if (gridIdx % 3 !== 0) gridIdx--; }
         if (key === 40) { if (gridIdx < 3) gridIdx += 3; else currentFocus = "footer"; }
-        if (key === 38) { if(gridIdx < 3) currentFocus = "menu"; else gridIdx -= 3; }
+        if (key === 38) { 
+            if(gridIdx < 3) { currentFocus = "menu"; menuIdx = 0; } // Sobe direto pro Menu Canais
+            else gridIdx -= 3; 
+        }
         if (key === 13) openDetails(top6Data[gridIdx]);
     }
     else if (currentFocus === "footer") {
-        if (key === 38) currentFocus = "grid";
+        if (key === 38) { currentFocus = "grid"; gridIdx = 3; } // Sobe para a linha de baixo do Top 6
     }
     updateFocus();
 });
