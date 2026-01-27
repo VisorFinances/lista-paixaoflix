@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.45</title>
+<title>PaixãoFlix TV V.28.1.46</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -42,6 +42,7 @@
     #mainScroll { 
         width: 100%; height: 100vh; 
         padding-top: 90px; overflow-y: auto !important; scroll-behavior: smooth;
+        display: block;
     }
 
     /* CARROSSEL OTIMIZADO */
@@ -154,7 +155,7 @@
 
 <div id="mainScroll">
     <div id="carouselContainer">
-        <div id="editorSlider" onclick="openDetails(editorsChoice[edIdx])">
+        <div id="editorSlider">
             <div id="editorInfo">
                 <div id="editorTitle">...</div>
                 <div id="editorMeta">ANO • ★ 0.0</div>
@@ -235,28 +236,72 @@
 </div>
 
 <script>
-let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [];
-let top6Data = [], editorsChoice = [], edIdx = 0;
-let currentFocus = "menu", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0; 
-let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, isDetailsOpen = false, playerInstance = null;
+// VARIAVEIS GLOBAIS COM INICIALIZAÇÃO SEGURA
+var movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [];
+var top6Data = [], editorsChoice = [], edIdx = 0;
+var currentFocus = "menu", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0; 
+var isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, isDetailsOpen = false, playerInstance = null;
 
-const Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443, 117], BACK: [8, 27, 461, 10009] };
+var Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443, 117], BACK: [8, 27, 461, 10009] };
 
-async function loadData() {
-    const fetchJSON = async (url) => { try { const r = await fetch(url); return await r.json(); } catch(e) { return []; } };
-    movies = await fetchJSON("data/filmes.json");
-    series = await fetchJSON("data/series.json");
-    kidsMovies = await fetchJSON("data/kids_filmes.json");
-    kidsSeries = await fetchJSON("data/kids_series.json");
-    try { const r = await fetch("data/ativa_canais.m3u"); const t = await r.text(); parseM3U(t); } catch(e) {}
+// FUNÇÃO DE CARREGAMENTO ROBUSTA
+function loadData() {
+    console.log("Iniciando carregamento PaixãoFlix...");
     
-    const allContent = [...movies, ...series].filter(i => i && i.poster);
-    document.getElementById("totalItems").innerText = allContent.length + kidsMovies.length + kidsSeries.length;
-    editorsChoice = allContent.sort(() => 0.5 - Math.random()).slice(0, 10);
-    top6Data = allContent.sort(() => 0.5 - Math.random()).slice(0, 6);
-    
-    if(allContent.length > 0) {
-        startCarousel(); renderTop6(); startClock(); updateFocus();
+    function fetchJSON(url, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try { callback(JSON.parse(xhr.responseText)); } catch(e) { callback([]); }
+                } else { callback([]); }
+            }
+        };
+        xhr.send();
+    }
+
+    fetchJSON("data/filmes.json", function(dataFilmes) {
+        movies = dataFilmes || [];
+        fetchJSON("data/series.json", function(dataSeries) {
+            series = dataSeries || [];
+            fetchJSON("data/kids_filmes.json", function(dataKFilmes) {
+                kidsMovies = dataKFilmes || [];
+                fetchJSON("data/kids_series.json", function(dataKSeries) {
+                    kidsSeries = dataKSeries || [];
+                    initSystem();
+                });
+            });
+        });
+    });
+
+    // Carregamento de Canais M3U separado para não travar o Cinema
+    var xhrM3U = new XMLHttpRequest();
+    xhrM3U.open("GET", "data/ativa_canais.m3u", true);
+    xhrM3U.onreadystatechange = function() {
+        if (xhrM3U.readyState === 4 && xhrM3U.status === 200) {
+            parseM3U(xhrM3U.responseText);
+        }
+    };
+    xhrM3U.send();
+}
+
+function initSystem() {
+    try {
+        var allContent = movies.concat(series).filter(function(i) { return i && i.poster; });
+        document.getElementById("totalItems").innerText = allContent.length + kidsMovies.length + kidsSeries.length;
+        
+        editorsChoice = allContent.slice().sort(function() { return 0.5 - Math.random(); }).slice(0, 10);
+        top6Data = allContent.slice().sort(function() { return 0.5 - Math.random(); }).slice(0, 6);
+        
+        if (allContent.length > 0) {
+            renderTop6();
+            startCarousel();
+            startClock();
+            updateFocus();
+        }
+    } catch(err) {
+        console.error("Erro na inicialização:", err);
     }
 }
 
@@ -266,198 +311,31 @@ function openMoviesPage() {
     document.getElementById("channelsOverlay").style.display = "none";
     document.getElementById("detailsOverlay").style.display = "none";
     document.getElementById("moviesOverlay").style.display = "flex";
-    renderMovies(); currentFocus = "movie_menu"; menuIdx = 1; updateFocus();
+    renderMovies(); 
+    currentFocus = "movie_menu"; 
+    menuIdx = 1; 
+    updateFocus();
 }
 
 function renderMovies() {
-    const cont = document.getElementById("moviesScroll");
+    var cont = document.getElementById("moviesScroll");
     if(!cont) return;
     cont.innerHTML = "";
-    const safeYear = (m) => String(m.year || m.ano || "0");
-    const lanc2026 = movies.filter(m => safeYear(m) === "2026").sort((a,b) => (a.titulo || a.name || "").localeCompare(b.titulo || b.name || ""));
-    const lanc2025 = movies.filter(m => safeYear(m) === "2025").sort((a,b) => (a.titulo || a.name || "").localeCompare(b.titulo || b.name || ""));
-    let cats = {};
-    movies.forEach(m => {
-        const ano = safeYear(m);
-        const cat = m.genero || m.categoria || "Geral";
+    
+    var safeYear = function(m) { return String(m.year || m.ano || "0"); };
+    
+    var lanc2026 = movies.filter(function(m) { return safeYear(m) === "2026"; });
+    var lanc2025 = movies.filter(function(m) { return safeYear(m) === "2025"; });
+    
+    var cats = {};
+    movies.forEach(function(m) {
+        var ano = safeYear(m);
+        var cat = m.genero || m.categoria || "Geral";
         if(ano !== "2026" && ano !== "2025" && cat.toLowerCase() !== "adulto") {
             if(!cats[cat]) cats[cat] = [];
             cats[cat].push(m);
         }
     });
+
     if(lanc2026.length > 0) renderCatSection(cont, "Lançamento 2026", lanc2026);
-    if(lanc2025.length > 0) renderCatSection(cont, "Lançamento 2025", lanc2025);
-    const sortedCatNames = Object.keys(cats).sort((a, b) => a.localeCompare(b));
-    sortedCatNames.forEach(name => { renderCatSection(cont, name, cats[name].sort((a,b) => (a.titulo || a.name || "").localeCompare(b.titulo || b.name || ""))); });
-    const adultData = movies.filter(m => (m.genero || m.categoria || "").toLowerCase() === "adulto").sort((a,b) => (a.titulo || a.name || "").localeCompare(b.titulo || b.name || ""));
-    if(adultData.length > 0) renderCatSection(cont, "Adulto", adultData);
-}
-
-function renderCatSection(container, title, data) {
-    const section = document.createElement("div");
-    section.className = "category-container";
-    section.innerHTML = `<div class="channel-category-title" data-nav="movie-cat">${title}</div><div class="channels-row movie-grid"></div>`;
-    renderMovieGrid(section.querySelector(".movie-grid"), data, false, title);
-    container.appendChild(section);
-}
-
-function renderMovieGrid(grid, list, isFull, catTitle) {
-    grid.innerHTML = "";
-    const displayList = isFull ? list : list.slice(0, 4);
-    displayList.forEach(m => {
-        const card = document.createElement("div");
-        card.className = "movie-card";
-        card.setAttribute("data-nav", "movie-card");
-        card.innerHTML = `<img class="movie-poster" src="${m.poster}" loading="lazy">`;
-        card.onclick = () => openDetails(m);
-        grid.appendChild(card);
-    });
-    const btn = document.createElement("div");
-    btn.className = "toggle-category-btn";
-    btn.setAttribute("data-nav", "movie-btn");
-    btn.innerText = isFull ? "FECHAR CATEGORIA" : "VEJA MAIS";
-    btn.onclick = (e) => { 
-        e.stopPropagation(); 
-        const wasFull = isFull;
-        renderMovieGrid(grid, list, !isFull, catTitle);
-        if(!wasFull) {
-            const allItems = Array.from(document.querySelectorAll("#moviesScroll [data-nav]"));
-            movieIdx = allItems.findIndex(el => el.closest('.category-container').querySelector('.channel-category-title').innerText === catTitle) + 1;
-        }
-        updateFocus(); 
-    };
-    grid.appendChild(btn);
-}
-
-function openDetails(item) {
-    if(!item) return;
-    isDetailsOpen = true;
-    currentFocus = "details"; detIdx = 0;
-    document.getElementById("moviesOverlay").style.display = "none";
-    document.getElementById("mainScroll").style.display = "none";
-    document.getElementById("detailsOverlay").style.display = "flex";
-    document.getElementById("detailsPoster").src = item.poster;
-    document.getElementById("detTitle").innerText = item.titulo || item.name;
-    document.getElementById("detYear").innerText = item.year || item.ano || "2026";
-    document.getElementById("detRating").innerText = item.rating || "9.5";
-    document.getElementById("detCat").innerText = item.genero || item.categoria || "Cinema";
-    document.getElementById("detSinopse").innerText = item.sinopse || "Sem sinopse disponível.";
-    document.getElementById("btnPlayMovie").onclick = () => playChannel(item.url, item.titulo);
-    document.getElementById("btnTrailerMovie").onclick = () => playChannel(item.trailer, "Trailer: " + item.titulo);
-    updateFocus();
-}
-
-function parseM3U(content) {
-    const lines = content.split('\n');
-    let cats = {};
-    lines.forEach((line, i) => {
-        if(line.startsWith("#EXTINF")) {
-            const name = line.split(',')[1] || "Canal";
-            const logo = line.match(/tvg-logo="([^"]+)"/)?.[1] || "";
-            const cat = line.match(/group-title="([^"]+)"/)?.[1]?.trim() || "Geral";
-            const url = lines[i+1]?.trim();
-            if(url && url.startsWith("http")) { if(!cats[cat]) cats[cat] = []; cats[cat].push({ name, logo, url }); }
-        }
-    });
-    renderChannels(cats);
-}
-
-function renderChannels(cats) {
-    const cont = document.getElementById("channelsScroll");
-    if(!cont) return;
-    cont.innerHTML = "";
-    Object.keys(cats).forEach(cat => {
-        const div = document.createElement("div");
-        div.className = "category-container";
-        div.innerHTML = `<div class="channel-category-title"><i class="fas fa-play"></i> ${cat}</div>`;
-        const row = document.createElement("div");
-        row.className = "channels-row";
-        cats[cat].forEach(c => {
-            const card = document.createElement("div");
-            card.className = "channel-card";
-            card.onclick = () => playChannel(c.url, c.name);
-            card.innerHTML = `<img src="${c.logo}" loading="lazy">`;
-            row.appendChild(card);
-        });
-        div.appendChild(row);
-        cont.appendChild(div);
-    });
-}
-
-function openChannelsPage() {
-    isMoviesOpen = false; isChannelsOpen = true; isDetailsOpen = false;
-    document.getElementById("mainScroll").style.display = "none";
-    document.getElementById("moviesOverlay").style.display = "none";
-    document.getElementById("detailsOverlay").style.display = "none";
-    document.getElementById("channelsOverlay").style.display = "flex";
-    currentFocus = "chan_menu"; menuIdx = 0; chanIdx = 0; updateFocus();
-}
-
-function updateFocus() {
-    if(isPlayerOpen) return;
-    document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
-    if(isDetailsOpen) {
-        document.querySelectorAll(".det-btn")[detIdx]?.classList.add("focused");
-    } else if(isMoviesOpen) {
-        if(currentFocus === "movie_menu") document.querySelectorAll(".movies-menu .brand-card")[menuIdx]?.classList.add("focused");
-        else {
-            const items = document.querySelectorAll("#moviesScroll [data-nav]");
-            items[movieIdx]?.classList.add("focused");
-            items[movieIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    } else if(isChannelsOpen) {
-        if(currentFocus === "chan_menu") document.querySelectorAll(".channels-menu .brand-card")[menuIdx]?.classList.add("focused");
-        else {
-            const cards = document.querySelectorAll("#channelsScroll .channel-card");
-            cards[chanIdx]?.classList.add("focused");
-            cards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    } else {
-        if(currentFocus === "editor") document.getElementById("editorSlider")?.classList.add("focused");
-        if(currentFocus === "menu") document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
-        if(currentFocus === "grid") document.querySelectorAll(".top6-item")[gridIdx]?.classList.add("focused");
-        document.querySelector(".focused")?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-}
-
-document.addEventListener("keydown", e => {
-    const k = e.keyCode;
-    if(isPlayerOpen && Keys.BACK.includes(k)) { closePlayer(); return; }
-    
-    if(isDetailsOpen) {
-        if(Keys.RIGHT.includes(k)) detIdx = 1;
-        if(Keys.LEFT.includes(k)) detIdx = 0;
-        if(Keys.ENTER.includes(k)) document.querySelectorAll(".det-btn")[detIdx].click();
-        if(Keys.BACK.includes(k)) { isDetailsOpen = false; openMoviesPage(); }
-    } else if(isMoviesOpen) {
-        const items = document.querySelectorAll("#moviesScroll [data-nav]");
-        if(currentFocus === "movie_menu") {
-            if(Keys.RIGHT.includes(k)) menuIdx = Math.min(6, menuIdx + 1);
-            if(Keys.LEFT.includes(k)) menuIdx = Math.max(0, menuIdx - 1);
-            if(Keys.DOWN.includes(k)) { currentFocus = "movie_grid"; movieIdx = 0; }
-            if(Keys.ENTER.includes(k)) document.querySelectorAll(".movies-menu .brand-card")[menuIdx].click();
-        } else {
-            const type = items[movieIdx].getAttribute('data-nav');
-            if(Keys.RIGHT.includes(k) && type === 'movie-card') {
-                if((movieIdx + 1) < items.length && items[movieIdx+1].getAttribute('data-nav') === 'movie-card') movieIdx++;
-            }
-            if(Keys.LEFT.includes(k) && type === 'movie-card') {
-                if(movieIdx > 0 && items[movieIdx-1].getAttribute('data-nav') === 'movie-card') movieIdx--;
-            }
-            if(Keys.DOWN.includes(k)) {
-                if(type === 'movie-cat') movieIdx++;
-                else if(type === 'movie-card') {
-                    if(movieIdx + 4 < items.length && items[movieIdx+4].getAttribute('data-nav') === 'movie-card') movieIdx += 4;
-                    else {
-                        let n = movieIdx; while(n < items.length && items[n].getAttribute('data-nav') !== 'movie-btn') n++;
-                        movieIdx = n;
-                    }
-                } else if(type === 'movie-btn') {
-                    if(movieIdx + 1 < items.length) movieIdx++; 
-                }
-            }
-            if(Keys.UP.includes(k)) {
-                if(type === 'movie-btn') {
-                    let n = movieIdx; while(n > 0 && items[n].getAttribute('data-nav') !== 'movie-card') n--;
-                    movieIdx = n;
-                } else if
+    if(lanc2025.length >
