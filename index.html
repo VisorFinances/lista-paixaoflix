@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PaixãoFlix TV V.28.1.35</title>
+<title>PaixãoFlix TV V.28.1.36</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -85,49 +85,53 @@
     .top6-item.focused { transform: translateY(-30px) scale(1.08); z-index: 20; }
     .top6-item.focused .top6-poster { border: 4px solid #E50914; box-shadow: 0 0 50px rgba(229, 9, 20, 0.7); }
 
-    /* PÁGINA DE CANAIS */
-    #channelsOverlay { 
+    /* PÁGINAS OVERLAY (CANAIS E CINEMA) */
+    #channelsOverlay, #moviesOverlay { 
         position: fixed; inset: 0; background: #040714; z-index: 4000; 
         display: none; flex-direction: column; padding-top: 80px;
     }
-    .channels-menu { margin-bottom: 0px !important; } 
-    #channelsScroll { 
+    #channelsScroll, #moviesScroll { 
         overflow-y: auto !important; height: calc(100vh - 280px); 
         padding: 40px 50px 100px 50px; 
     }
+
+    /* ESTILO DAS CAPAS (CINEMA) */
+    .movie-card { 
+        cursor: pointer; transition: 0.3s; 
+        display: flex; flex-direction: column; gap: 10px;
+    }
+    .movie-poster { 
+        width: 100%; aspect-ratio: 2/3; object-fit: cover; 
+        border-radius: 12px; border: 2px solid transparent;
+    }
+    .movie-meta { font-size: 14px; color: #FFCE44; font-weight: 700; text-align: center; }
+    .movie-card.focused .movie-poster { border: 2px solid #E50914; transform: scale(1.05); }
+
+    /* BOTÕES VEJA MAIS / FECHAR */
+    .toggle-category-btn {
+        grid-column: span 8; text-align: center; padding: 15px;
+        color: #FFCE44; font-weight: 900; text-transform: uppercase;
+        cursor: pointer; font-size: 18px; border: 1px dashed rgba(255,206,68,0.3);
+        margin-top: 10px; border-radius: 10px;
+    }
+    .toggle-category-btn.focused { background: #FFCE44; color: #000; }
+
+    /* ESTILO CANAIS (REPETIDO PARA PRESERVAÇÃO) */
     .category-container { width: 100%; margin-bottom: 50px; overflow: visible !important; }
     .channel-category-title { font-size: 32px; font-weight: 900; color: #FFCE44; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; text-transform: uppercase; }
     .channels-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 30px; overflow: visible !important; }
-    
-    .channel-card { 
-        aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; 
-        cursor: pointer; transition: 0.3s ease; filter: none !important; 
-        box-shadow: none !important; border: 2px solid transparent !important; background: transparent !important;
-        overflow: visible !important; border-radius: 15px; /* Preparação para borda arredondada */
-    }
+    .channel-card { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s ease; border: 2px solid transparent; border-radius: 15px; overflow: visible !important; }
     .channel-card img { width: 100%; height: 100%; object-fit: contain; }
-    
-    /* ORDEM: Borda vermelha de 2px, arredondada, cor do logotipo */
-    .channel-card.focused { 
-        transform: scale(1.35); 
-        z-index: 100; 
-        border: 2px solid #E50914 !important; 
-        border-radius: 15px !important;
-    }
+    .channel-card.focused { transform: scale(1.35); z-index: 100; border: 2px solid #E50914 !important; }
 
     /* RODAPÉ FIXO */
-    #globalFooter { 
-        position: fixed; bottom: 0; width: 100%; height: 80px; 
-        background: linear-gradient(transparent, rgba(4,7,20,1));
-        display: flex; align-items: center; justify-content: center; z-index: 6000;
-    }
+    #globalFooter { position: fixed; bottom: 0; width: 100%; height: 80px; background: linear-gradient(transparent, rgba(4,7,20,1)); display: flex; align-items: center; justify-content: center; z-index: 6000; }
     #footerText { font-style: italic; font-weight: 500; color: #ffffff; font-size: 20px; text-shadow: 2px 2px 4px #000; }
 
-    /* PLAYER E ADESIVOS */
+    /* PLAYER */
     #playerOverlay { position: fixed; inset: 0; background: #000; z-index: 9000; display: none; }
-    #btnClosePlayer { position: absolute; top: 30px; right: 30px; background: rgba(255,255,255,0.2); color: #fff; border: none; padding: 10px 20px; border-radius: 5px; font-weight: 900; cursor: pointer; z-index: 10000; backdrop-filter: blur(10px); }
-    #btnClosePlayer:hover { background: #E50914; }
-    #channelSticker { position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.6); color: #FFCE44; padding: 5px 15px; border-radius: 5px; font-size: 12px; font-weight: 700; z-index: 10000; text-transform: uppercase; }
+    #btnClosePlayer { position: absolute; top: 30px; right: 30px; background: rgba(255,255,255,0.2); color: #fff; border: none; padding: 10px 20px; border-radius: 5px; font-weight: 900; cursor: pointer; z-index: 10000; }
+    #channelSticker { position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.6); color: #FFCE44; padding: 5px 15px; border-radius: 5px; font-size: 12px; font-weight: 700; z-index: 10000; }
 </style>
 </head>
 <body>
@@ -151,7 +155,7 @@
 
     <div id="menuBrands" class="main-menu">
         <div class="brand-card focused" onclick="openChannelsPage()"><i class="fas fa-tv"></i><span>Canais</span></div>
-        <div class="brand-card"><i class="fas fa-film"></i><span>Cinema</span></div>
+        <div class="brand-card" onclick="openMoviesPage()"><i class="fas fa-film"></i><span>Cinema</span></div>
         <div class="brand-card"><i class="fas fa-clapperboard"></i><span>Séries</span></div>
         <div class="brand-card"><i class="fas fa-child"></i><span>Kids TV</span></div>
         <div class="brand-card"><i class="fas fa-baby"></i><span>Kids Filmes</span></div>
@@ -169,7 +173,7 @@
 <div id="channelsOverlay">
     <div id="menuBrands" class="channels-menu">
         <div class="brand-card" style="display:none;" onclick="openChannelsPage()"><i class="fas fa-tv"></i><span>Canais</span></div>
-        <div class="brand-card"><i class="fas fa-film"></i><span>Cinema</span></div>
+        <div class="brand-card" onclick="openMoviesPage()"><i class="fas fa-film"></i><span>Cinema</span></div>
         <div class="brand-card"><i class="fas fa-clapperboard"></i><span>Séries</span></div>
         <div class="brand-card"><i class="fas fa-child"></i><span>Kids TV</span></div>
         <div class="brand-card"><i class="fas fa-baby"></i><span>Kids Filmes</span></div>
@@ -178,6 +182,20 @@
         <div class="brand-card" onclick="location.reload()"><i class="fas fa-home"></i><span>Início</span></div>
     </div>
     <div id="channelsScroll"></div>
+</div>
+
+<div id="moviesOverlay">
+    <div id="menuBrands" class="movies-menu">
+        <div class="brand-card" onclick="openChannelsPage()"><i class="fas fa-tv"></i><span>Canais</span></div>
+        <div class="brand-card" style="display:none;"><i class="fas fa-film"></i><span>Cinema</span></div>
+        <div class="brand-card"><i class="fas fa-clapperboard"></i><span>Séries</span></div>
+        <div class="brand-card"><i class="fas fa-child"></i><span>Kids TV</span></div>
+        <div class="brand-card"><i class="fas fa-baby"></i><span>Kids Filmes</span></div>
+        <div class="brand-card"><i class="fas fa-robot"></i><span>Kids Séries</span></div>
+        <div class="brand-card"><i class="fas fa-heart"></i><span>Favoritos</span></div>
+        <div class="brand-card" onclick="location.reload()"><i class="fas fa-home"></i><span>Início</span></div>
+    </div>
+    <div id="moviesScroll"></div>
 </div>
 
 <div id="playerOverlay">
@@ -193,14 +211,10 @@
 <script>
 let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [];
 let top6Data = [], editorsChoice = [], edIdx = 0;
-let currentFocus = "menu", menuIdx = 0, gridIdx = 0, chanIdx = 0; 
-let isChannelsOpen = false, isPlayerOpen = false, playerInstance = null;
+let currentFocus = "menu", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0; 
+let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, playerInstance = null;
 
-const Keys = {
-    UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], 
-    ENTER: [13, 29443, 117], BACK: [8, 27, 461, 10009],
-    CH_UP: [427, 33], CH_DOWN: [428, 34]
-};
+const Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443, 117], BACK: [8, 27, 461, 10009] };
 
 async function loadData() {
     const fetchJSON = async (url) => { try { const r = await fetch(url); return await r.json(); } catch(e) { return []; } };
@@ -216,6 +230,80 @@ async function loadData() {
     startCarousel(); renderTop6(); startClock();
 }
 
+// LÓGICA DE CINEMA
+function openMoviesPage() {
+    isChannelsOpen = false; isMoviesOpen = true;
+    document.getElementById("mainScroll").style.display = "none";
+    document.getElementById("channelsOverlay").style.display = "none";
+    document.getElementById("moviesOverlay").style.display = "flex";
+    renderMovies();
+    currentFocus = "movie_menu"; menuIdx = 0;
+    updateFocus();
+}
+
+function renderMovies() {
+    const cont = document.getElementById("moviesScroll");
+    cont.innerHTML = "";
+    let cats = {};
+    movies.forEach(m => {
+        const c = m.categoria || "Geral";
+        if(!cats[c]) cats[c] = [];
+        cats[c].push(m);
+    });
+
+    let keys = Object.keys(cats).sort();
+    // Adulto por último
+    keys = keys.filter(k => k !== "Adulto");
+    if(cats["Adulto"]) keys.push("Adulto");
+
+    keys.forEach(catName => {
+        const sortedMovies = cats[catName].sort((a,b) => (a.titulo || a.name).localeCompare(b.titulo || b.name));
+        const section = document.createElement("div");
+        section.className = "category-container";
+        section.id = "cat-" + catName.replace(/\s/g, '');
+        
+        section.innerHTML = `
+            <div class="channel-category-title"><i class="fas fa-film"></i> ${catName}</div>
+            <div class="channels-row movie-grid" data-full="false"></div>
+        `;
+        
+        const grid = section.querySelector(".movie-grid");
+        renderMovieGrid(grid, sortedMovies, false);
+        cont.appendChild(section);
+    });
+}
+
+function renderMovieGrid(grid, list, isFull) {
+    grid.innerHTML = "";
+    const displayList = isFull ? list : list.slice(0, 4);
+    displayList.forEach(m => {
+        const card = document.createElement("div");
+        card.className = "movie-card";
+        card.onclick = () => openDetails(m);
+        card.innerHTML = `
+            <img class="movie-poster" src="${m.poster}">
+            <div class="movie-meta">${m.year || '2026'} • ★ ${m.rating || '9.0'}</div>
+        `;
+        grid.appendChild(card);
+    });
+    
+    if(list.length > 4) {
+        const btn = document.createElement("div");
+        btn.className = "toggle-category-btn";
+        btn.innerText = isFull ? "FECHAR CATEGORIA" : "VEJA MAIS";
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            renderMovieGrid(grid, list, !isFull);
+        };
+        grid.appendChild(btn);
+    }
+}
+
+function openDetails(item) {
+    alert("Abrindo descrição: " + (item.titulo || item.name));
+}
+
+// PRESERVAÇÃO CANAIS
 function parseM3U(content) {
     const lines = content.split('\n');
     let cats = {};
@@ -236,10 +324,8 @@ function parseM3U(content) {
 
 function renderChannels(cats) {
     const cont = document.getElementById("channelsScroll");
-    cont.innerHTML = "";
-    channels = [];
+    cont.innerHTML = ""; channels = [];
     Object.keys(cats).forEach(cat => {
-        if(cats[cat].length === 0) return;
         const div = document.createElement("div");
         div.className = "category-container";
         div.innerHTML = `<div class="channel-category-title"><i class="fas fa-play"></i> ${cat}</div>`;
@@ -259,17 +345,16 @@ function renderChannels(cats) {
 }
 
 function openChannelsPage() {
-    isChannelsOpen = true;
-    currentFocus = "chan_menu"; 
-    menuIdx = 1; 
+    isMoviesOpen = false; isChannelsOpen = true;
     document.getElementById("mainScroll").style.display = "none";
+    document.getElementById("moviesOverlay").style.display = "none";
     document.getElementById("channelsOverlay").style.display = "flex";
+    currentFocus = "chan_menu"; menuIdx = 1;
     updateFocus();
 }
 
 function playChannel(url, name) {
-    isPlayerOpen = true;
-    document.getElementById("playerOverlay").style.display = "block";
+    isPlayerOpen = true; document.getElementById("playerOverlay").style.display = "block";
     document.getElementById("channelSticker").innerText = name;
     if(playerInstance) playerInstance.destroy();
     playerInstance = new Clappr.Player({ 
@@ -278,31 +363,22 @@ function playChannel(url, name) {
     });
 }
 
-function closePlayer() {
-    if(playerInstance) playerInstance.destroy();
-    document.getElementById("playerOverlay").style.display = "none";
-    isPlayerOpen = false;
-}
-
-function zapping(dir) {
-    let idx = channels.findIndex(c => c.url === playerInstance.options.source);
-    idx = (dir === "up") ? (idx + 1) % channels.length : (idx - 1 + channels.length) % channels.length;
-    playChannel(channels[idx].url, channels[idx].name);
-}
+function closePlayer() { if(playerInstance) playerInstance.destroy(); document.getElementById("playerOverlay").style.display = "none"; isPlayerOpen = false; }
 
 function updateFocus() {
     if(isPlayerOpen) return;
-    
-    document.querySelectorAll(".brand-card").forEach(b => b.classList.remove("focused"));
-    document.querySelectorAll(".channel-card").forEach(c => c.classList.remove("focused"));
-    document.getElementById("editorSlider").classList.remove("focused");
-    document.querySelectorAll(".top6-item").forEach(t => t.classList.remove("focused"));
+    document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
 
-    if(isChannelsOpen) {
-        if(currentFocus === "chan_menu") {
-            const btns = document.querySelectorAll(".channels-menu .brand-card");
-            btns[menuIdx]?.classList.add("focused");
-        } else {
+    if(isMoviesOpen) {
+        if(currentFocus === "movie_menu") document.querySelectorAll(".movies-menu .brand-card")[menuIdx]?.classList.add("focused");
+        else {
+            const allItems = document.querySelectorAll("#moviesScroll .movie-card, #moviesScroll .toggle-category-btn");
+            allItems[movieIdx]?.classList.add("focused");
+            allItems[movieIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    } else if(isChannelsOpen) {
+        if(currentFocus === "chan_menu") document.querySelectorAll(".channels-menu .brand-card")[menuIdx]?.classList.add("focused");
+        else {
             const cards = document.querySelectorAll("#channelsScroll .channel-card");
             cards[chanIdx]?.classList.add("focused");
             cards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -311,53 +387,50 @@ function updateFocus() {
         if(currentFocus === "editor") document.getElementById("editorSlider").classList.add("focused");
         if(currentFocus === "menu") document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
         if(currentFocus === "grid") document.querySelectorAll(".top6-item")[gridIdx]?.classList.add("focused");
-        
-        const target = document.querySelector(".focused");
-        if(target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.querySelector(".focused")?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }
 
 document.addEventListener("keydown", e => {
     const k = e.keyCode;
-    if(isPlayerOpen) {
-        if(Keys.BACK.includes(k)) closePlayer();
-        if(Keys.UP.includes(k) || Keys.CH_UP.includes(k)) zapping("up");
-        if(Keys.DOWN.includes(k) || Keys.CH_DOWN.includes(k)) zapping("down");
-        return;
-    }
-    
-    if(isChannelsOpen) {
+    if(isPlayerOpen && Keys.BACK.includes(k)) closePlayer();
+    if(isMoviesOpen) {
+        const items = document.querySelectorAll("#moviesScroll .movie-card, #moviesScroll .toggle-category-btn");
+        if(currentFocus === "movie_menu") {
+            if(Keys.RIGHT.includes(k)) menuIdx = Math.min(7, menuIdx + 1);
+            if(Keys.LEFT.includes(k)) menuIdx = Math.max(0, menuIdx - 1);
+            if(Keys.DOWN.includes(k)) { currentFocus = "movie_grid"; movieIdx = 0; }
+            if(Keys.ENTER.includes(k)) document.querySelectorAll(".movies-menu .brand-card")[menuIdx].click();
+        } else {
+            if(Keys.RIGHT.includes(k)) movieIdx = Math.min(items.length - 1, movieIdx + 1);
+            if(Keys.LEFT.includes(k)) movieIdx = Math.max(0, movieIdx - 1);
+            if(Keys.DOWN.includes(k)) movieIdx = Math.min(items.length - 1, movieIdx + 4);
+            if(Keys.UP.includes(k)) { if(movieIdx < 4) currentFocus = "movie_menu"; else movieIdx -= 4; }
+            if(Keys.ENTER.includes(k)) items[movieIdx].click();
+        }
+        if(Keys.BACK.includes(k)) location.reload();
+    } else if(isChannelsOpen) {
+        const cards = document.querySelectorAll("#channelsScroll .channel-card");
         if(currentFocus === "chan_menu") {
             if(Keys.RIGHT.includes(k)) menuIdx = Math.min(7, menuIdx + 1);
-            if(Keys.LEFT.includes(k)) menuIdx = Math.max(1, menuIdx - 1);
+            if(Keys.LEFT.includes(k)) menuIdx = Math.max(0, menuIdx - 1);
             if(Keys.DOWN.includes(k)) { currentFocus = "chan_grid"; chanIdx = 0; }
-            if(Keys.ENTER.includes(k)) { if(menuIdx === 7) location.reload(); }
+            if(Keys.ENTER.includes(k)) document.querySelectorAll(".channels-menu .brand-card")[menuIdx].click();
         } else {
-            const cards = document.querySelectorAll("#channelsScroll .channel-card");
             if(Keys.RIGHT.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 1);
             if(Keys.LEFT.includes(k)) chanIdx = Math.max(0, chanIdx - 1);
             if(Keys.DOWN.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 8);
-            if(Keys.UP.includes(k)) {
-                if(chanIdx < 8) { currentFocus = "chan_menu"; menuIdx = 1; }
-                else { chanIdx -= 8; }
-            }
+            if(Keys.UP.includes(k)) { if(chanIdx < 8) currentFocus = "chan_menu"; else chanIdx -= 8; }
             if(Keys.ENTER.includes(k)) cards[chanIdx].click();
         }
         if(Keys.BACK.includes(k)) location.reload();
     } else {
-        if(currentFocus === "editor") { if(Keys.DOWN.includes(k)) currentFocus = "menu"; }
-        else if(currentFocus === "menu") {
+        if(currentFocus === "menu") {
             if(Keys.RIGHT.includes(k)) menuIdx = (menuIdx + 1) % 7;
             if(Keys.LEFT.includes(k)) menuIdx = (menuIdx - 1 + 7) % 7;
             if(Keys.DOWN.includes(k)) { currentFocus = "grid"; gridIdx = 0; }
             if(Keys.UP.includes(k)) currentFocus = "editor";
-            if(Keys.ENTER.includes(k) && menuIdx === 0) openChannelsPage();
-        }
-        else if(currentFocus === "grid") {
-            if(Keys.RIGHT.includes(k)) if(gridIdx % 3 !== 2) gridIdx = Math.min(5, gridIdx + 1);
-            if(Keys.LEFT.includes(k)) if(gridIdx % 3 !== 0) gridIdx--;
-            if(Keys.DOWN.includes(k)) { if(gridIdx < 3) gridIdx += 3; }
-            if(Keys.UP.includes(k)) { if(gridIdx < 3) currentFocus = "menu"; else gridIdx -= 3; }
+            if(Keys.ENTER.includes(k)) document.querySelectorAll(".main-menu .brand-card")[menuIdx].click();
         }
     }
     updateFocus();
@@ -373,13 +446,11 @@ function startCarousel() {
                 slider.style.backgroundImage = `url(${item.poster})`;
                 document.getElementById("editorTitle").innerText = item.titulo || item.name;
                 document.getElementById("editorMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.5'}`;
-                slider.style.opacity = 1;
-                edIdx = (edIdx + 1) % editorsChoice.length;
+                slider.style.opacity = 1; edIdx = (edIdx + 1) % editorsChoice.length;
             }
         }, 800);
     }, 8000);
 }
-
 function renderTop6() {
     const cont = document.getElementById("top6Container");
     top6Data.forEach((item, i) => {
@@ -389,9 +460,7 @@ function renderTop6() {
         cont.appendChild(div);
     });
 }
-
 function startClock() { setInterval(() => { const now = new Date(); document.getElementById("barDateTime").innerText = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase(); }, 1000); }
-
 window.onload = loadData;
 </script>
 </body>
