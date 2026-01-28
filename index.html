@@ -177,7 +177,6 @@
             return;
         }
 
-        // Patch: Agrupamento de canais por categorias
         const grupos = {};
         canaisAtuais.forEach((c, idx) => {
             if (!grupos[c.grupo]) grupos[c.grupo] = [];
@@ -289,7 +288,7 @@
         }
     }
 
-    function openDetails(item, continuar = false) {
+    async function openDetails(item, continuar = false) {
         const ov = document.getElementById('detailsOverlay'); ov.style.display = "flex";
         document.getElementById('detPoster').src = item.poster;
         document.getElementById('detTitle').innerText = item.titulo;
@@ -301,31 +300,53 @@
         if(item.identificador_archive) {
             btnPlay.style.display = "none";
             areaSerie.style.display = "block";
-            const el = document.getElementById('epList'); el.innerHTML = "";
-            for(let i=1; i<=150; i++) {
-                const epNum = i < 10 ? '0' + i : i;
-                const b = document.createElement('button'); 
-                b.className = "btn-ep"; b.tabIndex = 0; b.id = i === 1 ? "firstEp" : "";
-                b.innerText = `EP ${epNum}`;
-                const streamUrl = `https://ia801502.us.archive.org/9/items/${item.identificador_archive}/EP${epNum}.mp4`;
-                b.onclick = () => { indiceCanalAtivo = -1; playVideo(streamUrl, `${item.titulo} E${epNum}`, 0); };
-                el.appendChild(b);
+            const el = document.getElementById('epList'); 
+            el.innerHTML = "<p style='color:#FFCE44'>CARREGANDO EPISÓDIOS...</p>";
+            
+            try {
+                const metadataUrl = `https://archive.org/metadata/${item.identificador_archive}`;
+                const res = await fetch(metadataUrl);
+                const data = await res.json();
+                const files = data.files.filter(f => f.name.toLowerCase().endsWith('.mp4') || f.name.toLowerCase().endsWith('.mkv'));
+                
+                el.innerHTML = "";
+                files.forEach((file, index) => {
+                    const b = document.createElement('button'); 
+                    b.className = "btn-ep"; b.tabIndex = 0;
+                    b.innerText = `EP ${index + 1}`;
+                    const streamUrl = `https://archive.org/download/${item.identificador_archive}/${file.name}`;
+                    b.onclick = () => { indiceCanalAtivo = -1; playVideo(streamUrl, `${item.titulo} - EP ${index + 1}`, 0, false, item.poster); };
+                    el.appendChild(b);
+                });
+                
+                setTimeout(() => { if(el.firstChild) el.firstChild.focus(); }, 150);
+            } catch (e) {
+                el.innerHTML = "<p style='color:red'>ERRO AO CARREGAR EPISÓDIOS.</p>";
             }
-            setTimeout(() => { if(document.getElementById('firstEp')) document.getElementById('firstEp').focus(); }, 150);
         } else if(item.url) {
             areaSerie.style.display = "none";
             btnPlay.style.display = "block";
-            btnPlay.onclick = () => { indiceCanalAtivo = -1; playVideo(item.url, item.titulo, continuar ? progresso[item.titulo] : 0); };
+            btnPlay.onclick = () => { indiceCanalAtivo = -1; playVideo(item.url, item.titulo, continuar ? progresso[item.titulo] : 0, false, item.poster); };
             btnPlay.focus();
         }
     }
 
-    function playVideo(url, title, time, isLive = false) {
+    function playVideo(url, title, time, isLive = false, poster = "") {
         if(!url) return;
         const v = document.getElementById('videoContainer'); v.style.display = "block";
         const p = document.getElementById('mainPlayer');
-        p.src = url; p.load();
-        p.oncanplay = () => { if(time > 0) p.currentTime = time; p.play(); p.oncanplay = null; };
+        if(poster) p.poster = poster;
+        p.src = url; 
+        p.load();
+        p.oncanplay = () => { 
+            if(time > 0) p.currentTime = time; 
+            p.play(); 
+            p.oncanplay = null; 
+        };
+        p.onerror = () => {
+            alert("Erro ao carregar vídeo. Verifique sua conexão.");
+            sairPlayer();
+        };
         document.getElementById('adesivo').innerText = title;
         if(!isLive) p.ontimeupdate = () => { if(p.currentTime > 10) { progresso[title] = p.currentTime; localStorage.setItem('prog', JSON.stringify(progresso)); } };
         else p.ontimeupdate = null;
