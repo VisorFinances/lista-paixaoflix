@@ -52,8 +52,8 @@
         <h2 style="color:#FFCE44">PAIXÃOFLIX PERGUNTA:</h2>
         <p>Deseja continuar de onde parou ou recomeçar?</p>
         <div class="row-buttons" style="justify-content: center;">
-            <button class="btn-desc" id="p-cont" style="background:#FFCE44;">CONTINUAR</button>
-            <button class="btn-desc" id="p-reset" style="background:#333; color:#fff;">RECOMEÇAR</button>
+            <button class="btn-desc" id="p-cont" style="background:#FFCE44;" tabindex="0">CONTINUAR</button>
+            <button class="btn-desc" id="p-reset" style="background:#333; color:#fff;" tabindex="0">RECOMEÇAR</button>
         </div>
     </div>
 </div>
@@ -100,7 +100,7 @@
 </div>
 
 <div id="videoContainer">
-    <div class="btn-sair-vidro" onclick="sairPlayer()">SAIR DO PLAYER</div>
+    <div class="btn-sair-vidro" id="btnSairPlayer" tabindex="0" onclick="sairPlayer()">SAIR DO PLAYER</div>
     <video id="mainPlayer" style="width:100%; height:100%;" controls preload="auto"></video>
     <div id="adesivo" class="adesivo"></div>
 </div>
@@ -136,9 +136,10 @@
 
     function handleCapa(titulo) {
         const item = db.todos.find(i => i.titulo.replace(/'/g,"") === titulo);
+        if(!item) return;
         lastFocusedElement = document.activeElement;
         
-        // PATCH CINEMA: Sempre abre detalhes para qualquer comando
+        // PATCH: Cinema sempre abre detalhes
         const isCinema = db.cinema.some(f => f.titulo === item.titulo) || db.kids_filmes.some(f => f.titulo === item.titulo);
         
         if (isCinema) {
@@ -201,7 +202,6 @@
         document.getElementById('detSinopse').innerText = item.desc;
         const btnPlay = document.getElementById('btnPlay');
         
-        // PATCH PLAYER SERIES: Garante o carregamento correto da URL para não dar tela preta
         if(item.url && !item.identificador_archive) {
             document.getElementById('areaSerie').style.display = "none";
             btnPlay.style.display = "block";
@@ -222,7 +222,7 @@
                 b.onclick = () => playVideo(streamUrl, `${item.titulo} E${epNum}`, 0);
                 el.appendChild(b);
             }
-            setTimeout(() => { if(document.getElementById('firstEp')) document.getElementById('firstEp').focus(); }, 100);
+            setTimeout(() => { if(document.getElementById('firstEp')) document.getElementById('firstEp').focus(); }, 150);
         }
     }
 
@@ -230,20 +230,25 @@
         if(!url) return;
         const v = document.getElementById('videoContainer'); v.style.display = "block";
         const p = document.getElementById('mainPlayer');
-        p.pause();
         p.src = url;
         p.load();
         p.oncanplay = () => {
             if(time > 0) p.currentTime = time;
-            p.play().catch(e => console.error("Erro Play:", e));
+            p.play();
             p.oncanplay = null;
         };
         document.getElementById('adesivo').innerText = title;
         p.ontimeupdate = () => { if(p.currentTime > 10) { progresso[title] = p.currentTime; localStorage.setItem('prog', JSON.stringify(progresso)); } };
-        p.onerror = () => { console.error("Erro no arquivo de vídeo:", url); };
+        document.getElementById('btnSairPlayer').focus();
     }
 
-    function sairPlayer() { document.getElementById('videoContainer').style.display = "none"; document.getElementById('mainPlayer').pause(); }
+    function sairPlayer() { 
+        const p = document.getElementById('mainPlayer');
+        p.pause();
+        p.src = "";
+        document.getElementById('videoContainer').style.display = "none"; 
+        if(document.getElementById('btnPlay').offsetParent !== null) document.getElementById('btnPlay').focus();
+    }
     
     function closeDetails() { 
         document.getElementById('detailsOverlay').style.display = "none"; 
@@ -261,13 +266,26 @@
     }
 
     function initNavigation() {
+        // PATCH: Mapeamento Universal de Controles (LG WebOS, Samsung, Android TV, Teclado)
+        const keys = {
+            37: 'left', 38: 'up', 39: 'right', 40: 'down', 13: 'enter', 461: 'back', 10009: 'back', 27: 'back', 8: 'back'
+        };
+
         document.addEventListener('keydown', (e) => {
+            const keyCode = e.keyCode || e.which;
+            const action = keys[keyCode];
             const active = document.activeElement;
             const all = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
             const r = active.getBoundingClientRect();
-            const isOverlay = active.closest('#detailsOverlay');
+            
+            if (action === 'back') {
+                e.preventDefault();
+                if (document.getElementById('videoContainer').style.display === "block") sairPlayer();
+                else if (document.getElementById('detailsOverlay').style.display === "flex") closeDetails();
+                return;
+            }
 
-            if (e.key === "ArrowRight") {
+            if (action === 'right') {
                 if (active.closest('#sideMenu')) {
                     const firstContent = document.querySelector('#dynamicContent [tabindex="0"]');
                     if (firstContent) {
@@ -278,13 +296,16 @@
                 }
                 moveFocus(all, r, 'right');
             }
-            if (e.key === "ArrowLeft") { 
-                if (!isOverlay && r.left < 200) document.getElementById('m-cinema').focus(); 
-                else moveFocus(all, r, 'left'); 
+            if (action === 'left') { 
+                if (r.left < 150 && !active.closest('#detailsOverlay') && !active.closest('#videoContainer')) {
+                    document.getElementById('m-cinema').focus();
+                } else {
+                    moveFocus(all, r, 'left');
+                }
             }
-            if (e.key === "ArrowUp") moveFocus(all, r, 'up', false);
-            if (e.key === "ArrowDown") moveFocus(all, r, 'down', false);
-            if (e.key === "Enter") active.click();
+            if (action === 'up') moveFocus(all, r, 'up');
+            if (action === 'down') moveFocus(all, r, 'down');
+            if (action === 'enter') active.click();
         });
 
         document.addEventListener('focusin', (e) => {
@@ -294,21 +315,21 @@
             else document.getElementById('sideMenu').classList.remove('active');
             
             const scroll = document.getElementById('mainScroll');
-            if(!e.target.closest('#sideMenu') && !e.target.closest('#topBar') && !e.target.closest('#detailsOverlay')) {
+            if(!e.target.closest('#sideMenu') && !e.target.closest('#topBar') && !e.target.closest('#detailsOverlay') && !e.target.closest('#videoContainer')) {
                 const targetTop = e.target.offsetTop;
                 scroll.scrollTo({ top: targetTop - 250, behavior: 'smooth' });
             }
         });
     }
 
-    function moveFocus(list, r, dir, strict = false) {
+    function moveFocus(list, r, dir) {
         let best = null, minDist = Infinity;
         list.forEach(el => {
             if(el === document.activeElement) return;
             const nr = el.getBoundingClientRect();
             let ok = false;
-            if(dir==='right') ok = nr.left >= r.right - 10 && Math.abs(nr.top - r.top) < 100;
-            if(dir==='left') ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 100;
+            if(dir==='right') ok = nr.left >= r.right - 10 && Math.abs(nr.top - r.top) < 150;
+            if(dir==='left') ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 150;
             if(dir==='down') ok = nr.top >= r.bottom - 10;
             if(dir==='up') ok = nr.bottom <= r.top + 10;
             if(ok) { 
