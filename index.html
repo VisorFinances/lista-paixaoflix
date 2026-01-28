@@ -139,14 +139,16 @@
         if(!item) return;
         lastFocusedElement = document.activeElement;
         
-        // PATCH: Cinema sempre abre detalhes
-        const isCinema = db.cinema.some(f => f.titulo === item.titulo) || db.kids_filmes.some(f => f.titulo === item.titulo);
-        
-        if (isCinema) {
+        // PATCH: Obrigar Detalhes para Filmes e Séries (Exceto Kids) em qualquer interação
+        const isKids = db.kids_filmes.some(f => f.titulo === item.titulo) || db.kids_series.some(f => f.titulo === item.titulo);
+        const isFilmeOuSerie = db.cinema.some(f => f.titulo === item.titulo) || db.series.some(f => f.titulo === item.titulo);
+
+        if (isFilmeOuSerie && !isKids) {
             openDetails(item);
             return;
         }
 
+        // Fluxo normal para Kids (Pergunta se quer continuar)
         if (progresso[item.titulo]) {
             const pop = document.getElementById('popupContinuar');
             pop.style.display = "flex";
@@ -201,17 +203,14 @@
         document.getElementById('detMeta').innerText = `${item.year} - Avaliação: ${item.rating}`;
         document.getElementById('detSinopse').innerText = item.desc;
         const btnPlay = document.getElementById('btnPlay');
+        const areaSerie = document.getElementById('areaSerie');
         
-        if(item.url && !item.identificador_archive) {
-            document.getElementById('areaSerie').style.display = "none";
-            btnPlay.style.display = "block";
-            btnPlay.onclick = () => playVideo(item.url, item.titulo, continuar ? progresso[item.titulo] : 0);
-            btnPlay.focus();
-        } else if (item.identificador_archive) {
+        // PATCH SÉRIES: Lógica para carregar episódios do Archive de forma funcional
+        if(item.identificador_archive) {
             btnPlay.style.display = "none";
-            document.getElementById('areaSerie').style.display = "block";
+            areaSerie.style.display = "block";
             const el = document.getElementById('epList'); el.innerHTML = "";
-            for(let i=1; i<=12; i++) {
+            for(let i=1; i<=150; i++) { // Suporta séries longas
                 const epNum = i < 10 ? '0' + i : i;
                 const b = document.createElement('button'); 
                 b.className = "btn-ep"; 
@@ -223,6 +222,11 @@
                 el.appendChild(b);
             }
             setTimeout(() => { if(document.getElementById('firstEp')) document.getElementById('firstEp').focus(); }, 150);
+        } else if(item.url) {
+            areaSerie.style.display = "none";
+            btnPlay.style.display = "block";
+            btnPlay.onclick = () => playVideo(item.url, item.titulo, continuar ? progresso[item.titulo] : 0);
+            btnPlay.focus();
         }
     }
 
@@ -266,58 +270,41 @@
     }
 
     function initNavigation() {
-        // PATCH: Mapeamento Universal de Controles (LG WebOS, Samsung, Android TV, Teclado)
-        const keys = {
-            37: 'left', 38: 'up', 39: 'right', 40: 'down', 13: 'enter', 461: 'back', 10009: 'back', 27: 'back', 8: 'back'
-        };
-
+        const keys = { 37: 'left', 38: 'up', 39: 'right', 40: 'down', 13: 'enter', 461: 'back', 10009: 'back', 27: 'back', 8: 'back' };
         document.addEventListener('keydown', (e) => {
-            const keyCode = e.keyCode || e.which;
-            const action = keys[keyCode];
+            const action = keys[e.keyCode || e.which];
             const active = document.activeElement;
             const all = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
             const r = active.getBoundingClientRect();
-            
             if (action === 'back') {
                 e.preventDefault();
                 if (document.getElementById('videoContainer').style.display === "block") sairPlayer();
                 else if (document.getElementById('detailsOverlay').style.display === "flex") closeDetails();
                 return;
             }
-
             if (action === 'right') {
                 if (active.closest('#sideMenu')) {
-                    const firstContent = document.querySelector('#dynamicContent [tabindex="0"]');
-                    if (firstContent) {
-                        firstContent.focus();
-                        document.getElementById('sideMenu').classList.remove('active');
-                        return;
-                    }
+                    const fc = document.querySelector('#dynamicContent [tabindex="0"]');
+                    if (fc) { fc.focus(); document.getElementById('sideMenu').classList.remove('active'); return; }
                 }
                 moveFocus(all, r, 'right');
             }
             if (action === 'left') { 
-                if (r.left < 150 && !active.closest('#detailsOverlay') && !active.closest('#videoContainer')) {
-                    document.getElementById('m-cinema').focus();
-                } else {
-                    moveFocus(all, r, 'left');
-                }
+                if (r.left < 150 && !active.closest('#detailsOverlay') && !active.closest('#videoContainer')) document.getElementById('m-cinema').focus();
+                else moveFocus(all, r, 'left');
             }
             if (action === 'up') moveFocus(all, r, 'up');
             if (action === 'down') moveFocus(all, r, 'down');
             if (action === 'enter') active.click();
         });
-
         document.addEventListener('focusin', (e) => {
             document.querySelectorAll('.focused').forEach(el => el.classList.remove('focused'));
             e.target.classList.add('focused');
             if(e.target.closest('#sideMenu')) document.getElementById('sideMenu').classList.add('active');
             else document.getElementById('sideMenu').classList.remove('active');
-            
             const scroll = document.getElementById('mainScroll');
             if(!e.target.closest('#sideMenu') && !e.target.closest('#topBar') && !e.target.closest('#detailsOverlay') && !e.target.closest('#videoContainer')) {
-                const targetTop = e.target.offsetTop;
-                scroll.scrollTo({ top: targetTop - 250, behavior: 'smooth' });
+                scroll.scrollTo({ top: e.target.offsetTop - 250, behavior: 'smooth' });
             }
         });
     }
@@ -341,13 +328,11 @@
     }
 
     function startClock() { setInterval(() => { document.getElementById('barDateTime').innerText = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}); }, 1000); }
-
     function renderCanais(mode) {
         const cont = document.getElementById('dynamicContent');
         cont.innerHTML = `<div class="category-block"><div class="cat-header">${mode==='canais'?'CANAIS AO VIVO':'CANAIS KIDS'}</div><div style="display:grid; grid-template-columns: repeat(8, 1fr); gap:15px;">` + 
             Array(24).fill(0).map((_,i) => `<div class="movie-card" tabindex="0" style="aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;"><img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/globo.jpg" style="width:80%"><div class="meta-card">HD | <i class="fas fa-star" style="color:#FFCE44"></i> 5.0</div></div>`).join('') + `</div></div>`;
     }
-
     function renderFavoritos() {
         const cont = document.getElementById('dynamicContent');
         cont.innerHTML = `<div class="category-block"><div class="cat-header">FAVORITOS</div><div class="movie-grid">` + favoritos.map(i => createCardHtml(i)).join('') + `</div></div>`;
