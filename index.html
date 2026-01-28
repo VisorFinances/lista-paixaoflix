@@ -117,7 +117,7 @@
 </div>
 
 <script>
-    const CATS = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
+    const CATS = ["Lançamento 2026", "Lançamento 2025", "Lançamento", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
     let db = { cinema: [], series: [], kids_filmes: [], kids_series: [], todos: [] };
     let canaisAtuais = [];
     let indiceCanalAtivo = -1;
@@ -218,9 +218,11 @@
 
     function createCardHtml(i) {
         const tSafe = i.titulo.replace(/'/g,"").replace(/"/g,"");
+        const year = i.year || "----";
+        const rating = i.rating || "0.0";
         return `<div class="movie-card" tabindex="0" onclick="handleCapa('${tSafe}')">
             <img class="movie-poster" src="${i.poster}" onerror="this.src='https://via.placeholder.com/300x450?text=Sem+Capa'">
-            <div class="meta-card">${i.year} | <i class="fas fa-star" style="color:#FFCE44"></i> ${i.rating}</div>
+            <div class="meta-card">${year} | <i class="fas fa-star" style="color:#FFCE44"></i> ${rating}</div>
         </div>`;
     }
 
@@ -248,10 +250,12 @@
         }
     }
 
+    // Patch: Garantia de carregamento de Categorias e Lançamentos
     function changeSection(type) {
         const cont = document.getElementById('dynamicContent');
         cont.innerHTML = "";
         const data = db[type] || [];
+        
         if (type.includes('kids')) {
             const list = [...data].sort((a,b) => a.titulo.localeCompare(b.titulo));
             const block = document.createElement('div');
@@ -261,7 +265,16 @@
             cont.appendChild(block);
         } else {
             CATS.forEach((cat, idx) => {
-                const list = data.filter(i => i.genero === cat).sort((a,b) => a.titulo.localeCompare(b.titulo));
+                // Lógica flexível para capturar variações de gênero (Lançamento, Lançamento 2025, etc)
+                const list = data.filter(i => {
+                    const g = (i.genero || "").toLowerCase();
+                    const target = cat.toLowerCase();
+                    if (target.includes("lançamento")) {
+                        return g.includes("lançamento") && (g.includes(target.split(' ')[1] || "") || target === "lançamento");
+                    }
+                    return g === target;
+                }).sort((a,b) => a.titulo.localeCompare(b.titulo));
+
                 if(list.length === 0) return;
                 const block = document.createElement('div');
                 block.className = "category-block";
@@ -292,8 +305,13 @@
         const ov = document.getElementById('detailsOverlay'); ov.style.display = "flex";
         document.getElementById('detPoster').src = item.poster;
         document.getElementById('detTitle').innerText = item.titulo;
-        document.getElementById('detMeta').innerText = `${item.year} - Avaliação: ${item.rating}`;
-        document.getElementById('detSinopse').innerText = item.desc;
+        
+        const year = item.year || "----";
+        const rating = item.rating || "0.0";
+        const genre = item.genero || "Geral";
+        document.getElementById('detMeta').innerText = `${year} • ${genre} • Avaliação: ${rating}`;
+        document.getElementById('detSinopse').innerText = item.desc || "Sinopse não disponível.";
+        
         const btnPlay = document.getElementById('btnPlay');
         const areaSerie = document.getElementById('areaSerie');
         
