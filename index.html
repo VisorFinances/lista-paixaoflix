@@ -28,14 +28,20 @@
         .category-block { margin: 0 50px 40px 50px; }
         .cat-header { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 25px; text-transform: uppercase; border-left: 8px solid #FFCE44; padding-left: 20px; width: fit-content; }
         .movie-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        /* Patch: Capas não esticam mais */
         .movie-card { border-radius: 10px; background: #1a1d29; cursor: pointer; aspect-ratio: 2/3; position: relative; margin-bottom: 50px; height: auto; max-width: 100%; }
         .movie-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
         .meta-card { font-size: 14px; margin-top: 8px; color: #ccc; font-weight: bold; position: absolute; bottom: -35px; left: 5px; width: 100%; display: block !important; }
+        
+        /* Patch: Estilo Canais - Sem borda, sombra ou contorno */
+        .channel-card { background: none !important; border: none !important; box-shadow: none !important; text-align: center; cursor: pointer; transition: transform 0.2s ease; }
+        .channel-card img { width: 80px; height: 80px; object-fit: contain; display: block; margin: 0 auto; }
+        .channel-card span { font-size: 12px; font-weight: 500; display: block; margin-top: 5px; color: #fff; }
+        .channel-card.focused { transform: scale(1.15); border: none !important; box-shadow: none !important; background: none !important; }
+        .channel-card.focused span { color: #FFCE44; }
+
         .btn-container { width: 100%; display: flex; justify-content: center; margin: 30px 0 40px 0; }
         .btn-3d { background: #FFCE44; color: #000; border: none; border-bottom: 6px solid #b38f00; padding: 16px 50px; font-weight: 900; text-transform: uppercase; cursor: pointer; border-radius: 8px; width: 100%; }
         #videoContainer { position: fixed; inset: 0; background: #000; z-index: 99999; display: none; }
-        /* Patch: Sair do player com efeito vidro e borda quase transparente */
         .btn-sair-vidro { position: absolute; top: 40px; right: 40px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); color: #fff; padding: 15px 30px; font-weight: 900; border-radius: 10px; cursor: pointer; z-index: 100001; border: 1px solid rgba(255,255,255,0.05); }
         .adesivo { position: absolute; bottom: 30px; right: 30px; color: rgba(255,255,255,0.5); font-size: 14px; pointer-events: none; }
         #detailsOverlay { position: fixed; inset: 0; background: #040714; z-index: 9000; display: none; align-items: center; justify-content: center; padding: 50px; }
@@ -110,14 +116,16 @@
 <script>
     const CATS = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
     let db = { cinema: [], series: [], kids_filmes: [], kids_series: [], todos: [] };
+    let canaisAtuais = [];
+    let indiceCanalAtivo = -1;
     let favoritos = JSON.parse(localStorage.getItem('favs')) || [];
     let progresso = JSON.parse(localStorage.getItem('prog')) || {};
     let lastFocusedElement = null;
+    let touchStartY = 0;
 
     async function initSystem() {
         startClock();
         try {
-            // Patch: Garante carregamento e exibição correta das séries
             const [f, s, kf, ks] = await Promise.all([
                 fetch('data/filmes.json').then(r => r.json()).catch(() => []),
                 fetch('data/series.json').then(r => r.json()).catch(() => []),
@@ -128,13 +136,65 @@
             db.todos = [...db.cinema, ...db.series, ...db.kids_filmes, ...db.kids_series];
             document.getElementById('barCounter').innerText = `TOTAL: ${db.todos.length} ITENS`;
             changeSection('cinema');
-        } catch(e) { console.error("Erro no carregamento do DB:", e); }
+        } catch(e) { console.error(e); }
         initNavigation();
         initSearch();
+        initTouchGestures();
+    }
+
+    // Patch: Carregador de M3U para Canais
+    async function loadM3U(url) {
+        try {
+            const res = await fetch(url);
+            const text = await res.text();
+            const lines = text.split('\n');
+            const list = [];
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].startsWith('#EXTINF')) {
+                    const info = lines[i];
+                    const url = lines[i+1]?.trim();
+                    const name = info.split(',')[1] || "Canal";
+                    const logo = info.match(/tvg-logo="([^"]+)"/)?.[1] || "";
+                    if(url) list.push({ titulo: name, url: url, poster: logo, type: 'live' });
+                }
+            }
+            return list;
+        } catch(e) { return []; }
+    }
+
+    async function renderCanais(mode) {
+        const file = mode === 'canais' ? 'data/ativa_canais.m3u' : 'data/ativa_kids_canais.m3u';
+        canaisAtuais = await loadM3U(file);
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div class="category-block"><div class="cat-header">${mode==='canais'?'CANAIS AO VIVO':'CANAIS KIDS'}</div>
+            <div style="display:grid; grid-template-columns: repeat(8, 1fr); gap:30px;">` + 
+            canaisAtuais.map((c, idx) => `
+                <div class="channel-card" tabindex="0" onclick="playCanal(${idx})">
+                    <img src="${c.poster}">
+                    <span>${c.titulo}</span>
+                </div>
+            `).join('') + `</div></div>`;
+    }
+
+    function playCanal(idx) {
+        indiceCanalAtivo = idx;
+        const c = canaisAtuais[idx];
+        playVideo(c.url, c.titulo, 0, true);
+    }
+
+    function trocarCanal(dir) {
+        if(indiceCanalAtivo === -1) return;
+        indiceCanalAtivo += dir;
+        if(indiceCanalAtivo < 0) indiceCanalAtivo = canaisAtuais.length - 1;
+        if(indiceCanalAtivo >= canaisAtuais.length) indiceCanalAtivo = 0;
+        const c = canaisAtuais[indiceCanalAtivo];
+        const p = document.getElementById('mainPlayer');
+        p.src = c.url;
+        p.play();
+        document.getElementById('adesivo').innerText = c.titulo;
     }
 
     function createCardHtml(i) {
-        // Patch: Proteção contra aspas no título
         const tSafe = i.titulo.replace(/'/g,"").replace(/"/g,"");
         return `<div class="movie-card" tabindex="0" onclick="handleCapa('${tSafe}')">
             <img class="movie-poster" src="${i.poster}">
@@ -146,34 +206,28 @@
         const item = db.todos.find(i => i.titulo.replace(/'/g,"").replace(/"/g,"") === titulo);
         if(!item) return;
         lastFocusedElement = document.activeElement;
-        
-        // Patch: Clique/OK/Toque em Cinema e Séries sempre abre detalhes (exceto Kids)
         const isKids = db.kids_filmes.some(f => f.titulo === item.titulo) || db.kids_series.some(f => f.titulo === item.titulo);
-        const isFilmeOuSerie = db.cinema.some(f => f.titulo === item.titulo) || db.series.some(f => f.titulo === item.titulo);
-
-        if (isFilmeOuSerie && !isKids) {
+        if ((db.cinema.some(f => f.titulo === item.titulo) || db.series.some(f => f.titulo === item.titulo)) && !isKids) {
             openDetails(item);
-            return;
-        }
-
-        // Fluxo normal para Kids
-        if (progresso[item.titulo]) {
-            const pop = document.getElementById('popupContinuar');
-            pop.style.display = "flex";
-            document.getElementById('p-cont').onclick = () => { pop.style.display="none"; openDetails(item, true); };
-            document.getElementById('p-reset').onclick = () => { pop.style.display="none"; openDetails(item, false); };
-            document.getElementById('p-cont').focus();
         } else {
-            openDetails(item);
+            if (progresso[item.titulo]) {
+                const pop = document.getElementById('popupContinuar');
+                pop.style.display = "flex";
+                document.getElementById('p-cont').onclick = () => { pop.style.display="none"; openDetails(item, true); };
+                document.getElementById('p-reset').onclick = () => { pop.style.display="none"; openDetails(item, false); };
+                document.getElementById('p-cont').focus();
+            } else {
+                openDetails(item);
+            }
         }
     }
 
     function changeSection(type) {
         const cont = document.getElementById('dynamicContent');
         cont.innerHTML = "";
-        // Patch: Renderização robusta para evitar tela preta em séries
+        const listSet = (db[type] || []);
         if (type.includes('kids')) {
-            const list = (db[type] || []).sort((a,b) => a.titulo.localeCompare(b.titulo));
+            const list = listSet.sort((a,b) => a.titulo.localeCompare(b.titulo));
             const block = document.createElement('div');
             block.className = "category-block";
             block.innerHTML = `<div class="cat-header" tabindex="0">${type.replace('_',' ').toUpperCase()}</div><div class="movie-grid">` + 
@@ -181,7 +235,7 @@
             cont.appendChild(block);
         } else {
             CATS.forEach((cat, idx) => {
-                const list = (db[type] || []).filter(i => i.genero === cat).sort((a,b) => a.titulo.localeCompare(b.titulo));
+                const list = listSet.filter(i => i.genero === cat).sort((a,b) => a.titulo.localeCompare(b.titulo));
                 if(list.length === 0) return;
                 const block = document.createElement('div');
                 block.className = "category-block";
@@ -221,51 +275,41 @@
             for(let i=1; i<=150; i++) {
                 const epNum = i < 10 ? '0' + i : i;
                 const b = document.createElement('button'); 
-                b.className = "btn-ep"; 
-                b.tabIndex = 0; 
-                b.id = i === 1 ? "firstEp" : "";
+                b.className = "btn-ep"; b.tabIndex = 0; b.id = i === 1 ? "firstEp" : "";
                 b.innerText = `EP ${epNum}`;
                 const streamUrl = `https://ia801502.us.archive.org/9/items/${item.identificador_archive}/EP${epNum}.mp4`;
-                b.onclick = () => playVideo(streamUrl, `${item.titulo} E${epNum}`, 0);
+                b.onclick = () => { indiceCanalAtivo = -1; playVideo(streamUrl, `${item.titulo} E${epNum}`, 0); };
                 el.appendChild(b);
             }
             setTimeout(() => { if(document.getElementById('firstEp')) document.getElementById('firstEp').focus(); }, 150);
         } else if(item.url) {
             areaSerie.style.display = "none";
             btnPlay.style.display = "block";
-            btnPlay.onclick = () => playVideo(item.url, item.titulo, continuar ? progresso[item.titulo] : 0);
+            btnPlay.onclick = () => { indiceCanalAtivo = -1; playVideo(item.url, item.titulo, continuar ? progresso[item.titulo] : 0); };
             btnPlay.focus();
         }
     }
 
-    function playVideo(url, title, time) {
+    function playVideo(url, title, time, isLive = false) {
         if(!url) return;
         const v = document.getElementById('videoContainer'); v.style.display = "block";
         const p = document.getElementById('mainPlayer');
-        p.src = url;
-        p.load();
-        p.oncanplay = () => {
-            if(time > 0) p.currentTime = time;
-            p.play();
-            p.oncanplay = null;
-        };
+        p.src = url; p.load();
+        p.oncanplay = () => { if(time > 0) p.currentTime = time; p.play(); p.oncanplay = null; };
         document.getElementById('adesivo').innerText = title;
-        p.ontimeupdate = () => { if(p.currentTime > 10) { progresso[title] = p.currentTime; localStorage.setItem('prog', JSON.stringify(progresso)); } };
+        if(!isLive) p.ontimeupdate = () => { if(p.currentTime > 10) { progresso[title] = p.currentTime; localStorage.setItem('prog', JSON.stringify(progresso)); } };
+        else p.ontimeupdate = null;
         document.getElementById('btnSairPlayer').focus();
     }
 
     function sairPlayer() { 
-        const p = document.getElementById('mainPlayer');
-        p.pause();
-        p.src = "";
+        const p = document.getElementById('mainPlayer'); p.pause(); p.src = "";
         document.getElementById('videoContainer').style.display = "none"; 
+        indiceCanalAtivo = -1;
         if(document.getElementById('btnPlay').offsetParent !== null) document.getElementById('btnPlay').focus();
     }
     
-    function closeDetails() { 
-        document.getElementById('detailsOverlay').style.display = "none"; 
-        if(lastFocusedElement) lastFocusedElement.focus();
-    }
+    function closeDetails() { document.getElementById('detailsOverlay').style.display = "none"; if(lastFocusedElement) lastFocusedElement.focus(); }
 
     function initSearch() {
         const sb = document.getElementById('searchBox');
@@ -278,31 +322,25 @@
     }
 
     function initNavigation() {
-        const keys = { 37: 'left', 38: 'up', 39: 'right', 40: 'down', 13: 'enter', 461: 'back', 10009: 'back', 27: 'back', 8: 'back' };
+        const keys = { 37: 'left', 38: 'up', 39: 'right', 40: 'down', 13: 'enter', 461: 'back', 10009: 'back', 27: 'back', 8: 'back', 427: 'ch+', 428: 'ch-' };
         document.addEventListener('keydown', (e) => {
             const action = keys[e.keyCode || e.which];
+            const isVid = document.getElementById('videoContainer').style.display === "block";
+            
+            // Patch: Troca de canal no player
+            if(isVid && indiceCanalAtivo !== -1) {
+                if(action === 'up' || action === 'ch+') { trocarCanal(-1); return; }
+                if(action === 'down' || action === 'ch-') { trocarCanal(1); return; }
+            }
+
             const active = document.activeElement;
             const all = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
             const r = active.getBoundingClientRect();
-            if (action === 'back') {
-                e.preventDefault();
-                if (document.getElementById('videoContainer').style.display === "block") sairPlayer();
-                else if (document.getElementById('detailsOverlay').style.display === "flex") closeDetails();
-                return;
-            }
-            if (action === 'right') {
-                if (active.closest('#sideMenu')) {
-                    const fc = document.querySelector('#dynamicContent [tabindex="0"]');
-                    if (fc) { fc.focus(); document.getElementById('sideMenu').classList.remove('active'); return; }
-                }
-                moveFocus(all, r, 'right');
-            }
-            if (action === 'left') { 
-                if (r.left < 150 && !active.closest('#detailsOverlay') && !active.closest('#videoContainer')) document.getElementById('m-cinema').focus();
-                else moveFocus(all, r, 'left');
-            }
-            if (action === 'up') moveFocus(all, r, 'up');
-            if (action === 'down') moveFocus(all, r, 'down');
+            if (action === 'back') { e.preventDefault(); if (isVid) sairPlayer(); else if (document.getElementById('detailsOverlay').style.display === "flex") closeDetails(); return; }
+            if (action === 'right') { if (active.closest('#sideMenu')) { const fc = document.querySelector('#dynamicContent [tabindex="0"]'); if (fc) { fc.focus(); document.getElementById('sideMenu').classList.remove('active'); return; } } moveFocus(all, r, 'right'); }
+            if (action === 'left') { if (r.left < 150 && !active.closest('#detailsOverlay') && !isVid) document.getElementById('m-cinema').focus(); else moveFocus(all, r, 'left'); }
+            if (action === 'up' && !isVid) moveFocus(all, r, 'up');
+            if (action === 'down' && !isVid) moveFocus(all, r, 'down');
             if (action === 'enter') active.click();
         });
         document.addEventListener('focusin', (e) => {
@@ -310,41 +348,9 @@
             e.target.classList.add('focused');
             if(e.target.closest('#sideMenu')) document.getElementById('sideMenu').classList.add('active');
             else document.getElementById('sideMenu').classList.remove('active');
-            const scroll = document.getElementById('mainScroll');
-            if(!e.target.closest('#sideMenu') && !e.target.closest('#topBar') && !e.target.closest('#detailsOverlay') && !e.target.closest('#videoContainer')) {
-                scroll.scrollTo({ top: e.target.offsetTop - 250, behavior: 'smooth' });
-            }
         });
     }
 
-    function moveFocus(list, r, dir) {
-        let best = null, minDist = Infinity;
-        list.forEach(el => {
-            if(el === document.activeElement) return;
-            const nr = el.getBoundingClientRect();
-            let ok = false;
-            if(dir==='right') ok = nr.left >= r.right - 10 && Math.abs(nr.top - r.top) < 150;
-            if(dir==='left') ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 150;
-            if(dir==='down') ok = nr.top >= r.bottom - 10;
-            if(dir==='up') ok = nr.bottom <= r.top + 10;
-            if(ok) { 
-                const d = Math.hypot(nr.left - r.left, nr.top - r.top); 
-                if(d < minDist) { minDist = d; best = el; } 
-            }
-        });
-        if(best) best.focus();
-    }
-
-    function startClock() { setInterval(() => { document.getElementById('barDateTime').innerText = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}); }, 1000); }
-    function renderCanais(mode) {
-        const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `<div class="category-block"><div class="cat-header">${mode==='canais'?'CANAIS AO VIVO':'CANAIS KIDS'}</div><div style="display:grid; grid-template-columns: repeat(8, 1fr); gap:15px;">` + 
-            Array(24).fill(0).map((_,i) => `<div class="movie-card" tabindex="0" style="aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;"><img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/globo.jpg" style="width:80%"><div class="meta-card">HD | <i class="fas fa-star" style="color:#FFCE44"></i> 5.0</div></div>`).join('') + `</div></div>`;
-    }
-    function renderFavoritos() {
-        const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `<div class="category-block"><div class="cat-header">FAVORITOS</div><div class="movie-grid">` + favoritos.map(i => createCardHtml(i)).join('') + `</div></div>`;
-    }
-</script>
-</body>
-</html>
+    function initTouchGestures() {
+        const v = document.getElementById('videoContainer');
+        v.addEventListener('touchstart', e => {
