@@ -113,17 +113,11 @@
     async function initSystem() {
         startClock();
         try {
-            const fFilmes = await fetch('data/filmes.json').then(r => r.json()).catch(() => []);
-            const fSeries = await fetch('data/series.json').then(r => r.json()).catch(() => []);
-            const fKidsF = await fetch('data/kids_filmes.json').then(r => r.json()).catch(() => []);
-            const fKidsS = await fetch('data/kids_series.json').then(r => r.json()).catch(() => []);
-            
-            db.cinema = fFilmes;
-            db.series = fSeries;
-            db.kids_filmes = fKidsF;
-            db.kids_series = fKidsS;
+            db.cinema = await fetch('data/filmes.json').then(r => r.json()).catch(() => []);
+            db.series = await fetch('data/series.json').then(r => r.json()).catch(() => []);
+            db.kids_filmes = await fetch('data/kids_filmes.json').then(r => r.json()).catch(() => []);
+            db.kids_series = await fetch('data/kids_series.json').then(r => r.json()).catch(() => []);
             db.todos = [...db.cinema, ...db.series, ...db.kids_filmes, ...db.kids_series];
-            
             document.getElementById('barCounter').innerText = `TOTAL: ${db.todos.length} ITENS`;
             renderTop6();
             changeSection('cinema', true);
@@ -134,7 +128,7 @@
 
     function renderTop6() {
         const cont = document.getElementById('dynamicContent');
-        const top6 = [...db.todos].sort(() => 0.5 - Math.random()).slice(0, 6);
+        const top6 = db.todos.sort(() => 0.5 - Math.random()).slice(0, 6);
         let html = `<div class="category-block"><div class="cat-header">TOP 6 DESTAQUES</div><div class="movie-grid">`;
         top6.forEach(i => html += createCardHtml(i));
         html += `</div></div>`;
@@ -176,20 +170,15 @@
     }
 
     function renderGrid(type, idx, list, limited) {
-        const g = document.getElementById(`${type}-${idx}`); 
-        if(!g) return;
-        g.innerHTML = "";
-        const b = document.getElementById(`btn-${type}-${idx}`); 
-        if(b) b.innerHTML = "";
-        
+        const g = document.getElementById(`${type}-${idx}`); g.innerHTML = "";
+        const b = document.getElementById(`btn-${type}-${idx}`); b.innerHTML = "";
         const show = limited ? list.slice(0, 4) : list;
         show.forEach(i => g.innerHTML += createCardHtml(i));
-        
         if(!type.includes('kids') && list.length > 4) {
             const btn = document.createElement('button'); btn.className = "btn-3d"; btn.tabIndex = 0;
             btn.innerText = limited ? "VEJA MAIS CATEGORIA" : "FECHAR CATEGORIA";
             btn.onclick = () => renderGrid(type, idx, list, !limited);
-            if(b) b.appendChild(btn);
+            b.appendChild(btn);
         }
     }
 
@@ -216,7 +205,7 @@
             }
         }
         const ind = document.getElementById('indicaGrid'); ind.innerHTML = "";
-        [...db.todos].sort(() => 0.5 - Math.random()).slice(0,4).forEach(i => ind.innerHTML += createCardHtml(i));
+        db.todos.sort(() => 0.5 - Math.random()).slice(0,4).forEach(i => ind.innerHTML += createCardHtml(i));
         document.querySelector('.btn-desc')?.focus();
     }
 
@@ -246,7 +235,18 @@
             const active = document.activeElement;
             const all = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
             const r = active.getBoundingClientRect();
-            if(e.key === "ArrowRight") moveFocus(all, r, 'right');
+
+            if (e.key === "ArrowRight") {
+                if (active.closest('#sideMenu')) {
+                    const firstContent = document.querySelector('#dynamicContent [tabindex="0"]');
+                    if (firstContent) {
+                        firstContent.focus();
+                        document.getElementById('sideMenu').classList.remove('active');
+                        return;
+                    }
+                }
+                moveFocus(all, r, 'right');
+            }
             if(e.key === "ArrowLeft") { if(r.left < 200) document.getElementById('m-cinema').focus(); else moveFocus(all, r, 'left'); }
             if(e.key === "ArrowUp") moveFocus(all, r, 'up');
             if(e.key === "ArrowDown") moveFocus(all, r, 'down');
@@ -290,7 +290,7 @@
 
     function renderFavoritos() {
         const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `<div class="category-block"><div class="cat-header">FAVORITOS</div><div class="movie-grid">` + (favoritos.length ? favoritos.map(i => createCardHtml(i)).join('') : "<p>Nenhum favorito.</p>") + `</div></div>`;
+        cont.innerHTML = `<div class="category-block"><div class="cat-header">FAVORITOS</div><div class="movie-grid">` + favoritos.map(i => createCardHtml(i)).join('') + `</div></div>`;
     }
 </script>
 </body>
