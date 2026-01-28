@@ -24,18 +24,18 @@
         #searchBox { width: 80%; margin: 10px auto; display: none; background: #1a1d29; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 5px; }
         #sideMenu.active #searchBox { display: block; }
         
-        /* CORREÇÃO DA ROLAGEM */
-        #mainScroll { width: 100%; height: 100vh; padding: 160px 0 300px 90px; overflow-y: scroll !important; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
+        #mainScroll { width: 100%; height: 100vh; padding: 120px 0 300px 90px; overflow-y: scroll !important; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
         #mainScroll::-webkit-scrollbar { display: none; }
         
-        .category-block { margin: 0 50px 40px 50px; }
-        .cat-header { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 25px; text-transform: uppercase; border-left: 8px solid #FFCE44; padding-left: 20px; width: fit-content; }
+        /* PATCH: REDUÇÃO DE ESPAÇAMENTO ENTRE SESSÕES */
+        .category-block { margin: 0 50px 15px 50px; }
+        .cat-header { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 15px; text-transform: uppercase; border-left: 8px solid #FFCE44; padding-left: 20px; width: fit-content; }
         .movie-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         
-        /* PATCH: METADADOS VISÍVEIS ABAIXO DA CAPA */
-        .movie-card { border-radius: 10px; background: #1a1d29; cursor: pointer; aspect-ratio: 2/3.5; position: relative; margin-bottom: 40px; display: flex; flex-direction: column; border: 5px solid transparent; }
+        /* PATCH: REDUÇÃO DO FUNDO E AJUSTE DE METADADOS */
+        .movie-card { border-radius: 10px; background: #1a1d29; cursor: pointer; aspect-ratio: 2/3.3; position: relative; margin-bottom: 20px; display: flex; flex-direction: column; border: 5px solid transparent; padding-bottom: 2px; }
         .movie-poster { width: 100%; height: 85%; object-fit: cover; border-radius: 5px; display: block; }
-        .meta-card { height: 15%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #FFCE44 !important; font-weight: bold; text-align: center; }
+        .meta-card { height: 15%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #FFCE44 !important; font-weight: bold; text-align: center; gap: 25px; }
         
         .channel-card { background: none !important; border: none !important; box-shadow: none !important; text-align: center; cursor: pointer; transition: transform 0.2s ease; }
         .channel-card img { width: 80px; height: 80px; object-fit: contain; display: block; margin: 0 auto; }
@@ -43,7 +43,7 @@
         .channel-card.focused { transform: scale(1.15); border: none !important; box-shadow: none !important; background: none !important; }
         .channel-card.focused span { color: #FFCE44; }
 
-        .btn-container { width: 100%; display: flex; justify-content: center; margin: 30px 0 40px 0; }
+        .btn-container { width: 100%; display: flex; justify-content: center; margin: 15px 0 25px 0; }
         .btn-3d { background: #FFCE44; color: #000; border: none; border-bottom: 6px solid #b38f00; padding: 16px 50px; font-weight: 900; text-transform: uppercase; cursor: pointer; border-radius: 8px; width: 100%; }
         #videoContainer { position: fixed; inset: 0; background: #000; z-index: 99999; display: none; }
         .btn-sair-vidro { position: absolute; top: 40px; right: 40px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); color: rgba(255,255,255,0.8); padding: 15px 30px; font-weight: 900; border-radius: 10px; cursor: pointer; z-index: 100001; border: 1px solid rgba(255,255,255,0.05); }
@@ -185,11 +185,15 @@
 
     function playCanal(idx) { indiceCanalAtivo = idx; playVideo(canaisAtuais[idx].url, canaisAtuais[idx].titulo, 0, true); }
 
+    /* PATCH: REMOÇÃO DA BARRA E ESPAÇAMENTO ENTRE ANO E DATA */
     function createCardHtml(i) {
         const tSafe = i.titulo.replace(/'/g,"").replace(/"/g,"");
         return `<div class="movie-card" tabindex="0" onclick="handleCapa('${tSafe}')">
             <img class="movie-poster" src="${i.poster}">
-            <div class="meta-card">${i.year || '----'} | <i class="fas fa-star"></i> ${i.rating || '0.0'}</div>
+            <div class="meta-card">
+                <span>${i.year || '----'}</span>
+                <span><i class="fas fa-star"></i> ${i.rating || '0.0'}</span>
+            </div>
         </div>`;
     }
 
@@ -315,7 +319,7 @@
 
             if(next) {
                 next.focus();
-                // PATCH: ROLAGEM AUTOMÁTICA QUE ACOMPANHA O SELETOR
+                /* PATCH: ROLAGEM OBRIGATÓRIA PARA NUNCA PERDER O SELETOR */
                 if(!next.closest('#sideMenu') && !next.closest('#topBar') && !next.closest('#detailsOverlay')) {
                     next.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
