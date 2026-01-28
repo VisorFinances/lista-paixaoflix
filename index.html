@@ -23,15 +23,15 @@
         #sideMenu.active .menu-item span { display: block; }
         #searchBox { width: 80%; margin: 10px auto; display: none; background: #1a1d29; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 5px; }
         #sideMenu.active #searchBox { display: block; }
-        #mainScroll { width: 100%; height: 100vh; padding: 160px 0 100px 90px; overflow-y: scroll !important; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
+        #mainScroll { width: 100%; height: 100vh; padding: 160px 0 300px 90px; overflow-y: scroll !important; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
         #mainScroll::-webkit-scrollbar { display: none; }
-        .category-block { margin: 0 50px 40px 50px; }
+        .category-block { margin: 0 50px 80px 50px; }
         .cat-header { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 25px; text-transform: uppercase; border-left: 8px solid #FFCE44; padding-left: 20px; width: fit-content; }
         .movie-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         
-        .movie-card { border-radius: 10px; background: #1a1d29; cursor: pointer; aspect-ratio: 2/3; position: relative; margin-bottom: 50px; height: auto; max-width: 100%; display: flex; flex-direction: column; border: 5px solid transparent; }
+        .movie-card { border-radius: 10px; background: #1a1d29; cursor: pointer; aspect-ratio: 2/3; position: relative; margin-bottom: 60px; height: auto; max-width: 100%; display: flex; flex-direction: column; border: 5px solid transparent; }
         .movie-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
-        .meta-card { font-size: 14px; margin-top: 8px; color: #ccc; font-weight: bold; position: absolute; bottom: -35px; left: 5px; width: 100%; display: block !important; white-space: nowrap; }
+        .meta-card { font-size: 14px; margin-top: 12px; color: #ccc; font-weight: bold; position: absolute; bottom: -40px; left: 5px; width: 100%; display: block !important; white-space: nowrap; }
         
         .channel-card { background: none !important; border: none !important; box-shadow: none !important; text-align: center; cursor: pointer; transition: transform 0.2s ease; }
         .channel-card img { width: 80px; height: 80px; object-fit: contain; display: block; margin: 0 auto; }
@@ -217,7 +217,7 @@
         document.getElementById('adesivo').innerText = c.titulo;
     }
 
-    // Patch: Função de criação de card com metadados obrigatórios (Ano e Avaliação)
+    // PATCH: Ano e Avaliação aparecendo embaixo de TODAS as capas
     function createCardHtml(i) {
         const tSafe = i.titulo.replace(/'/g,"").replace(/"/g,"");
         const year = i.year || "----";
@@ -259,7 +259,6 @@
         const isKids = type.includes('kids');
 
         if (isKids) {
-            // Patch: Kids agora usa grid com metadados embaixo das capas
             const list = [...data].sort((a,b) => a.titulo.localeCompare(b.titulo));
             const block = document.createElement('div');
             block.className = "category-block";
@@ -270,6 +269,7 @@
             const grouped = {};
             data.forEach(item => {
                 let catName = item.genero || "Outros";
+                // PATCH: Gênero Lançamento vira Lançamento + Ano (Exceto Kids)
                 if (catName.toLowerCase() === "lançamento" && item.year) {
                     catName = `Lançamento ${item.year}`;
                 }
@@ -444,11 +444,14 @@
             if(e.target.closest('#sideMenu')) document.getElementById('sideMenu').classList.add('active');
             else document.getElementById('sideMenu').classList.remove('active');
             
+            // PATCH: Acompanhamento de Scroll automático (Centraliza o item focado)
             const scroll = document.getElementById('mainScroll');
             if(!e.target.closest('#sideMenu') && !e.target.closest('#topBar') && !e.target.closest('#detailsOverlay') && !e.target.closest('#videoContainer')) {
-                const targetTop = e.target.getBoundingClientRect().top + scroll.scrollTop;
-                const offset = targetTop - (window.innerHeight / 2) + (e.target.offsetHeight / 2);
-                scroll.scrollTo({ top: offset, behavior: 'smooth' });
+                const targetRect = e.target.getBoundingClientRect();
+                const scrollRect = scroll.getBoundingClientRect();
+                const targetTopInScroll = targetRect.top - scrollRect.top + scroll.scrollTop;
+                const centerOffset = targetTopInScroll - (scrollRect.height / 2) + (targetRect.height / 2);
+                scroll.scrollTo({ top: centerOffset, behavior: 'smooth' });
             }
         });
     }
