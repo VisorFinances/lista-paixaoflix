@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - Disney+ Clone v.29.7.7</title>
+    <title>PaixãoFlix TV - Disney+ Clone</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -87,8 +87,8 @@
             <p id="detSinopse" style="font-size: 18px; color: #ccc; margin: 20px 0;"></p>
             <div id="areaSerie" style="display:none;"><div id="epList" class="ep-grid"></div></div>
             <div style="margin-top:30px;">
-                <button class="btn-desc" id="btnPlay" style="background:#FFCE44;">ASSISTIR AGORA</button>
-                <button class="btn-desc" onclick="closeDetails()" style="background:#333; color:#fff;">VOLTAR</button>
+                <button class="btn-desc" id="btnPlay" style="background:#FFCE44;" tabindex="0">ASSISTIR AGORA</button>
+                <button class="btn-desc" id="btnVoltar" onclick="closeDetails()" style="background:#333; color:#fff;" tabindex="0">VOLTAR</button>
             </div>
         </div>
     </div>
@@ -105,6 +105,7 @@
     let db = { cinema: [], series: [], kids_filmes: [], kids_series: [], todos: [] };
     let favoritos = JSON.parse(localStorage.getItem('favs')) || [];
     let progresso = JSON.parse(localStorage.getItem('prog')) || {};
+    let lastFocusedElement = null;
 
     async function initSystem() {
         startClock();
@@ -130,6 +131,7 @@
 
     function handleCapa(titulo) {
         const item = db.todos.find(i => i.titulo.replace(/'/g,"") === titulo);
+        lastFocusedElement = document.activeElement;
         if (progresso[item.titulo]) {
             const pop = document.getElementById('popupContinuar');
             pop.style.display = "flex";
@@ -202,7 +204,6 @@
                 b.onclick = () => playVideo(`https://ia801502.us.archive.org/9/items/${item.identificador_archive}/EP${i<10?'0'+i:i}.mp4`, `${item.titulo} E${i}`, 0);
                 el.appendChild(b);
             }
-            // PATCH: Foca no EP 01 automaticamente
             setTimeout(() => { document.getElementById('firstEp').focus(); }, 100);
         }
     }
@@ -210,19 +211,26 @@
     function playVideo(url, title, time) {
         const v = document.getElementById('videoContainer'); v.style.display = "block";
         const p = document.getElementById('mainPlayer');
-        // PATCH: Resolve tela preta carregando URL antes do play
-        p.src = url; 
+        p.pause();
+        p.src = url;
         p.load();
         p.oncanplay = () => {
             p.currentTime = time;
-            p.play().catch(e => console.error("Erro autoplay:", e));
+            p.play().catch(e => console.error("Falha ao iniciar vídeo:", e));
+            p.oncanplay = null;
         };
         document.getElementById('adesivo').innerText = title;
         p.ontimeupdate = () => { if(p.currentTime > 10) { progresso[title] = p.currentTime; localStorage.setItem('prog', JSON.stringify(progresso)); } };
     }
 
     function sairPlayer() { document.getElementById('videoContainer').style.display = "none"; document.getElementById('mainPlayer').pause(); }
-    function closeDetails() { document.getElementById('detailsOverlay').style.display = "none"; }
+    
+    function closeDetails() { 
+        document.getElementById('detailsOverlay').style.display = "none"; 
+        if(lastFocusedElement) {
+            lastFocusedElement.focus();
+        }
+    }
 
     function initSearch() {
         const sb = document.getElementById('searchBox');
@@ -239,6 +247,8 @@
             const active = document.activeElement;
             const all = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
             const r = active.getBoundingClientRect();
+            const isOverlay = active.closest('#detailsOverlay');
+
             if (e.key === "ArrowRight") {
                 if (active.closest('#sideMenu')) {
                     const firstContent = document.querySelector('#dynamicContent [tabindex="0"]');
@@ -251,20 +261,21 @@
                 moveFocus(all, r, 'right');
             }
             if (e.key === "ArrowLeft") { 
-                if (r.left < 200) document.getElementById('m-cinema').focus(); 
+                if (!isOverlay && r.left < 200) document.getElementById('m-cinema').focus(); 
                 else moveFocus(all, r, 'left'); 
             }
-            if (e.key === "ArrowUp") moveFocus(all, r, 'up', true);
-            if (e.key === "ArrowDown") moveFocus(all, r, 'down', true);
+            if (e.key === "ArrowUp") moveFocus(all, r, 'up', !isOverlay);
+            if (e.key === "ArrowDown") moveFocus(all, r, 'down', !isOverlay);
             if (e.key === "Enter") active.click();
         });
+
         document.addEventListener('focusin', (e) => {
             document.querySelectorAll('.focused').forEach(el => el.classList.remove('focused'));
             e.target.classList.add('focused');
             if(e.target.closest('#sideMenu')) document.getElementById('sideMenu').classList.add('active');
             else document.getElementById('sideMenu').classList.remove('active');
             const scroll = document.getElementById('mainScroll');
-            if(!e.target.closest('#sideMenu') && !e.target.closest('#topBar')) {
+            if(!e.target.closest('#sideMenu') && !e.target.closest('#topBar') && !e.target.closest('#detailsOverlay')) {
                 scroll.scrollTo({ top: e.target.offsetTop - 250, behavior: 'smooth' });
             }
         });
