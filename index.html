@@ -217,7 +217,7 @@
         document.getElementById('adesivo').innerText = c.titulo;
     }
 
-    // PATCH: Metadados Ano e Estrela fixos embaixo das capas
+    // PATCH: Metadados Ano e Estrela fixos embaixo das capas corrigido
     function createCardHtml(i) {
         const tSafe = i.titulo.replace(/'/g,"").replace(/"/g,"");
         return `<div class="movie-card" tabindex="0" onclick="handleCapa('${tSafe}')">
@@ -267,7 +267,6 @@
             const grouped = {};
             data.forEach(item => {
                 let catName = item.genero || "Outros";
-                // PATCH: Gênero Lançamento + Ano
                 if (catName.toLowerCase().includes("lançamento") && item.year) {
                     catName = `Lançamento ${item.year}`;
                 }
@@ -436,20 +435,15 @@
             if (action === 'enter') active.click();
         });
 
-        // PATCH: Rolagem acompanhando o seletor (Centralização)
+        // PATCH: Rolagem Centralizada e Correção de Seletor
         document.addEventListener('focusin', (e) => {
             document.querySelectorAll('.focused').forEach(el => el.classList.remove('focused'));
             e.target.classList.add('focused');
             if(e.target.closest('#sideMenu')) document.getElementById('sideMenu').classList.add('active');
             else document.getElementById('sideMenu').classList.remove('active');
             
-            const scroll = document.getElementById('mainScroll');
             if(!e.target.closest('#sideMenu') && !e.target.closest('#topBar') && !e.target.closest('#detailsOverlay') && !e.target.closest('#videoContainer')) {
-                const targetRect = e.target.getBoundingClientRect();
-                const scrollRect = scroll.getBoundingClientRect();
-                const targetTop = targetRect.top - scrollRect.top + scroll.scrollTop;
-                const offset = targetTop - (scrollRect.height / 2) + (targetRect.height / 2);
-                scroll.scrollTo({ top: offset, behavior: 'smooth' });
+                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
     }
