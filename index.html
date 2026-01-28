@@ -2,63 +2,65 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8" />
-    <title>PaixãoFlix TV V.28.1.66</title>
+    <title>PaixãoFlix TV V.28.1.67</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
 
     <style>
+        /* CONFIGURAÇÃO APP NATIVO - ZERO ROLAGEM VISÍVEL */
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; overflow: hidden !important; }
         body { margin: 0; padding: 0; background: #040714; color: #fff; height: 100vh; width: 100vw; }
 
+        /* SELETOR AMARELO PIPOCA */
         .focused {
             border: 5px solid #FFCE44 !important;
-            box-shadow: 0 0 25px rgba(255, 206, 68, 0.9);
-            transform: scale(1.03);
+            box-shadow: 0 0 25px rgba(255, 206, 68, 0.8);
             z-index: 9999 !important;
+            transform: scale(1.02);
         }
 
-        /* TOP BAR */
+        /* TOP BAR ORIGINAL */
         #topBar { position: fixed; top: 0; width: 100%; height: 90px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 8000; background: #040714; }
         #logoMain { height: 70px; }
         #barCounter { font-weight: 900; color: #FFCE44; font-size: 18px; }
         #barDateTime { font-weight: bold; font-size: 20px; color: #fff; }
 
-        /* MENU */
-        #sideMenu { position: fixed; left: 0; top: 90px; height: calc(100vh - 90px); width: 80px; background: #040714; display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 8500; border-right: 1px solid rgba(255,255,255,0.1); transition: 0.2s; }
+        /* MENU LATERAL */
+        #sideMenu { position: fixed; left: 0; top: 90px; height: calc(100vh - 90px); width: 80px; background: rgba(4,7,20,0.98); display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 8500; border-right: 1px solid rgba(255,255,255,0.1); transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         #sideMenu.active { width: 280px; }
         .menu-item { width: 100%; height: 60px; display: flex; align-items: center; padding-left: 28px; cursor: pointer; color: #a0a0a0; border: none !important; }
         .menu-item i { font-size: 24px; min-width: 40px; }
         .menu-item span { display: none; margin-left: 20px; font-weight: 600; white-space: nowrap; }
         #sideMenu.active .menu-item span { display: block; }
-        
-        #searchBox { width: 85%; margin: 10px 0; display: none; background: #1a1d29; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; }
-        #sideMenu.active #searchBox { display: block; }
 
-        /* CONTENT AREA */
+        /* MAIN CONTENT - RESPIRO 70PX */
         #mainScroll { width: 100%; height: 100vh; padding: 160px 0 100px 90px; position: relative; scroll-behavior: smooth; }
         .category-block { margin: 0 50px 40px 50px; }
-        .cat-header { font-size: 26px; font-weight: 900; color: #fff; margin-bottom: 25px; text-transform: uppercase; border-left: 8px solid #FFCE44; padding-left: 20px; }
+        .cat-header { font-size: 26px; font-weight: 900; color: #fff; margin-bottom: 25px; text-transform: uppercase; border-left: 8px solid #FFCE44; padding-left: 20px; width: fit-content; }
         
         .movie-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         .movie-card { border-radius: 10px; background: #1a1d29; cursor: pointer; aspect-ratio: 2/3; position: relative; }
         .movie-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
 
-        /* BOTÕES PADRONIZADOS 5CM */
+        /* BOTÃO VEJA MAIS */
+        .btn-container { width: 100%; display: flex; justify-content: center; margin: 30px 0 40px 0; }
+        .btn-3d { width: 100%; background: #FFCE44; color: #000; border: none; border-bottom: 6px solid #b38f00; padding: 18px; font-weight: 900; text-transform: uppercase; cursor: pointer; border-radius: 10px; }
+
+        /* PÁGINA DE DESCRIÇÃO (TOTALMENTE ISOLADA) */
+        #detailsOverlay { position: fixed; inset: 0; background: #040714; z-index: 9000; display: none; overflow: hidden; padding: 60px; }
+        #detailsContent { width: 100%; height: 100%; display: flex; gap: 50px; }
         .btn-desc { width: 190px; height: 55px; font-weight: 900; border-radius: 8px; cursor: pointer; border: none; text-transform: uppercase; }
-        .btn-3d { width: 100%; background: #FFCE44; color: #000; border: none; border-bottom: 6px solid #b38f00; padding: 18px; font-weight: 900; text-transform: uppercase; cursor: pointer; border-radius: 10px; margin-top: 20px; }
+        .ep-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px; margin-top: 20px; }
+        .btn-ep { background: #1a1d29; color: #fff; border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; }
 
-        /* PAGINA DE DETALHES */
-        #detailsOverlay { position: fixed; inset: 0; background: #040714; z-index: 9900; display: none; padding: 60px; }
-        .ep-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; margin-top: 20px; }
-        .btn-ep { background: #1a1d29; color: #fff; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; }
-
-        /* PLAYER */
-        #videoContainer { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; }
+        /* PLAYER E VIDRO */
+        #videoContainer { position: fixed; inset: 0; background: #000; z-index: 99999; display: none; }
         .btn-sair-vidro { position: absolute; top: 40px; right: 40px; background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); color: #fff; padding: 15px 35px; font-weight: 900; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; }
+        .adesivo { position: absolute; bottom: 30px; right: 30px; color: rgba(255,255,255,0.5); font-size: 14px; }
 
         /* POPUP CONTINUAR */
-        #popupPaixao { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10001; display: none; align-items: center; justify-content: center; }
+        #popupPaixao { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; display: none; align-items: center; justify-content: center; }
         .p-box { background: #1a1d29; padding: 50px; border: 4px solid #FFCE44; border-radius: 20px; text-align: center; }
     </style>
 </head>
@@ -67,7 +69,7 @@
 <div id="popupPaixao">
     <div class="p-box">
         <h2 style="color:#FFCE44">PAIXÃOFLIX PERGUNTA:</h2>
-        <p style="font-size: 20px;">Detectamos progresso neste conteúdo. Como deseja prosseguir?</p>
+        <p style="font-size: 20px;">Deseja continuar de onde parou ou recomeçar?</p>
         <div style="margin-top: 30px;">
             <button class="btn-desc" id="p-cont" style="background:#FFCE44;">CONTINUAR</button>
             <button class="btn-desc" id="p-reset" style="background:#333; color:#fff;">RECOMEÇAR</button>
@@ -82,10 +84,11 @@
 </div>
 
 <div id="sideMenu">
-    <input type="text" id="searchBox" placeholder="PESQUISAR EM TUDO..." tabindex="0">
+    <div class="menu-item" tabindex="0" onclick="changeSection('canais')"><i class="fas fa-tv"></i><span>CANAIS AO VIVO</span></div>
     <div class="menu-item" tabindex="0" onclick="changeSection('cinema')"><i class="fas fa-film"></i><span>CINEMA</span></div>
     <div class="menu-item" tabindex="0" onclick="changeSection('series')"><i class="fas fa-clapperboard"></i><span>SÉRIES</span></div>
-    <div class="menu-item" tabindex="0" onclick="changeSection('kids_filmes')"><i class="fas fa-baby"></i><span>KIDS</span></div>
+    <div class="menu-item" tabindex="0" onclick="renderFavoritos()"><i class="fas fa-heart"></i><span>FAVORITOS</span></div>
+    <div class="menu-item" tabindex="0" onclick="changeSection('kids_filmes')"><i class="fas fa-baby"></i><span>KIDS FILMES</span></div>
 </div>
 
 <div id="mainScroll">
@@ -96,23 +99,18 @@
 </div>
 
 <div id="detailsOverlay">
-    <div style="display: flex; gap: 50px; height: 100%;">
-        <img id="detPoster" style="height: 80%; border-radius: 15px; border: 4px solid #fff;">
-        <div style="flex:1;">
+    <div id="detailsContent">
+        <img id="detPoster" style="height: 100%; border-radius: 15px; border: 4px solid #fff;">
+        <div style="flex:1; overflow: hidden;">
             <h1 id="detTitle" style="font-size: 50px; margin:0;"></h1>
             <p id="detMeta" style="color:#FFCE44; font-weight: 900;"></p>
             <p id="detSinopse" style="font-size: 18px; color:#ccc; margin: 20px 0;"></p>
-            <div id="areaSerie" style="display:none;">
-                <h3 style="color:#FFCE44">EPISÓDIOS:</h3>
+            <div id="areaSerie" style="display:none; height: 300px; overflow-y: auto !important;">
                 <div id="epList" class="ep-grid"></div>
             </div>
-            <div style="margin-top: 40px; display: flex; gap: 20px;">
+            <div style="margin-top: 40px;">
                 <button class="btn-desc" id="btnPlay" style="background:#FFCE44; color:#000;">ASSISTIR AGORA</button>
                 <button class="btn-desc" onclick="closeDetails()" style="background:#333; color:#fff;">VOLTAR</button>
-            </div>
-            <div style="margin-top: 50px;">
-                <h3 style="color:#FFCE44">PAIXÃOFLIX INDICA</h3>
-                <div class="movie-grid" id="indicaGrid"></div>
             </div>
         </div>
     </div>
@@ -121,37 +119,37 @@
 <div id="videoContainer">
     <div class="btn-sair-vidro" onclick="sairPlayer()">SAIR DO PLAYER</div>
     <video id="mainPlayer" style="width:100%; height:100%;" controls autoplay></video>
+    <div class="adesivo" id="adesivo"></div>
 </div>
 
 <script>
-    const CATEGORIAS = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
+    const CATS = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
     let db = { cinema: [], series: [], kids_filmes: [], todos: [] };
-    let prog = JSON.parse(localStorage.getItem('p_prog')) || {};
+    let progresso = JSON.parse(localStorage.getItem('p_prog')) || {};
 
     async function initSystem() {
         startClock();
-        await loadFiles();
+        await loadAll();
         renderHome();
         initNav();
-        initSearch();
     }
 
-    async function loadFiles() {
-        const types = ['cinema', 'series', 'kids_filmes'];
-        for(let t of types) {
-            const r = await fetch(`data/${t==='cinema'?'filmes':t}.json`).catch(()=>null);
+    async function loadAll() {
+        const f = ['cinema', 'series', 'kids_filmes'];
+        for(let k of f) {
+            const r = await fetch(`data/${k==='cinema'?'filmes':k}.json`).catch(()=>null);
             if(r) { 
-                db[t] = await r.json(); 
-                db.todos = [...db.todos, ...db[t]];
+                db[k] = await r.json(); 
+                db.todos = [...db.todos, ...db[k]];
             }
         }
-        document.getElementById('barCounter').innerText = `CATÁLOGO: ${db.todos.length} TÍTULOS`;
+        document.getElementById('barCounter').innerText = `CATÁLOGO: ${db.todos.length} ITENS`;
     }
 
     function renderHome() {
         const cont = document.getElementById('dynamicContent');
         const top6 = db.todos.sort(() => 0.5 - Math.random()).slice(0, 6);
-        let html = `<div class="category-block"><div class="cat-header" tabindex="0">TOP 6 DESTAQUES</div><div class="movie-grid" id="topGrid">`;
+        let html = `<div class="category-block"><div class="cat-header" tabindex="0">TOP 6 PAIXÃOFLIX</div><div class="movie-grid">`;
         top6.forEach(i => html += createCard(i));
         html += `</div></div>`;
         cont.innerHTML = html;
@@ -159,15 +157,17 @@
     }
 
     function createCard(i) {
-        return `<div class="movie-card" tabindex="0" onclick="handleCapa('${i.titulo.replace(/'/g,"")}')"><img class="movie-poster" src="${i.poster}"></div>`;
+        return `<div class="movie-card" tabindex="0" onclick="handleAction('${i.titulo.replace(/'/g,"")}')">
+            <img class="movie-poster" src="${i.poster}">
+        </div>`;
     }
 
-    function handleCapa(tit) {
+    function handleAction(tit) {
         const item = db.todos.find(i => i.titulo.replace(/'/g,"") === tit);
-        if(prog[item.titulo]) {
-            const pop = document.getElementById('popupPaixao'); pop.style.display = "flex";
-            document.getElementById('p-cont').onclick = () => { pop.style.display="none"; openDetails(item, true); };
-            document.getElementById('p-reset').onclick = () => { pop.style.display="none"; openDetails(item, false); };
+        if(progresso[item.titulo]) {
+            const p = document.getElementById('popupPaixao'); p.style.display = "flex";
+            document.getElementById('p-cont').onclick = () => { p.style.display="none"; openDetails(item, true); };
+            document.getElementById('p-reset').onclick = () => { p.style.display="none"; openDetails(item, false); };
             document.getElementById('p-cont').focus();
         } else { openDetails(item); }
     }
@@ -176,31 +176,31 @@
         const cont = document.getElementById('dynamicContent');
         if(!append) { cont.innerHTML = ""; document.getElementById('mainScroll').scrollTop = 0; }
         
-        CATEGORIAS.forEach((cat, idx) => {
-            const list = db[type].filter(i => i.genero === cat).sort((a,b)=>a.titulo.localeCompare(b.titulo));
+        CATS.forEach((cat, idx) => {
+            const list = db[type].filter(i => i.genero === cat);
             if(list.length === 0) return;
             const block = document.createElement('div');
             block.className = "category-block";
-            block.innerHTML = `<div class="cat-header" tabindex="0">${cat}</div><div class="movie-grid" id="g-${type}-${idx}"></div><div id="b-${type}-${idx}"></div>`;
+            block.innerHTML = `<div class="cat-header" tabindex="0">${cat}</div><div class="movie-grid" id="${type}-${idx}"></div><div class="btn-container" id="b-${type}-${idx}"></div>`;
             cont.appendChild(block);
             renderGrid(type, idx, list, true);
         });
     }
 
     function renderGrid(type, idx, list, lim) {
-        const g = document.getElementById(`g-${type}-${idx}`); g.innerHTML = "";
+        const g = document.getElementById(`${type}-${idx}`); g.innerHTML = "";
         const b = document.getElementById(`b-${type}-${idx}`); b.innerHTML = "";
         const items = lim ? list.slice(0, 4) : list;
         items.forEach(i => g.innerHTML += createCard(i));
         
         const btn = document.createElement('button'); btn.className = "btn-3d"; btn.tabIndex = 0;
         btn.innerText = lim ? "VEJA MAIS CATEGORIA" : "FECHAR CATEGORIA";
-        btn.onclick = () => { renderGrid(type, idx, list, !lim); };
+        btn.onclick = () => renderGrid(type, idx, list, !lim);
         b.appendChild(btn);
     }
 
-    function openDetails(item, useProg = false) {
-        document.getElementById('detailsOverlay').style.display = "block";
+    function openDetails(item, cont = false) {
+        const ov = document.getElementById('detailsOverlay'); ov.style.display = "flex";
         document.getElementById('detPoster').src = item.poster;
         document.getElementById('detTitle').innerText = item.titulo;
         document.getElementById('detMeta').innerText = `${item.year} | ${item.genero}`;
@@ -210,42 +210,30 @@
         if(item.type === 'movie') {
             document.getElementById('areaSerie').style.display = "none";
             btnPlay.style.display = "block";
-            btnPlay.onclick = () => startPlay(item.url, item.titulo, useProg ? prog[item.titulo] : 0);
+            btnPlay.onclick = () => playVideo(item.url, item.titulo, cont ? progresso[item.titulo] : 0);
         } else {
             btnPlay.style.display = "none";
             document.getElementById('areaSerie').style.display = "block";
             const el = document.getElementById('epList'); el.innerHTML = "";
-            for(let i=1; i<=20; i++) {
+            for(let i=1; i<=24; i++) {
                 const b = document.createElement('button'); b.className = "btn-ep"; b.tabIndex = 0; b.innerText = `EP ${i<10?'0'+i:i}`;
-                b.onclick = () => startPlay(`https://ia801502.us.archive.org/9/items/${item.identificador_archive}/EP${i<10?'0'+i:i}.mp4`, `${item.titulo} E${i}`, 0);
+                const url = `https://ia801502.us.archive.org/9/items/${item.identificador_archive}/EP${i<10?'0'+i:i}.mp4`;
+                b.onclick = () => playVideo(url, `${item.titulo} E${i}`, 0);
                 el.appendChild(b);
             }
         }
-        // Indica Aleatorio
-        const ind = document.getElementById('indicaGrid'); ind.innerHTML = "";
-        db.todos.sort(() => 0.5 - Math.random()).slice(0,4).forEach(i => ind.innerHTML += createCard(i));
         document.querySelector('.btn-desc').focus();
     }
 
-    function startPlay(url, tit, time) {
+    function playVideo(url, tit, time) {
         const v = document.getElementById('videoContainer'); v.style.display = "block";
         const p = document.getElementById('mainPlayer'); p.src = url; p.currentTime = time; p.play();
-        p.ontimeupdate = () => { if(p.currentTime > 5) { prog[tit] = p.currentTime; localStorage.setItem('p_prog', JSON.stringify(prog)); } };
+        document.getElementById('adesivo').innerText = tit;
+        p.ontimeupdate = () => { if(p.currentTime > 5) { progresso[tit] = p.currentTime; localStorage.setItem('p_prog', JSON.stringify(progresso)); } };
     }
 
     function sairPlayer() { document.getElementById('videoContainer').style.display = "none"; document.getElementById('mainPlayer').pause(); }
     function closeDetails() { document.getElementById('detailsOverlay').style.display = "none"; }
-
-    function initSearch() {
-        const s = document.getElementById('searchBox');
-        s.oninput = () => {
-            const v = s.value.toLowerCase();
-            if(!v) return;
-            const res = db.todos.filter(i => i.titulo.toLowerCase().includes(v));
-            const cont = document.getElementById('dynamicContent');
-            cont.innerHTML = `<div class="category-block"><div class="cat-header">RESULTADOS: ${v}</div><div class="movie-grid">` + res.map(i => createCard(i)).join('') + `</div></div>`;
-        };
-    }
 
     function initNav() {
         document.addEventListener('keydown', (e) => {
@@ -254,10 +242,10 @@
             const r = active.getBoundingClientRect();
 
             if(e.key === "ArrowRight") {
-                if(active.classList.contains('menu-item') || active.id === 'searchBox') {
-                    const firstCap = document.querySelector('.movie-card');
-                    if(firstCap) firstCap.focus();
-                } else moveFocus(all, r, 'right');
+                if(active.classList.contains('menu-item')) {
+                    // Pula do menu para a primeira capa visível
+                    document.querySelector('.movie-card').focus();
+                } else { moveFocus(all, r, 'right'); }
             }
             if(e.key === "ArrowLeft") {
                 if(r.left < 150) document.querySelector('.menu-item').focus();
@@ -268,8 +256,8 @@
             if(e.key === "Enter") {
                 if(active.classList.contains('menu-item')) {
                     active.click();
-                    setTimeout(() => { document.querySelector('.movie-card').focus(); }, 200);
-                } else active.click();
+                    setTimeout(() => { document.querySelector('.movie-card').focus(); }, 100);
+                } else { active.click(); }
             }
         });
 
