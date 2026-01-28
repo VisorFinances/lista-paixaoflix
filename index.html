@@ -138,8 +138,9 @@
         const item = db.todos.find(i => i.titulo.replace(/'/g,"") === titulo);
         lastFocusedElement = document.activeElement;
         
-        // PATCH: Cinema agora sempre abre detalhes independente do tipo de clique ou comando
-        const isCinema = db.cinema.some(f => f.titulo === item.titulo);
+        // PATCH CINEMA: Sempre abre detalhes para qualquer comando
+        const isCinema = db.cinema.some(f => f.titulo === item.titulo) || db.kids_filmes.some(f => f.titulo === item.titulo);
+        
         if (isCinema) {
             openDetails(item);
             return;
@@ -200,7 +201,8 @@
         document.getElementById('detSinopse').innerText = item.desc;
         const btnPlay = document.getElementById('btnPlay');
         
-        if(item.type === 'movie' || (!item.identificador_archive && item.url)) {
+        // PATCH PLAYER SERIES: Garante o carregamento correto da URL para não dar tela preta
+        if(item.url && !item.identificador_archive) {
             document.getElementById('areaSerie').style.display = "none";
             btnPlay.style.display = "block";
             btnPlay.onclick = () => playVideo(item.url, item.titulo, continuar ? progresso[item.titulo] : 0);
@@ -210,15 +212,17 @@
             document.getElementById('areaSerie').style.display = "block";
             const el = document.getElementById('epList'); el.innerHTML = "";
             for(let i=1; i<=12; i++) {
+                const epNum = i < 10 ? '0' + i : i;
                 const b = document.createElement('button'); 
                 b.className = "btn-ep"; 
                 b.tabIndex = 0; 
                 b.id = i === 1 ? "firstEp" : "";
-                b.innerText = `EP ${i<10?'0'+i:i}`;
-                b.onclick = () => playVideo(`https://ia801502.us.archive.org/9/items/${item.identificador_archive}/EP${i<10?'0'+i:i}.mp4`, `${item.titulo} E${i}`, 0);
+                b.innerText = `EP ${epNum}`;
+                const streamUrl = `https://ia801502.us.archive.org/9/items/${item.identificador_archive}/EP${epNum}.mp4`;
+                b.onclick = () => playVideo(streamUrl, `${item.titulo} E${epNum}`, 0);
                 el.appendChild(b);
             }
-            setTimeout(() => { document.getElementById('firstEp').focus(); }, 100);
+            setTimeout(() => { if(document.getElementById('firstEp')) document.getElementById('firstEp').focus(); }, 100);
         }
     }
 
@@ -236,6 +240,7 @@
         };
         document.getElementById('adesivo').innerText = title;
         p.ontimeupdate = () => { if(p.currentTime > 10) { progresso[title] = p.currentTime; localStorage.setItem('prog', JSON.stringify(progresso)); } };
+        p.onerror = () => { console.error("Erro no arquivo de vídeo:", url); };
     }
 
     function sairPlayer() { document.getElementById('videoContainer').style.display = "none"; document.getElementById('mainPlayer').pause(); }
@@ -279,10 +284,7 @@
             }
             if (e.key === "ArrowUp") moveFocus(all, r, 'up', false);
             if (e.key === "ArrowDown") moveFocus(all, r, 'down', false);
-            if (e.key === "Enter") {
-                e.preventDefault();
-                active.click();
-            }
+            if (e.key === "Enter") active.click();
         });
 
         document.addEventListener('focusin', (e) => {
