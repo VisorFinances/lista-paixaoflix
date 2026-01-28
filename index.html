@@ -217,6 +217,7 @@
         document.getElementById('adesivo').innerText = c.titulo;
     }
 
+    // Patch: Função de criação de card com metadados obrigatórios (Ano e Avaliação)
     function createCardHtml(i) {
         const tSafe = i.titulo.replace(/'/g,"").replace(/"/g,"");
         const year = i.year || "----";
@@ -251,7 +252,6 @@
         }
     }
 
-    // Patch: Adição do ano na categoria "Lançamento" (Exceto Kids)
     function changeSection(type) {
         const cont = document.getElementById('dynamicContent');
         cont.innerHTML = "";
@@ -259,6 +259,7 @@
         const isKids = type.includes('kids');
 
         if (isKids) {
+            // Patch: Kids agora usa grid com metadados embaixo das capas
             const list = [...data].sort((a,b) => a.titulo.localeCompare(b.titulo));
             const block = document.createElement('div');
             block.className = "category-block";
@@ -266,12 +267,9 @@
                 list.map(i => createCardHtml(i)).join('') + `</div>`;
             cont.appendChild(block);
         } else {
-            // Mapeamento dinâmico para agrupar categorias por nome processado
             const grouped = {};
-
             data.forEach(item => {
                 let catName = item.genero || "Outros";
-                // Regra do Patch: Se for Lançamento, anexa o ano
                 if (catName.toLowerCase() === "lançamento" && item.year) {
                     catName = `Lançamento ${item.year}`;
                 }
@@ -279,7 +277,6 @@
                 grouped[catName].push(item);
             });
 
-            // Ordena as categorias: Lançamentos primeiro (decrescente), depois o resto de CATS
             const sortedCats = Object.keys(grouped).sort((a, b) => {
                 if (a.includes("Lançamento") && b.includes("Lançamento")) return b.localeCompare(a);
                 if (a.includes("Lançamento")) return -1;
