@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - Disney+ Clone v. 29.7.6</title>
+    <title>PaixãoFlix TV - Disney+ Clone v.29.7.7</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -96,7 +96,7 @@
 
 <div id="videoContainer">
     <div class="btn-sair-vidro" onclick="sairPlayer()">SAIR DO PLAYER</div>
-    <video id="mainPlayer" style="width:100%; height:100%;" controls autoplay></video>
+    <video id="mainPlayer" style="width:100%; height:100%;" controls preload="auto"></video>
     <div id="adesivo" class="adesivo"></div>
 </div>
 
@@ -144,7 +144,6 @@
     function changeSection(type) {
         const cont = document.getElementById('dynamicContent');
         cont.innerHTML = "";
-        
         if (type.includes('kids')) {
             const list = db[type].sort((a,b) => a.titulo.localeCompare(b.titulo));
             const block = document.createElement('div');
@@ -189,22 +188,35 @@
             document.getElementById('areaSerie').style.display = "none";
             btnPlay.style.display = "block";
             btnPlay.onclick = () => playVideo(item.url, item.titulo, continuar ? progresso[item.titulo] : 0);
+            btnPlay.focus();
         } else {
             btnPlay.style.display = "none";
             document.getElementById('areaSerie').style.display = "block";
             const el = document.getElementById('epList'); el.innerHTML = "";
             for(let i=1; i<=10; i++) {
-                const b = document.createElement('button'); b.className = "btn-ep"; b.tabIndex = 0; b.innerText = `EP ${i<10?'0'+i:i}`;
+                const b = document.createElement('button'); 
+                b.className = "btn-ep"; 
+                b.tabIndex = 0; 
+                b.id = i === 1 ? "firstEp" : "";
+                b.innerText = `EP ${i<10?'0'+i:i}`;
                 b.onclick = () => playVideo(`https://ia801502.us.archive.org/9/items/${item.identificador_archive}/EP${i<10?'0'+i:i}.mp4`, `${item.titulo} E${i}`, 0);
                 el.appendChild(b);
             }
+            // PATCH: Foca no EP 01 automaticamente
+            setTimeout(() => { document.getElementById('firstEp').focus(); }, 100);
         }
-        document.querySelector('.btn-desc')?.focus();
     }
 
     function playVideo(url, title, time) {
         const v = document.getElementById('videoContainer'); v.style.display = "block";
-        const p = document.getElementById('mainPlayer'); p.src = url; p.currentTime = time; p.play();
+        const p = document.getElementById('mainPlayer');
+        // PATCH: Resolve tela preta carregando URL antes do play
+        p.src = url; 
+        p.load();
+        p.oncanplay = () => {
+            p.currentTime = time;
+            p.play().catch(e => console.error("Erro autoplay:", e));
+        };
         document.getElementById('adesivo').innerText = title;
         p.ontimeupdate = () => { if(p.currentTime > 10) { progresso[title] = p.currentTime; localStorage.setItem('prog', JSON.stringify(progresso)); } };
     }
@@ -227,7 +239,6 @@
             const active = document.activeElement;
             const all = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
             const r = active.getBoundingClientRect();
-
             if (e.key === "ArrowRight") {
                 if (active.closest('#sideMenu')) {
                     const firstContent = document.querySelector('#dynamicContent [tabindex="0"]');
@@ -247,7 +258,6 @@
             if (e.key === "ArrowDown") moveFocus(all, r, 'down', true);
             if (e.key === "Enter") active.click();
         });
-
         document.addEventListener('focusin', (e) => {
             document.querySelectorAll('.focused').forEach(el => el.classList.remove('focused'));
             e.target.classList.add('focused');
