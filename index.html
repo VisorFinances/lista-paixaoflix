@@ -139,7 +139,7 @@
         if(!item) return;
         lastFocusedElement = document.activeElement;
         
-        // PATCH: Obrigar Detalhes para Filmes e Séries (Exceto Kids) em qualquer interação
+        // PATCH: Obrigar Detalhes para Filmes e Séries (Exceto Kids) em Clique/Toque/OK
         const isKids = db.kids_filmes.some(f => f.titulo === item.titulo) || db.kids_series.some(f => f.titulo === item.titulo);
         const isFilmeOuSerie = db.cinema.some(f => f.titulo === item.titulo) || db.series.some(f => f.titulo === item.titulo);
 
@@ -148,7 +148,7 @@
             return;
         }
 
-        // Fluxo normal para Kids (Pergunta se quer continuar)
+        // Fluxo normal para Kids
         if (progresso[item.titulo]) {
             const pop = document.getElementById('popupContinuar');
             pop.style.display = "flex";
@@ -205,12 +205,11 @@
         const btnPlay = document.getElementById('btnPlay');
         const areaSerie = document.getElementById('areaSerie');
         
-        // PATCH SÉRIES: Lógica para carregar episódios do Archive de forma funcional
         if(item.identificador_archive) {
             btnPlay.style.display = "none";
             areaSerie.style.display = "block";
             const el = document.getElementById('epList'); el.innerHTML = "";
-            for(let i=1; i<=150; i++) { // Suporta séries longas
+            for(let i=1; i<=150; i++) {
                 const epNum = i < 10 ? '0' + i : i;
                 const b = document.createElement('button'); 
                 b.className = "btn-ep"; 
