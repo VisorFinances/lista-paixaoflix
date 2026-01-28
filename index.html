@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - Disney+ Clone v.29.7.5</title>
+    <title>PaixãoFlix TV - Disney+ Clone</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -144,15 +144,25 @@
     function changeSection(type) {
         const cont = document.getElementById('dynamicContent');
         cont.innerHTML = "";
-        CATS.forEach((cat, idx) => {
-            const list = db[type].filter(i => i.genero === cat).sort((a,b) => a.titulo.localeCompare(b.titulo));
-            if(list.length === 0) return;
+        
+        if (type.includes('kids')) {
+            const list = db[type].sort((a,b) => a.titulo.localeCompare(b.titulo));
             const block = document.createElement('div');
             block.className = "category-block";
-            block.innerHTML = `<div class="cat-header" tabindex="0">${cat}</div><div class="movie-grid" id="${type}-${idx}"></div><div class="btn-container" id="btn-${type}-${idx}"></div>`;
+            block.innerHTML = `<div class="cat-header" tabindex="0">${type.replace('_',' ').toUpperCase()}</div><div class="movie-grid">` + 
+                list.map(i => createCardHtml(i)).join('') + `</div>`;
             cont.appendChild(block);
-            renderGrid(type, idx, list, true);
-        });
+        } else {
+            CATS.forEach((cat, idx) => {
+                const list = db[type].filter(i => i.genero === cat).sort((a,b) => a.titulo.localeCompare(b.titulo));
+                if(list.length === 0) return;
+                const block = document.createElement('div');
+                block.className = "category-block";
+                block.innerHTML = `<div class="cat-header" tabindex="0">${cat}</div><div class="movie-grid" id="${type}-${idx}"></div><div class="btn-container" id="btn-${type}-${idx}"></div>`;
+                cont.appendChild(block);
+                renderGrid(type, idx, list, true);
+            });
+        }
     }
 
     function renderGrid(type, idx, list, limited) {
@@ -233,7 +243,6 @@
                 if (r.left < 200) document.getElementById('m-cinema').focus(); 
                 else moveFocus(all, r, 'left'); 
             }
-            // PATCH: Força navegação vertical estrita quando no conteúdo
             if (e.key === "ArrowUp") moveFocus(all, r, 'up', true);
             if (e.key === "ArrowDown") moveFocus(all, r, 'down', true);
             if (e.key === "Enter") active.click();
@@ -257,20 +266,16 @@
             if(el === document.activeElement) return;
             const nr = el.getBoundingClientRect();
             let ok = false;
-            
             if(dir==='right') ok = nr.left >= r.right - 5 && Math.abs(nr.top - r.top) < 150;
             if(dir==='left') ok = nr.right <= r.left + 5 && Math.abs(nr.top - r.top) < 150;
-            
-            // PATCH: Se strict for true (Up/Down), prioriza elementos na mesma coluna (X similar)
             if(dir==='down') {
                 ok = nr.top >= r.bottom - 5;
-                if(strict) ok = ok && Math.abs(nr.left - r.left) < 50; 
+                if(strict && !document.activeElement.closest('#sideMenu')) ok = ok && Math.abs(nr.left - r.left) < 50; 
             }
             if(dir==='up') {
                 ok = nr.bottom <= r.top + 5;
-                if(strict) ok = ok && Math.abs(nr.left - r.left) < 50;
+                if(strict && !document.activeElement.closest('#sideMenu')) ok = ok && Math.abs(nr.left - r.left) < 50;
             }
-
             if(ok) { 
                 const d = Math.hypot(nr.left - r.left, nr.top - r.top); 
                 if(d < minDist) { minDist = d; best = el; } 
@@ -280,8 +285,17 @@
     }
 
     function startClock() { setInterval(() => { document.getElementById('barDateTime').innerText = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}); }, 1000); }
-    function renderCanais(mode) { /* Logica de canais mantida */ }
-    function renderFavoritos() { /* Logica de favoritos mantida */ }
+
+    function renderCanais(mode) {
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div class="category-block"><div class="cat-header">${mode==='canais'?'CANAIS AO VIVO':'CANAIS KIDS'}</div><div style="display:grid; grid-template-columns: repeat(8, 1fr); gap:15px;">` + 
+            Array(24).fill(0).map((_,i) => `<div class="movie-card" tabindex="0" style="aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;"><img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/globo.jpg" style="width:80%"></div>`).join('') + `</div></div>`;
+    }
+
+    function renderFavoritos() {
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div class="category-block"><div class="cat-header">FAVORITOS</div><div class="movie-grid">` + favoritos.map(i => createCardHtml(i)).join('') + `</div></div>`;
+    }
 </script>
 </body>
 </html>
