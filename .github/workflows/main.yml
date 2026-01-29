@@ -4,6 +4,9 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+  # Opcional: Adicione um agendamento para atualizar sozinho a cada 12 horas
+  # schedule:
+  #   - cron: '0 */12 * * *'
 
 jobs:
   build:
@@ -30,5 +33,6 @@ jobs:
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@github.com'
           git add data/*.m3u
-          git commit -m "Listas atualizadas" || echo "Sem mudanças"
+          # O comando abaixo evita que o erro "nothing to commit" pare o processo
+          git commit -m "Listas atualizadas via PaixãoFlix" || exit 0
           git push
