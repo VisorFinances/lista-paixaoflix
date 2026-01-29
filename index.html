@@ -19,31 +19,32 @@
         
         #sideMenu { position: fixed; left: 0; top: 90px; height: calc(100vh - 90px); width: 80px; background: rgba(4,7,20,0.98); display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 5500; border-right: 1px solid rgba(255,255,255,0.1); transition: width 0.2s; }
         #sideMenu.active { width: 280px; }
-        .menu-item { width: 100%; height: 55px; display: flex; align-items: center; padding-left: 28px; cursor: pointer; color: #a0a0a0; border: none !important; }
-        .menu-item i { font-size: 22px; min-width: 40px; }
-        .menu-item span { display: none; margin-left: 20px; font-weight: 600; font-size: 14px; white-space: nowrap; }
+        .menu-item { width: 100%; height: 60px; display: flex; align-items: center; padding-left: 28px; cursor: pointer; color: #a0a0a0; border: none !important; }
+        .menu-item i { font-size: 24px; min-width: 40px; }
+        .menu-item span { display: none; margin-left: 20px; font-weight: 600; white-space: nowrap; }
         #sideMenu.active .menu-item span { display: block; }
-        #searchBox { width: 85%; margin: 10px auto; display: none; background: #1a1d29; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 5px; }
+        #searchBox { width: 80%; margin: 10px auto; display: none; background: #1a1d29; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 5px; }
         #sideMenu.active #searchBox { display: block; }
         
         #mainScroll { width: 100%; height: 100vh; padding: 120px 0 600px 90px; overflow-y: scroll !important; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
         #mainScroll::-webkit-scrollbar { display: none; }
         
-        .category-block { margin: 0 50px 40px 50px; scroll-margin-top: 110px; }
-        .cat-header { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 20px; text-transform: uppercase; border-left: 8px solid #FFCE44; padding-left: 20px; }
+        .category-block { margin: 0 50px 30px 50px; scroll-margin-top: 110px; }
+        .cat-header { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 15px; text-transform: uppercase; border-left: 8px solid #FFCE44; padding-left: 20px; width: fit-content; }
         .movie-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         
-        .movie-card { border-radius: 10px; background: #1a1d29; cursor: pointer; aspect-ratio: 2/3.2; position: relative; border: 5px solid transparent; transition: 0.2s; }
+        .movie-card { border-radius: 10px; background: #1a1d29; cursor: pointer; aspect-ratio: 2/3.2; position: relative; border: 5px solid transparent; }
         .movie-poster { width: 100%; height: auto; aspect-ratio: 2/3; object-fit: cover; border-radius: 5px; }
         .meta-card { padding: 5px 0; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #FFCE44; font-weight: bold; gap: 20px; }
+        
+        .btn-container { width: 100%; display: flex; justify-content: center; margin: 15px 0 25px 0; }
+        .btn-3d { background: #FFCE44; color: #000; border: none; border-bottom: 6px solid #b38f00; padding: 16px 50px; font-weight: 900; text-transform: uppercase; cursor: pointer; border-radius: 8px; width: 100%; }
         
         .channel-card { text-align: center; cursor: pointer; border: none !important; }
         .channel-card img { width: 90px; height: 90px; object-fit: contain; }
         .channel-card span { font-size: 13px; display: block; margin-top: 8px; color: #fff; }
         
         #videoContainer { position: fixed; inset: 0; background: #000; z-index: 99999; display: none; }
-        .btn-sair-vidro { position: absolute; top: 40px; right: 40px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); color: #fff; padding: 15px 30px; font-weight: 900; border-radius: 10px; z-index: 100001; }
-        
         #detailsOverlay { position: fixed; inset: 0; background: #040714; z-index: 9000; display: none; align-items: center; justify-content: center; padding: 50px; }
         .btn-desc { width: 220px; height: 60px; font-weight: 900; border-radius: 8px; cursor: pointer; border: none; font-size: 16px; margin-right: 15px; }
         
@@ -56,7 +57,7 @@
 <div id="popupContinuar">
     <div class="p-box">
         <h2 style="color:#FFCE44">PAIXÃOFLIX</h2>
-        <p>DESEJA CONTINUAR DE ONDE PAROU?</p>
+        <p>IDENTIFICAMOS UM PROGRESSO SALVO. DESEJA CONTINUAR?</p>
         <div style="display:flex; justify-content:center; margin-top:20px;">
             <button class="btn-desc" id="p-cont" style="background:#FFCE44;" tabindex="0">CONTINUAR</button>
             <button class="btn-desc" id="p-reset" style="background:#333; color:#fff;" tabindex="0">RECOMEÇAR</button>
@@ -92,7 +93,7 @@
             <h1 id="detTitle" style="font-size: 45px; margin:0;"></h1>
             <p id="detMeta" style="color:#FFCE44; font-weight:bold;"></p>
             <p id="detSinopse" style="font-size: 18px; color: #ccc; margin: 20px 0;"></p>
-            <div id="areaSerie" style="display:none;"><div id="epList" class="ep-grid" style="display:grid; grid-template-columns: repeat(8,1fr); gap:10px;"></div></div>
+            <div id="areaSerie" style="display:none;"><div id="epList" style="display:grid; grid-template-columns: repeat(8,1fr); gap:10px;"></div></div>
             <div style="margin-top:30px;">
                 <button class="btn-desc" id="btnPlay" style="background:#FFCE44;" tabindex="0">ASSISTIR</button>
                 <button class="btn-desc" onclick="closeDetails()" style="background:#333; color:#fff;" tabindex="0">VOLTAR</button>
@@ -102,7 +103,7 @@
 </div>
 
 <div id="videoContainer">
-    <div class="btn-sair-vidro" id="btnSairPlayer" tabindex="0" onclick="sairPlayer()">SAIR</div>
+    <div style="position:absolute; top:40px; right:40px; background:rgba(255,255,255,0.1); padding:15px 30px; font-weight:900; border-radius:10px; z-index:100001; cursor:pointer;" id="btnSairPlayer" tabindex="0" onclick="sairPlayer()">SAIR</div>
     <video id="mainPlayer" style="width:100%; height:100%;" controls></video>
 </div>
 
@@ -134,48 +135,9 @@
     function globalSearch(query) {
         if(!query) return changeSection('cinema');
         const results = db.todos.filter(i => i.titulo.toLowerCase().includes(query.toLowerCase()));
-        renderSimpleGrid("RESULTADOS DA BUSCA", results);
-    }
-
-    function renderKidsAZ(type) {
-        const data = [...db[type]].sort((a,b) => a.titulo.localeCompare(b.titulo));
-        renderSimpleGrid(type.replace('_',' ').toUpperCase(), data);
-    }
-
-    function renderSimpleGrid(title, list) {
         const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `<div class="category-block"><div class="cat-header" tabindex="0">${title}</div><div class="movie-grid" id="simple-grid"></div></div>`;
-        const grid = document.getElementById('simple-grid');
-        list.forEach(i => grid.innerHTML += createCardHtml(i));
-    }
-
-    async function renderCanais(mode) {
-        const file = mode === 'canais' ? 'data/ativa_canais.m3u' : 'data/ativa_kids_canais.m3u';
-        canaisAtuais = await loadM3U(file);
-        const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `<div class="category-block"><div class="cat-header" tabindex="0">TV AO VIVO</div><div style="display:grid; grid-template-columns: repeat(8, 1fr); gap:30px;" id="canal-grid"></div></div>`;
-        const grid = document.getElementById('canal-grid');
-        canaisAtuais.forEach((c, idx) => {
-            grid.innerHTML += `<div class="channel-card" tabindex="0" onclick="playCanal(${idx})"><img src="${c.poster}" onerror="this.src='https://via.placeholder.com/80'"><span>${c.titulo}</span></div>`;
-        });
-    }
-
-    async function loadM3U(url) {
-        try {
-            const res = await fetch(url);
-            const text = await res.text();
-            const lines = text.split('\n');
-            const list = [];
-            for (let i = 0; i < lines.length; i++) {
-                if (lines[i].startsWith('#EXTINF')) {
-                    const stream = lines[i+1]?.trim();
-                    const name = lines[i].split(',')[1] || "Canal";
-                    const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1] || "";
-                    if(stream) list.push({ titulo: name, url: stream, poster: logo });
-                }
-            }
-            return list;
-        } catch(e) { return []; }
+        cont.innerHTML = `<div class="category-block"><div class="cat-header">RESULTADOS</div><div class="movie-grid" id="search-grid"></div></div>`;
+        results.forEach(i => document.getElementById('search-grid').innerHTML += createCardHtml(i));
     }
 
     function changeSection(type) {
@@ -195,11 +157,59 @@
         }).forEach((cat, idx) => {
             const block = document.createElement('div');
             block.className = "category-block";
-            block.innerHTML = `<div class="cat-header" tabindex="0">${cat}</div><div class="movie-grid" id="${type}-${idx}"></div>`;
+            block.innerHTML = `<div class="cat-header">${cat}</div><div class="movie-grid" id="${type}-${idx}"></div><div class="btn-container" id="btn-${type}-${idx}"></div>`;
             cont.appendChild(block);
-            const grid = document.getElementById(`${type}-${idx}`);
-            grouped[cat].forEach(i => grid.innerHTML += createCardHtml(i));
+            renderGrid(type, idx, grouped[cat], true);
         });
+    }
+
+    function renderGrid(type, idx, list, limited) {
+        const g = document.getElementById(`${type}-${idx}`); 
+        const b = document.getElementById(`btn-${type}-${idx}`);
+        g.innerHTML = ""; b.innerHTML = "";
+        const show = limited ? list.slice(0, 4) : list;
+        show.forEach(i => g.innerHTML += createCardHtml(i));
+        if(list.length > 4) {
+            const btn = document.createElement('button'); btn.className = "btn-3d"; btn.tabIndex = 0;
+            btn.innerText = limited ? "VEJA MAIS" : "FECHAR";
+            btn.onclick = () => renderGrid(type, idx, list, !limited);
+            b.appendChild(btn);
+        }
+    }
+
+    function renderKidsAZ(type) {
+        const data = [...db[type]].sort((a,b) => a.titulo.localeCompare(b.titulo));
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div class="category-block"><div class="cat-header">${type.replace('_',' ').toUpperCase()}</div><div class="movie-grid" id="kids-grid"></div></div>`;
+        data.forEach(i => document.getElementById('kids-grid').innerHTML += createCardHtml(i));
+    }
+
+    async function renderCanais(mode) {
+        const file = mode === 'canais' ? 'data/ativa_canais.m3u' : 'data/ativa_kids_canais.m3u';
+        canaisAtuais = await loadM3U(file);
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div class="category-block"><div class="cat-header">TV AO VIVO</div><div style="display:grid; grid-template-columns: repeat(8, 1fr); gap:30px;" id="canal-grid"></div></div>`;
+        canaisAtuais.forEach((c, idx) => {
+            document.getElementById('canal-grid').innerHTML += `<div class="channel-card" tabindex="0" onclick="playCanal(${idx})"><img src="${c.poster}" onerror="this.src='https://via.placeholder.com/80'"><span>${c.titulo}</span></div>`;
+        });
+    }
+
+    async function loadM3U(url) {
+        try {
+            const res = await fetch(url);
+            const text = await res.text();
+            const lines = text.split('\n');
+            const list = [];
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].startsWith('#EXTINF')) {
+                    const stream = lines[i+1]?.trim();
+                    const name = lines[i].split(',')[1] || "Canal";
+                    const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1] || "";
+                    if(stream) list.push({ titulo: name, url: stream, poster: logo });
+                }
+            }
+            return list;
+        } catch(e) { return []; }
     }
 
     function createCardHtml(i) {
@@ -222,7 +232,11 @@
         if(active.classList.contains('movie-card')) active.innerHTML = createCardHtml(item);
     }
 
-    function renderFavoritos() { renderSimpleGrid("MEUS FAVORITOS", favoritos); }
+    function renderFavoritos() {
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div class="category-block"><div class="cat-header">FAVORITOS</div><div class="movie-grid" id="fav-grid"></div></div>`;
+        favoritos.forEach(i => document.getElementById('fav-grid').innerHTML += createCardHtml(i));
+    }
 
     function handleCapa(titulo) {
         const item = db.todos.find(i => i.titulo.replace(/'/g,"").replace(/"/g,"") === titulo);
@@ -296,13 +310,11 @@
             const r = active.getBoundingClientRect();
             let next = null, minDist = Infinity;
 
-            // PATCH: FAVORITOS TECLA F OU AMARELA
             if(active.classList.contains('movie-card') && (e.key.toLowerCase() === 'f' || e.keyCode === 406)) {
                 toggleFavorito(active.dataset.title);
                 return;
             }
 
-            // TROCA DE CANAL
             if(document.getElementById('videoContainer').style.display === "block" && indiceCanalAtivo !== -1) {
                 if(e.keyCode === 38 || e.keyCode === 427) { playCanal((indiceCanalAtivo > 0) ? indiceCanalAtivo - 1 : canaisAtuais.length - 1); }
                 if(e.keyCode === 40 || e.keyCode === 428) { playCanal((indiceCanalAtivo < canaisAtuais.length - 1) ? indiceCanalAtivo + 1 : 0); }
@@ -335,9 +347,8 @@
 
             if(next) {
                 next.focus();
-                // PATCH: FOCO SEMPRE VISÍVEL E CATEGORIA NO TOPO
                 if(!next.closest('#sideMenu') && !next.closest('#topBar')) {
-                    next.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    next.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             }
         });
