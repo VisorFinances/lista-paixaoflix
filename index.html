@@ -29,7 +29,6 @@
         #mainScroll { width: 100%; height: 100vh; padding: 120px 0 500px 90px; overflow-y: scroll !important; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
         #mainScroll::-webkit-scrollbar { display: none; }
         
-        /* PATCH: MARGIN PARA A CATEGORIA TOMAR A TELA AO ROLAR */
         .category-block { margin: 0 50px 30px 50px; scroll-margin-top: 110px; }
         .cat-header { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 15px; text-transform: uppercase; border-left: 8px solid #FFCE44; padding-left: 20px; width: fit-content; }
         .movie-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
@@ -64,30 +63,28 @@
 
 <div id="popupContinuar">
     <div class="p-box">
-        <h2 style="color:#FFCE44">PAIXÃOFLIX PERGUNTA:</h2>
-        <p>Deseja continuar de onde parou ou recomeçar?</p>
+        <h2 style="color:#FFCE44">PAIXÃOFLIX</h2>
+        <p>IDENTIFICAMOS UM PROGRESSO SALVO. DESEJA CONTINUAR?</p>
         <div class="row-buttons" style="justify-content: center;">
-            <button class="btn-desc" id="p-cont" style="background:#FFCE44;" tabindex="0">CONTINUAR</button>
-            <button class="btn-desc" id="p-reset" style="background:#333; color:#fff;" tabindex="0">RECOMEÇAR</button>
+            <button class="btn-desc" id="p-cont" style="background:#FFCE44;" tabindex="0">SIM, CONTINUAR</button>
+            <button class="btn-desc" id="p-reset" style="background:#333; color:#fff;" tabindex="0">NÃO, RECOMEÇAR</button>
         </div>
     </div>
 </div>
 
 <div id="topBar">
-    <img id="logoMain" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" tabindex="0">
+    <img id="logoMain" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" tabindex="0" onclick="location.reload()">
     <div id="barCounter">CARREGANDO...</div>
     <div id="barDateTime">--:--</div>
 </div>
 
 <div id="sideMenu">
-    <input type="text" id="searchBox" placeholder="PESQUISAR..." tabindex="0">
+    <input type="text" id="searchBox" placeholder="PESQUISAR..." tabindex="0" oninput="globalSearch(this.value)">
     <div class="menu-item" tabindex="0" id="m-canais" onclick="renderCanais('canais')"><i class="fas fa-tv"></i><span>CANAIS AO VIVO</span></div>
     <div class="menu-item" tabindex="0" id="m-cinema" onclick="changeSection('cinema')"><i class="fas fa-film"></i><span>CINEMA</span></div>
     <div class="menu-item" tabindex="0" id="m-series" onclick="changeSection('series')"><i class="fas fa-clapperboard"></i><span>SÉRIES</span></div>
+    <div class="menu-item" tabindex="0" id="m-kids" onclick="renderKidsUnificado()"><i class="fas fa-child"></i><span>PAIXÃO KIDS</span></div>
     <div class="menu-item" tabindex="0" id="m-favoritos" onclick="renderFavoritos()"><i class="fas fa-heart"></i><span>FAVORITOS</span></div>
-    <div class="menu-item" tabindex="0" id="m-kids-tv" onclick="renderCanais('kids')"><i class="fas fa-child"></i><span>CANAIS KIDS</span></div>
-    <div class="menu-item" tabindex="0" id="m-kids-filmes" onclick="changeSection('kids_filmes')"><i class="fas fa-baby"></i><span>FILMES KIDS</span></div>
-    <div class="menu-item" tabindex="0" id="m-kids-series" onclick="changeSection('kids_series')"><i class="fas fa-robot"></i><span>SÉRIES KIDS</span></div>
 </div>
 
 <div id="mainScroll">
@@ -107,7 +104,6 @@
             <div id="areaSerie" style="display:none;"><div id="epList" class="ep-grid"></div></div>
             <div class="row-buttons">
                 <button class="btn-desc" id="btnPlay" style="background:#FFCE44;" tabindex="0">ASSISTIR AGORA</button>
-                <button class="btn-desc" id="btnTrailer" style="background:#ffffff; color:#000; display:none;" tabindex="0">VER TRAILER</button>
                 <button class="btn-desc" id="btnVoltarDet" onclick="closeDetails()" style="background:#333; color:#fff;" tabindex="0">VOLTAR</button>
             </div>
         </div>
@@ -124,6 +120,7 @@
     let canaisAtuais = [];
     let indiceCanalAtivo = -1;
     let lastFocusedElement = null;
+    let currentVideoId = "";
 
     async function initSystem() {
         startClock();
@@ -135,11 +132,38 @@
                 fetch('data/kids_series.json').then(r => r.json()).catch(() => [])
             ]);
             db.cinema = f; db.series = s; db.kids_filmes = kf; db.kids_series = ks;
-            db.todos = [...db.cinema, ...db.series, ...db.kids_filmes, ...db.kids_series];
+            db.todos = [...f, ...s, ...kf, ...ks];
             document.getElementById('barCounter').innerText = `TOTAL: ${db.todos.length} ITENS`;
             changeSection('cinema');
         } catch(e) { console.error(e); }
         initNavigation();
+    }
+
+    /* PATCH: PESQUISA GLOBAL EM TEMPO REAL */
+    function globalSearch(query) {
+        if(!query) return changeSection('cinema');
+        const results = db.todos.filter(i => i.titulo.toLowerCase().includes(query.toLowerCase()));
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div class="category-block"><div class="cat-header">RESULTADOS DA BUSCA</div><div class="movie-grid" id="search-grid"></div></div>`;
+        const grid = document.getElementById('search-grid');
+        results.forEach(i => grid.innerHTML += createCardHtml(i));
+    }
+
+    /* PATCH: KIDS UNIFICADO EM ORDEM ALFABÉTICA */
+    async function renderKidsUnificado() {
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = "";
+        const canaisKids = await loadM3U('data/ativa_kids_canais.m3u');
+        const kidsItems = [...db.kids_filmes, ...db.kids_series].sort((a,b) => a.titulo.localeCompare(b.titulo));
+        
+        let html = `<div class="category-block"><div class="cat-header" tabindex="0">CANAIS KIDS</div><div style="display:grid; grid-template-columns: repeat(8, 1fr); gap:30px;">`;
+        canaisKids.forEach((c, idx) => {
+            html += `<div class="channel-card" tabindex="0" onclick="playCanalExt(${JSON.stringify(c).replace(/"/g, '&quot;')})"><img src="${c.poster}" onerror="this.src='https://via.placeholder.com/80'"><span>${c.titulo}</span></div>`;
+        });
+        html += `</div></div><div class="category-block"><div class="cat-header" tabindex="0">CONTEÚDO KIDS (A-Z)</div><div class="movie-grid">`;
+        kidsItems.forEach(i => html += createCardHtml(i));
+        html += `</div></div>`;
+        cont.innerHTML = html;
     }
 
     async function loadM3U(url) {
@@ -154,8 +178,7 @@
                     const stream = lines[i+1]?.trim();
                     const name = info.split(',')[1] || "Canal";
                     const logo = info.match(/tvg-logo="([^"]+)"/)?.[1] || "";
-                    const group = info.match(/group-title="([^"]+)"/)?.[1] || "OUTROS";
-                    if(stream) list.push({ titulo: name, url: stream, poster: logo, group: group });
+                    if(stream) list.push({ titulo: name, url: stream, poster: logo });
                 }
             }
             return list;
@@ -163,26 +186,17 @@
     }
 
     async function renderCanais(mode) {
-        const file = mode === 'canais' ? 'data/ativa_canais.m3u' : 'data/ativa_kids_canais.m3u';
-        canaisAtuais = await loadM3U(file);
+        canaisAtuais = await loadM3U('data/ativa_canais.m3u');
         const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = "";
-        const grupos = {};
+        cont.innerHTML = `<div class="category-block"><div class="cat-header" tabindex="0">TV AO VIVO</div><div style="display:grid; grid-template-columns: repeat(8, 1fr); gap:30px;" id="canal-grid"></div></div>`;
+        const grid = document.getElementById('canal-grid');
         canaisAtuais.forEach((c, idx) => {
-            const gName = c.group || "OUTROS";
-            if (!grupos[gName]) grupos[gName] = [];
-            grupos[gName].push({ ...c, originalIdx: idx });
-        });
-        Object.keys(grupos).forEach(nomeGrupo => {
-            const section = document.createElement('div');
-            section.className = "category-block";
-            section.innerHTML = `<div class="cat-header" tabindex="0">${nomeGrupo.toUpperCase()}</div><div style="display:grid; grid-template-columns: repeat(8, 1fr); gap:30px;">` + 
-                grupos[nomeGrupo].map(c => `<div class="channel-card" tabindex="0" onclick="playCanal(${c.originalIdx})"><img src="${c.poster}" onerror="this.src='https://via.placeholder.com/80'"><span>${c.titulo}</span></div>`).join('') + `</div>`;
-            cont.appendChild(section);
+            grid.innerHTML += `<div class="channel-card" tabindex="0" onclick="playCanal(${idx})"><img src="${c.poster}" onerror="this.src='https://via.placeholder.com/80'"><span>${c.titulo}</span></div>`;
         });
     }
 
-    function playCanal(idx) { indiceCanalAtivo = idx; playVideo(canaisAtuais[idx].url, canaisAtuais[idx].titulo); }
+    function playCanal(idx) { indiceCanalAtivo = idx; playVideo(canaisAtuais[idx].url, canaisAtuais[idx].titulo, true); }
+    function playCanalExt(obj) { playVideo(obj.url, obj.titulo, true); }
 
     function createCardHtml(i) {
         const tSafe = i.titulo.replace(/'/g,"").replace(/"/g,"");
@@ -210,7 +224,6 @@
             grouped[cat].push(item);
         });
 
-        /* PATCH: ORDEM PRIORITÁRIA DAS CATEGORIAS */
         Object.keys(grouped).sort((a, b) => {
             let pA = a === "Lançamento 2026" ? -2 : a === "Lançamento 2025" ? -1 : a === "Adulto" ? 100 : 0;
             let pB = b === "Lançamento 2026" ? -2 : b === "Lançamento 2025" ? -1 : b === "Adulto" ? 100 : 0;
@@ -267,14 +280,39 @@
         }
     }
 
-    function playVideo(url, title) {
+    /* PATCH: CONTINUAR ASSISTINDO */
+    function playVideo(url, title, isLive = false) {
+        currentVideoId = btoa(title);
+        const savedTime = localStorage.getItem('prog_' + currentVideoId);
+        
+        if(savedTime && !isLive) {
+            document.getElementById('popupContinuar').style.display = 'flex';
+            document.getElementById('p-cont').onclick = () => startPlayback(url, savedTime);
+            document.getElementById('p-reset').onclick = () => startPlayback(url, 0);
+            document.getElementById('p-cont').focus();
+        } else {
+            startPlayback(url, 0);
+        }
+    }
+
+    function startPlayback(url, time) {
+        document.getElementById('popupContinuar').style.display = 'none';
         document.getElementById('videoContainer').style.display = "block";
         const p = document.getElementById('mainPlayer');
-        p.src = url; p.play();
+        p.src = url;
+        p.currentTime = time;
+        p.play();
+        
+        // Salva progresso a cada 10s
+        p.ontimeupdate = () => {
+            if(p.currentTime > 10) localStorage.setItem('prog_' + currentVideoId, p.currentTime);
+        };
     }
 
     function sairPlayer() { 
-        const p = document.getElementById('mainPlayer'); p.pause(); p.src = "";
+        const p = document.getElementById('mainPlayer');
+        p.pause();
+        p.src = "";
         document.getElementById('videoContainer').style.display = "none"; 
         if(lastFocusedElement) lastFocusedElement.focus();
     }
@@ -288,6 +326,18 @@
             const r = active.getBoundingClientRect();
             let next = null, minDist = Infinity;
 
+            /* PATCH: TROCA RÁPIDA DE CANAIS (SETAS CIMA/BAIXO OU CH+/CH-) */
+            if(document.getElementById('videoContainer').style.display === "block" && indiceCanalAtivo !== -1) {
+                if(e.keyCode === 38 || e.keyCode === 427) { // Cima ou CH+
+                    indiceCanalAtivo = (indiceCanalAtivo > 0) ? indiceCanalAtivo - 1 : canaisAtuais.length - 1;
+                    playCanal(indiceCanalAtivo);
+                }
+                if(e.keyCode === 40 || e.keyCode === 428) { // Baixo ou CH-
+                    indiceCanalAtivo = (indiceCanalAtivo < canaisAtuais.length - 1) ? indiceCanalAtivo + 1 : 0;
+                    playCanal(indiceCanalAtivo);
+                }
+            }
+
             if(e.keyCode === 13) { active.click(); return; }
             if(e.keyCode === 8 || e.keyCode === 27) { 
                 if(document.getElementById('videoContainer').style.display === "block") sairPlayer();
@@ -295,7 +345,6 @@
                 return; 
             }
 
-            /* PATCH: SAÍDA FORÇADA DO MENU LATERAL PARA A DIREITA */
             if(e.keyCode === 39 && (active.closest('#sideMenu') || active.id === 'searchBox')) {
                 next = document.querySelector('#mainScroll [tabindex="0"]');
             } else {
@@ -316,7 +365,6 @@
 
             if(next) {
                 next.focus();
-                /* PATCH: ROLAGEM DE TELA CHEIA PARA A CATEGORIA TOMAR A TELA */
                 if(!next.closest('#sideMenu') && !next.closest('#topBar') && !next.closest('#detailsOverlay')) {
                     next.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
