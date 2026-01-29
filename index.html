@@ -139,8 +139,8 @@
                 fetch('data/kids_series.json').then(r => r.json()).catch(() => [])
             ]);
             // PATCH: RENOMEAÇÃO PARA TOPO
-            db.cinema = processLançamentos(f);
-            db.series = processLançamentos(s);
+            db.cinema = processLançamento(f);
+            db.series = processLançamento(s);
             db.kids_filmes = kf; 
             db.kids_series = ks;
             db.todos = [...db.cinema, ...db.series, ...kf, ...ks];
@@ -150,7 +150,7 @@
         initNavigation();
     }
 
-    function processLançamentos(data) {
+    function processLançamento(data) {
         return data.map(item => {
             if(item.genero === "Lançamento 2026") item.genero = "2026 Lançamento";
             if(item.genero === "Lançamento 2025") item.genero = "2025 Lançamento";
