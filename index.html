@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
     
     <style>
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; overflow: hidden !important; }
@@ -30,7 +31,6 @@
         #searchBox { width: 80%; margin: 10px auto; display: none; background: #1a1d29; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 5px; }
         #sideMenu.active #searchBox { display: block; }
         
-        /* Área de Scroll com Preenchimento de Tela */
         #mainScroll { width: 100%; height: 100vh; padding: 120px 0 600px 90px; overflow-y: scroll !important; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
         #mainScroll::-webkit-scrollbar { display: none; }
         
@@ -54,16 +54,6 @@
     </style>
 </head>
 <body onload="initSystem()">
-
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js').catch(() => {
-                console.log('Modo Offline Ativo via Cache Local');
-            });
-        });
-    }
-</script>
 
 <div id="popupContinuar">
     <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 20000; display: none; align-items: center; justify-content: center;" id="popInner">
@@ -115,11 +105,10 @@
 
 <div id="videoContainer">
     <div style="position:absolute; top:40px; right:40px; background:rgba(255,255,255,0.1); padding:15px 30px; font-weight:900; border-radius:10px; z-index:100001; cursor:pointer;" id="btnSairPlayer" tabindex="0" onclick="sairPlayer()">SAIR</div>
-    <video id="mainPlayer" style="width:100%; height:100%;" controls preload="auto"></video>
+    <div id="mainPlayer" style="width:100%; height:100%;"></div>
 </div>
 
 <script>
-    // Tratamento de Erros de Plugin/Rede
     window.onerror = function() { return true; };
 
     let db = { cinema: [], series: [], kids_filmes: [], kids_series: [], todos: [] };
@@ -128,6 +117,7 @@
     let favoritos = JSON.parse(localStorage.getItem('favs')) || [];
     let lastFocusedElement = null;
     let currentVideoId = "";
+    let clapprPlayer = null; // Instância Global do Motor
 
     async function initSystem() {
         startClock();
@@ -138,7 +128,6 @@
                 fetch('data/kids_filmes.json').then(r => r.json()).catch(() => []),
                 fetch('data/kids_series.json').then(r => r.json()).catch(() => [])
             ]);
-            // PATCH: RENOMEAÇÃO PARA TOPO
             db.cinema = processLançamento(f);
             db.series = processLançamento(s);
             db.kids_filmes = kf; 
@@ -308,18 +297,40 @@
         } else { startPlayback(url, 0); }
     }
 
+    // PATCHER MOTOR PLAYER CLAPPR
     function startPlayback(url, time) {
         document.getElementById('popInner').style.display = 'none';
         document.getElementById('videoContainer').style.display = "block";
-        const p = document.getElementById('mainPlayer');
-        p.src = url; p.currentTime = parseFloat(time); 
-        // Plugin de Fluidez: Buffer Adaptativo
-        p.play().catch(() => { p.muted = true; p.play(); });
-        p.ontimeupdate = () => { if(p.currentTime > 5) localStorage.setItem('prog_' + currentVideoId, p.currentTime); };
+        
+        // Blindagem do Proxy PaixãoFlix
+        const finalUrl = url.includes('workers.dev') ? url : `https://paixaoflixtv.paixaoflix-vip.workers.dev/?url=${url}`;
+
+        if(clapprPlayer) clapprPlayer.destroy();
+
+        clapprPlayer = new Clappr.Player({
+            source: finalUrl,
+            parentId: "#mainPlayer",
+            width: '100%',
+            height: '100%',
+            autoPlay: true,
+            playback: { 
+                playInline: true, 
+                recycleVideo: true,
+                hlsjsConfig: { enableWorker: true }
+            }
+        });
+
+        clapprPlayer.on(Clappr.Events.PLAYER_READY, () => {
+            if(time > 0) clapprPlayer.seek(parseFloat(time));
+        });
+
+        clapprPlayer.on(Clappr.Events.PLAYER_TIMEUPDATE, (progress) => {
+            if(progress.current > 5) localStorage.setItem('prog_' + currentVideoId, progress.current);
+        });
     }
 
     function sairPlayer() { 
-        const p = document.getElementById('mainPlayer'); p.pause(); p.src = "";
+        if(clapprPlayer) { clapprPlayer.pause(); clapprPlayer.destroy(); clapprPlayer = null; }
         document.getElementById('videoContainer').style.display = "none"; 
         if(lastFocusedElement) lastFocusedElement.focus();
     }
@@ -333,13 +344,11 @@
             const r = active.getBoundingClientRect();
             let next = null, minDist = Infinity;
 
-            // FAVORITOS F / AMARELA (406)
             if(active.classList.contains('movie-card') && (e.key.toLowerCase() === 'f' || e.keyCode === 406)) {
                 toggleFavorito(active.dataset.title);
                 return;
             }
 
-            // CH+ / CH- / SETAS NO PLAYER
             if(document.getElementById('videoContainer').style.display === "block" && indiceCanalAtivo !== -1) {
                 if(e.keyCode === 38 || e.keyCode === 427) { playCanal((indiceCanalAtivo > 0) ? indiceCanalAtivo - 1 : canaisAtuais.length - 1); }
                 if(e.keyCode === 40 || e.keyCode === 428) { playCanal((indiceCanalAtivo < canaisAtuais.length - 1) ? indiceCanalAtivo + 1 : 0); }
@@ -364,7 +373,7 @@
                     if(e.keyCode === 40) ok = nr.top >= r.bottom - 10;
                     if(e.keyCode === 38) ok = nr.bottom <= r.top + 10;
                     if(ok) { 
-                        const d = Math.hypot(nr.left - r.left, (nr.top - r.top) * 2); // Peso maior para vertical
+                        const d = Math.hypot(nr.left - r.left, (nr.top - r.top) * 2); 
                         if(d < minDist) { minDist = d; next = el; } 
                     }
                 });
@@ -372,7 +381,6 @@
 
             if(next) {
                 next.focus();
-                // PATCH: FOCO CENTRADO PARA TVS DE 20"
                 if(!next.closest('#sideMenu') && !next.closest('#topBar')) {
                     next.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
