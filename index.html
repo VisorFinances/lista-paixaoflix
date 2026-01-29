@@ -26,10 +26,11 @@
         #searchBox { width: 80%; margin: 10px auto; display: none; background: #1a1d29; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 5px; }
         #sideMenu.active #searchBox { display: block; }
         
-        #mainScroll { width: 100%; height: 100vh; padding: 120px 0 400px 90px; overflow-y: scroll !important; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
+        #mainScroll { width: 100%; height: 100vh; padding: 120px 0 500px 90px; overflow-y: scroll !important; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
         #mainScroll::-webkit-scrollbar { display: none; }
         
-        .category-block { margin: 0 50px 15px 50px; scroll-margin-top: 150px; }
+        /* PATCH: MARGIN PARA A CATEGORIA TOMAR A TELA AO ROLAR */
+        .category-block { margin: 0 50px 30px 50px; scroll-margin-top: 110px; }
         .cat-header { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 15px; text-transform: uppercase; border-left: 8px solid #FFCE44; padding-left: 20px; width: fit-content; }
         .movie-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         
@@ -37,7 +38,7 @@
         .movie-poster { width: 100%; height: auto; aspect-ratio: 2/3; object-fit: cover; border-radius: 5px; display: block; }
         .meta-card { padding: 5px 0 2px 0; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #FFCE44 !important; font-weight: bold; text-align: center; gap: 25px; }
         
-        .channel-card { background: none !important; border: none !important; box-shadow: none !important; text-align: center; cursor: pointer; transition: transform 0.2s ease; scroll-margin-top: 200px; }
+        .channel-card { background: none !important; border: none !important; box-shadow: none !important; text-align: center; cursor: pointer; transition: transform 0.2s ease; scroll-margin-top: 150px; }
         .channel-card img { width: 80px; height: 80px; object-fit: contain; display: block; margin: 0 auto; }
         .channel-card span { font-size: 12px; font-weight: 500; display: block; margin-top: 5px; color: #fff; }
         .channel-card.focused { transform: scale(1.15); border: none !important; box-shadow: none !important; background: none !important; }
@@ -116,15 +117,12 @@
 <div id="videoContainer">
     <div class="btn-sair-vidro" id="btnSairPlayer" tabindex="0" onclick="sairPlayer()">SAIR DO PLAYER</div>
     <video id="mainPlayer" style="width:100%; height:100%;" controls preload="auto"></video>
-    <div id="adesivo" style="position: absolute; bottom: 30px; right: 30px; color: rgba(255,255,255,0.5);"></div>
 </div>
 
 <script>
     let db = { cinema: [], series: [], kids_filmes: [], kids_series: [], todos: [] };
     let canaisAtuais = [];
     let indiceCanalAtivo = -1;
-    let favoritos = JSON.parse(localStorage.getItem('favs')) || [];
-    let progresso = JSON.parse(localStorage.getItem('prog')) || {};
     let lastFocusedElement = null;
 
     async function initSystem() {
@@ -184,16 +182,13 @@
         });
     }
 
-    function playCanal(idx) { indiceCanalAtivo = idx; playVideo(canaisAtuais[idx].url, canaisAtuais[idx].titulo, 0, true); }
+    function playCanal(idx) { indiceCanalAtivo = idx; playVideo(canaisAtuais[idx].url, canaisAtuais[idx].titulo); }
 
     function createCardHtml(i) {
         const tSafe = i.titulo.replace(/'/g,"").replace(/"/g,"");
         return `<div class="movie-card" tabindex="0" onclick="handleCapa('${tSafe}')">
             <img class="movie-poster" src="${i.poster}">
-            <div class="meta-card">
-                <span>${i.year || '----'}</span>
-                <span><i class="fas fa-star"></i> ${i.rating || '0.0'}</span>
-            </div>
+            <div class="meta-card"><span>${i.year || '----'}</span><span><i class="fas fa-star"></i> ${i.rating || '0.0'}</span></div>
         </div>`;
     }
 
@@ -215,13 +210,11 @@
             grouped[cat].push(item);
         });
 
+        /* PATCH: ORDEM PRIORITÁRIA DAS CATEGORIAS */
         Object.keys(grouped).sort((a, b) => {
-            if (a === "Lançamento 2026") return -1;
-            if (b === "Lançamento 2026") return 1;
-            if (a === "Lançamento 2025") return -1;
-            if (b === "Lançamento 2025") return 1;
-            if (a === "Adulto") return 1;
-            if (b === "Adulto") return -1;
+            let pA = a === "Lançamento 2026" ? -2 : a === "Lançamento 2025" ? -1 : a === "Adulto" ? 100 : 0;
+            let pB = b === "Lançamento 2026" ? -2 : b === "Lançamento 2025" ? -1 : b === "Adulto" ? 100 : 0;
+            if (pA !== pB) return pA - pB;
             return a.localeCompare(b);
         }).forEach((cat, idx) => {
             const block = document.createElement('div');
@@ -252,15 +245,6 @@
         document.getElementById('detTitle').innerText = item.titulo;
         document.getElementById('detMeta').innerText = `${item.year} | ${item.genero} | ${item.rating}`;
         document.getElementById('detSinopse').innerText = item.desc || "";
-        
-        const btnTrailer = document.getElementById('btnTrailer');
-        if(item.trailer) {
-            btnTrailer.style.display = "block";
-            btnTrailer.onclick = () => playVideo(item.trailer, "TRAILER: " + item.titulo);
-        } else {
-            btnTrailer.style.display = "none";
-        }
-
         const btnPlay = document.getElementById('btnPlay');
         if(item.identificador_archive) {
             btnPlay.style.display = "none";
@@ -283,11 +267,10 @@
         }
     }
 
-    function playVideo(url, title, time=0, isLive=false) {
+    function playVideo(url, title) {
         document.getElementById('videoContainer').style.display = "block";
         const p = document.getElementById('mainPlayer');
         p.src = url; p.play();
-        document.getElementById('btnSairPlayer').focus();
     }
 
     function sairPlayer() { 
@@ -312,25 +295,30 @@
                 return; 
             }
 
-            all.forEach(el => {
-                if(el === active) return;
-                const nr = el.getBoundingClientRect();
-                let ok = false;
-                if(e.keyCode === 39) ok = nr.left >= r.right - 10 && Math.abs(nr.top - r.top) < 150;
-                if(e.keyCode === 37) ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 150;
-                if(e.keyCode === 40) ok = nr.top >= r.bottom - 10;
-                if(e.keyCode === 38) ok = nr.bottom <= r.top + 10;
-                if(ok) { 
-                    const d = Math.hypot(nr.left - r.left, nr.top - r.top); 
-                    if(d < minDist) { minDist = d; next = el; } 
-                }
-            });
+            /* PATCH: SAÍDA FORÇADA DO MENU LATERAL PARA A DIREITA */
+            if(e.keyCode === 39 && (active.closest('#sideMenu') || active.id === 'searchBox')) {
+                next = document.querySelector('#mainScroll [tabindex="0"]');
+            } else {
+                all.forEach(el => {
+                    if(el === active) return;
+                    const nr = el.getBoundingClientRect();
+                    let ok = false;
+                    if(e.keyCode === 39) ok = nr.left >= r.right - 10 && Math.abs(nr.top - r.top) < 150;
+                    if(e.keyCode === 37) ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 150;
+                    if(e.keyCode === 40) ok = nr.top >= r.bottom - 10;
+                    if(e.keyCode === 38) ok = nr.bottom <= r.top + 10;
+                    if(ok) { 
+                        const d = Math.hypot(nr.left - r.left, nr.top - r.top); 
+                        if(d < minDist) { minDist = d; next = el; } 
+                    }
+                });
+            }
 
             if(next) {
                 next.focus();
-                /* PATCH: ROLAGEM OBRIGATÓRIA PARA CATEGORIA TOMAR CONTA DA TELA (FILMES E CANAIS) */
+                /* PATCH: ROLAGEM DE TELA CHEIA PARA A CATEGORIA TOMAR A TELA */
                 if(!next.closest('#sideMenu') && !next.closest('#topBar') && !next.closest('#detailsOverlay')) {
-                    next.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                    next.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             }
         });
@@ -338,8 +326,11 @@
         document.addEventListener('focusin', (e) => {
             document.querySelectorAll('.focused').forEach(el => el.classList.remove('focused'));
             e.target.classList.add('focused');
-            if(e.target.closest('#sideMenu')) document.getElementById('sideMenu').classList.add('active');
-            else document.getElementById('sideMenu').classList.remove('active');
+            if(e.target.closest('#sideMenu') || e.target.id === 'searchBox') {
+                document.getElementById('sideMenu').classList.add('active');
+            } else {
+                document.getElementById('sideMenu').classList.remove('active');
+            }
         });
     }
 
