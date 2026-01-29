@@ -139,17 +139,15 @@
         initNavigation();
     }
 
-    /* PATCH: PESQUISA GLOBAL EM TEMPO REAL */
     function globalSearch(query) {
         if(!query) return changeSection('cinema');
         const results = db.todos.filter(i => i.titulo.toLowerCase().includes(query.toLowerCase()));
         const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `<div class="category-block"><div class="cat-header">RESULTADOS DA BUSCA</div><div class="movie-grid" id="search-grid"></div></div>`;
+        cont.innerHTML = `<div class="category-block"><div class="cat-header">RESULTADOS DA BUSCA EM TEMPO REAL</div><div class="movie-grid" id="search-grid"></div></div>`;
         const grid = document.getElementById('search-grid');
         results.forEach(i => grid.innerHTML += createCardHtml(i));
     }
 
-    /* PATCH: KIDS UNIFICADO EM ORDEM ALFABÉTICA */
     async function renderKidsUnificado() {
         const cont = document.getElementById('dynamicContent');
         cont.innerHTML = "";
@@ -280,11 +278,9 @@
         }
     }
 
-    /* PATCH: CONTINUAR ASSISTINDO */
     function playVideo(url, title, isLive = false) {
         currentVideoId = btoa(title);
         const savedTime = localStorage.getItem('prog_' + currentVideoId);
-        
         if(savedTime && !isLive) {
             document.getElementById('popupContinuar').style.display = 'flex';
             document.getElementById('p-cont').onclick = () => startPlayback(url, savedTime);
@@ -300,19 +296,13 @@
         document.getElementById('videoContainer').style.display = "block";
         const p = document.getElementById('mainPlayer');
         p.src = url;
-        p.currentTime = time;
+        p.currentTime = parseFloat(time);
         p.play();
-        
-        // Salva progresso a cada 10s
-        p.ontimeupdate = () => {
-            if(p.currentTime > 10) localStorage.setItem('prog_' + currentVideoId, p.currentTime);
-        };
+        p.ontimeupdate = () => { if(p.currentTime > 5) localStorage.setItem('prog_' + currentVideoId, p.currentTime); };
     }
 
     function sairPlayer() { 
-        const p = document.getElementById('mainPlayer');
-        p.pause();
-        p.src = "";
+        const p = document.getElementById('mainPlayer'); p.pause(); p.src = "";
         document.getElementById('videoContainer').style.display = "none"; 
         if(lastFocusedElement) lastFocusedElement.focus();
     }
@@ -326,13 +316,12 @@
             const r = active.getBoundingClientRect();
             let next = null, minDist = Infinity;
 
-            /* PATCH: TROCA RÁPIDA DE CANAIS (SETAS CIMA/BAIXO OU CH+/CH-) */
             if(document.getElementById('videoContainer').style.display === "block" && indiceCanalAtivo !== -1) {
-                if(e.keyCode === 38 || e.keyCode === 427) { // Cima ou CH+
+                if(e.keyCode === 38 || e.keyCode === 427) { // CH+
                     indiceCanalAtivo = (indiceCanalAtivo > 0) ? indiceCanalAtivo - 1 : canaisAtuais.length - 1;
                     playCanal(indiceCanalAtivo);
                 }
-                if(e.keyCode === 40 || e.keyCode === 428) { // Baixo ou CH-
+                if(e.keyCode === 40 || e.keyCode === 428) { // CH-
                     indiceCanalAtivo = (indiceCanalAtivo < canaisAtuais.length - 1) ? indiceCanalAtivo + 1 : 0;
                     playCanal(indiceCanalAtivo);
                 }
@@ -374,11 +363,8 @@
         document.addEventListener('focusin', (e) => {
             document.querySelectorAll('.focused').forEach(el => el.classList.remove('focused'));
             e.target.classList.add('focused');
-            if(e.target.closest('#sideMenu') || e.target.id === 'searchBox') {
-                document.getElementById('sideMenu').classList.add('active');
-            } else {
-                document.getElementById('sideMenu').classList.remove('active');
-            }
+            if(e.target.closest('#sideMenu') || e.target.id === 'searchBox') document.getElementById('sideMenu').classList.add('active');
+            else document.getElementById('sideMenu').classList.remove('active');
         });
     }
 
