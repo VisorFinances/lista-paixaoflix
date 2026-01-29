@@ -27,12 +27,10 @@
         #mainScroll { width: 100%; height: 100vh; padding: 120px 0 300px 90px; overflow-y: scroll !important; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
         #mainScroll::-webkit-scrollbar { display: none; }
         
-        /* PATCH: REDUÇÃO DE ESPAÇAMENTO ENTRE SESSÕES */
         .category-block { margin: 0 50px 15px 50px; }
         .cat-header { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 15px; text-transform: uppercase; border-left: 8px solid #FFCE44; padding-left: 20px; width: fit-content; }
         .movie-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         
-        /* PATCH: REDUÇÃO DO FUNDO E AJUSTE DE METADADOS */
         .movie-card { border-radius: 10px; background: #1a1d29; cursor: pointer; aspect-ratio: 2/3.3; position: relative; margin-bottom: 20px; display: flex; flex-direction: column; border: 5px solid transparent; padding-bottom: 2px; }
         .movie-poster { width: 100%; height: 85%; object-fit: cover; border-radius: 5px; display: block; }
         .meta-card { height: 15%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #FFCE44 !important; font-weight: bold; text-align: center; gap: 25px; }
@@ -185,7 +183,6 @@
 
     function playCanal(idx) { indiceCanalAtivo = idx; playVideo(canaisAtuais[idx].url, canaisAtuais[idx].titulo, 0, true); }
 
-    /* PATCH: REMOÇÃO DA BARRA E ESPAÇAMENTO ENTRE ANO E DATA */
     function createCardHtml(i) {
         const tSafe = i.titulo.replace(/'/g,"").replace(/"/g,"");
         return `<div class="movie-card" tabindex="0" onclick="handleCapa('${tSafe}')">
@@ -214,7 +211,17 @@
             if (!grouped[cat]) grouped[cat] = [];
             grouped[cat].push(item);
         });
-        Object.keys(grouped).sort((a,b) => CATS.indexOf(a) - CATS.indexOf(b)).forEach((cat, idx) => {
+
+        /* PATCH: ORDEM OBRIGATÓRIA DE CATEGORIAS */
+        Object.keys(grouped).sort((a, b) => {
+            if (a === "Lançamento 2026") return -1;
+            if (b === "Lançamento 2026") return 1;
+            if (a === "Lançamento 2025") return -1;
+            if (b === "Lançamento 2025") return 1;
+            if (a === "Adulto") return 1;
+            if (b === "Adulto") return -1;
+            return a.localeCompare(b);
+        }).forEach((cat, idx) => {
             const block = document.createElement('div');
             block.className = "category-block";
             block.innerHTML = `<div class="cat-header" tabindex="0">${cat}</div><div class="movie-grid" id="${type}-${idx}"></div><div class="btn-container" id="btn-${type}-${idx}"></div>`;
@@ -321,7 +328,7 @@
                 next.focus();
                 /* PATCH: ROLAGEM OBRIGATÓRIA PARA NUNCA PERDER O SELETOR */
                 if(!next.closest('#sideMenu') && !next.closest('#topBar') && !next.closest('#detailsOverlay')) {
-                    next.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    next.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
                 }
             }
         });
