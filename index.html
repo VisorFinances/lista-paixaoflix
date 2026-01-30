@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - V.88.51.80</title>
+    <title>PaixãoFlix TV - V.89.52.81</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -12,55 +12,52 @@
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; overflow: hidden !important; }
         body { margin: 0; padding: 0; background: #040714; color: #fff; height: 100vh; width: 100vw; }
         
-        /* FOCO E SELETOR */
         .focused { border: 5px solid #FFCE44 !important; box-shadow: 0 0 25px rgba(255, 206, 68, 1); z-index: 1000 !important; transform: scale(1.05); transition: 0.2s; }
         .slider-arrow.focused { background: #FFFFFF !important; box-shadow: 0 0 30px #FFFFFF !important; transform: scale(1.1); }
         
-        /* BARRA SUPERIOR */
         #topBar { position: fixed; top: 0; width: 100%; height: 90px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 5000; background: #040714; }
         #logoMain { height: 70px; cursor: pointer; border: 5px solid transparent; }
         #jsonStatus { color: #FFCE44; font-weight: 900; }
         #barDateTime { font-size: 18px; text-transform: capitalize; }
 
-        /* MENU LATERAL */
         #sideMenu { position: fixed; left: 0; top: 90px; height: calc(100vh - 90px); width: 80px; background: rgba(4,7,20,0.98); display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 5500; border-right: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
         #sideMenu.active { width: 280px; }
         .menu-item { width: 100%; height: 60px; display: flex; align-items: center; padding-left: 28px; cursor: pointer; color: #a0a0a0; }
         .menu-item span { display: none; margin-left: 20px; font-weight: 600; }
         #sideMenu.active .menu-item span { display: block; }
 
-        /* ÁREA DE SCROLL */
         #mainScroll { width: 100%; height: 100vh; padding: 102px 0 400px 90px; overflow-y: scroll !important; scroll-behavior: smooth; }
         #mainScroll::-webkit-scrollbar { display: none; }
 
-        /* HERO BANNER E BEM VINDO */
         .hero-banner { width: 95%; height: 350px; margin: 12px auto 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(to bottom, transparent, #040714), url('https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/banner_hero.jpg'); background-size: cover; border-radius: 20px; }
         .hero-banner h1 { font-size: 60px; font-weight: 900; margin: 0; text-shadow: 2px 2px 20px #000; }
         .hero-banner p { font-size: 22px; font-weight: 200; font-style: italic; margin-top: 10px; }
 
-        /* TOP 4 */
+        /* Estilo Capas Início com Botão Transparente */
         .top-container { display: flex; gap: 40px; justify-content: center; margin-bottom: 50px; }
         .top-item { position: relative; width: 280px; cursor: pointer; border: 4px solid transparent; }
         .top-number { position: absolute; left: -45px; bottom: 5px; font-size: 200px; font-weight: 900; color: transparent; -webkit-text-stroke: 4px #FFCE44; z-index: 500; line-height: 0.7; pointer-events: none; }
-        .top-item img { width: 100%; border-radius: 12px; position: relative; z-index: 100; }
+        
+        .btn-assistir-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0.6; z-index: 600; transition: 0.3s; }
+        .btn-assistir-overlay span { border: 2px solid #fff; padding: 10px 15px; border-radius: 5px; font-weight: 900; font-size: 14px; color: #fff; text-transform: uppercase; }
+        .focused .btn-assistir-overlay { opacity: 1; background: rgba(0,0,0,0.2); }
 
-        /* CATEGORIAS E GRIDS */
         .category-block { margin: 0 50px 30px 50px; }
         .cat-header { font-size: 26px; font-weight: 900; border-left: 8px solid #FFCE44; padding-left: 20px; margin-bottom: 15px; }
-        .header-spacing { margin-top: 10px; } /* Distância extra de 10px */
+        .header-spacing { margin-top: 10px; }
         
         .row-wrapper { display: flex; align-items: center; gap: 15px; }
         .movie-grid { display: flex; gap: 20px; overflow-x: hidden !important; width: calc(100% - 70px); }
         
-        .movie-card { min-width: calc(25% - 20px); border-radius: 10px; border: 4px solid transparent; background: #1a1d29; }
-        .card-rec { min-width: calc(16.25% - 20px) !important; } /* -35% (65% do original) */
-        .card-cont { min-width: calc(12.5% - 20px) !important; } /* 50% do original */
+        .movie-card { min-width: calc(25% - 20px); border-radius: 10px; border: 4px solid transparent; background: #1a1d29; position: relative; }
+        /* Recomendados do mesmo tamanho que Top 4 */
+        .card-rec { min-width: 280px !important; } 
+        .card-cont { min-width: calc(12.5% - 20px) !important; }
         
-        .meta-card { padding: 3px 0; display: flex; align-items: center; justify-content: center; gap: 10px; color: #FFCE44; font-weight: 900; font-size: 14px; background: rgba(0,0,0,0.6); }
+        .meta-card { padding: 3px 0; display: flex; align-items: center; justify-content: center; gap: 10px; color: #FFCE44; font-weight: 900; font-size: 14px; background: rgba(0,0,0,0.6); position: relative; z-index: 700; }
         .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 5px; }
 
-        /* SETA AUTOEXPLICATIVA */
-        .slider-arrow { min-width: 50px; height: 120px; background: #FFCE44; border: none; cursor: pointer; border-radius: 10px; transition: 0.3s; clip-path: polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%); }
+        .slider-arrow { min-width: 50px; height: 120px; background: #FFCE44; border: none; cursor: pointer; border-radius: 10px; clip-path: polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%); }
 
         #videoContainer { position: fixed; inset: 0; background: #000; z-index: 99999; display: none; }
     </style>
@@ -88,10 +85,6 @@
     <div id="dynamicContent"></div>
 </div>
 
-<div id="videoContainer">
-    <div id="mainPlayer" style="width:100%; height:100%;"></div>
-</div>
-
 <script>
     let db = { cinema: [], series: [], kids_filmes: [], kids_series: [], todos: [] };
 
@@ -115,8 +108,11 @@
     }
 
     function updateClock() {
-        const opt = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-        document.getElementById('barDateTime').innerText = new Date().toLocaleDateString('pt-BR', opt);
+        const agora = new Date();
+        const dia = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        // Removido o "às" conforme solicitado
+        document.getElementById('barDateTime').innerText = `${dia} ${hora}`;
     }
 
     function renderHome() {
@@ -144,6 +140,7 @@
                 grid.innerHTML += `
                     <div class="top-item" tabindex="0">
                         <span class="top-number">${idx + 1}</span>
+                        <div class="btn-assistir-overlay"><span>ASSISTIR AGORA</span></div>
                         <img src="${item.poster}">
                         <div class="meta-card"><span>${item.year}</span><span><i class="fas fa-star"></i> ${item.rating}</span></div>
                     </div>`;
@@ -155,7 +152,7 @@
         const r = document.getElementById('row-rec');
         r.innerHTML = `<div class="cat-header header-spacing">Recomendado para você</div><div class="movie-grid"></div>`;
         db.todos.slice(0, 2).forEach(i => {
-            r.querySelector('.movie-grid').innerHTML += createCard(i, 'card-rec');
+            r.querySelector('.movie-grid').innerHTML += createCard(i, 'card-rec', true);
         });
     }
 
@@ -166,12 +163,14 @@
         c.innerHTML = `<div class="cat-header header-spacing">Continuar Assistindo</div><div class="movie-grid"></div>`;
         keys.forEach(k => {
             const item = db.todos.find(i => btoa(i.titulo) === k.replace('prog_',''));
-            if(item) c.querySelector('.movie-grid').innerHTML += createCard(item, 'card-cont');
+            if(item) c.querySelector('.movie-grid').innerHTML += createCard(item, 'card-cont', true);
         });
     }
 
-    function createCard(i, cls = "") {
+    function createCard(i, cls = "", isHome = false) {
+        const overlay = isHome ? '<div class="btn-assistir-overlay"><span>ASSISTIR AGORA</span></div>' : '';
         return `<div class="movie-card ${cls}" tabindex="0">
+            ${overlay}
             <img class="movie-poster" src="${i.poster}">
             <div class="meta-card"><span>${i.year || ''}</span><span><i class="fas fa-star"></i> ${i.rating || '0.0'}</span></div>
         </div>`;
@@ -182,10 +181,7 @@
             const active = document.activeElement;
             const r = active.getBoundingClientRect();
             const all = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
-            
             let next = null, minDist = Infinity;
-            
-            // Lógica para impedir que comandos verticais fujam para o menu lateral
             const isContent = !active.closest('#sideMenu') && active.id !== 'logoMain';
 
             if(e.keyCode === 39 && active.closest('#sideMenu')) {
@@ -195,16 +191,13 @@
                     if(el === active) return;
                     const nr = el.getBoundingClientRect();
                     let ok = false;
-                    
                     if(e.keyCode === 39) ok = nr.left >= r.right - 10 && Math.abs(nr.top - r.top) < 200;
                     if(e.keyCode === 37) ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 200;
                     if(e.keyCode === 40) ok = nr.top >= r.bottom - 10;
                     if(e.keyCode === 38) ok = nr.bottom <= r.top + 10;
                     
                     if(ok) {
-                        // Se estiver no conteúdo e apertar Cima/Baixo, ignorar elementos do menu lateral
                         if(isContent && (e.keyCode === 38 || e.keyCode === 40) && el.closest('#sideMenu')) return;
-
                         const d = Math.hypot(nr.left - r.left, nr.top - r.top);
                         if(d < minDist) { minDist = d; next = el; }
                     }
@@ -213,10 +206,7 @@
 
             if(next) {
                 next.focus();
-                // Rolagem automática garantindo que o seletor não suma
-                if(!next.closest('#sideMenu')) {
-                    next.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
+                if(!next.closest('#sideMenu')) next.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
         
