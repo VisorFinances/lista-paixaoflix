@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - V.86.49.78</title>
+    <title>PaixãoFlix TV - V.87.50.79</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -12,50 +12,47 @@
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; overflow: hidden !important; }
         body { margin: 0; padding: 0; background: #040714; color: #fff; height: 100vh; width: 100vw; }
         
-        .focused { border: 5px solid #FFCE44 !important; box-shadow: 0 0 25px rgba(255, 206, 68, 1); z-index: 1000 !important; transform: scale(1.02); }
+        .focused { border: 5px solid #FFCE44 !important; box-shadow: 0 0 25px rgba(255, 206, 68, 1); z-index: 1000 !important; transform: scale(1.05); transition: 0.2s; }
         
-        /* Barra Superior - DATA POR EXTENSO */
-        #topBar { position: fixed; top: 0; width: 100%; height: 70px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 5000; background: #040714; }
-        #logoMain { height: 55px; cursor: pointer; border: 3px solid transparent; }
-        #jsonStatus { color: #FFCE44; font-weight: bold; font-size: 14px; }
-        #barDateTime { font-size: 16px; color: #fff; font-weight: 400; text-transform: capitalize; }
+        #topBar { position: fixed; top: 0; width: 100%; height: 90px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 5000; background: #040714; }
+        #logoMain { height: 70px; cursor: pointer; border: 5px solid transparent; }
+        #jsonStatus { color: #FFCE44; font-weight: 900; }
+        #barDateTime { font-size: 18px; text-transform: capitalize; }
 
-        /* Menu Lateral */
-        #sideMenu { position: fixed; left: 0; top: 70px; height: calc(100vh - 70px); width: 70px; background: rgba(4,7,20,0.98); display: flex; flex-direction: column; align-items: center; padding-top: 10px; z-index: 5500; border-right: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
-        #sideMenu.active { width: 250px; }
-        .menu-item { width: 100%; height: 50px; display: flex; align-items: center; padding-left: 22px; cursor: pointer; color: #a0a0a0; }
-        .menu-item i { font-size: 20px; min-width: 35px; }
-        .menu-item span { display: none; margin-left: 15px; font-weight: 600; white-space: nowrap; }
+        #sideMenu { position: fixed; left: 0; top: 90px; height: calc(100vh - 90px); width: 80px; background: rgba(4,7,20,0.98); display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 5500; border-right: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
+        #sideMenu.active { width: 280px; }
+        .menu-item { width: 100%; height: 60px; display: flex; align-items: center; padding-left: 28px; cursor: pointer; color: #a0a0a0; }
+        .menu-item span { display: none; margin-left: 20px; font-weight: 600; }
         #sideMenu.active .menu-item span { display: block; }
 
-        #mainScroll { width: 100%; height: 100vh; padding: 75px 0 200px 80px; overflow-y: scroll !important; scroll-behavior: smooth; }
+        #mainScroll { width: 100%; height: 100vh; padding: 110px 0 400px 90px; overflow-y: scroll !important; scroll-behavior: smooth; }
         #mainScroll::-webkit-scrollbar { display: none; }
 
-        /* Home Compacta */
-        .hero-banner { width: 96%; height: 180px; margin: 5px auto 10px; border-radius: 12px; background: linear-gradient(to bottom, transparent, #040714), url('https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/banner_hero.jpg'); background-size: cover; background-position: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .hero-banner h1 { font-size: 32px; font-weight: 900; margin: 0; }
-        .hero-banner p { font-size: 14px; font-weight: 200; font-style: italic; margin-top: 2px; }
+        /* Título e Banner */
+        .hero-banner { width: 95%; height: 350px; margin: 20px auto 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(to bottom, transparent, #040714), url('https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/banner_hero.jpg'); background-size: cover; border-radius: 20px; }
+        .hero-banner h1 { font-size: 60px; font-weight: 900; margin: 0; text-shadow: 2px 2px 20px #000; }
+        .hero-banner p { font-size: 22px; font-weight: 200; font-style: italic; margin-top: 10px; }
 
-        /* Top 4 - Ajustado */
-        .top-container { display: flex; gap: 35px; justify-content: center; margin-bottom: 15px; }
-        .top-item { position: relative; width: 180px; cursor: pointer; }
-        .top-number { position: absolute; left: -35px; bottom: 5px; font-size: 160px; font-weight: 900; color: transparent; -webkit-text-stroke: 4px #FFCE44; z-index: 500; line-height: 0.7; pointer-events: none; }
-        .top-item img { width: 100%; border-radius: 8px; position: relative; z-index: 100; border: 2px solid transparent; }
+        /* Top 4 - Restaurado */
+        .top-container { display: flex; gap: 40px; justify-content: center; margin-bottom: 50px; }
+        .top-item { position: relative; width: 280px; cursor: pointer; }
+        .top-number { position: absolute; left: -45px; bottom: 5px; font-size: 200px; font-weight: 900; color: transparent; -webkit-text-stroke: 4px #FFCE44; z-index: 500; line-height: 0.7; pointer-events: none; }
+        .top-item img { width: 100%; border-radius: 12px; position: relative; z-index: 100; border: 3px solid transparent; }
 
-        /* Categorias e Capas */
-        .category-block { margin: 0 40px 10px 40px; }
-        .cat-header { font-size: 20px; font-weight: 900; border-left: 5px solid #FFCE44; padding-left: 12px; margin-bottom: 8px; }
-        .row-wrapper { display: flex; align-items: center; gap: 10px; }
-        .movie-grid { display: flex; gap: 15px; overflow-x: hidden !important; width: calc(100% - 60px); }
+        /* Grid e Categorias */
+        .category-block { margin: 0 50px 30px 50px; }
+        .cat-header { font-size: 26px; font-weight: 900; border-left: 8px solid #FFCE44; padding-left: 20px; margin-bottom: 15px; }
+        .row-wrapper { display: flex; align-items: center; gap: 15px; }
+        .movie-grid { display: flex; gap: 20px; overflow-x: hidden !important; width: calc(100% - 70px); }
         
-        .movie-card { min-width: calc(20% - 15px); border-radius: 6px; background: #1a1d29; cursor: pointer; border: 3px solid transparent; }
-        .card-rec { min-width: calc(13% - 15px) !important; } /* 65% do tamanho normal */
-        .card-cont { min-width: calc(10% - 15px) !important; } /* Metade do tamanho */
+        .movie-card { min-width: calc(25% - 20px); border-radius: 10px; border: 4px solid transparent; background: #1a1d29; }
+        .card-rec { min-width: calc(16.25% - 20px) !important; } /* 65% do tamanho normal */
+        .card-cont { min-width: calc(12.5% - 20px) !important; } /* 50% do tamanho normal */
         
-        .meta-card { padding: 3px 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 12px; color: #FFCE44; font-weight: bold; background: rgba(0,0,0,0.4); border-radius: 0 0 4px 4px; }
-        .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 4px; }
+        .meta-card { padding: 3px 0; display: flex; align-items: center; justify-content: center; gap: 10px; color: #FFCE44; font-weight: 900; font-size: 14px; background: rgba(0,0,0,0.6); }
+        .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 5px; }
 
-        .slider-arrow { min-width: 45px; height: 80px; background: #FFCE44; border: none; cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #000; font-size: 22px; clip-path: polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%); }
+        .slider-arrow { min-width: 50px; height: 120px; background: #FFCE44; border: none; cursor: pointer; border-radius: 10px; clip-path: polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%); }
 
         #videoContainer { position: fixed; inset: 0; background: #000; z-index: 99999; display: none; }
     </style>
@@ -64,7 +61,7 @@
 
 <div id="topBar">
     <img id="logoMain" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" tabindex="0" onclick="renderHome()">
-    <div id="jsonStatus">CARREGANDO CONTEÚDO...</div>
+    <div id="jsonStatus">SINCRONIZANDO...</div>
     <div id="barDateTime"></div>
 </div>
 
@@ -89,7 +86,6 @@
 
 <script>
     let db = { cinema: [], series: [], kids_filmes: [], kids_series: [], todos: [] };
-    let clapprPlayer = null;
 
     async function initSystem() {
         updateClock();
@@ -103,7 +99,7 @@
             ]);
             db.cinema = f; db.series = s; db.kids_filmes = kf; db.kids_series = ks;
             db.todos = [...f, ...s, ...kf, ...ks];
-            document.getElementById('jsonStatus').innerText = `TOTAL: ${db.todos.length} TÍTULOS DISPONÍVEIS`;
+            document.getElementById('jsonStatus').innerText = `CONTEÚDO: ${db.todos.length}`;
             renderHome();
             document.getElementById('logoMain').focus();
         } catch(e) { console.error(e); }
@@ -111,8 +107,8 @@
     }
 
     function updateClock() {
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-        document.getElementById('barDateTime').innerText = new Date().toLocaleDateString('pt-BR', options);
+        const opt = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        document.getElementById('barDateTime').innerText = new Date().toLocaleDateString('pt-BR', opt);
     }
 
     function renderHome() {
@@ -134,12 +130,11 @@
     function renderTop4() {
         const grid = document.getElementById('top4-grid');
         const seed = Math.floor(Date.now() / (6 * 60 * 60 * 1000));
-        const pools = [db.cinema, db.series, db.kids_filmes, db.kids_series];
-        pools.forEach((pool, idx) => {
+        [db.cinema, db.series, db.kids_filmes, db.kids_series].forEach((pool, idx) => {
             if(pool.length > 0) {
                 const item = pool[seed % pool.length];
                 grid.innerHTML += `
-                    <div class="top-item" tabindex="0" onclick="openDetails('${item.titulo}')">
+                    <div class="top-item" tabindex="0">
                         <span class="top-number">${idx + 1}</span>
                         <img src="${item.poster}">
                         <div class="meta-card"><span>${item.year}</span><span><i class="fas fa-star"></i> ${item.rating}</span></div>
@@ -151,7 +146,7 @@
     function renderRecomendados() {
         const r = document.getElementById('row-rec');
         r.innerHTML = `<div class="cat-header">Recomendado para você</div><div class="movie-grid"></div>`;
-        db.todos.slice(0, 5).forEach(i => {
+        db.todos.slice(0, 2).forEach(i => {
             r.querySelector('.movie-grid').innerHTML += createCard(i, 'card-rec');
         });
     }
@@ -168,7 +163,7 @@
     }
 
     function createCard(i, cls = "") {
-        return `<div class="movie-card ${cls}" tabindex="0" onclick="openDetails('${i.titulo}')">
+        return `<div class="movie-card ${cls}" tabindex="0">
             <img class="movie-poster" src="${i.poster}">
             <div class="meta-card"><span>${i.year || ''}</span><span><i class="fas fa-star"></i> ${i.rating || '0.0'}</span></div>
         </div>`;
@@ -180,11 +175,8 @@
             const r = active.getBoundingClientRect();
             const all = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
             
-            if(e.keyCode === 13) { active.click(); return; }
-
             let next = null, minDist = Infinity;
             
-            // Lógica de "Ir para Capa" a partir do Menu
             if(e.keyCode === 39 && active.closest('#sideMenu')) {
                 next = document.querySelector('.top-item') || document.querySelector('.movie-card');
             } else {
@@ -192,8 +184,8 @@
                     if(el === active) return;
                     const nr = el.getBoundingClientRect();
                     let ok = false;
-                    if(e.keyCode === 39) ok = nr.left >= r.right - 10 && Math.abs(nr.top - r.top) < 160;
-                    if(e.keyCode === 37) ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 160;
+                    if(e.keyCode === 39) ok = nr.left >= r.right - 10 && Math.abs(nr.top - r.top) < 200;
+                    if(e.keyCode === 37) ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 200;
                     if(e.keyCode === 40) ok = nr.top >= r.bottom - 10;
                     if(e.keyCode === 38) ok = nr.bottom <= r.top + 10;
                     
@@ -216,25 +208,6 @@
             if(e.target.closest('#sideMenu')) document.getElementById('sideMenu').classList.add('active');
             else document.getElementById('sideMenu').classList.remove('active');
         });
-    }
-
-    function changeSection(type) {
-        const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = "";
-        const grouped = {};
-        db[type].forEach(i => { const c = i.genero || "Geral"; if(!grouped[c]) grouped[c]=[]; grouped[c].push(i); });
-        Object.keys(grouped).forEach((cat, idx) => {
-            const block = document.createElement('div'); block.className = "category-block";
-            block.innerHTML = `<div class="cat-header">${cat}</div><div class="row-wrapper"><div class="movie-grid" id="grid-${idx}"></div><button class="slider-arrow" tabindex="0" onclick="scroll4(${idx})"><i class="fas fa-chevron-right"></i></button></div>`;
-            cont.appendChild(block);
-            grouped[cat].forEach(i => document.getElementById(`grid-${idx}`).innerHTML += createCard(i));
-        });
-    }
-
-    function scroll4(idx) {
-        const g = document.getElementById(`grid-${idx}`);
-        g.scrollBy({left: g.offsetWidth, behavior: 'smooth'});
-        if(g.scrollLeft + g.offsetWidth >= g.scrollWidth) g.scrollTo({left:0, behavior:'smooth'});
     }
 </script>
 </body>
