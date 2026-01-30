@@ -2,13 +2,14 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - V.90.53.82</title>
+    <title>PaixãoFlix TV - V.91.54.83</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
     
     <style>
+        /* ESTILOS BLINDADOS - NÃO ALTERAR SEM ORDEM */
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; overflow: hidden !important; }
         body { margin: 0; padding: 0; background: #040714; color: #fff; height: 100vh; width: 100vw; }
         
@@ -28,9 +29,12 @@
         #mainScroll { width: 100%; height: 100vh; padding: 102px 0 400px 90px; overflow-y: scroll !important; scroll-behavior: smooth; }
         #mainScroll::-webkit-scrollbar { display: none; }
 
+        /* BANNER COM CORES DO LOGOTIPO */
         .hero-banner { width: 95%; height: 350px; margin: 12px auto 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(to bottom, transparent, #040714), url('https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/banner_hero.jpg'); background-size: cover; border-radius: 20px; }
         .hero-banner h1 { font-size: 60px; font-weight: 900; margin: 0; text-shadow: 2px 2px 20px #000; }
-        .hero-banner p { font-size: 22px; font-weight: 200; font-style: italic; margin-top: 10px; }
+        .color-amarelo { color: #FFCE44; } /* Amarelo Pipoca */
+        .color-vermelho { color: #E50914; } /* Vermelho Logotipo */
+        .hero-banner p { font-size: 22px; font-weight: 200; font-style: italic; margin-top: 10px; color: #fff; }
 
         /* PADRONIZAÇÃO DE CAPAS - 280PX */
         .top-container { display: flex; gap: 40px; justify-content: center; margin-bottom: 50px; }
@@ -43,18 +47,14 @@
         .category-block { margin: 0 50px 30px 50px; }
         .cat-header { font-size: 26px; font-weight: 900; border-left: 8px solid #FFCE44; padding-left: 20px; margin-bottom: 15px; margin-top: 10px; }
         
-        .row-wrapper { display: flex; align-items: center; gap: 15px; }
         .movie-grid { display: flex; gap: 20px; overflow-x: hidden !important; width: calc(100% - 70px); }
-        
-        /* CAPAS RECOMENDADOS EXATAMENTE IGUAL TOP 4 */
         .movie-card { border-radius: 10px; border: 4px solid transparent; background: #1a1d29; position: relative; }
         .card-rec { min-width: 280px !important; width: 280px !important; } 
         .card-cont { min-width: calc(12.5% - 20px) !important; }
         
-        /* REDUÇÃO DO FUNDO PARA 3PX ABAIXO */
+        /* FUNDO META 3PX ABAIXO */
         .meta-card { 
-            padding-top: 3px; 
-            padding-bottom: 3px; 
+            padding: 3px 0; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
@@ -68,8 +68,6 @@
             width: 100%;
         }
         .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 5px; display: block; }
-
-        #videoContainer { position: fixed; inset: 0; background: #000; z-index: 99999; display: none; }
     </style>
 </head>
 <body onload="initSystem()">
@@ -128,7 +126,7 @@
         const cont = document.getElementById('dynamicContent');
         cont.innerHTML = `
             <div class="hero-banner">
-                <h1>Bem vindos ao PaixãoFlix</h1>
+                <h1><span class="color-amarelo">Bem vindos ao</span> <span class="color-vermelho">PaixãoFlix</span></h1>
                 <p>Transformando momentos de lazer em lembranças felizes!</p>
             </div>
             <div class="top-container" id="top4-grid"></div>
