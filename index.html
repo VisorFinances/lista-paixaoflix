@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - V.89.52.81</title>
+    <title>PaixãoFlix TV - V.90.53.82</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -13,7 +13,6 @@
         body { margin: 0; padding: 0; background: #040714; color: #fff; height: 100vh; width: 100vw; }
         
         .focused { border: 5px solid #FFCE44 !important; box-shadow: 0 0 25px rgba(255, 206, 68, 1); z-index: 1000 !important; transform: scale(1.05); transition: 0.2s; }
-        .slider-arrow.focused { background: #FFFFFF !important; box-shadow: 0 0 30px #FFFFFF !important; transform: scale(1.1); }
         
         #topBar { position: fixed; top: 0; width: 100%; height: 90px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 5000; background: #040714; }
         #logoMain { height: 70px; cursor: pointer; border: 5px solid transparent; }
@@ -33,31 +32,42 @@
         .hero-banner h1 { font-size: 60px; font-weight: 900; margin: 0; text-shadow: 2px 2px 20px #000; }
         .hero-banner p { font-size: 22px; font-weight: 200; font-style: italic; margin-top: 10px; }
 
-        /* Estilo Capas Início com Botão Transparente */
+        /* PADRONIZAÇÃO DE CAPAS - 280PX */
         .top-container { display: flex; gap: 40px; justify-content: center; margin-bottom: 50px; }
         .top-item { position: relative; width: 280px; cursor: pointer; border: 4px solid transparent; }
         .top-number { position: absolute; left: -45px; bottom: 5px; font-size: 200px; font-weight: 900; color: transparent; -webkit-text-stroke: 4px #FFCE44; z-index: 500; line-height: 0.7; pointer-events: none; }
         
-        .btn-assistir-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0.6; z-index: 600; transition: 0.3s; }
+        .btn-assistir-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0.6; z-index: 600; }
         .btn-assistir-overlay span { border: 2px solid #fff; padding: 10px 15px; border-radius: 5px; font-weight: 900; font-size: 14px; color: #fff; text-transform: uppercase; }
-        .focused .btn-assistir-overlay { opacity: 1; background: rgba(0,0,0,0.2); }
 
         .category-block { margin: 0 50px 30px 50px; }
-        .cat-header { font-size: 26px; font-weight: 900; border-left: 8px solid #FFCE44; padding-left: 20px; margin-bottom: 15px; }
-        .header-spacing { margin-top: 10px; }
+        .cat-header { font-size: 26px; font-weight: 900; border-left: 8px solid #FFCE44; padding-left: 20px; margin-bottom: 15px; margin-top: 10px; }
         
         .row-wrapper { display: flex; align-items: center; gap: 15px; }
         .movie-grid { display: flex; gap: 20px; overflow-x: hidden !important; width: calc(100% - 70px); }
         
-        .movie-card { min-width: calc(25% - 20px); border-radius: 10px; border: 4px solid transparent; background: #1a1d29; position: relative; }
-        /* Recomendados do mesmo tamanho que Top 4 */
-        .card-rec { min-width: 280px !important; } 
+        /* CAPAS RECOMENDADOS EXATAMENTE IGUAL TOP 4 */
+        .movie-card { border-radius: 10px; border: 4px solid transparent; background: #1a1d29; position: relative; }
+        .card-rec { min-width: 280px !important; width: 280px !important; } 
         .card-cont { min-width: calc(12.5% - 20px) !important; }
         
-        .meta-card { padding: 3px 0; display: flex; align-items: center; justify-content: center; gap: 10px; color: #FFCE44; font-weight: 900; font-size: 14px; background: rgba(0,0,0,0.6); position: relative; z-index: 700; }
-        .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 5px; }
-
-        .slider-arrow { min-width: 50px; height: 120px; background: #FFCE44; border: none; cursor: pointer; border-radius: 10px; clip-path: polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%); }
+        /* REDUÇÃO DO FUNDO PARA 3PX ABAIXO */
+        .meta-card { 
+            padding-top: 3px; 
+            padding-bottom: 3px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            color: #FFCE44; 
+            font-weight: 900; 
+            font-size: 14px; 
+            background: rgba(0,0,0,0.7); 
+            position: relative; 
+            z-index: 700; 
+            width: 100%;
+        }
+        .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 5px; display: block; }
 
         #videoContainer { position: fixed; inset: 0; background: #000; z-index: 99999; display: none; }
     </style>
@@ -111,7 +121,6 @@
         const agora = new Date();
         const dia = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        // Removido o "às" conforme solicitado
         document.getElementById('barDateTime').innerText = `${dia} ${hora}`;
     }
 
@@ -141,7 +150,7 @@
                     <div class="top-item" tabindex="0">
                         <span class="top-number">${idx + 1}</span>
                         <div class="btn-assistir-overlay"><span>ASSISTIR AGORA</span></div>
-                        <img src="${item.poster}">
+                        <img class="movie-poster" src="${item.poster}">
                         <div class="meta-card"><span>${item.year}</span><span><i class="fas fa-star"></i> ${item.rating}</span></div>
                     </div>`;
             }
@@ -150,7 +159,7 @@
 
     function renderRecomendados() {
         const r = document.getElementById('row-rec');
-        r.innerHTML = `<div class="cat-header header-spacing">Recomendado para você</div><div class="movie-grid"></div>`;
+        r.innerHTML = `<div class="cat-header">Recomendado para você</div><div class="movie-grid"></div>`;
         db.todos.slice(0, 2).forEach(i => {
             r.querySelector('.movie-grid').innerHTML += createCard(i, 'card-rec', true);
         });
@@ -160,7 +169,7 @@
         const c = document.getElementById('row-cont');
         const keys = Object.keys(localStorage).filter(k => k.startsWith('prog_')).slice(-4);
         if(keys.length === 0) return;
-        c.innerHTML = `<div class="cat-header header-spacing">Continuar Assistindo</div><div class="movie-grid"></div>`;
+        c.innerHTML = `<div class="cat-header">Continuar Assistindo</div><div class="movie-grid"></div>`;
         keys.forEach(k => {
             const item = db.todos.find(i => btoa(i.titulo) === k.replace('prog_',''));
             if(item) c.querySelector('.movie-grid').innerHTML += createCard(item, 'card-cont', true);
@@ -195,7 +204,6 @@
                     if(e.keyCode === 37) ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 200;
                     if(e.keyCode === 40) ok = nr.top >= r.bottom - 10;
                     if(e.keyCode === 38) ok = nr.bottom <= r.top + 10;
-                    
                     if(ok) {
                         if(isContent && (e.keyCode === 38 || e.keyCode === 40) && el.closest('#sideMenu')) return;
                         const d = Math.hypot(nr.left - r.left, nr.top - r.top);
@@ -203,7 +211,6 @@
                     }
                 });
             }
-
             if(next) {
                 next.focus();
                 if(!next.closest('#sideMenu')) next.scrollIntoView({ behavior: 'smooth', block: 'center' });
