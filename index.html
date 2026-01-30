@@ -247,3 +247,68 @@
             }
             
             const active = document.activeElement;
+            
+            if(e.keyCode === 13 && active.id === 'searchWrapper') {
+                const input = document.getElementById('searchInput');
+                input.focus();
+                input.setSelectionRange(input.value.length, input.value.length);
+                return;
+            }
+
+            if(active.id === 'searchInput' && e.keyCode !== 40) return;
+
+            if(e.keyCode === 39 && active.closest('#sideMenu')) {
+                document.getElementById('sideMenu').classList.remove('active');
+            }
+
+            const all = Array.from(document.querySelectorAll('[tabindex="0"], #searchInput')).filter(el => el.offsetParent !== null);
+            let next = null, minDist = Infinity, r = active.getBoundingClientRect();
+
+            all.forEach(el => {
+                if(el === active) return;
+                const nr = el.getBoundingClientRect();
+                let ok = false;
+                if(e.keyCode === 39) ok = nr.left >= r.right - 50;
+                if(e.keyCode === 37) ok = nr.right <= r.left + 50;
+                if(e.keyCode === 40) ok = nr.top >= r.bottom - 50;
+                if(e.keyCode === 38) ok = nr.bottom <= r.top + 50;
+                
+                if(ok) {
+                    const d = Math.hypot(nr.left - r.left, nr.top - r.top);
+                    if(d < minDist) { minDist = d; next = el; }
+                }
+            });
+
+            if(next) {
+                next.focus();
+                if(!next.closest('#sideMenu') && !next.closest('#topBar')) {
+                    next.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+
+        document.addEventListener('focusin', (e) => {
+            document.querySelectorAll('.focused').forEach(f => f.classList.remove('focused'));
+            if(e.target.tabIndex === 0 || e.target.id === 'searchInput') {
+                e.target.classList.add('focused');
+                if(e.target.closest('#sideMenu')) {
+                    document.getElementById('sideMenu').classList.add('active');
+                } else if(e.target.id !== 'searchInput') {
+                    document.getElementById('sideMenu').classList.remove('active');
+                }
+            }
+        });
+    }
+
+    function renderCanais(url) {
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div class="category-block" style="margin-top:20px;"><div class="cat-header">CANAIS</div><p>Carregando: ${url}</p></div>`;
+    }
+
+    function renderFavoritos() {
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div class="category-block" style="margin-top:20px;"><div class="cat-header">FAVORITOS</div><p>Carregando data/favoritos.json...</p></div>`;
+    }
+</script>
+</body>
+</html>
