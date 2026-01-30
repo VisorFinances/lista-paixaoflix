@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - V.98.63.10</title>
+    <title>PaixãoFlix TV - V.98.61.90</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -60,7 +60,7 @@
     <img id="logoMain" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" tabindex="0" onclick="renderHome()">
     <div id="searchWrapper" tabindex="0">
         <i class="fas fa-search"></i>
-        <input type="text" id="searchInput" placeholder="Pesquisar no PaixãoFlix..." tabindex="-1" oninput="globalSearch(this.value)">
+        <input type="text" id="searchInput" placeholder="Pesquisar no PaixãoFlix..." tabindex="-1">
     </div>
     <div id="jsonStatus">SINCRONIZANDO...</div>
     <div id="barDateTime"></div>
@@ -96,10 +96,10 @@
     async function loadData() {
         try {
             const [f, s, kf, ks] = await Promise.all([
-                fetch('https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/filmes.json').then(r => r.json()).catch(() => []),
-                fetch('https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/series.json').then(r => r.json()).catch(() => []),
-                fetch('https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/kids_filmes.json').then(r => r.json()).catch(() => []),
-                fetch('https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/kids_series.json').then(r => r.json()).catch(() => [])
+                fetch('data/filmes.json').then(r => r.json()).catch(() => []),
+                fetch('data/series.json').then(r => r.json()).catch(() => []),
+                fetch('data/kids_filmes.json').then(r => r.json()).catch(() => []),
+                fetch('data/kids_series.json').then(r => r.json()).catch(() => [])
             ]);
             db.cinema = f; db.series = s; db.kids_filmes = kf; db.kids_series = ks;
             db.todos = [...f, ...s, ...kf, ...ks];
@@ -149,7 +149,7 @@
 
     function renderRecomendados() {
         const grid = document.getElementById('rec-grid');
-        db.todos.slice(0, 10).forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
+        db.todos.slice(0, 2).forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
     }
 
     function renderContinuar() {
@@ -171,20 +171,6 @@
         </div>`;
     }
 
-    function globalSearch(query) {
-        if(!query) { renderHome(); return; }
-        const res = db.todos.filter(i => i.titulo.toLowerCase().includes(query.toLowerCase()));
-        const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `
-            <div class="category-block" style="margin-top:100px;">
-                <div class="cat-header">Resultados para: ${query}</div>
-                <div class="movie-grid" style="flex-wrap: wrap;" id="search-grid"></div>
-            </div>
-        `;
-        const grid = document.getElementById('search-grid');
-        res.forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
-    }
-
     function handleSelect(id) {
         const item = db.todos.find(i => btoa(i.titulo) === id);
         if(!item) return;
@@ -203,29 +189,23 @@
 
     function setupNavigation() {
         document.addEventListener('keydown', (e) => {
-            if(e.keyCode === 27) { 
-                document.getElementById('videoContainer').style.display = 'none'; 
-                if(player) player.stop(); 
-                document.getElementById('logoMain').focus();
-                return; 
-            }
+            if(e.keyCode === 27) { document.getElementById('videoContainer').style.display = 'none'; if(player) player.stop(); return; }
             
             const active = document.activeElement;
             const menu = document.getElementById('sideMenu');
             
             if(e.keyCode === 13 && active.id === 'searchWrapper') {
-                const input = document.getElementById('searchInput');
-                input.focus();
+                document.getElementById('searchInput').focus();
                 return;
             }
 
-            if(active.id === 'searchInput' && e.keyCode !== 40) return;
+            if(active.id === 'searchInput') return;
 
             if(e.keyCode === 39 && active.closest('#sideMenu')) {
                 menu.classList.remove('active');
             }
 
-            const all = Array.from(document.querySelectorAll('[tabindex="0"], #searchInput')).filter(el => el.offsetParent !== null);
+            const all = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
             let next = null, minDist = Infinity, r = active.getBoundingClientRect();
 
             all.forEach(el => {
@@ -255,9 +235,6 @@
             document.querySelectorAll('.focused').forEach(f => f.classList.remove('focused'));
             if(e.target.tabIndex === 0 || e.target.id === 'searchInput') {
                 e.target.classList.add('focused');
-                if(e.target.id === 'searchInput') {
-                    e.target.select();
-                }
                 if(e.target.closest('#sideMenu')) {
                     document.getElementById('sideMenu').classList.add('active');
                 } else if(e.target.id !== 'searchInput') {
@@ -267,31 +244,10 @@
         });
     }
 
-    function changeSection(s) {
-        const res = db[s];
-        const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `
-            <div class="category-block" style="margin-top:100px;">
-                <div class="cat-header">${s.toUpperCase()}</div>
-                <div class="movie-grid" style="flex-wrap: wrap;" id="cat-grid"></div>
-            </div>
-        `;
-        const grid = document.getElementById('cat-grid');
-        res.forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
-    }
-
-    function renderCanais(type) {
-        changeSection(type === 'kids' ? 'kids_series' : 'series');
-    }
-
-    function renderFavoritos() {
-        const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `<div class="category-block" style="margin-top:100px;"><div class="cat-header">FAVORITOS</div><p>Sincronize sua conta para ver favoritos.</p></div>`;
-    }
-
-    function renderKidsAZ(cat) {
-        changeSection(cat);
-    }
+    function changeSection(s) { /* Lógica de Filtro */ }
+    function renderCanais(type) { /* Lógica de Canais */ }
+    function renderFavoritos() { /* Lógica de Favoritos */ }
+    function renderKidsAZ(cat) { /* Lógica Kids */ }
 </script>
 </body>
 </html>
