@@ -194,6 +194,13 @@
             const active = document.activeElement;
             const menu = document.getElementById('sideMenu');
             
+            if(e.keyCode === 13 && active.id === 'searchWrapper') {
+                document.getElementById('searchInput').focus();
+                return;
+            }
+
+            if(active.id === 'searchInput') return;
+
             if(e.keyCode === 39 && active.closest('#sideMenu')) {
                 menu.classList.remove('active');
             }
@@ -226,11 +233,11 @@
 
         document.addEventListener('focusin', (e) => {
             document.querySelectorAll('.focused').forEach(f => f.classList.remove('focused'));
-            if(e.target.tabIndex === 0) {
+            if(e.target.tabIndex === 0 || e.target.id === 'searchInput') {
                 e.target.classList.add('focused');
                 if(e.target.closest('#sideMenu')) {
                     document.getElementById('sideMenu').classList.add('active');
-                } else {
+                } else if(e.target.id !== 'searchInput') {
                     document.getElementById('sideMenu').classList.remove('active');
                 }
             }
