@@ -3,12 +3,41 @@
 ########## ABERTOS ##########
 #EXTINF:-1 tvg-id="Globo.br" tvg-logo="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/globo.jpg" group-title="ABERTOS",Globo RJ PaixãoFlix
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/52814
+
 #EXTINF:-1 tvg-id="SBT" tvg-logo="https://i.imgur.com/NyttX7c.jpeg" group-title="ABERTOS",SBT HD PaixãoFlix
 https://cdn.jmvstream.com/w/LVW-10801/LVW10801_Xvg4R0u57n/playlist.m3u8
+
 #EXTINF:-1 tvg-id="record.sp" tvg-logo="https://i.imgur.com/CjUm4pA.jpeg" group-title="ABERTOS",Record SP PaixãoFlix
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/53248
+
 #EXTINF:-1 tvg-id="band.br" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/2/22/Rede_Band_Logo.png" group-title="ABERTOS",Band HD PaixãoFlix
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3545
+
+#EXTINF:-1 tvg-id="SBTInterior.br@SD",SBT Interior
+https://cdn.jmvstream.com/w/LVW-10801/LVW10801_Xvg4R0u57n/playlist.m3u8
+
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36
+http://hls1.sua.tv/live/globotvbahiafhdbr2/s.m3u8
+
+#EXTINF:-1 tvg-id="TVBrasil.br@SD",TV Brasil
+https://tvbrasil-stream.ebc.com.br/index.m3u8
+
+#EXTINF:-1 tvg-id="Record.br@SD",RecordTV
+https://cdn.jmvstream.com/w/LVW-10842/LVW10842_513N26MDBL/chunklist.m3u8
+
+#EXTINF:-1 tvg-id="RecordTVInteriorSP.br@SD",RecordTV Interior SP
+http://200.77.176.130:8000/udp/224.0.0.4:49152
+
+########## DESENHOS ##########
+
+#EXTINF:-1 tvg-id="Geekdot.br@SD",Geekdot
+https://stream.ichibantv.com:3764/hybrid/play.m3u8
+
+#EXTINF:-1 tvg-id="Gloob.br@SD",Gloob
+http://45.235.0.78/Gloob/playlist.m3u8
+
+#EXTINF:-1 tvg-id="Gloob.br@SD",Gloob
+http://79.127.243.211:14436/_.m3u8
 
 ########## ESPORTES ##########
 #EXTINF:-1 group-title="ESPORTES",Combate PaixãoFlix
@@ -23,6 +52,50 @@ http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/51469
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3708
 #EXTINF:-1 group-title="FILMES",Telecine Action PaixãoFlix
 http://vip.sibfungold.org:8080/bagio19821/GwDQuo6pwf@!Nnmd2ao70N/3714
+
+
+########## DIVERSOS  ##########
+
+#EXTINF:-1 tvg-id="AdessoTV.br@SD",Adesso TV 
+https://cdn.jmvstream.com/w/LVW-9715/LVW9715_12B26T62tm/playlist.m3u8
+
+#EXTINF:-1 tvg-id="AmazonSat.br@SD",Amazon Sat 
+https://amazonsat.brasilstream.com.br/hls/amazonsat/index.m3u8
+
+#EXTINF:-1 tvg-id="ChromaTV.br@SD",Chroma TV 
+https://5c483b9d1019c.streamlock.net/8054/8054/playlist.m3u8
+
+#EXTINF:-1 tvg-id="ClassiqueTV.br@SD",Classique TV 
+https://stmv1.srvif.com/classique/classique/playlist.m3u8
+
+#EXTINF:-1 tvg-id="CulturaPara.br@SD",Cultura Pará 
+http://www.portalcultura.com.br/playerhtml/funtelpa/tv_funtelpa/playlist.m3u8
+
+#EXTINF:-1 tvg-id="DemaisTV.br@SD",Demais TV 
+https://stmv1.samcast.com.br/demaistv6503/demaistv6503/playlist.m3u8
+
+#EXTINF:-1 tvg-id="DespertarTV.br@HD",Despertar TV
+https://cdn.live.br1.jmvstream.com/webtv/pejexypz/playlist/playlist.m3u8
+
+#EXTINF:-1 tvg-id="ElyTV.br@SD",ElyTV
+https://stmv1.srvsite.com/ely/ely/playlist.m3u8
+
+#EXTINF:-1 tvg-id="EUTV.br@SD",EUTV
+https://cdn.jmvstream.com/w/LVW-8719/LVW8719_AcLVAxWy5J/playlist.m3u8
+
+#EXTINF:-1 tvg-id="FonteTV.br@SD",Fonte TV
+http://flash.softhost.com.br:1935/fonte/fontetv/live.m3u8
+
+#EXTINF:-1 tvg-id="TVAlternativa.br@SD",TV Alternativa
+https://stmv5.samcast.com.br/wagner7919/wagner7919/playlist.m3u8
+
+#EXTINF:-1 tvg-id="TVAparecida.br@SD",TV Aparecida
+https://cdn.jmvstream.com/w/LVW-9716/LVW9716_HbtQtezcaw/playlist.m3u8
+
+#EXTINF:-1 tvg-id="TVSeries.br@SD",TV Series 1 As Panteras 
+https://stmv1.srvif.com/tvserie/tvserie/playlist.m3u8
+
+
 
 ########## STREAMING OFICIAL (COM PROXY) ##########
 #EXTINF:-1 group-title="Novelas", Pluto TV Novelas PaixãoFlix
