@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - V.98.63.50</title>
+    <title>PaixãoFlix TV - V.98.63.75</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -15,7 +15,6 @@
         
         .focused { border: 5px solid #FFCE44 !important; box-shadow: 0 0 25px rgba(255, 206, 68, 1); z-index: 1000 !important; transform: scale(1.05); transition: 0.2s; }
         
-        /* PATCH: Remove seletor/foco visual da caixa de pesquisa conforme ordem */
         #searchWrapper.focused { border: 3px solid transparent !important; box-shadow: none !important; transform: none !important; background: rgba(255,255,255,0.1); }
 
         #topBar { position: fixed; top: 0; width: 100%; height: 90px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 5000; background: #040714; }
@@ -41,17 +40,22 @@
         .color-amarelo { color: #FFCE44; }
         .color-vermelho { color: #E50914; }
 
-        .top-container { display: flex; gap: 40px; justify-content: center; margin-bottom: 50px; }
-        .top-item { position: relative; width: 280px; min-width: 280px; cursor: pointer; border: 4px solid transparent; }
-        .top-number { position: absolute; left: -45px; bottom: 5px; font-size: 200px; font-weight: 900; color: transparent; -webkit-text-stroke: 4px #FFCE44; z-index: 500; line-height: 0.7; pointer-events: none; }
+        .top-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; justify-content: center; margin-bottom: 50px; padding: 0 50px; }
+        .top-item { position: relative; width: 100%; cursor: pointer; border: 4px solid transparent; }
         
-        .category-block { margin: 0 50px 30px 50px; }
+        /* PATCH: Números Top 4 Azul Paixão com Borda Pipoca */
+        .top-number { position: absolute; left: -35px; bottom: -10px; font-size: 160px; font-weight: 900; color: #003399; -webkit-text-stroke: 4px #FFCE44; z-index: 500; line-height: 0.7; pointer-events: none; }
+        
+        .category-block { margin: 0 50px 30px 50px; min-height: 50px; }
         .cat-header { font-size: 26px; font-weight: 900; border-left: 8px solid #FFCE44; padding-left: 20px; margin-bottom: 15px; }
         
-        /* PATCH: Configurado para 4 capas por linha em grid */
-        .movie-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 100%; padding-bottom: 10px; }
-        .movie-card { border-radius: 10px; border: 4px solid transparent; background: #1a1d29; position: relative; cursor: pointer; width: 100%; }
+        .movie-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 100%; }
         
+        /* PATCH: Mini capas (metade do tamanho) para Recomendados e Continuar */
+        .mini-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 50%; }
+        .mini-card { width: 140px !important; min-width: 140px !important; }
+
+        .movie-card { border-radius: 10px; border: 4px solid transparent; background: #1a1d29; position: relative; cursor: pointer; width: 100%; }
         .meta-card { padding: 3px 0; display: flex; align-items: center; justify-content: center; gap: 10px; color: #FFCE44; font-weight: 900; font-size: 14px; background: rgba(0,0,0,0.7); position: relative; z-index: 700; width: 100%; }
         .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 5px; display: block; }
 
@@ -117,142 +121,26 @@
         } catch(e) { console.error(e); }
     }
 
-    function updateClock() {
-        const agora = new Date();
-        const dia = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-        const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        document.getElementById('barDateTime').innerText = `${dia} ${hora}`;
-    }
-
     function renderHome() {
         const cont = document.getElementById('dynamicContent');
         cont.innerHTML = `
-            <div class="hero-banner">
+            <div class="hero-banner" tabindex="0">
                 <h1><span class="color-amarelo">Bem vindos ao</span> <span class="color-vermelho">PaixãoFlix</span></h1>
                 <p>Momentos de lazer, lembranças felizes!</p>
             </div>
-            <div class="top-container" id="top4-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 40px;"></div>
+            <div class="top-container" id="top4-grid"></div>
             <div class="category-block">
-                <div class="cat-header">Recomendado para você</div>
-                <div class="movie-grid" id="rec-grid"></div>
+                <div class="cat-header">Indicados para você</div>
+                <div class="movie-grid mini-grid" id="rec-grid"></div>
             </div>
             <div class="category-block" id="cont-section">
                 <div class="cat-header">Continuar Assistindo</div>
-                <div class="movie-grid" id="cont-grid"></div>
+                <div class="movie-grid mini-grid" id="cont-grid"></div>
             </div>
         `;
         renderTop4();
         renderRecomendados();
         renderContinuar();
-    }
-
-    function renderFullSection(type) {
-        const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `<div style="padding-top:20px"></div>`;
-        const pool = db[type];
-        
-        categories.forEach(cat => {
-            const filtered = pool.filter(i => {
-                const catStr = i.genero || i.categoria || "";
-                const yearStr = i.year || "";
-                return catStr.includes(cat) || (cat.includes(yearStr) && cat.startsWith("Lançamento"));
-            });
-
-            if(filtered.length > 0) {
-                const block = document.createElement('div');
-                block.className = 'category-block';
-                block.innerHTML = `<div class="cat-header">${cat}</div><div class="movie-grid" id="grid-${type}-${cat.replace(/\s/g, '')}"></div>`;
-                cont.appendChild(block);
-                const grid = document.getElementById(`grid-${type}-${cat.replace(/\s/g, '')}`);
-                filtered.forEach(item => grid.innerHTML += createCard(item, 'movie-card'));
-            }
-        });
-    }
-
-    function handleSelect(id) {
-        const item = db.todos.find(i => btoa(i.titulo) === id);
-        if(!item) return;
-        if(item.type === 'serie' || item.identificador_archive) {
-            renderEpisodios(item);
-        } else {
-            playVideo(item.url);
-        }
-    }
-
-    async function renderEpisodios(item) {
-        const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `
-            <div class="category-block" style="margin-top:20px;">
-                <div class="cat-header">Episódios: ${item.titulo}</div>
-                <div id="ep-status" style="padding:20px; color:#FFCE44">Buscando episódios...</div>
-                <div class="movie-grid" id="ep-grid"></div>
-            </div>
-        `;
-        
-        try {
-            const response = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
-            const metadata = await response.json();
-            const files = metadata.files.filter(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv'));
-            
-            const grid = document.getElementById('ep-grid');
-            document.getElementById('ep-status').style.display = 'none';
-            
-            files.forEach((file, index) => {
-                const epUrl = `https://archive.org/download/${item.identificador_archive}/${file.name}`;
-                grid.innerHTML += `
-                    <div class="movie-card" tabindex="0" onclick="playVideo('${epUrl}')">
-                        <img class="movie-poster" src="${item.poster}">
-                        <div class="meta-card">EPISÓDIO ${index + 1}</div>
-                    </div>`;
-            });
-        } catch (e) {
-            document.getElementById('ep-status').innerText = "Erro ao carregar episódios.";
-        }
-    }
-
-    function createCard(i, cls, num = null) {
-        const n = num ? `<span class="top-number">${num}</span>` : '';
-        return `<div class="${cls}" tabindex="0" onclick="handleSelect('${btoa(i.titulo)}')">
-            ${n}
-            <img class="movie-poster" src="${i.poster}">
-            <div class="meta-card"><span>${i.year || ''}</span><span><i class="fas fa-star"></i> ${i.rating || '0.0'}</span></div>
-        </div>`;
-    }
-
-    function changeSection(s) {
-        const res = db[s];
-        const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `
-            <div class="category-block" style="margin-top:20px;">
-                <div class="cat-header">${s.toUpperCase().replace('_', ' ')}</div>
-                <div class="movie-grid" id="cat-grid"></div>
-            </div>
-        `;
-        const grid = document.getElementById('cat-grid');
-        res.forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
-    }
-
-    /* PATCH: Busca sem delay e resultado instantâneo em tempo real */
-    function globalSearch(query) {
-        const cont = document.getElementById('dynamicContent');
-        if(!query) { renderHome(); return; }
-        
-        const res = db.todos.filter(i => i.titulo.toLowerCase().includes(query.toLowerCase()));
-        cont.innerHTML = `
-            <div class="category-block" style="margin-top:20px;">
-                <div class="cat-header">Resultados: ${query}</div>
-                <div class="movie-grid" id="search-grid"></div>
-            </div>
-        `;
-        const grid = document.getElementById('search-grid');
-        res.forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
-    }
-
-    function playVideo(url) {
-        if(!url) return;
-        document.getElementById('videoContainer').style.display = 'block';
-        if(player) player.destroy();
-        player = new Clappr.Player({ source: url, parentId: "#mainPlayer", width: '100%', height: '100%', autoPlay: true });
     }
 
     function renderTop4() {
@@ -266,21 +154,40 @@
         });
     }
 
+    /* PATCH: Apenas 3 capas sem repetir e tamanho reduzido */
     function renderRecomendados() {
         const grid = document.getElementById('rec-grid');
-        db.todos.slice(0, 16).forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
+        const shuffled = [...db.todos].sort(() => 0.5 - Math.random());
+        shuffled.slice(0, 3).forEach(i => grid.innerHTML += createCard(i, 'movie-card mini-card'));
     }
 
+    /* PATCH: Apenas conteúdos iniciados (progresso < 95%) e tamanho reduzido */
     function renderContinuar() {
         const grid = document.getElementById('cont-grid');
-        const progresso = Object.keys(localStorage).filter(k => k.startsWith('prog_')).slice(-4);
+        const progresso = Object.keys(localStorage)
+            .filter(k => k.startsWith('prog_'))
+            .filter(k => {
+                const p = parseFloat(localStorage.getItem(k));
+                return p > 1 && p < 95; // Somente não terminados
+            }).slice(-4);
+        
         if(progresso.length === 0) { document.getElementById('cont-section').style.display = 'none'; return; }
         progresso.forEach(k => {
             const item = db.todos.find(i => btoa(i.titulo) === k.replace('prog_',''));
-            if(item) grid.innerHTML += createCard(item, 'movie-card');
+            if(item) grid.innerHTML += createCard(item, 'movie-card mini-card');
         });
     }
 
+    function createCard(i, cls, num = null) {
+        const n = num ? `<span class="top-number">${num}</span>` : '';
+        return `<div class="${cls}" tabindex="0" onclick="handleSelect('${btoa(i.titulo)}')">
+            ${n}
+            <img class="movie-poster" src="${i.poster}">
+            <div class="meta-card"><span>${i.year || ''}</span><span><i class="fas fa-star"></i> ${i.rating || '0.0'}</span></div>
+        </div>`;
+    }
+
+    /* PATCH: Sistema de navegação centralizado e linha a linha */
     function setupNavigation() {
         document.addEventListener('keydown', (e) => {
             if(e.keyCode === 27) { 
@@ -290,19 +197,12 @@
             }
             
             const active = document.activeElement;
-            
-            // PATCH: Foco na busca habilita digitação imediatamente sem delay
             if(e.keyCode === 13 && active.id === 'searchWrapper') {
-                const input = document.getElementById('searchInput');
-                input.focus();
+                document.getElementById('searchInput').focus();
                 return;
             }
 
-            if(active.id === 'searchInput' && e.keyCode !== 40) return;
-
-            if(e.keyCode === 39 && active.closest('#sideMenu')) {
-                document.getElementById('sideMenu').classList.remove('active');
-            }
+            if(active.id === 'searchInput' && (e.keyCode !== 40 && e.keyCode !== 38)) return;
 
             const all = Array.from(document.querySelectorAll('[tabindex="0"], #searchInput')).filter(el => el.offsetParent !== null);
             let next = null, minDist = Infinity, r = active.getBoundingClientRect();
@@ -311,8 +211,10 @@
                 if(el === active) return;
                 const nr = el.getBoundingClientRect();
                 let ok = false;
-                if(e.keyCode === 39) ok = nr.left >= r.right - 50;
-                if(e.keyCode === 37) ok = nr.right <= r.left + 50;
+                
+                // Tolerância de 50px para garantir navegação entre linhas mesmo com tamanhos diferentes
+                if(e.keyCode === 39) ok = nr.left >= r.right - 50 && Math.abs(nr.top - r.top) < 100;
+                if(e.keyCode === 37) ok = nr.right <= r.left + 50 && Math.abs(nr.top - r.top) < 100;
                 if(e.keyCode === 40) ok = nr.top >= r.bottom - 50;
                 if(e.keyCode === 38) ok = nr.bottom <= r.top + 50;
                 
@@ -324,9 +226,8 @@
 
             if(next) {
                 next.focus();
-                if(!next.closest('#sideMenu') && !next.closest('#topBar')) {
-                    next.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
+                // Rola automaticamente a linha para o centro
+                next.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
             }
         });
 
@@ -343,6 +244,79 @@
         });
     }
 
+    function globalSearch(query) {
+        const cont = document.getElementById('dynamicContent');
+        if(!query) { renderHome(); return; }
+        const res = db.todos.filter(i => i.titulo.toLowerCase().includes(query.toLowerCase()));
+        cont.innerHTML = `<div class="category-block" style="margin-top:20px;"><div class="cat-header">Resultados: ${query}</div><div class="movie-grid" id="search-grid"></div></div>`;
+        const grid = document.getElementById('search-grid');
+        res.forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
+    }
+
+    function renderFullSection(type) {
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div style="padding-top:20px"></div>`;
+        const pool = db[type];
+        categories.forEach(cat => {
+            const filtered = pool.filter(i => (i.genero || "").includes(cat) || (cat.includes(i.year) && cat.startsWith("Lançamento")));
+            const block = document.createElement('div');
+            block.className = 'category-block';
+            block.tabIndex = 0; // Garante que a linha seja "vista" pelo navegador
+            block.innerHTML = `<div class="cat-header">${cat}</div><div class="movie-grid" id="grid-${type}-${cat.replace(/\s/g, '')}"></div>`;
+            cont.appendChild(block);
+            const grid = document.getElementById(`grid-${type}-${cat.replace(/\s/g, '')}`);
+            filtered.forEach(item => grid.innerHTML += createCard(item, 'movie-card'));
+        });
+    }
+
+    function playVideo(url) {
+        if(!url) return;
+        document.getElementById('videoContainer').style.display = 'block';
+        if(player) player.destroy();
+        player = new Clappr.Player({ source: url, parentId: "#mainPlayer", width: '100%', height: '100%', autoPlay: true });
+        
+        // Simulação de salvar progresso (seria ativado por eventos do player)
+        const id = btoa(url); // Simplificado
+        localStorage.setItem(`prog_${id}`, "50"); 
+    }
+
+    function updateClock() {
+        const agora = new Date();
+        const dia = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('barDateTime').innerText = `${dia} ${hora}`;
+    }
+
+    function handleSelect(id) {
+        const item = db.todos.find(i => btoa(i.titulo) === id);
+        if(!item) return;
+        if(item.type === 'serie' || item.identificador_archive) renderEpisodios(item);
+        else playVideo(item.url);
+    }
+
+    async function renderEpisodios(item) {
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div class="category-block" style="margin-top:20px;"><div class="cat-header">Episódios: ${item.titulo}</div><div id="ep-grid" class="movie-grid"></div></div>`;
+        try {
+            const response = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
+            const metadata = await response.json();
+            const files = metadata.files.filter(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv'));
+            const grid = document.getElementById('ep-grid');
+            files.forEach((file, index) => {
+                const epUrl = `https://archive.org/download/${item.identificador_archive}/${file.name}`;
+                grid.innerHTML += `<div class="movie-card" tabindex="0" onclick="playVideo('${epUrl}')"><img class="movie-poster" src="${item.poster}"><div class="meta-card">EPISÓDIO ${index + 1}</div></div>`;
+            });
+        } catch (e) { console.error(e); }
+    }
+
+    function changeSection(s) {
+        const res = db[s];
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div class="category-block" style="margin-top:20px;"><div class="cat-header">${s.toUpperCase().replace('_', ' ')}</div><div class="movie-grid" id="cat-grid"></div></div>`;
+        const grid = document.getElementById('cat-grid');
+        res.forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
+    }
+
     function renderCanais(url) {
         const cont = document.getElementById('dynamicContent');
         cont.innerHTML = `<div class="category-block" style="margin-top:20px;"><div class="cat-header">CANAIS</div><p>Carregando: ${url}</p></div>`;
@@ -350,7 +324,7 @@
 
     function renderFavoritos() {
         const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `<div class="category-block" style="margin-top:20px;"><div class="cat-header">FAVORITOS</div><p>Carregando data/favoritos.json...</p></div>`;
+        cont.innerHTML = `<div class="category-block" style="margin-top:20px;"><div class="cat-header">FAVORITOS</div><p>Carregando...</p></div>`;
     }
 </script>
 </body>
