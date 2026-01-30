@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - V.98.63.30</title>
+    <title>PaixãoFlix TV - V.98.63.45</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -151,8 +151,14 @@
         const pool = db[type];
         
         categories.forEach(cat => {
-            const filtered = pool.filter(i => i.categoria && i.categoria.includes(cat));
-            if(filtered.length >= 0) {
+            // PATCH: Suporte para leitura de categoria por ano ou gênero do novo schema
+            const filtered = pool.filter(i => {
+                const catStr = i.genero || i.categoria || "";
+                const yearStr = i.year || "";
+                return catStr.includes(cat) || (cat.includes(yearStr) && cat.startsWith("Lançamento"));
+            });
+
+            if(filtered.length > 0) {
                 const block = document.createElement('div');
                 block.className = 'category-block';
                 block.innerHTML = `<div class="cat-header">${cat}</div><div class="movie-grid" id="grid-${type}-${cat.replace(/\s/g, '')}"></div>`;
@@ -161,6 +167,62 @@
                 filtered.forEach(item => grid.innerHTML += createCard(item, 'movie-card'));
             }
         });
+    }
+
+    function handleSelect(id) {
+        const item = db.todos.find(i => btoa(i.titulo) === id);
+        if(!item) return;
+
+        // PATCH: Lógica de Identificação PaixãoFlix
+        if(item.type === 'serie' || item.identificador_archive) {
+            renderEpisodios(item);
+        } else {
+            playVideo(item.url);
+        }
+    }
+
+    async function renderEpisodios(item) {
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `
+            <div class="category-block" style="margin-top:20px;">
+                <div class="cat-header">Episódios: ${item.titulo}</div>
+                <div id="ep-status" style="padding:20px; color:#FFCE44">Localizando episódios no Archive...</div>
+                <div class="movie-grid" id="ep-grid" style="flex-wrap:wrap"></div>
+            </div>
+        `;
+        
+        try {
+            const response = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
+            const metadata = await response.json();
+            const files = metadata.files.filter(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv'));
+            
+            const grid = document.getElementById('ep-grid');
+            document.getElementById('ep-status').style.display = 'none';
+            
+            files.forEach((file, index) => {
+                const epUrl = `https://archive.org/download/${item.identificador_archive}/${file.name}`;
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+                card.tabIndex = 0;
+                card.onclick = () => playVideo(epUrl);
+                card.innerHTML = `
+                    <img class="movie-poster" src="${item.poster}">
+                    <div class="meta-card">EPISÓDIO ${index + 1}</div>
+                `;
+                grid.appendChild(card);
+            });
+        } catch (e) {
+            document.getElementById('ep-status').innerText = "Erro ao carregar episódios.";
+        }
+    }
+
+    function createCard(i, cls, num = null) {
+        const n = num ? `<span class="top-number">${num}</span>` : '';
+        return `<div class="${cls}" tabindex="0" onclick="handleSelect('${btoa(i.titulo)}')">
+            ${n}
+            <img class="movie-poster" src="${i.poster}">
+            <div class="meta-card"><span>${i.year || ''}</span><span><i class="fas fa-star"></i> ${i.rating || '0.0'}</span></div>
+        </div>`;
     }
 
     function changeSection(s) {
@@ -176,11 +238,39 @@
         res.forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
     }
 
+    function globalSearch(query) {
+        if(!query) { renderHome(); return; }
+        const res = db.todos.filter(i => i.titulo.toLowerCase().includes(query.toLowerCase()));
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `
+            <div class="category-block" style="margin-top:20px;">
+                <div class="cat-header">Resultados: ${query}</div>
+                <div class="movie-grid" style="flex-wrap:wrap" id="search-grid"></div>
+            </div>
+        `;
+        const grid = document.getElementById('search-grid');
+        res.forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
+    }
+
+    function playVideo(url) {
+        if(!url) return;
+        document.getElementById('videoContainer').style.display = 'block';
+        if(player) player.destroy();
+        player = new Clappr.Player({ source: url, parentId: "#mainPlayer", width: '100%', height: '100%', autoPlay: true });
+    }
+
+    function updateClock() {
+        const agora = new Date();
+        const dia = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('barDateTime').innerText = `${dia} ${hora}`;
+    }
+
     function renderTop4() {
         const grid = document.getElementById('top4-grid');
         const seed = Math.floor(Date.now() / 21600000);
         [db.cinema, db.series, db.kids_filmes, db.kids_series].forEach((pool, idx) => {
-            if(pool.length > 0) {
+            if(pool && pool.length > 0) {
                 const item = pool[seed % pool.length];
                 grid.innerHTML += createCard(item, 'top-item', idx + 1);
             }
@@ -200,42 +290,6 @@
             const item = db.todos.find(i => btoa(i.titulo) === k.replace('prog_',''));
             if(item) grid.innerHTML += createCard(item, 'movie-card');
         });
-    }
-
-    function createCard(i, cls, num = null) {
-        const n = num ? `<span class="top-number">${num}</span>` : '';
-        return `<div class="${cls}" tabindex="0" onclick="handleSelect('${btoa(i.titulo)}')">
-            ${n}
-            <img class="movie-poster" src="${i.poster}">
-            <div class="meta-card"><span>${i.year || ''}</span><span><i class="fas fa-star"></i> ${i.rating || '0.0'}</span></div>
-        </div>`;
-    }
-
-    function globalSearch(query) {
-        if(!query) { renderHome(); return; }
-        const res = db.todos.filter(i => i.titulo.toLowerCase().includes(query.toLowerCase()));
-        const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `
-            <div class="category-block" style="margin-top:20px;">
-                <div class="cat-header">Resultados: ${query}</div>
-                <div class="movie-grid" style="flex-wrap:wrap" id="search-grid"></div>
-            </div>
-        `;
-        const grid = document.getElementById('search-grid');
-        res.forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
-    }
-
-    function handleSelect(id) {
-        const item = db.todos.find(i => btoa(i.titulo) === id);
-        if(!item) return;
-        playVideo(item.url);
-    }
-
-    function playVideo(url) {
-        if(!url) return;
-        document.getElementById('videoContainer').style.display = 'block';
-        if(player) player.destroy();
-        player = new Clappr.Player({ source: url, parentId: "#mainPlayer", width: '100%', height: '100%', autoPlay: true });
     }
 
     function setupNavigation() {
