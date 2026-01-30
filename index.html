@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - V.90.53.82</title>
+    <title>PaixãoFlix TV - V.93.56.85</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -22,7 +22,8 @@
         #sideMenu { position: fixed; left: 0; top: 90px; height: calc(100vh - 90px); width: 80px; background: rgba(4,7,20,0.98); display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 5500; border-right: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
         #sideMenu.active { width: 280px; }
         .menu-item { width: 100%; height: 60px; display: flex; align-items: center; padding-left: 28px; cursor: pointer; color: #a0a0a0; }
-        .menu-item span { display: none; margin-left: 20px; font-weight: 600; }
+        .menu-item i { font-size: 24px; min-width: 40px; }
+        .menu-item span { display: none; margin-left: 20px; font-weight: 600; white-space: nowrap; }
         #sideMenu.active .menu-item span { display: block; }
 
         #mainScroll { width: 100%; height: 100vh; padding: 102px 0 400px 90px; overflow-y: scroll !important; scroll-behavior: smooth; }
@@ -30,9 +31,9 @@
 
         .hero-banner { width: 95%; height: 350px; margin: 12px auto 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(to bottom, transparent, #040714), url('https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/banner_hero.jpg'); background-size: cover; border-radius: 20px; }
         .hero-banner h1 { font-size: 60px; font-weight: 900; margin: 0; text-shadow: 2px 2px 20px #000; }
-        .hero-banner p { font-size: 22px; font-weight: 200; font-style: italic; margin-top: 10px; }
+        .color-amarelo { color: #FFCE44; }
+        .color-vermelho { color: #E50914; }
 
-        /* PADRONIZAÇÃO DE CAPAS - 280PX */
         .top-container { display: flex; gap: 40px; justify-content: center; margin-bottom: 50px; }
         .top-item { position: relative; width: 280px; cursor: pointer; border: 4px solid transparent; }
         .top-number { position: absolute; left: -45px; bottom: 5px; font-size: 200px; font-weight: 900; color: transparent; -webkit-text-stroke: 4px #FFCE44; z-index: 500; line-height: 0.7; pointer-events: none; }
@@ -43,33 +44,13 @@
         .category-block { margin: 0 50px 30px 50px; }
         .cat-header { font-size: 26px; font-weight: 900; border-left: 8px solid #FFCE44; padding-left: 20px; margin-bottom: 15px; margin-top: 10px; }
         
-        .row-wrapper { display: flex; align-items: center; gap: 15px; }
         .movie-grid { display: flex; gap: 20px; overflow-x: hidden !important; width: calc(100% - 70px); }
-        
-        /* CAPAS RECOMENDADOS EXATAMENTE IGUAL TOP 4 */
         .movie-card { border-radius: 10px; border: 4px solid transparent; background: #1a1d29; position: relative; }
         .card-rec { min-width: 280px !important; width: 280px !important; } 
         .card-cont { min-width: calc(12.5% - 20px) !important; }
         
-        /* REDUÇÃO DO FUNDO PARA 3PX ABAIXO */
-        .meta-card { 
-            padding-top: 3px; 
-            padding-bottom: 3px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 10px; 
-            color: #FFCE44; 
-            font-weight: 900; 
-            font-size: 14px; 
-            background: rgba(0,0,0,0.7); 
-            position: relative; 
-            z-index: 700; 
-            width: 100%;
-        }
+        .meta-card { padding: 3px 0; display: flex; align-items: center; justify-content: center; gap: 10px; color: #FFCE44; font-weight: 900; font-size: 14px; background: rgba(0,0,0,0.7); position: relative; z-index: 700; width: 100%; }
         .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 5px; display: block; }
-
-        #videoContainer { position: fixed; inset: 0; background: #000; z-index: 99999; display: none; }
     </style>
 </head>
 <body onload="initSystem()">
@@ -91,9 +72,7 @@
     <div class="menu-item" tabindex="0" onclick="renderKidsAZ('kids_series')"><i class="fas fa-robot"></i><span>SÉRIES KIDS</span></div>
 </div>
 
-<div id="mainScroll">
-    <div id="dynamicContent"></div>
-</div>
+<div id="mainScroll"><div id="dynamicContent"></div></div>
 
 <script>
     let db = { cinema: [], series: [], kids_filmes: [], kids_series: [], todos: [] };
@@ -112,9 +91,9 @@
             db.todos = [...f, ...s, ...kf, ...ks];
             document.getElementById('jsonStatus').innerText = `CONTEÚDO: ${db.todos.length}`;
             renderHome();
-            document.getElementById('logoMain').focus();
         } catch(e) { console.error(e); }
         setupNavigation();
+        document.getElementById('logoMain').focus();
     }
 
     function updateClock() {
@@ -128,7 +107,7 @@
         const cont = document.getElementById('dynamicContent');
         cont.innerHTML = `
             <div class="hero-banner">
-                <h1>Bem vindos ao PaixãoFlix</h1>
+                <h1><span class="color-amarelo">Bem vindos ao</span> <span class="color-vermelho">PaixãoFlix</span></h1>
                 <p>Transformando momentos de lazer em lembranças felizes!</p>
             </div>
             <div class="top-container" id="top4-grid"></div>
@@ -144,7 +123,7 @@
         const grid = document.getElementById('top4-grid');
         const seed = Math.floor(Date.now() / (6 * 60 * 60 * 1000));
         [db.cinema, db.series, db.kids_filmes, db.kids_series].forEach((pool, idx) => {
-            if(pool.length > 0) {
+            if(pool && pool.length > 0) {
                 const item = pool[seed % pool.length];
                 grid.innerHTML += `
                     <div class="top-item" tabindex="0">
@@ -161,7 +140,11 @@
         const r = document.getElementById('row-rec');
         r.innerHTML = `<div class="cat-header">Recomendado para você</div><div class="movie-grid"></div>`;
         db.todos.slice(0, 2).forEach(i => {
-            r.querySelector('.movie-grid').innerHTML += createCard(i, 'card-rec', true);
+            r.querySelector('.movie-grid').innerHTML += `<div class="movie-card card-rec" tabindex="0">
+                <div class="btn-assistir-overlay"><span>ASSISTIR AGORA</span></div>
+                <img class="movie-poster" src="${i.poster}">
+                <div class="meta-card"><span>${i.year}</span><span><i class="fas fa-star"></i> ${i.rating}</span></div>
+            </div>`;
         });
     }
 
@@ -172,51 +155,41 @@
         c.innerHTML = `<div class="cat-header">Continuar Assistindo</div><div class="movie-grid"></div>`;
         keys.forEach(k => {
             const item = db.todos.find(i => btoa(i.titulo) === k.replace('prog_',''));
-            if(item) c.querySelector('.movie-grid').innerHTML += createCard(item, 'card-cont', true);
+            if(item) c.querySelector('.movie-grid').innerHTML += `<div class="movie-card card-cont" tabindex="0">
+                <div class="btn-assistir-overlay"><span>ASSISTIR AGORA</span></div>
+                <img class="movie-poster" src="${item.poster}">
+                <div class="meta-card"><span>${item.year}</span><span><i class="fas fa-star"></i> ${item.rating}</span></div>
+            </div>`;
         });
-    }
-
-    function createCard(i, cls = "", isHome = false) {
-        const overlay = isHome ? '<div class="btn-assistir-overlay"><span>ASSISTIR AGORA</span></div>' : '';
-        return `<div class="movie-card ${cls}" tabindex="0">
-            ${overlay}
-            <img class="movie-poster" src="${i.poster}">
-            <div class="meta-card"><span>${i.year || ''}</span><span><i class="fas fa-star"></i> ${i.rating || '0.0'}</span></div>
-        </div>`;
     }
 
     function setupNavigation() {
         document.addEventListener('keydown', (e) => {
             const active = document.activeElement;
-            const r = active.getBoundingClientRect();
             const all = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
-            let next = null, minDist = Infinity;
-            const isContent = !active.closest('#sideMenu') && active.id !== 'logoMain';
+            let next = null, minDist = Infinity, r = active.getBoundingClientRect();
 
-            if(e.keyCode === 39 && active.closest('#sideMenu')) {
-                next = document.querySelector('.top-item') || document.querySelector('.movie-card');
-            } else {
-                all.forEach(el => {
-                    if(el === active) return;
-                    const nr = el.getBoundingClientRect();
-                    let ok = false;
-                    if(e.keyCode === 39) ok = nr.left >= r.right - 10 && Math.abs(nr.top - r.top) < 200;
-                    if(e.keyCode === 37) ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 200;
-                    if(e.keyCode === 40) ok = nr.top >= r.bottom - 10;
-                    if(e.keyCode === 38) ok = nr.bottom <= r.top + 10;
-                    if(ok) {
-                        if(isContent && (e.keyCode === 38 || e.keyCode === 40) && el.closest('#sideMenu')) return;
-                        const d = Math.hypot(nr.left - r.left, nr.top - r.top);
-                        if(d < minDist) { minDist = d; next = el; }
-                    }
-                });
-            }
+            all.forEach(el => {
+                if(el === active) return;
+                const nr = el.getBoundingClientRect();
+                let ok = false;
+                if(e.keyCode === 39) ok = nr.left >= r.right - 10 && Math.abs(nr.top - r.top) < 200;
+                if(e.keyCode === 37) ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 200;
+                if(e.keyCode === 40) ok = nr.top >= r.bottom - 10;
+                if(e.keyCode === 38) ok = nr.bottom <= r.top + 10;
+                
+                if(ok) {
+                    const d = Math.hypot(nr.left - r.left, nr.top - r.top);
+                    if(d < minDist) { minDist = d; next = el; }
+                }
+            });
+
             if(next) {
                 next.focus();
                 if(!next.closest('#sideMenu')) next.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
-        
+
         document.addEventListener('focusin', (e) => {
             document.querySelectorAll('.focused').forEach(f => f.classList.remove('focused'));
             e.target.classList.add('focused');
