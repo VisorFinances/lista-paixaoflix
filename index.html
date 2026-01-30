@@ -2,26 +2,29 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - V.98.64.60</title>
+    <title>PaixãoFlix TV - VERSÃO FINAL INTEGRAL</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
     
     <style>
-        /* ESTRUTURA CONGELADA E BLINDADA */
+        /* RESET E ESTRUTURA GERAL */
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; overflow: hidden !important; }
         body { margin: 0; padding: 0; background: #040714; color: #fff; height: 100vh; width: 100vw; }
         
-        /* FOCO PRECISO */
-        .focused { border: 5px solid #FFCE44 !important; box-shadow: 0 0 25px rgba(255, 206, 68, 1); z-index: 1000 !important; transform: scale(1.05); transition: 0.15s; }
+        /* FOCO PADRÃO PAIXÃOFLIX */
+        .focused { border: 5px solid #FFCE44 !important; box-shadow: 0 0 25px rgba(255, 206, 68, 1); z-index: 1000 !important; transform: scale(1.05); transition: 0.1s; }
         
+        /* BARRA SUPERIOR */
         #topBar { position: fixed; top: 0; width: 100%; height: 90px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 5000; background: #040714; }
         #logoMain { height: 70px; cursor: pointer; border: 5px solid transparent; }
         #searchWrapper { display: flex; align-items: center; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 50px; border: 3px solid transparent; width: 400px; }
         #searchInput { background: none; border: none; color: #fff; font-size: 18px; width: 100%; margin-left: 10px; }
+        #jsonStatus { color: #FFCE44; font-weight: 900; font-size: 14px; margin-right: 20px; }
         #barDateTime { font-size: 18px; text-transform: capitalize; font-weight: 500; }
 
+        /* MENU LATERAL */
         #sideMenu { position: fixed; left: 0; top: 90px; height: calc(100vh - 90px); width: 80px; background: #040714; display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 5500; border-right: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
         #sideMenu.active { width: 220px; }
         .menu-item { width: 100%; height: 60px; display: flex; align-items: center; padding-left: 28px; cursor: pointer; color: #a0a0a0; border: 4px solid transparent; transition: 0.2s; }
@@ -29,27 +32,40 @@
         .menu-item span { display: none; margin-left: 15px; font-weight: 600; white-space: nowrap; }
         #sideMenu.active .menu-item span { display: block; }
 
+        /* ÁREA DE SCROLL */
         #mainScroll { width: 100%; height: 100vh; padding: 102px 0 400px 90px; overflow-y: scroll !important; scroll-behavior: smooth; }
         #mainScroll::-webkit-scrollbar { display: none; }
 
+        /* COMPONENTES DA HOME */
         .hero-banner { width: 95%; height: 350px; margin: 12px auto 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(to bottom, transparent, #040714), url('https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/banner_hero.jpg'); background-size: cover; border-radius: 20px; border: 4px solid transparent; }
         .hero-banner h1 { font-size: 60px; font-weight: 900; margin: 0; text-shadow: 2px 2px 20px #000; }
         .color-amarelo { color: #FFCE44; }
         .color-vermelho { color: #E50914; }
 
-        .category-block { margin: 0 50px 80px 50px; }
-        .cat-header { font-size: 28px; font-weight: 900; border-left: 8px solid #FFCE44; padding-left: 20px; margin-bottom: 30px; text-transform: uppercase; }
-        
-        .movie-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; width: 100%; }
-        .movie-card { border-radius: 12px; border: 4px solid transparent; background: #1a1d29; cursor: pointer; position: relative; width: 100%; }
-        .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; display: block; }
-        .meta-card { padding: 5px 0; display: flex; align-items: center; justify-content: center; gap: 15px; color: #FFCE44; font-weight: 900; font-size: 14px; background: rgba(0,0,0,0.8); width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
-
-        /* TOP 4 - NÚMEROS POSICIONADOS 7PX ACIMA DA BORDA INFERIOR */
+        /* TOP 4 - NUMERAÇÃO 7PX ACIMA DA BORDA */
         .top-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 50px; padding: 0 50px; margin-bottom: 100px; }
         .top-item { position: relative; width: 100%; cursor: pointer; border: 4px solid transparent; }
         .top-number { position: absolute; left: -45px; bottom: 7px; font-size: 210px; font-weight: 900; color: #003399; -webkit-text-stroke: 4px #FFCE44; z-index: 500; line-height: 0.7; pointer-events: none; }
 
+        /* CATEGORIAS E CARROSSEL */
+        .category-block { margin: 0 50px 80px 50px; position: relative; }
+        .cat-header { font-size: 28px; font-weight: 900; border-left: 8px solid #FFCE44; padding-left: 20px; margin-bottom: 30px; text-transform: uppercase; }
+        
+        .carousel-container { display: flex; align-items: center; gap: 20px; overflow: hidden; width: 100%; }
+        .movie-grid-horizontal { display: flex; gap: 20px; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); width: max-content; }
+        
+        .movie-card { min-width: 300px; max-width: 300px; border-radius: 12px; border: 4px solid transparent; background: #1a1d29; cursor: pointer; position: relative; }
+        .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; display: block; }
+        .meta-card { padding: 5px 0; display: flex; align-items: center; justify-content: center; gap: 15px; color: #FFCE44; font-weight: 900; font-size: 14px; background: rgba(0,0,0,0.8); width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+
+        /* SETA AMARELA DE SALTO */
+        .nav-arrow { min-width: 80px; height: 150px; background: rgba(255,206,68,0.1); display: flex; align-items: center; justify-content: center; border-radius: 15px; border: 4px solid #FFCE44; color: #FFCE44; font-size: 40px; cursor: pointer; transition: 0.2s; z-index: 10; }
+        .nav-arrow.focused { background: #FFCE44; color: #000; }
+
+        /* PAINEL KIDS ÚNICO */
+        .kids-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; width: 100%; }
+
+        /* PLAYER */
         #videoContainer { position: fixed; inset: 0; background: #000; z-index: 99999; display: none; }
     </style>
 </head>
@@ -61,6 +77,7 @@
         <i class="fas fa-search"></i>
         <input type="text" id="searchInput" placeholder="Pesquisar no PaixãoFlix..." tabindex="-1" oninput="globalSearch(this.value)">
     </div>
+    <div id="jsonStatus">SINCRONIZANDO...</div>
     <div id="barDateTime"></div>
 </div>
 
@@ -81,8 +98,7 @@
 <script>
     let db = { cinema: [], series: [], kids_filmes: [], kids_series: [], todos: [] };
     let player = null;
-    
-    // ORDEM OBRIGATÓRIA DE CATEGORIAS
+    let currentItem = null;
     const officialOrder = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Família", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
 
     async function initSystem() {
@@ -98,11 +114,12 @@
         try {
             const files = ['filmes.json', 'series.json', 'kids_filmes.json', 'kids_series.json'];
             const data = await Promise.all(files.map(f => fetch(`data/${f}`).then(r => r.json()).catch(() => [])));
-            db.cinema = data[0]; 
-            db.series = data[1]; 
+            db.cinema = data[0];
+            db.series = data[1];
             db.kids_filmes = data[2].sort((a,b) => a.titulo.localeCompare(b.titulo));
             db.kids_series = data[3].sort((a,b) => a.titulo.localeCompare(b.titulo));
             db.todos = [...db.cinema, ...db.series, ...db.kids_filmes, ...db.kids_series];
+            document.getElementById('jsonStatus').innerText = `CONTEÚDO: ${db.todos.length}`;
         } catch(e) {}
     }
 
@@ -123,25 +140,25 @@
             <div class="top-container" id="top4-grid"></div>
             <div class="category-block">
                 <div class="cat-header">Indicados para você</div>
-                <div class="movie-grid" id="rec-grid"></div>
+                <div class="movie-grid-horizontal" id="rec-grid"></div>
             </div>
             <div class="category-block" id="cont-section" style="display:none">
                 <div class="cat-header">Continuar Assistindo</div>
-                <div class="movie-grid" id="cont-grid"></div>
+                <div class="movie-grid-horizontal" id="cont-grid"></div>
             </div>
         `;
         
-        // TOP 4
+        // Render Top 4
         const topGrid = document.getElementById('top4-grid');
         [db.cinema[0], db.series[0], db.kids_filmes[0], db.kids_series[0]].forEach((p, i) => {
             if(p) topGrid.innerHTML += createCard(p, 'top-item', i+1);
         });
 
-        // INDICADOS (ALEATÓRIO SEM REPETIR)
+        // Indicados Aleatórios
         const recs = [...db.todos].sort(() => 0.5 - Math.random()).slice(0, 4);
         recs.forEach(i => document.getElementById('rec-grid').innerHTML += createCard(i, 'movie-card'));
 
-        // CONTINUAR ASSISTINDO (REAL)
+        // Histórico Real
         const history = JSON.parse(localStorage.getItem('paixaoflix_history') || '[]');
         if(history.length > 0) {
             document.getElementById('cont-section').style.display = 'block';
@@ -155,39 +172,49 @@
     function renderCategoryList(type) {
         const cont = document.getElementById('dynamicContent');
         cont.innerHTML = '';
-        officialOrder.forEach(cat => {
+        officialOrder.forEach((cat, idx) => {
             const filtered = db[type].filter(i => {
                 const g = (i.genero || "").toLowerCase();
-                const c = cat.toLowerCase();
-                if(c.includes("lançamento")) return i.year == c.split(" ")[1];
-                return g.includes(c);
+                if(cat.startsWith("Lançamento")) return i.year == cat.split(" ")[1];
+                return g.includes(cat.toLowerCase());
             });
+
             if(filtered.length > 0) {
-                const block = document.createElement('div');
-                block.className = 'category-block';
-                block.innerHTML = `<div class="cat-header">${cat}</div><div class="movie-grid"></div>`;
-                filtered.forEach(i => block.querySelector('.movie-grid').innerHTML += createCard(i, 'movie-card'));
-                cont.appendChild(block);
+                const section = document.createElement('div');
+                section.className = 'category-block';
+                const gridId = `grid-${type}-${idx}`;
+                section.innerHTML = `
+                    <div class="cat-header">${cat}</div>
+                    <div class="carousel-container">
+                        <div class="movie-grid-horizontal" id="${gridId}" data-offset="0"></div>
+                        <div class="nav-arrow" tabindex="0" onclick="jumpNext('${gridId}')"><i class="fas fa-chevron-right"></i></div>
+                    </div>
+                `;
+                const grid = section.querySelector('.movie-grid-horizontal');
+                filtered.forEach(item => grid.innerHTML += createCard(item, 'movie-card'));
+                cont.appendChild(section);
             }
         });
         window.scrollTo(0,0);
+    }
+
+    function jumpNext(gridId) {
+        const grid = document.getElementById(gridId);
+        const cards = grid.querySelectorAll('.movie-card');
+        let offset = parseInt(grid.dataset.offset) + 4;
+        if(offset >= cards.length) offset = 0;
+        grid.dataset.offset = offset;
+        grid.style.transform = `translateX(-${offset * 320}px)`;
+        cards[offset].focus();
     }
 
     function renderKids(type) {
         const cont = document.getElementById('dynamicContent');
         cont.innerHTML = `<div class="category-block" style="margin-top:20px">
             <div class="cat-header">${type.replace('_',' ').toUpperCase()} (A-Z)</div>
-            <div class="movie-grid"></div>
+            <div class="kids-grid" id="kids-full"></div>
         </div>`;
-        db[type].forEach(i => cont.querySelector('.movie-grid').innerHTML += createCard(i, 'movie-card'));
-    }
-
-    function createCard(i, cls, num = null) {
-        const n = num ? `<span class="top-number">${num}</span>` : '';
-        return `<div class="${cls}" tabindex="0" onclick="handleSelect('${btoa(i.titulo)}')">
-            ${n}<img class="movie-poster" src="${i.poster}">
-            <div class="meta-card"><span>${i.year || ''}</span><span>★ ${i.rating || '0.0'}</span></div>
-        </div>`;
+        db[type].forEach(i => document.getElementById('kids-full').innerHTML += createCard(i, 'movie-card'));
     }
 
     function setupNavigation() {
@@ -204,6 +231,19 @@
                 }
             }
 
+            // Salto no final da linha
+            if(active.classList.contains('movie-card') && code === 39) {
+                const grid = active.parentElement;
+                const cards = Array.from(grid.querySelectorAll('.movie-card'));
+                if(cards.indexOf(active) === cards.length - 1) {
+                    e.preventDefault();
+                    cards[0].focus();
+                    grid.style.transform = `translateX(0px)`;
+                    grid.dataset.offset = 0;
+                    return;
+                }
+            }
+
             const all = Array.from(document.querySelectorAll('[tabindex="0"], .menu-item')).filter(el => el.offsetParent !== null);
             let next = null, minDist = Infinity, r = active.getBoundingClientRect();
 
@@ -211,22 +251,16 @@
                 if(el === active) return;
                 const nr = el.getBoundingClientRect();
                 let ok = false;
-                
                 if(code === 39) ok = nr.left >= r.right - 10 && Math.abs(nr.top - r.top) < 160;
                 if(code === 37) ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 160;
                 if(code === 40) ok = nr.top >= r.bottom - 10;
                 if(code === 38) ok = nr.bottom <= r.top + 10;
-
                 if(ok) {
                     const d = Math.hypot(nr.left - r.left, nr.top - r.top);
                     if(d < minDist) { minDist = d; next = el; }
                 }
             });
-
-            if(next) {
-                next.focus();
-                next.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            if(next) { next.focus(); next.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
         });
 
         document.addEventListener('focusin', (e) => {
@@ -239,25 +273,34 @@
         });
     }
 
+    function createCard(i, cls, num = null) {
+        const n = num ? `<span class="top-number">${num}</span>` : '';
+        return `<div class="${cls}" tabindex="0" onclick="handleSelect('${btoa(i.titulo)}')">
+            ${n}<img class="movie-poster" src="${i.poster}">
+            <div class="meta-card"><span>${i.year || ''}</span><span>★ ${i.rating || '0.0'}</span></div>
+        </div>`;
+    }
+
     function handleSelect(id) {
         const item = db.todos.find(i => btoa(i.titulo) === id);
         if(!item) return;
+        currentItem = item;
         const history = JSON.parse(localStorage.getItem('paixaoflix_history') || '[]');
         const saved = history.find(h => h.titulo === item.titulo);
-        playVideo(item.url, saved ? saved.time : 0, item.titulo);
+        playVideo(item.url, saved ? saved.time : 0);
     }
 
-    function playVideo(url, time, titulo) {
+    function playVideo(url, time) {
         document.getElementById('videoContainer').style.display = 'block';
         if(player) player.destroy();
         player = new Clappr.Player({
             source: url, parentId: "#mainPlayer", width: '100%', height: '100%', autoPlay: true,
             events: {
                 onReady: function() { if(time > 0) this.seek(time); },
-                onTimeUpdate: function(e) { 
+                onTimeUpdate: function(e) {
                     let h = JSON.parse(localStorage.getItem('paixaoflix_history') || '[]');
-                    h = h.filter(x => x.titulo !== titulo);
-                    h.push({titulo, time: e.current, percent: (e.current/e.total)*100});
+                    h = h.filter(x => x.titulo !== currentItem.titulo);
+                    h.push({titulo: currentItem.titulo, time: e.current, percent: (e.current/e.total)*100});
                     localStorage.setItem('paixaoflix_history', JSON.stringify(h.slice(-30)));
                 }
             }
@@ -266,7 +309,7 @@
 
     async function renderCanais(url) {
         const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `<div class="category-block" style="margin-top:20px"><div class="cat-header">CANAIS</div><div class="movie-grid" id="canais-grid"></div></div>`;
+        cont.innerHTML = `<div class="category-block" style="margin-top:20px"><div class="cat-header">CANAIS</div><div class="kids-grid" id="canais-grid"></div></div>`;
         const res = await fetch(url);
         const text = await res.text();
         const lines = text.split('\n');
@@ -276,13 +319,22 @@
                 const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1];
                 const stream = lines[i+1]?.trim();
                 document.getElementById('canais-grid').innerHTML += `
-                    <div class="movie-card" tabindex="0" onclick="playVideo('${stream}', 0, '${nome}')">
+                    <div class="movie-card" tabindex="0" onclick="playVideo('${stream}', 0)">
                         <img class="movie-poster" src="${logo}" style="object-fit:contain; background:#fff">
                         <div class="meta-card">${nome}</div>
                     </div>`;
             }
         }
     }
+
+    function globalSearch(q) {
+        if(!q) { renderHome(); return; }
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div class="category-block"><div class="cat-header">Busca: ${q}</div><div class="kids-grid" id="search-grid"></div></div>`;
+        db.todos.filter(i => i.titulo.toLowerCase().includes(q.toLowerCase())).forEach(i => document.getElementById('search-grid').innerHTML += createCard(i, 'movie-card'));
+    }
+    
+    function renderFavoritos() { document.getElementById('dynamicContent').innerHTML = '<div class="category-block"><div class="cat-header">FAVORITOS EM BREVE</div></div>'; }
 </script>
 </body>
 </html>
