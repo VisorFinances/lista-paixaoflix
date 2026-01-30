@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - V.98.63.20</title>
+    <title>PaixãoFlix TV - V.98.63.30</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -15,7 +15,6 @@
         
         .focused { border: 5px solid #FFCE44 !important; box-shadow: 0 0 25px rgba(255, 206, 68, 1); z-index: 1000 !important; transform: scale(1.05); transition: 0.2s; }
         
-        /* PATCH: Remove borda amarela específica da busca quando focada */
         #searchWrapper.focused { border: 3px solid transparent !important; box-shadow: none !important; transform: none !important; background: rgba(255,255,255,0.2); }
 
         #topBar { position: fixed; top: 0; width: 100%; height: 90px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 5000; background: #040714; }
@@ -48,8 +47,9 @@
         .category-block { margin: 0 50px 30px 50px; }
         .cat-header { font-size: 26px; font-weight: 900; border-left: 8px solid #FFCE44; padding-left: 20px; margin-bottom: 15px; }
         
-        .movie-grid { display: flex; gap: 20px; overflow-x: hidden !important; width: 100%; flex-wrap: wrap; }
-        .movie-card { border-radius: 10px; border: 4px solid transparent; background: #1a1d29; position: relative; cursor: pointer; width: 280px; min-width: 280px; margin-bottom: 20px; }
+        .movie-grid { display: flex; gap: 20px; overflow-x: auto !important; width: 100%; padding-bottom: 10px; }
+        .movie-grid::-webkit-scrollbar { height: 0; }
+        .movie-card { border-radius: 10px; border: 4px solid transparent; background: #1a1d29; position: relative; cursor: pointer; width: 280px; min-width: 280px; }
         
         .meta-card { padding: 3px 0; display: flex; align-items: center; justify-content: center; gap: 10px; color: #FFCE44; font-weight: 900; font-size: 14px; background: rgba(0,0,0,0.7); position: relative; z-index: 700; width: 100%; }
         .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 5px; display: block; }
@@ -72,8 +72,8 @@
 <div id="sideMenu">
     <div class="menu-item" tabindex="0" onclick="renderHome()"><i class="fas fa-home"></i><span>INÍCIO</span></div>
     <div class="menu-item" tabindex="0" onclick="renderCanais('data/ativa_canais.m3u')"><i class="fas fa-tv"></i><span>CANAIS TV</span></div>
-    <div class="menu-item" tabindex="0" onclick="changeSection('cinema')"><i class="fas fa-film"></i><span>CINEMA</span></div>
-    <div class="menu-item" tabindex="0" onclick="changeSection('series')"><i class="fas fa-clapperboard"></i><span>SÉRIES</span></div>
+    <div class="menu-item" tabindex="0" onclick="renderFullSection('cinema')"><i class="fas fa-film"></i><span>CINEMA</span></div>
+    <div class="menu-item" tabindex="0" onclick="renderFullSection('series')"><i class="fas fa-clapperboard"></i><span>SÉRIES</span></div>
     <div class="menu-item" tabindex="0" onclick="renderFavoritos()"><i class="fas fa-heart"></i><span>FAVORITOS</span></div>
     <div class="menu-item" tabindex="0" onclick="renderCanais('data/ativa_kids_canais.m3u')"><i class="fas fa-child"></i><span>CANAIS KIDS</span></div>
     <div class="menu-item" tabindex="0" onclick="changeSection('kids_filmes')"><i class="fas fa-baby"></i><span>FILMES KIDS</span></div>
@@ -85,6 +85,12 @@
 
 <script>
     let db = { cinema: [], series: [], kids_filmes: [], kids_series: [], todos: [] };
+    const categories = [
+        "Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance",
+        "Religioso", "Ficção", "Anime", "Animação", "Família", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror",
+        "Documentários", "Faroeste", "Musical", "Adulto"
+    ];
+
     let player = null;
 
     async function initSystem() {
@@ -139,6 +145,37 @@
         renderContinuar();
     }
 
+    function renderFullSection(type) {
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `<div style="padding-top:20px"></div>`;
+        const pool = db[type];
+        
+        categories.forEach(cat => {
+            const filtered = pool.filter(i => i.categoria && i.categoria.includes(cat));
+            if(filtered.length >= 0) {
+                const block = document.createElement('div');
+                block.className = 'category-block';
+                block.innerHTML = `<div class="cat-header">${cat}</div><div class="movie-grid" id="grid-${type}-${cat.replace(/\s/g, '')}"></div>`;
+                cont.appendChild(block);
+                const grid = document.getElementById(`grid-${type}-${cat.replace(/\s/g, '')}`);
+                filtered.forEach(item => grid.innerHTML += createCard(item, 'movie-card'));
+            }
+        });
+    }
+
+    function changeSection(s) {
+        const res = db[s];
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `
+            <div class="category-block" style="margin-top:20px;">
+                <div class="cat-header">${s.toUpperCase().replace('_', ' ')}</div>
+                <div class="movie-grid" style="flex-wrap: wrap;" id="cat-grid"></div>
+            </div>
+        `;
+        const grid = document.getElementById('cat-grid');
+        res.forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
+    }
+
     function renderTop4() {
         const grid = document.getElementById('top4-grid');
         const seed = Math.floor(Date.now() / 21600000);
@@ -152,7 +189,7 @@
 
     function renderRecomendados() {
         const grid = document.getElementById('rec-grid');
-        db.todos.slice(0, 10).forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
+        db.todos.slice(0, 15).forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
     }
 
     function renderContinuar() {
@@ -181,7 +218,7 @@
         cont.innerHTML = `
             <div class="category-block" style="margin-top:20px;">
                 <div class="cat-header">Resultados: ${query}</div>
-                <div class="movie-grid" id="search-grid"></div>
+                <div class="movie-grid" style="flex-wrap:wrap" id="search-grid"></div>
             </div>
         `;
         const grid = document.getElementById('search-grid');
@@ -210,87 +247,3 @@
             }
             
             const active = document.activeElement;
-            
-            // PATCH: Foco na busca habilita digitação imediatamente e mostra cursor
-            if(e.keyCode === 13 && active.id === 'searchWrapper') {
-                const input = document.getElementById('searchInput');
-                input.focus();
-                input.setSelectionRange(input.value.length, input.value.length);
-                return;
-            }
-
-            if(active.id === 'searchInput' && e.keyCode !== 40) return;
-
-            if(e.keyCode === 39 && active.closest('#sideMenu')) {
-                document.getElementById('sideMenu').classList.remove('active');
-            }
-
-            const all = Array.from(document.querySelectorAll('[tabindex="0"], #searchInput')).filter(el => el.offsetParent !== null);
-            let next = null, minDist = Infinity, r = active.getBoundingClientRect();
-
-            all.forEach(el => {
-                if(el === active) return;
-                const nr = el.getBoundingClientRect();
-                let ok = false;
-                if(e.keyCode === 39) ok = nr.left >= r.right - 50;
-                if(e.keyCode === 37) ok = nr.right <= r.left + 50;
-                if(e.keyCode === 40) ok = nr.top >= r.bottom - 50;
-                if(e.keyCode === 38) ok = nr.bottom <= r.top + 50;
-                
-                if(ok) {
-                    const d = Math.hypot(nr.left - r.left, nr.top - r.top);
-                    if(d < minDist) { minDist = d; next = el; }
-                }
-            });
-
-            if(next) {
-                next.focus();
-                if(!next.closest('#sideMenu') && !next.closest('#topBar')) {
-                    next.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }
-        });
-
-        document.addEventListener('focusin', (e) => {
-            document.querySelectorAll('.focused').forEach(f => f.classList.remove('focused'));
-            if(e.target.tabIndex === 0 || e.target.id === 'searchInput') {
-                e.target.classList.add('focused');
-                if(e.target.closest('#sideMenu')) {
-                    document.getElementById('sideMenu').classList.add('active');
-                } else if(e.target.id !== 'searchInput') {
-                    document.getElementById('sideMenu').classList.remove('active');
-                }
-            }
-        });
-    }
-
-    function changeSection(s) {
-        const res = db[s];
-        const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `
-            <div class="category-block" style="margin-top:20px;">
-                <div class="cat-header">${s.toUpperCase().replace('_', ' ')}</div>
-                <div class="movie-grid" id="cat-grid"></div>
-            </div>
-        `;
-        const grid = document.getElementById('cat-grid');
-        res.forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
-    }
-
-    function renderCanais(url) {
-        const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `<div class="category-block" style="margin-top:20px;"><div class="cat-header">CANAIS</div><p>Carregando lista de: ${url}</p></div>`;
-        // Implementação futura de parse M3U
-    }
-
-    function renderFavoritos() {
-        const cont = document.getElementById('dynamicContent');
-        cont.innerHTML = `<div class="category-block" style="margin-top:20px;"><div class="cat-header">FAVORITOS</div><p>Carregando data/favoritos.json...</p></div>`;
-    }
-
-    function renderKidsAZ(cat) {
-        changeSection(cat);
-    }
-</script>
-</body>
-</html>
