@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - V.82.45.74</title>
+    <title>PaixãoFlix TV - V.83.46.75</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
@@ -12,15 +12,12 @@
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; overflow: hidden !important; }
         body { margin: 0; padding: 0; background: #040714; color: #fff; height: 100vh; width: 100vw; -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Foco Blindado e Suave */
         .focused { border: 5px solid #FFCE44 !important; box-shadow: 0 0 25px rgba(255, 206, 68, 1); background: rgba(255, 206, 68, 0.1) !important; z-index: 10 !important; transform: scale(1.05); transition: all 0.3s ease-in-out; }
         
         #topBar { position: fixed; top: 0; width: 100%; height: 90px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 5000; background: #040714; }
         #logoMain { height: 70px; cursor: pointer; border: 5px solid transparent; border-radius: 10px; }
-        #barCounter { font-weight: bold; color: #FFCE44; }
-        #barDateTime { color: #ccc; }
         
-        #sideMenu { position: fixed; left: 0; top: 90px; height: calc(100vh - 90px); width: 80px; background: rgba(4,7,20,0.98); display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 5500; border-right: 1px solid rgba(255,255,255,0.1); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        #sideMenu { position: fixed; left: 0; top: 90px; height: calc(100vh - 90px); width: 80px; background: rgba(4,7,20,0.98); display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 5500; border-right: 1px solid rgba(255,255,255,0.1); transition: width 0.3s; }
         #sideMenu.active { width: 280px; }
         .menu-item { width: 100%; height: 60px; display: flex; align-items: center; padding-left: 28px; cursor: pointer; color: #a0a0a0; border: none !important; transition: 0.3s; }
         .menu-item i { font-size: 24px; min-width: 40px; }
@@ -29,21 +26,30 @@
         
         #mainScroll { width: 100%; height: 100vh; padding: 110px 0 600px 90px; overflow-y: scroll !important; scroll-behavior: smooth; }
         #mainScroll::-webkit-scrollbar { display: none; }
-        
+
+        /* Estilo Hero Home */
+        .hero-banner { width: 95%; height: 450px; margin: 0 auto 40px; border-radius: 20px; background: linear-gradient(to bottom, transparent, #040714), url('https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/banner_hero.jpg'); background-size: cover; background-position: center; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .hero-banner h1 { font-size: 60px; font-weight: 900; margin: 0; color: #fff; text-shadow: 2px 2px 20px #000; }
+        .hero-banner p { font-size: 22px; font-weight: 200; font-style: italic; color: #fff; margin-top: 10px; }
+
+        /* Top 4 Dinâmico */
+        .top-container { display: flex; gap: 30px; justify-content: center; margin-bottom: 50px; }
+        .top-item { position: relative; width: 220px; transition: 0.3s; cursor: pointer; }
+        .top-number { position: absolute; left: -30px; bottom: -20px; font-size: 150px; font-weight: 900; color: rgba(255,255,255,0.1); -webkit-text-stroke: 2px #FFCE44; z-index: 1; line-height: 1; }
+        .top-item img { width: 100%; border-radius: 10px; position: relative; z-index: 2; border: 3px solid transparent; }
+
+        /* Categorias e Linhas */
         .category-block { margin: 0 50px 6px 50px; position: relative; }
         .cat-header { font-size: 26px; font-weight: 900; color: #fff; margin-bottom: 8px; text-transform: uppercase; border-left: 8px solid #FFCE44; padding-left: 20px; }
-        
-        /* Container Horizontal */
         .row-wrapper { display: flex; align-items: center; gap: 10px; position: relative; width: 100%; }
-        .movie-grid { display: flex; gap: 20px; overflow-x: hidden !important; scroll-behavior: smooth; width: calc(100% - 30px); }
-        
+        .movie-grid { display: flex; gap: 20px; overflow-x: hidden !important; scroll-behavior: smooth; width: calc(100% - 40px); }
         .movie-card { min-width: calc(25% - 20px); border-radius: 10px; background: #1a1d29; cursor: pointer; aspect-ratio: 2/3.2; position: relative; border: 5px solid transparent; }
+        .card-mini { min-width: calc(15% - 20px) !important; aspect-ratio: 16/9 !important; }
         .movie-poster { width: 100%; height: auto; aspect-ratio: 2/3; object-fit: cover; border-radius: 5px; }
-        .meta-card { padding: 5px 0; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #FFCE44; font-weight: bold; gap: 20px; }
-        
-        /* Botão Vertical Slider Amarelo Pipoca */
-        .slider-btn { min-width: 8px; max-width: 8px; height: 100%; min-height: 350px; background: #FFCE44; border: none; cursor: pointer; border-radius: 4px; opacity: 0.6; transition: 0.3s; }
-        .slider-btn:focus { opacity: 1; width: 15px; box-shadow: 0 0 15px #FFCE44; }
+
+        /* Botão Seta Autoexplicativo */
+        .slider-arrow { min-width: 40px; height: 100px; background: #FFCE44; border: none; cursor: pointer; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #000; font-size: 24px; transition: 0.3s; clip-path: polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%); }
+        .slider-arrow:focus { transform: scale(1.2); box-shadow: 0 0 20px #FFCE44; }
 
         #videoContainer { position: fixed; inset: 0; background: #000; z-index: 99999; display: none; }
         #detailsOverlay { position: fixed; inset: 0; background: #040714; z-index: 9000; display: none; align-items: center; justify-content: center; padding: 50px; }
@@ -53,19 +59,18 @@
 <body onload="initSystem()">
 
 <div id="topBar">
-    <img id="logoMain" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" tabindex="0">
-    <div id="barCounter">V.82.45.74</div>
+    <img id="logoMain" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" tabindex="0" onclick="renderHome()">
+    <div id="barCounter">V.83.46.75</div>
     <div id="barDateTime">00:00</div>
 </div>
 
 <div id="sideMenu">
+    <div class="menu-item" tabindex="0" onclick="renderHome()"><i class="fas fa-home"></i><span>INÍCIO</span></div>
     <div class="menu-item" tabindex="0" onclick="renderCanais('canais')"><i class="fas fa-tv"></i><span>CANAIS TV</span></div>
     <div class="menu-item" tabindex="0" onclick="changeSection('cinema')"><i class="fas fa-film"></i><span>CINEMA</span></div>
     <div class="menu-item" tabindex="0" onclick="changeSection('series')"><i class="fas fa-clapperboard"></i><span>SÉRIES</span></div>
     <div class="menu-item" tabindex="0" onclick="renderFavoritos()"><i class="fas fa-heart"></i><span>FAVORITOS</span></div>
     <div class="menu-item" tabindex="0" onclick="renderCanais('kids')"><i class="fas fa-child"></i><span>CANAIS KIDS</span></div>
-    <div class="menu-item" tabindex="0" onclick="renderKidsAZ('kids_filmes')"><i class="fas fa-baby"></i><span>FILMES KIDS</span></div>
-    <div class="menu-item" tabindex="0" onclick="renderKidsAZ('kids_series')"><i class="fas fa-robot"></i><span>SÉRIES KIDS</span></div>
 </div>
 
 <div id="mainScroll">
@@ -96,10 +101,8 @@
 <script>
     let db = { cinema: [], series: [], kids_filmes: [], kids_series: [], todos: [] };
     let canaisAtuais = [];
-    let indiceCanalAtivo = -1;
     let favoritos = JSON.parse(localStorage.getItem('favs')) || [];
     let lastFocusedElement = null;
-    let currentVideoId = "";
     let clapprPlayer = null;
 
     async function initSystem() {
@@ -113,11 +116,68 @@
             ]);
             db.cinema = f; db.series = s; db.kids_filmes = kf; db.kids_series = ks;
             db.todos = [...f, ...s, ...kf, ...ks];
-            changeSection('cinema');
-            // INÍCIO NO LOGO
+            renderHome();
             document.getElementById('logoMain').focus();
         } catch(e) { console.error(e); }
         initNavigation();
+    }
+
+    function renderHome() {
+        const cont = document.getElementById('dynamicContent');
+        cont.innerHTML = `
+            <div class="hero-banner">
+                <h1>Bem vindos ao PaixãoFlix</h1>
+                <p>Transformando momentos de lazer em lembranças felizes!</p>
+            </div>
+            
+            <div class="category-block">
+                <div class="cat-header">Top 4 de Hoje</div>
+                <div class="top-container" id="top4-grid"></div>
+            </div>
+
+            <div id="row-continuar" class="category-block"></div>
+            <div id="row-recomendado" class="category-block"></div>
+        `;
+        renderTop4();
+        renderContinuar();
+        renderRecomendados();
+    }
+
+    function renderTop4() {
+        const grid = document.getElementById('top4-grid');
+        const seed = Math.floor(Date.now() / (6 * 60 * 60 * 1000)); // Muda a cada 6h
+        const items = [db.cinema, db.series, db.kids_filmes, db.kids_series].map(arr => {
+            return arr[seed % arr.length];
+        });
+        items.forEach((item, idx) => {
+            grid.innerHTML += `
+                <div class="top-item" tabindex="0" onclick="handleCapa('${item.titulo.replace(/'/g,"")}')">
+                    <span class="top-number">${idx + 1}</span>
+                    <img src="${item.poster}">
+                </div>`;
+        });
+    }
+
+    function renderContinuar() {
+        const keys = Object.keys(localStorage).filter(k => k.startsWith('prog_')).slice(-4);
+        if(keys.length === 0) return;
+        const cont = document.getElementById('row-continuar');
+        cont.innerHTML = `<div class="cat-header">Continuar Assistindo</div><div class="movie-grid"></div>`;
+        keys.forEach(key => {
+            const title = atob(key.replace('prog_', ''));
+            const item = db.todos.find(i => i.titulo === title);
+            if(item) cont.querySelector('.movie-grid').innerHTML += createCardHtml(item, true);
+        });
+    }
+
+    function renderRecomendados() {
+        // Mock de IA: Pega 2 aleatórios do gênero mais frequente nos favoritos
+        const cont = document.getElementById('row-recomendado');
+        cont.innerHTML = `<div class="cat-header">Recomendado para você</div><div class="movie-grid"></div>`;
+        const shuffle = [...db.todos].sort(() => 0.5 - Math.random()).slice(0, 2);
+        shuffle.forEach(item => {
+            cont.querySelector('.movie-grid').innerHTML += createCardHtml(item);
+        });
     }
 
     function changeSection(type) {
@@ -130,12 +190,11 @@
             grouped[cat].push(item);
         });
 
-        // Ordenação Forçada: 2026 e 2025 no topo
         Object.keys(grouped).sort((a, b) => {
-            if(a === "2026 Lançamento") return -1;
-            if(b === "2026 Lançamento") return 1;
-            if(a === "2025 Lançamento") return -1;
-            if(b === "2025 Lançamento") return 1;
+            if(a.includes("2026")) return -1;
+            if(b.includes("2026")) return 1;
+            if(a.includes("2025")) return -1;
+            if(b.includes("2025")) return 1;
             return a.localeCompare(b);
         }).forEach((cat, idx) => {
             const block = document.createElement('div');
@@ -144,7 +203,7 @@
                 <div class="cat-header">${cat}</div>
                 <div class="row-wrapper">
                     <div class="movie-grid" id="grid-${idx}"></div>
-                    <button class="slider-btn" tabindex="0" onclick="scrollRow(${idx})"></button>
+                    <button class="slider-arrow" tabindex="0" onclick="scrollRow(${idx})"><i class="fas fa-chevron-right"></i></button>
                 </div>`;
             cont.appendChild(block);
             const grid = document.getElementById(`grid-${idx}`);
@@ -154,17 +213,13 @@
 
     function scrollRow(idx) {
         const grid = document.getElementById(`grid-${idx}`);
-        const scrollAmount = grid.offsetWidth;
-        if (grid.scrollLeft + scrollAmount >= grid.scrollWidth) {
-            grid.scrollTo({ left: 0, behavior: 'smooth' }); // SALTO INFINITO
-        } else {
-            grid.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-        }
+        if (grid.scrollLeft + grid.offsetWidth >= grid.scrollWidth) grid.scrollTo({ left: 0, behavior: 'smooth' });
+        else grid.scrollBy({ left: grid.offsetWidth, behavior: 'smooth' });
     }
 
-    function createCardHtml(i) {
+    function createCardHtml(i, mini = false) {
         const tSafe = i.titulo.replace(/'/g,"").replace(/"/g,"");
-        return `<div class="movie-card" tabindex="0" data-title="${tSafe}" onclick="handleCapa('${tSafe}')">
+        return `<div class="movie-card ${mini?'card-mini':''}" tabindex="0" data-title="${tSafe}" onclick="handleCapa('${tSafe}')">
             <img class="movie-poster" src="${i.poster}">
             <div class="meta-card"><span>${i.year || ''}</span><span><i class="fas fa-star"></i> ${i.rating || '0.0'}</span></div>
         </div>`;
@@ -190,16 +245,14 @@
     function playVideo(url, title) {
         document.getElementById('videoContainer').style.display = "block";
         if(clapprPlayer) clapprPlayer.destroy();
-        
-        // Blindagem do Player Clappr contra tela preta
         clapprPlayer = new Clappr.Player({
             source: url,
             parentId: "#mainPlayer",
             width: '100%',
             height: '100%',
             autoPlay: true,
-            hlsjsConfig: { enableWorker: true, lowLatencyMode: true },
-            playback: { playInline: true, recycleVideo: true }
+            hlsjsConfig: { enableWorker: true },
+            playback: { playInline: true }
         });
     }
 
