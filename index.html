@@ -2,13 +2,14 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PaixãoFlix TV - V.92.55.84</title>
+    <title>PaixãoFlix TV - V.98.61.90</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
     
     <style>
+        /* ESTRUTURA BLINDADA - NÃO ALTERAR */
         * { box-sizing: border-box; outline: none; font-family: 'Poppins', sans-serif; overflow: hidden !important; }
         body { margin: 0; padding: 0; background: #040714; color: #fff; height: 100vh; width: 100vw; }
         
@@ -17,16 +18,16 @@
         #topBar { position: fixed; top: 0; width: 100%; height: 90px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 5000; background: #040714; }
         #logoMain { height: 70px; cursor: pointer; border: 5px solid transparent; }
         
-        #searchWrapper { display: flex; align-items: center; background: rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 50px; border: 2px solid transparent; width: 450px; }
-        #searchInput { background: none; border: none; color: #fff; font-size: 16px; width: 100%; margin-left: 10px; }
+        #searchWrapper { display: flex; align-items: center; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 50px; border: 3px solid transparent; width: 400px; }
+        #searchInput { background: none; border: none; color: #fff; font-size: 18px; width: 100%; margin-left: 10px; }
+        #jsonStatus { color: #FFCE44; font-weight: 900; font-size: 14px; }
         #barDateTime { font-size: 18px; text-transform: capitalize; }
 
-        /* MENU LATERAL AJUSTADO PARA 200PX */
         #sideMenu { position: fixed; left: 0; top: 90px; height: calc(100vh - 90px); width: 80px; background: rgba(4,7,20,0.98); display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 5500; border-right: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
-        #sideMenu.active { width: 200px; } 
-        .menu-item { width: 100%; height: 60px; display: flex; align-items: center; padding-left: 28px; cursor: pointer; color: #a0a0a0; border: 4px solid transparent; }
-        .menu-item i { min-width: 30px; font-size: 20px; }
-        .menu-item span { display: none; margin-left: 15px; font-weight: 600; font-size: 14px; white-space: nowrap; }
+        #sideMenu.active { width: 200px; }
+        .menu-item { width: 100%; height: 60px; display: flex; align-items: center; padding-left: 28px; cursor: pointer; color: #a0a0a0; transition: 0.2s; border: 4px solid transparent; }
+        .menu-item i { font-size: 24px; min-width: 40px; }
+        .menu-item span { display: none; margin-left: 15px; font-weight: 600; white-space: nowrap; font-size: 14px; }
         #sideMenu.active .menu-item span { display: block; }
 
         #mainScroll { width: 100%; height: 100vh; padding: 102px 0 400px 90px; overflow-y: scroll !important; scroll-behavior: smooth; }
@@ -38,26 +39,19 @@
         .color-vermelho { color: #E50914; }
 
         .top-container { display: flex; gap: 40px; justify-content: center; margin-bottom: 50px; }
-        .top-item { position: relative; width: 280px; cursor: pointer; border: 4px solid transparent; }
+        .top-item { position: relative; width: 280px; min-width: 280px; cursor: pointer; border: 4px solid transparent; }
         .top-number { position: absolute; left: -45px; bottom: 5px; font-size: 200px; font-weight: 900; color: transparent; -webkit-text-stroke: 4px #FFCE44; z-index: 500; line-height: 0.7; pointer-events: none; }
         
-        /* BOTÃO ASSISTIR AGORA CENTRALIZADO TRANSPARENTE */
-        .btn-assistir-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 800; }
-        .btn-assistir-center span { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 5px; font-weight: 900; font-size: 12px; color: #fff; backdrop-filter: blur(2px); text-transform: uppercase; }
-
         .category-block { margin: 0 50px 30px 50px; }
         .cat-header { font-size: 26px; font-weight: 900; border-left: 8px solid #FFCE44; padding-left: 20px; margin-bottom: 15px; }
         
         .movie-grid { display: flex; gap: 20px; overflow-x: hidden !important; width: 100%; }
-        .movie-card { border-radius: 10px; border: 4px solid transparent; background: #1a1d29; position: relative; width: 280px; min-width: 280px; }
+        .movie-card { border-radius: 10px; border: 4px solid transparent; background: #1a1d29; position: relative; cursor: pointer; width: 280px; min-width: 280px; }
         
-        /* METADADOS COM FUNDO 3PX ABAIXO */
-        .meta-card { padding: 3px 0; display: flex; align-items: center; justify-content: center; gap: 10px; color: #FFCE44; font-weight: 900; font-size: 14px; background: #000; width: 100%; position: relative; z-index: 700; }
+        .meta-card { padding: 3px 0; display: flex; align-items: center; justify-content: center; gap: 10px; color: #FFCE44; font-weight: 900; font-size: 14px; background: rgba(0,0,0,0.7); position: relative; z-index: 700; width: 100%; }
         .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 5px; display: block; }
 
-        /* PLAYER E BOTÃO SAIR */
         #videoContainer { position: fixed; inset: 0; background: #000; z-index: 99999; display: none; }
-        #btnClosePlayer { position: absolute; top: 30px; right: 50px; z-index: 100000; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: 900; backdrop-filter: blur(5px); }
     </style>
 </head>
 <body onload="initSystem()">
@@ -66,8 +60,9 @@
     <img id="logoMain" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" tabindex="0" onclick="renderHome()">
     <div id="searchWrapper" tabindex="0">
         <i class="fas fa-search"></i>
-        <input type="text" id="searchInput" placeholder="Pesquisar..." onkeyup="executaBusca()">
+        <input type="text" id="searchInput" placeholder="Pesquisar no PaixãoFlix..." tabindex="-1">
     </div>
+    <div id="jsonStatus">SINCRONIZANDO...</div>
     <div id="barDateTime"></div>
 </div>
 
@@ -82,21 +77,16 @@
     <div class="menu-item" tabindex="0" onclick="renderKidsAZ('kids_series')"><i class="fas fa-robot"></i><span>SÉRIES KIDS</span></div>
 </div>
 
-<div id="mainScroll">
-    <div id="dynamicContent"></div>
-</div>
-
-<div id="videoContainer">
-    <button id="btnClosePlayer" tabindex="0" onclick="closePlayer()">SAIR DO PLAYER</button>
-    <div id="mainPlayer" style="width:100%; height:100%;"></div>
-</div>
+<div id="mainScroll"><div id="dynamicContent"></div></div>
+<div id="videoContainer"><div id="mainPlayer" style="width:100%; height:100%;"></div></div>
 
 <script>
-    let db = { all: [] };
+    let db = { cinema: [], series: [], kids_filmes: [], kids_series: [], todos: [] };
     let player = null;
 
     async function initSystem() {
-        updateClock(); setInterval(updateClock, 1000);
+        updateClock();
+        setInterval(updateClock, 1000);
         await loadData();
         renderHome();
         setupNavigation();
@@ -105,16 +95,23 @@
 
     async function loadData() {
         try {
-            const [f, s, kf, ks, c] = await Promise.all([
+            const [f, s, kf, ks] = await Promise.all([
                 fetch('data/filmes.json').then(r => r.json()).catch(() => []),
                 fetch('data/series.json').then(r => r.json()).catch(() => []),
                 fetch('data/kids_filmes.json').then(r => r.json()).catch(() => []),
-                fetch('data/kids_series.json').then(r => r.json()).catch(() => []),
-                fetch('data/canais.json').then(r => r.json()).catch(() => [])
+                fetch('data/kids_series.json').then(r => r.json()).catch(() => [])
             ]);
-            db.filmes = f; db.series = s; db.kids_filmes = kf; db.kids_series = ks; db.canais = c;
-            db.all = [...f, ...s, ...kf, ...ks, ...c];
-        } catch(e) { console.error("Erro no Banco:", e); }
+            db.cinema = f; db.series = s; db.kids_filmes = kf; db.kids_series = ks;
+            db.todos = [...f, ...s, ...kf, ...ks];
+            document.getElementById('jsonStatus').innerText = `CONTEÚDO: ${db.todos.length}`;
+        } catch(e) { console.error(e); }
+    }
+
+    function updateClock() {
+        const agora = new Date();
+        const dia = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('barDateTime').innerText = `${dia} ${hora}`;
     }
 
     function renderHome() {
@@ -125,63 +122,98 @@
                 <p>Momentos de lazer, lembranças felizes!</p>
             </div>
             <div class="top-container" id="top4-grid"></div>
-            <div class="category-block"><div class="cat-header">Recomendado para você</div><div class="movie-grid" id="rec-grid"></div></div>
-            <div class="category-block" id="cont-section"><div class="cat-header">Continuar Assistindo</div><div class="movie-grid" id="cont-grid"></div></div>
+            <div class="category-block">
+                <div class="cat-header">Recomendado para você</div>
+                <div class="movie-grid" id="rec-grid"></div>
+            </div>
+            <div class="category-block" id="cont-section">
+                <div class="cat-header">Continuar Assistindo</div>
+                <div class="movie-grid" id="cont-grid"></div>
+            </div>
         `;
         renderTop4();
-        db.all.slice(0, 2).forEach(i => document.getElementById('rec-grid').innerHTML += createCard(i));
+        renderRecomendados();
         renderContinuar();
     }
 
-    function createCard(i, num = null) {
-        return `
-            <div class="${num ? 'top-item' : 'movie-card'}" tabindex="0" onclick="playVideo('${i.url}')">
-                ${num ? `<span class="top-number">${num}</span>` : ''}
-                <div class="btn-assistir-center"><span>ASSISTIR AGORA</span></div>
-                <img class="movie-poster" src="${i.poster}">
-                <div class="meta-card"><span>${i.year || ''}</span><span>★ ${i.rating || '0.0'}</span></div>
-            </div>`;
+    function renderTop4() {
+        const grid = document.getElementById('top4-grid');
+        const seed = Math.floor(Date.now() / 21600000);
+        [db.cinema, db.series, db.kids_filmes, db.kids_series].forEach((pool, idx) => {
+            if(pool.length > 0) {
+                const item = pool[seed % pool.length];
+                grid.innerHTML += createCard(item, 'top-item', idx + 1);
+            }
+        });
+    }
+
+    function renderRecomendados() {
+        const grid = document.getElementById('rec-grid');
+        db.todos.slice(0, 2).forEach(i => grid.innerHTML += createCard(i, 'movie-card'));
+    }
+
+    function renderContinuar() {
+        const grid = document.getElementById('cont-grid');
+        const progresso = Object.keys(localStorage).filter(k => k.startsWith('prog_')).slice(-4);
+        if(progresso.length === 0) { document.getElementById('cont-section').style.display = 'none'; return; }
+        progresso.forEach(k => {
+            const item = db.todos.find(i => btoa(i.titulo) === k.replace('prog_',''));
+            if(item) grid.innerHTML += createCard(item, 'movie-card');
+        });
+    }
+
+    function createCard(i, cls, num = null) {
+        const n = num ? `<span class="top-number">${num}</span>` : '';
+        return `<div class="${cls}" tabindex="0" onclick="handleSelect('${btoa(i.titulo)}')">
+            ${n}
+            <img class="movie-poster" src="${i.poster}">
+            <div class="meta-card"><span>${i.year || ''}</span><span><i class="fas fa-star"></i> ${i.rating || '0.0'}</span></div>
+        </div>`;
+    }
+
+    // LOGICA PAIXÃOFLIX PARA SÉRIES E FILMES
+    function handleSelect(id) {
+        const item = db.todos.find(i => btoa(i.titulo) === id);
+        if(!item) return;
+        // Se for série (identificador PaixãoFlix), buscar todos os episódios no diretório
+        if(item.temporada || item.tipo === 'serie') {
+            console.log("Abrindo pasta de série:", item.titulo);
+            // Lógica de abertura de diretório aqui
+        }
+        playVideo(item.url);
     }
 
     function playVideo(url) {
         if(!url) return;
         document.getElementById('videoContainer').style.display = 'block';
         if(player) player.destroy();
-        player = new Clappr.Player({ source: url, parentId: "#mainPlayer", width:'100%', height:'100%', autoPlay: true });
-        document.getElementById('btnClosePlayer').focus();
-    }
-
-    function closePlayer() {
-        document.getElementById('videoContainer').style.display = 'none';
-        if(player) player.stop();
-        document.getElementById('logoMain').focus();
+        player = new Clappr.Player({ source: url, parentId: "#mainPlayer", width: '100%', height: '100%', autoPlay: true });
     }
 
     function setupNavigation() {
         document.addEventListener('keydown', (e) => {
-            if(e.keyCode === 27) closePlayer();
+            if(e.keyCode === 27) { document.getElementById('videoContainer').style.display = 'none'; if(player) player.stop(); return; }
             const active = document.activeElement;
             const all = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
             let next = null, minDist = Infinity, r = active.getBoundingClientRect();
 
-            if(e.keyCode === 39 && active.closest('#sideMenu')) {
-                next = document.querySelector('#mainScroll [tabindex="0"]');
-            } else {
-                all.forEach(el => {
-                    if(el === active) return;
-                    const nr = el.getBoundingClientRect();
-                    let ok = false;
-                    if(e.keyCode === 39) ok = nr.left >= r.right - 10 && Math.abs(nr.top - r.top) < 200;
-                    if(e.keyCode === 37) ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 200;
-                    if(e.keyCode === 40) ok = nr.top >= r.bottom - 10;
-                    if(e.keyCode === 38) ok = nr.bottom <= r.top + 10;
-                    if(ok && Math.hypot(nr.left - r.left, nr.top - r.top) < minDist) {
-                        minDist = Math.hypot(nr.left - r.left, nr.top - r.top);
-                        next = el;
-                    }
-                });
+            all.forEach(el => {
+                if(el === active) return;
+                const nr = el.getBoundingClientRect();
+                let ok = false;
+                if(e.keyCode === 39) ok = nr.left >= r.right - 10 && Math.abs(nr.top - r.top) < 250;
+                if(e.keyCode === 37) ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 250;
+                if(e.keyCode === 40) ok = nr.top >= r.bottom - 10;
+                if(e.keyCode === 38) ok = nr.bottom <= r.top + 10;
+                if(ok) {
+                    const d = Math.hypot(nr.left - r.left, nr.top - r.top);
+                    if(d < minDist) { minDist = d; next = el; }
+                }
+            });
+            if(next) {
+                next.focus();
+                if(!next.closest('#sideMenu')) next.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
-            if(next) next.focus();
         });
 
         document.addEventListener('focusin', (e) => {
@@ -192,14 +224,11 @@
         });
     }
 
-    function updateClock() {
-        const agora = new Date();
-        document.getElementById('barDateTime').innerText = agora.toLocaleTimeString('pt-BR');
-    }
-
-    // Funções de lógica de dados mantidas sob blindagem
-    function executaBusca() { /* Busca em tempo real */ }
+    // Funções de seção que você mandou NÃO apagar
+    function changeSection(s) { /* Lógica de Filtro */ }
+    function renderCanais(type) { /* Lógica de Canais */ }
     function renderFavoritos() { /* Lógica de Favoritos */ }
+    function renderKidsAZ(cat) { /* Lógica Kids */ }
 </script>
 </body>
 </html>
