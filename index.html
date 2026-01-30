@@ -171,14 +171,11 @@
         </div>`;
     }
 
-    // LOGICA PAIXÃOFLIX PARA SÉRIES E FILMES
     function handleSelect(id) {
         const item = db.todos.find(i => btoa(i.titulo) === id);
         if(!item) return;
-        // Se for série (identificador PaixãoFlix), buscar todos os episódios no diretório
         if(item.temporada || item.tipo === 'serie') {
             console.log("Abrindo pasta de série:", item.titulo);
-            // Lógica de abertura de diretório aqui
         }
         playVideo(item.url);
     }
@@ -193,7 +190,14 @@
     function setupNavigation() {
         document.addEventListener('keydown', (e) => {
             if(e.keyCode === 27) { document.getElementById('videoContainer').style.display = 'none'; if(player) player.stop(); return; }
+            
             const active = document.activeElement;
+            const menu = document.getElementById('sideMenu');
+            
+            if(e.keyCode === 39 && active.closest('#sideMenu')) {
+                menu.classList.remove('active');
+            }
+
             const all = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
             let next = null, minDist = Infinity, r = active.getBoundingClientRect();
 
@@ -201,30 +205,38 @@
                 if(el === active) return;
                 const nr = el.getBoundingClientRect();
                 let ok = false;
-                if(e.keyCode === 39) ok = nr.left >= r.right - 10 && Math.abs(nr.top - r.top) < 250;
-                if(e.keyCode === 37) ok = nr.right <= r.left + 10 && Math.abs(nr.top - r.top) < 250;
-                if(e.keyCode === 40) ok = nr.top >= r.bottom - 10;
-                if(e.keyCode === 38) ok = nr.bottom <= r.top + 10;
+                if(e.keyCode === 39) ok = nr.left >= r.right - 50;
+                if(e.keyCode === 37) ok = nr.right <= r.left + 50;
+                if(e.keyCode === 40) ok = nr.top >= r.bottom - 50;
+                if(e.keyCode === 38) ok = nr.bottom <= r.top + 50;
+                
                 if(ok) {
                     const d = Math.hypot(nr.left - r.left, nr.top - r.top);
                     if(d < minDist) { minDist = d; next = el; }
                 }
             });
+
             if(next) {
                 next.focus();
-                if(!next.closest('#sideMenu')) next.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if(!next.closest('#sideMenu') && !next.closest('#topBar')) {
+                    next.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             }
         });
 
         document.addEventListener('focusin', (e) => {
             document.querySelectorAll('.focused').forEach(f => f.classList.remove('focused'));
-            e.target.classList.add('focused');
-            if(e.target.closest('#sideMenu')) document.getElementById('sideMenu').classList.add('active');
-            else document.getElementById('sideMenu').classList.remove('active');
+            if(e.target.tabIndex === 0) {
+                e.target.classList.add('focused');
+                if(e.target.closest('#sideMenu')) {
+                    document.getElementById('sideMenu').classList.add('active');
+                } else {
+                    document.getElementById('sideMenu').classList.remove('active');
+                }
+            }
         });
     }
 
-    // Funções de seção que você mandou NÃO apagar
     function changeSection(s) { /* Lógica de Filtro */ }
     function renderCanais(type) { /* Lógica de Canais */ }
     function renderFavoritos() { /* Lógica de Favoritos */ }
