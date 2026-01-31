@@ -1,266 +1,330 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PaixãoFlix - Oficial</title>
-    <style>
-        :root {
-            --amarelo-pipoca: #ffcc00;
-            --azul-escuro: #001a33;
-            --bg-body: #05070a;
-            --bg-sidebar: #000000;
-            --sombra-3d: 0 4px 0 #b38f00;
-        }
+<meta charset="UTF-8">
+<title>PaixãoFlix</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; outline: none; }
-        body { background-color: var(--bg-body); color: #fff; overflow: hidden; display: flex; }
+<style>
+:root{
+  --bg:#0b0b0f;
+  --bg2:#14141a;
+  --amarelo:#ffcc00;
+  --azul:#0a2cff;
+  --txt:#fff;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+body{background:var(--bg);color:var(--txt);overflow:hidden}
 
-        /* --- BARRA LATERAL ESTILO DISNEY+ --- */
-        #sidebar {
-            width: 80px; height: 100vh; background: var(--bg-sidebar);
-            display: flex; flex-direction: column; align-items: center;
-            padding-top: 20px; z-index: 1000; border-right: 1px solid #1a1a1a;
-        }
-        #logo-btn { width: 50px; cursor: pointer; transition: 0.3s; margin-bottom: 20px; }
-        #logo-btn:hover { transform: scale(1.1); }
-        
-        .nav-menu { display: flex; flex-direction: column; gap: 20px; width: 100%; align-items: center; }
-        .nav-icon { 
-            width: 45px; height: 45px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            border-radius: 8px; transition: 0.2s;
-        }
-        .nav-icon svg { width: 24px; height: 24px; fill: #666; }
-        .nav-icon:focus, .nav-icon.active { background: var(--amarelo-pipoca); }
-        .nav-icon:focus svg, .nav-icon.active svg { fill: #000; }
+/* ===== SIDEBAR ===== */
+#sidebar{
+  position:fixed;left:0;top:0;
+  width:90px;height:100vh;
+  background:#000;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  z-index:10;
+}
+#logo{
+  width:60px;
+  margin:20px 0;
+  cursor:pointer;
+}
+.menu-icon{
+  width:28px;height:28px;
+  margin:14px 0;
+  opacity:.7;
+  cursor:pointer;
+}
+.menu-icon:focus{outline:2px solid var(--amarelo);opacity:1}
 
-        /* --- BARRA SUPERIOR --- */
-        #topbar {
-            position: fixed; top: 0; left: 80px; right: 0; height: 60px;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 40px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
-            z-index: 900;
-        }
-        #contador-evolucao { font-weight: bold; color: var(--amarelo-pipoca); text-transform: uppercase; letter-spacing: 1px; }
-        #relogio-extenso { font-size: 14px; color: #ccc; }
+/* ===== HEADER ===== */
+#header{
+  position:fixed;
+  left:90px;top:0;
+  width:calc(100% - 90px);
+  height:60px;
+  background:rgba(0,0,0,.7);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9;
+}
+#contador{font-weight:bold}
+#hora{
+  position:absolute;
+  right:20px;
+}
 
-        /* --- CONTEÚDO --- */
-        #main-container { margin-left: 0; width: calc(100% - 80px); height: 100vh; overflow-y: auto; padding-top: 70px; }
-        .section-row { margin-bottom: 40px; padding: 0 40px; position: relative; }
-        .row-title { font-size: 22px; margin-bottom: 15px; font-weight: 600; }
-        
-        .carousel { display: flex; gap: 15px; overflow-x: hidden; scroll-behavior: smooth; padding: 10px 0; }
-        
-        /* --- BOTÕES 3D --- */
-        .btn-3d {
-            background: var(--amarelo-pipoca); color: #000; border: none;
-            padding: 10px 20px; font-weight: bold; border-radius: 6px;
-            box-shadow: var(--sombra-3d); cursor: pointer; text-transform: uppercase;
-            transition: 0.1s; display: inline-flex; align-items: center; gap: 8px;
-        }
-        .btn-3d:active { transform: translateY(3px); box-shadow: 0 1px 0 #b38f00; }
-        .btn-3d:focus { border: 2px solid #fff; }
+/* ===== MAIN ===== */
+#main{
+  position:absolute;
+  top:60px;
+  left:90px;
+  width:calc(100% - 90px);
+  height:calc(100vh - 60px);
+  overflow-y:auto;
+  padding:20px;
+}
 
-        /* --- CAPAS --- */
-        .capa-container { 
-            min-width: 220px; position: relative; cursor: pointer; transition: 0.3s;
-        }
-        .capa-container:focus { transform: scale(1.05); }
-        .capa-img { width: 100%; border-radius: 8px; display: block; }
-        
-        .top-number {
-            position: absolute; left: -15px; bottom: 30px;
-            font-size: 90px; font-weight: 900; color: var(--azul-escuro);
-            -webkit-text-stroke: 2px var(--amarelo-pipoca); z-index: 10;
-        }
+/* ===== BOTÕES ===== */
+.btn{
+  background:#222;
+  color:#fff;
+  padding:10px 20px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  box-shadow:0 4px 0 var(--amarelo);
+}
+.btn:active{transform:translateY(4px);box-shadow:none}
 
-        .capa-footer { 
-            display: flex; justify-content: space-between; font-size: 11px; 
-            margin-top: 8px; color: #aaa; padding: 0 4px;
-        }
+/* ===== CAPAS ===== */
+.row{margin-bottom:30px}
+.row h2{margin-bottom:10px}
+.covers{
+  display:flex;
+  gap:12px;
+  overflow:hidden;
+}
+.cover{
+  min-width:180px;
+  cursor:pointer;
+}
+.cover img{
+  width:100%;
+  border-radius:6px;
+}
+.cover-info{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  margin-top:4px;
+}
 
-        /* --- PLAYER --- */
-        #player-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 2000; display: none;
-        }
-        video { width: 100%; height: 100%; }
-        .btn-sair-player {
-            position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px); color: #fff; border: 1px solid rgba(255,255,255,0.3);
-            padding: 10px 20px; border-radius: 4px; cursor: pointer; z-index: 2100;
-        }
+/* ===== PLAYER ===== */
+#playerOverlay{
+  position:fixed;
+  inset:0;
+  background:#000;
+  display:none;
+  z-index:20;
+}
+#playerOverlay video{
+  width:100%;
+  height:100%;
+}
+#exitPlayer{
+  position:absolute;
+  top:20px;left:20px;
+  background:rgba(255,255,255,.2);
+  color:#fff;
+  border:none;
+  padding:10px;
+}
 
-        /* --- BUSCA --- */
-        #search-overlay {
-            position: fixed; top: 60px; left: 80px; right: 0; bottom: 0;
-            background: var(--bg-body); z-index: 800; display: none; padding: 40px;
-        }
-        #search-input {
-            width: 100%; background: none; border: none; border-bottom: 2px solid var(--amarelo-pipoca);
-            color: #fff; font-size: 30px; padding: 10px; margin-bottom: 30px;
-        }
-    </style>
+/* ===== SEARCH ===== */
+#searchBox{
+  position:fixed;
+  left:90px;top:60px;
+  width:300px;
+  padding:10px;
+  display:none;
+  z-index:15;
+}
+#searchResults{
+  position:fixed;
+  left:90px;top:100px;
+  background:#000;
+  width:400px;
+  max-height:60vh;
+  overflow:auto;
+  display:none;
+  z-index:15;
+}
+.search-item{padding:10px;border-bottom:1px solid #333;cursor:pointer}
+.search-item:hover{background:#222}
+</style>
 </head>
+
 <body>
 
-<nav id="sidebar">
-    <img id="logo-btn" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" onclick="location.reload()" tabindex="0">
-    <div class="nav-menu">
-        <div class="nav-icon" tabindex="0" onclick="toggleSearch()" id="nav-pesquisa">
-            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-        </div>
-        <div class="nav-icon" tabindex="0" onclick="renderPagina('cinema')">
-            <svg viewBox="0 0 24 24"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
-        </div>
-        </div>
-</nav>
-
-<header id="topbar">
-    <div id="contador-evolucao">Estamos evoluindo: <span id="total-count">0</span></div>
-    <div id="relogio-extenso"></div>
-</header>
-
-<main id="main-container">
-    </main>
-
-<div id="search-overlay">
-    <input type="text" id="search-input" placeholder="O que você quer assistir hoje?" oninput="executarBusca(this.value)">
-    <div id="search-results" class="carousel"></div>
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <img id="logo" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" tabindex="0">
+  <img class="menu-icon" src="https://img.icons8.com/ios-filled/50/search--v1.png" tabindex="0" onclick="openSearch()">
+  <img class="menu-icon" src="https://img.icons8.com/ios-filled/50/movie.png" tabindex="0" onclick="loadPage('filmes')">
+  <img class="menu-icon" src="https://img.icons8.com/ios-filled/50/tv-show.png" tabindex="0" onclick="loadPage('series')">
+  <img class="menu-icon" src="https://img.icons8.com/ios-filled/50/tv.png" tabindex="0" onclick="loadPage('canais')">
+  <img class="menu-icon" src="https://img.icons8.com/ios-filled/50/children.png" tabindex="0" onclick="loadPage('kids_filmes')">
+  <img class="menu-icon" src="https://img.icons8.com/ios-filled/50/baby.png" tabindex="0" onclick="loadPage('kids_series')">
+  <img class="menu-icon" src="https://img.icons8.com/ios-filled/50/like.png" tabindex="0" onclick="loadPage('favoritos')">
 </div>
 
-<div id="player-modal">
-    <button class="btn-sair-player" onclick="fecharPlayer()">VOLTAR</button>
-    <video id="video-player" controls></video>
+<!-- HEADER -->
+<div id="header">
+  <div id="contador">Estamos evoluindo 0</div>
+  <div id="hora"></div>
+</div>
+
+<input id="searchBox" placeholder="Pesquisar...">
+<div id="searchResults"></div>
+
+<!-- MAIN -->
+<div id="main"></div>
+
+<!-- PLAYER -->
+<div id="playerOverlay">
+  <button id="exitPlayer" onclick="closePlayer()">Sair</button>
+  <video id="player" controls autoplay></video>
 </div>
 
 <script>
-    // Configuração de dados e estados
-    let db = { filmes: [], series: [], kids_filmes: [], kids_series: [], favoritos: [] };
-    const categoriasOrd = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Família", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
+const main = document.getElementById("main");
+const player = document.getElementById("player");
+const overlay = document.getElementById("playerOverlay");
+let currentBack = "home";
+let allData=[];
 
-    // 1. Relógio em tempo real
-    function atualizarRelogio() {
-        const agora = new Date();
-        const texto = agora.toLocaleDateString('pt-BR', { 
-            weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' 
-        }) + " | " + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        document.getElementById('relogio-extenso').innerText = texto.toUpperCase();
-    }
-    setInterval(atualizarRelogio, 1000);
+/* ===== CLOCK ===== */
+function updateClock(){
+  const d=new Date();
+  document.getElementById("hora").innerText =
+    d.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+
+    " "+d.toLocaleTimeString("pt-BR",{hour12:false});
+}
+setInterval(updateClock,1000);updateClock();
 
-    // 2. Carregar todos os JSONs
-    async function carregarSistema() {
-        const fontes = {
-            filmes: 'data/filmes.json',
-            series: 'data/series.json',
-            kids_filmes: 'data/kids_filmes.json',
-            kids_series: 'data/kids_series.json',
-            favoritos: 'data/favoritos.json'
-        };
+/* ===== LOAD JSON ===== */
+async function loadJSON(url){
+  const r=await fetch(url);return r.json();
+}
 
-        for (let chave in fontes) {
-            try {
-                const r = await fetch(fontes[chave]);
-                db[chave] = await r.json();
-            } catch (e) { console.warn("Erro ao carregar " + chave); }
-        }
+/* ===== HOME ===== */
+async function home(){
+  main.innerHTML="<h1>PaixãoFlix indica hoje</h1>";
+  const files=["data/filmes.json","data/series.json","data/kids_filmes.json","data/kids_series.json"];
+  let items=[];
+  for(const f of files){
+    const j=await loadJSON(f);
+    items.push(...j);
+  }
+  allData=items;
+  document.getElementById("contador").innerText="Estamos evoluindo "+items.length;
+  items.sort(()=>0.5-Math.random());
+  const top=items.slice(0,4);
+  const row=document.createElement("div");
+  row.className="covers";
+  top.forEach((i,idx)=>{
+    const c=document.createElement("div");
+    c.className="cover";
+    c.innerHTML=`
+      <img src="${i.capa}">
+      <div class="cover-info">
+        <span>${i.ano}</span>
+        <span>${i.avaliacao}</span>
+        <span>${i.categoria}</span>
+      </div>`;
+    c.onclick=()=>openDetails(i);
+    row.appendChild(c);
+  });
+  main.appendChild(row);
+}
+home();
 
-        const total = db.filmes.length + db.series.length + db.kids_filmes.length + db.kids_series.length;
-        document.getElementById('total-count').innerText = total;
+/* ===== DETAILS ===== */
+function openDetails(item){
+  currentBack=item.tipo;
+  main.innerHTML=`
+  <div style="background:url(${item.fundo||item.capa}) center/cover fixed;height:100%">
+    <div style="display:flex;gap:20px;background:rgba(0,0,0,.7);padding:20px">
+      <img src="${item.capa}" width="220">
+      <div>
+        <h1>${item.titulo}</h1>
+        <p>${item.ano} • ${item.avaliacao}</p>
+        <p>${item.descricao||""}</p>
+        <button class="btn" onclick="play('${item.url}')">Assistir agora</button>
+        <button class="btn" onclick="home()">Voltar</button>
+      </div>
+    </div>
+  </div>`;
+}
 
-        renderHome();
-    }
+/* ===== PLAYER ===== */
+function play(url){
+  overlay.style.display="block";
+  player.src=url;
+  player.play();
+}
+function closePlayer(){
+  player.pause();
+  overlay.style.display="none";
+}
 
-    // 3. Lógica da Página Inicial (Top 4 Diário)
-    function renderHome() {
-        const container = document.getElementById('main-container');
-        container.innerHTML = `
-            <div class="section-row">
-                <h2 class="row-title">PaixãoFlix Indica Hoje</h2>
-                <div class="carousel" id="top-4-carousel"></div>
-            </div>
-            <div class="section-row" id="continuar-assistindo-section" style="display:none">
-                <h2 class="row-title">Continuar Assistindo</h2>
-                <div class="carousel" id="continuar-carousel"></div>
-            </div>
-        `;
+/* ===== SEARCH ===== */
+function openSearch(){
+  document.getElementById("searchBox").style.display="block";
+  document.getElementById("searchResults").style.display="block";
+}
+searchBox.oninput=()=>{
+  const q=searchBox.value.toLowerCase();
+  searchResults.innerHTML="";
+  allData.filter(i=>i.titulo.toLowerCase().includes(q))
+  .forEach(i=>{
+    const d=document.createElement("div");
+    d.className="search-item";
+    d.innerText=i.titulo;
+    d.onclick=()=>openDetails(i);
+    searchResults.appendChild(d);
+  });
+};
 
-        // Seleção do Top 4 baseada na data (muda a cada 24h)
-        const diaDoAno = Math.floor(new Date() / 8.64e7);
-        const todasCapas = [...db.filmes, ...db.series, ...db.kids_filmes, ...db.kids_series];
-        const seed = diaDoAno % (todasCapas.length - 4);
-        
-        const top4 = todasCapas.slice(seed, seed + 4);
-        const topRow = document.getElementById('top-4-carousel');
+/* ===== LOAD PAGE ===== */
+async function loadPage(type){
+  main.innerHTML="";
+  let url="";
+  if(type==="filmes")url="data/filmes.json";
+  if(type==="series")url="data/series.json";
+  if(type==="kids_filmes")url="data/kids_filmes.json";
+  if(type==="kids_series")url="data/kids_series.json";
+  if(type==="favoritos")url="data/favoritos.json";
 
-        top4.forEach((item, index) => {
-            topRow.innerHTML += `
-                <div class="capa-container" tabindex="0" onclick="abrirDetalhes('${item.id}')">
-                    <span class="top-number">${index + 1}</span>
-                    <img src="${item.capa}" class="capa-img">
-                    <div class="capa-footer">
-                        <span>${item.ano}</span>
-                        <span>★ ${item.avaliacao}</span>
-                        <span>${item.categoria}</span>
-                    </div>
-                </div>
-            `;
-        });
-        
-        atualizarContinuarAssistindo();
-    }
+  if(type==="canais"){
+    main.innerHTML="<h1>Canais ao Vivo</h1>";
+    const txt=await fetch("data/ativa_kids_canais.m3u").then(r=>r.text());
+    txt.split("\n").forEach(l=>{
+      if(l.startsWith("#EXTINF")){
+        const name=l.split(",")[1];
+        const d=document.createElement("div");
+        d.innerText=name;
+        main.appendChild(d);
+      }
+    });
+    return;
+  }
 
-    // 4. Lógica de Player e Progresso
-    function abrirPlayer(url, id, tempo = 0) {
-        const player = document.getElementById('video-player');
-        document.getElementById('player-modal').style.display = 'block';
-        player.src = url;
-        player.currentTime = tempo;
-        player.play();
+  const data=await loadJSON(url);
+  const row=document.createElement("div");
+  row.className="covers";
+  data.forEach(i=>{
+    const c=document.createElement("div");
+    c.className="cover";
+    c.innerHTML=`
+      <img src="${i.capa}">
+      <div class="cover-info">
+        <span>${i.ano}</span>
+        <span>${i.avaliacao}</span>
+      </div>`;
+    c.onclick=()=>openDetails(i);
+    row.appendChild(c);
+  });
+  main.appendChild(row);
+}
 
-        // Salvar progresso
-        player.ontimeupdate = () => {
-            const progresso = { id, tempo: player.currentTime, total: player.duration };
-            let lista = JSON.parse(localStorage.getItem('progresso_flix') || '[]');
-            lista = lista.filter(x => x.id !== id);
-            lista.unshift(progresso);
-            localStorage.setItem('progresso_flix', JSON.stringify(lista.slice(0, 10)));
-        };
-    }
-
-    function fecharPlayer() {
-        document.getElementById('video-player').pause();
-        document.getElementById('player-modal').style.display = 'none';
-    }
-
-    // 5. Busca em Tempo Real
-    function executarBusca(query) {
-        const resultsDiv = document.getElementById('search-results');
-        resultsDiv.innerHTML = "";
-        if(query.length < 2) return;
-
-        const todos = [...db.filmes, ...db.series];
-        const filtrados = todos.filter(i => i.nome.toLowerCase().includes(query.toLowerCase()));
-
-        filtrados.forEach(item => {
-            resultsDiv.innerHTML += `
-                <div class="capa-container" tabindex="0" onclick="abrirDetalhes('${item.id}')">
-                    <img src="${item.capa}" class="capa-img">
-                </div>
-            `;
-        });
-    }
-
-    function toggleSearch() {
-        const s = document.getElementById('search-overlay');
-        s.style.display = s.style.display === 'block' ? 'none' : 'block';
-        if(s.style.display === 'block') document.getElementById('search-input').focus();
-    }
-
-    // Iniciar
-    window.onload = carregarSistema;
-
+/* ===== LOGO ===== */
+logo.onclick=()=>location.reload();
 </script>
+
 </body>
 </html>
