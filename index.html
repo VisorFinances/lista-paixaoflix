@@ -45,18 +45,25 @@
 
         /* BARRA SUPERIOR */
         #topbar {
-            position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: 65px;
+            position: fixed; top: 00; left: var(--sidebar-w); right: 0; height: 65px;
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 35px; background: rgba(0,0,0,0.9); z-index: 900;
         }
         #contador { color: var(--amarelo-pipoca); font-weight: bold; font-size: 16px; text-transform: uppercase; }
 
         /* CONTEÚDO PRINCIPAL */
-        main { margin-left: 0; width: calc(100% - var(--sidebar-w)); height: 100vh; overflow-y: auto; padding: 90px 35px 50px; scroll-behavior: smooth; }
-        
+        main {
+            margin-left: 0;
+            width: calc(100% - var(--sidebar-w));
+            height: 100vh;
+            overflow: hidden;
+            scroll-behavior: smooth;
+            padding: 90px 35px 50px;
+        }
+
         /* BOTÕES 3D */
         .btn-3d {
-            background: var(--amarelo-pipoca); border: none; padding: 12px 24px;
+            background: var(--amarelo-pipoca); border: nenhum; padding: 12px 24px;
             font-weight: bold; border-radius: 8px; box-shadow: var(--sombra-3d);
             cursor: pointer; transition: 0.1s; color: black; font-size: 13px;
         }
@@ -73,54 +80,104 @@
         .amarelo { color: var(--amarelo-pipoca); }
 
         /* CONFIGURAR 4 CAPAS POR LINHA NAS CATEGORIAS */
-        .row-section { margin-bottom: 40px; position: relative; }
-        .carousel { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 20px; 
-            width: 100%; 
-            padding: 10px 0; 
-        }
-        
-        /* TOP 4 PREENCHENDO A TELA */
-        #top4 {
+        .row-section {
+            margin-bottom: 40px;
+            position: relative;
+            height: 100vh;
             display: flex;
-            gap: 15px;
-            height: 60vh; 
-            margin-bottom: 50px;
+            flex-direction: column;
+            justify-content: center;
+            outline: nenhum;
         }
-        #top4 .capa { flex: 1; height: 100%; }
 
-        /* CAPAS PADRONIZADAS E METADADOS */
-        .capa { position: relative; cursor: pointer; transition: 0.3s; }
-        .capa:focus { transform: scale(1.03); border: 4px solid white; border-radius: 8px; z-index: 10; }
-        .capa img { width: 100%; height: 100%; border-radius: 6px; object-fit: cover; }
-        
+        .carousel {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            padding: 10px 0;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            position: relative;
+        }
+
+        .carousel::after {
+            content: "➤";
+            font-size: 40px;
+            color: var(--amarelo-pipoca);
+            position: sticky;
+            right: 10px;
+            top: 50%;
+;
+            pointer-events: nenhum;
+            z-index: 5;
+        }
+
+        .capa {
+            flex: 0 0 calc(25% - 15px);
+            height: var(--capa-h);
+            position: relative;
+            cursor: pointer;
+            transition: 0.3s;
+            border-radius: 8px;
+            overflow: hidden;
+            outline: nenhum;
+        }
+
+        .capa:focus {
+            transform: scale(1.03);
+            border: 4px solid white;
+    box-shadow: 0 0 20px var(--amarelo-pipoca);
+            z-index: 10;
+        }
+
+        .capa img {
+            width: 100%;
+            height: 100%;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
         .num-top {
             position: absolute; left: -15px; bottom: 5px; font-size: 85px;
             font-weight: 900; color: var(--azul-escuro); -webkit-text-stroke: 2px var(--amarelo-pipoca); z-index: 5;
             line-height: 1;
         }
-        
-        /* CENTRALIZAR, AUMENTAR E AMARELO PIPOCA */
-        .capa-meta { 
-            display: flex; 
-            justify-content: center; 
+
+        .capa-meta {
+            display: flex;
+            justify-content: center;
             gap: 15px;
-            font-size: 14px; 
-            color: var(--amarelo-pipoca) !important; 
-            margin-top: 8px; 
-            font-weight: bold; 
+            font-size: 14px;
+            color: var(--amarelo-pipoca) !important;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
+        /* TOP 4 */
+        #top4 {
+            display: flex;
+            gap: 15px;
+            height: 60vh;
+            margin-bottom: 50px;
+        }
+
+        #top4 .capa {
+            flex: 1;
+            height: 100%;
         }
 
         /* PLAYER E TELAS */
-        #player-layer, #details-layer { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
+        #player-layer, #details-layer { position: fixed; inset: 0 background: #000; z-index: 2000; display: nenhum; }
         video { width: 100%; height: 100%; }
         .overlay-det { width: 100%; height: 100%; background: linear-gradient(to right, #000 40%, transparent); display: flex; align-items: center; padding: 60px; }
 
         /* BUSCA */
-        #search-layer { position: fixed; inset: 70px 0 0 var(--sidebar-w); background: var(--bg-body); z-index: 850; display: none; padding: 40px; }
-        #q { width: 100%; background: none; border: none; border-bottom: 3px solid var(--amarelo-pipoca); color: #fff; font-size: 35px; margin-bottom: 30px; }
+        #search-layer { position: fixed; inset: 70px 0 0 var(--sidebar-w); background: var(--bg-body); z-index: 850; display: nenhum; padding: 40px; }
+        #q { width: 100%; background: nenhum; border: nenhum; border-bottom: 3px solid var(--amarelo-pipoca); color: #fff; font-size: 35px; margin-bottom: 30px; }
     </style>
 </head>
 <body>
@@ -206,7 +263,7 @@
     }
 
     async function loadData(type, file) {
-        document.getElementById('search-layer').style.display = 'none';
+        document.getElementById('search-layer').style.display = 'nenhum';
         const view = document.getElementById('main-view');
         view.innerHTML = '<h2 class="titulo-custom" style="font-size:24px"><span class="amarelo">Carregando conteúdo...</span></h2>';
         const data = await fetch(file).then(r => r.json());
@@ -220,7 +277,7 @@
                 const list = data.filter(i => i.genero === cat);
                 if(list.length > 0) {
                     view.innerHTML += `
-                        <div class="row-section">
+                        <div class="row-section" tabindex="0">
                             <h2 class="titulo-custom" style="font-size:24px"><span class="amarelo">${cat}</span></h2>
                             <div class="carousel">${drawCapas(list)}</div>
                         </div>`;
@@ -249,12 +306,12 @@
         
         if(item.type === 'serie') {
             playBtn = `<div id="ep-list">Buscando episódios...</div>`;
-            const res = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
+            const res = await fetch(`https://archive.org/metadata/metadata/${item.identificador_archive}`);
             const meta = await res.json();
             const videos = meta.files.filter(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv'));
             let epHtml = '<div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-top:20px">';
             videos.forEach((v, i) => {
-                const epUrl = `https://archive.org/download/${item.identificador_archive}/${v.name}`;
+                const epUrl = `https://archive.download/${item.identificador_archive}/${v.name}`;
                 epHtml += `<button class="btn-3d" style="font-size:10px" onclick="playVideo('${epUrl}', '${v.name}')">EPISÓDIO ${i+1}</button>`;
             });
             playBtn = epHtml + '</div>';
@@ -268,7 +325,7 @@
                     <p style="margin:20px 0; font-size:18px">${item.year} | ★ ${item.rating} | ${item.genero}</p>
                     <p style="opacity:0.8; line-height:1.5; margin-bottom:40px">${item.desc}</p>
                     ${playBtn}
-                    <button class="btn-3d" style="background:#444; color:#fff; margin-left:15px" onclick="document.getElementById('details-layer').style.display='none'">VOLTAR</button>
+                    <button class="btn-3d" style="background:#444; color:#fff; margin-left:15px" onclick="document.getElementById('details-layer').style.display='nenhum'">VOLTAR</button>
                 </div>
             </div>`;
     }
@@ -280,12 +337,12 @@
 
     function closePlayer() {
         document.getElementById('main-video').pause();
-        document.getElementById('player-layer').style.display = 'none';
+        document.getElementById('player-layer').style.display = 'nenhum';
     }
 
     function toggleSearch() {
         const s = document.getElementById('search-layer');
-        s.style.display = s.style.display === 'block' ? 'none' : 'block';
+        s.style.display = s.style.display === 'block' ? 'nenhum' : 'block';
         if(s.style.display === 'block') document.getElementById('q').focus();
     }
 
@@ -296,6 +353,39 @@
         const filtered = globalDB.filter(i => i.titulo.toLowerCase().includes(txt.toLowerCase()));
         r.innerHTML = drawCapas(filtered);
     }
+
+    // NAVEGAÇÃO COM SETAS / CONTROLE REMOTO / TOQUE
+    document.addEventListener('keydown', e => {
+        const focado = document.activeElement;
+        if (!focado) return;
+
+        let proximo = nulo;
+
+        if (focado.classList.contains('capa')) {
+            if (e.key === 'ArrowRight') proximo = focado.nextElementSibling;
+            if (e.key === 'ArrowLeft')  proximo = focado.previousElementSibling;
+        }
+
+        if (focado.classList.contains('row-section')) {
+            if (e.key === 'ArrowDown') proximo = focado.nextElementSibling;
+            if (e.key === 'ArrowUp')    proximo = focado.previousElementSibling;
+        }
+
+        if (proximo) {
+            proximo.focus();
+            proximo.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+    });
+
+    // CLICA NA PRIMEIRA CAPA AO ENTRAR NA CATEGORIA
+    document.addEventListener('focus', e => {
+        if (e.target.classList.contains('row-section')) {
+            const primeiraCapa = e.target.querySelector('.capa');
+            if (primeiraCapa) {
+                setTimeout(() => primeiraCapa.focus(), 50);
+            }
+        }
+    }, true);
 
     window.onload = startApp;
 </script>
