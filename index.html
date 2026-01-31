@@ -7,6 +7,7 @@
     <style>
         :root {
             --amarelo-pipoca: #ffcc00;
+            --vermelho-logo: #ff0000;
             --azul-escuro: #001a33;
             --bg-body: #05070a;
             --sombra-3d: 0 5px 0 #b38f00;
@@ -15,7 +16,15 @@
             --sidebar-w: 85px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; outline: none; }
+        /* REMOVER BARRA DE ROLAGEM DE TUDO */
+        * { 
+            margin: 0; padding: 0; box-sizing: border-box; 
+            font-family: 'Segoe UI', sans-serif; outline: none; 
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        *::-webkit-scrollbar { display: none; }
+
         body { background: var(--bg-body); color: white; overflow: hidden; display: flex; }
 
         /* BARRA LATERAL */
@@ -53,35 +62,56 @@
         }
         .btn-3d:focus { transform: translateY(3px); box-shadow: 0 2px 0 #b38f00; border: 2px solid white; }
 
-        /* CARROSSEL E CATEGORIAS */
-        .row-section { margin-bottom: 40px; position: relative; }
-        .row-title { font-size: 20px; margin-bottom: 15px; font-weight: 600; color: #fff; }
-        .carousel-container { position: relative; display: flex; align-items: center; }
-        .carousel { display: flex; gap: 18px; overflow-x: hidden; scroll-behavior: smooth; width: 100%; padding: 10px 0; }
-        
-        /* CAPAS PADRONIZADAS */
-        .capa { 
-            min-width: var(--capa-w); width: var(--capa-w); height: var(--capa-h);
-            position: relative; cursor: pointer; transition: 0.3s; flex-shrink: 0;
+        /* TITULO PERSONALIZADO */
+        .titulo-custom {
+            font-size: 38px;
+            font-weight: 900;
+            margin-bottom: 25px;
+            text-transform: uppercase;
         }
-        .capa:focus { transform: scale(1.08); border: 3px solid white; border-radius: 8px; z-index: 10; }
+        .vermelho { color: var(--vermelho-logo); }
+        .amarelo { color: var(--amarelo-pipoca); }
+
+        /* CONFIGURAR 4 CAPAS POR LINHA NAS CATEGORIAS */
+        .row-section { margin-bottom: 40px; position: relative; }
+        .carousel { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 20px; 
+            width: 100%; 
+            padding: 10px 0; 
+        }
+        
+        /* TOP 4 PREENCHENDO A TELA */
+        #top4 {
+            display: flex;
+            gap: 15px;
+            height: 60vh; 
+            margin-bottom: 50px;
+        }
+        #top4 .capa { flex: 1; height: 100%; }
+
+        /* CAPAS PADRONIZADAS E METADADOS */
+        .capa { position: relative; cursor: pointer; transition: 0.3s; }
+        .capa:focus { transform: scale(1.03); border: 4px solid white; border-radius: 8px; z-index: 10; }
         .capa img { width: 100%; height: 100%; border-radius: 6px; object-fit: cover; }
         
-        /* NÚMEROS TOP 4 */
         .num-top {
             position: absolute; left: -15px; bottom: 5px; font-size: 85px;
             font-weight: 900; color: var(--azul-escuro); -webkit-text-stroke: 2px var(--amarelo-pipoca); z-index: 5;
             line-height: 1;
         }
-        .capa-meta { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; margin-top: 6px; padding: 0 2px; }
-
-        /* SETAS DE NAVEGAÇÃO */
-        .seta-nav {
-            position: absolute; right: -25px; background: rgba(255,204,0,0.8); border: none;
-            width: 40px; height: 60px; color: #000; font-weight: bold; cursor: pointer;
-            z-index: 50; border-radius: 5px 0 0 5px; display: none;
+        
+        /* CENTRALIZAR, AUMENTAR E AMARELO PIPOCA */
+        .capa-meta { 
+            display: flex; 
+            justify-content: center; 
+            gap: 15px;
+            font-size: 14px; 
+            color: var(--amarelo-pipoca) !important; 
+            margin-top: 8px; 
+            font-weight: bold; 
         }
-        .row-section:hover .seta-nav { display: block; }
 
         /* PLAYER E TELAS */
         #player-layer, #details-layer { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
@@ -124,20 +154,18 @@
 
 <div id="search-layer">
     <input type="text" id="q" placeholder="Digite para buscar..." oninput="doSearch(this.value)">
-    <div id="search-results" class="carousel" style="flex-wrap: wrap;"></div>
+    <div id="search-results" class="carousel"></div>
 </div>
 
 <script>
     let globalDB = [];
     const CATEGORIAS = ["Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Família", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
 
-    // RELOGIO 24H
     setInterval(() => {
         const n = new Date();
         document.getElementById('relogio').innerText = n.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).toUpperCase();
     }, 1000);
 
-    // INICIAR SISTEMA
     async function startApp() {
         const files = ['data/filmes.json', 'data/series.json', 'data/kids_filmes.json', 'data/kids_series.json'];
         const results = await Promise.all(files.map(f => fetch(f).then(r => r.json()).catch(() => [])));
@@ -148,17 +176,31 @@
 
     function renderHome() {
         const view = document.getElementById('main-view');
-        view.innerHTML = `<h2 class="row-title">PaixãoFlix indica hoje</h2><div class="carousel" id="top4"></div><h2 class="row-title">Continuar Assistindo</h2><div class="carousel" id="history"></div>`;
+        view.innerHTML = `
+            <h2 class="titulo-custom">
+                <span class="vermelho">PaixãoFlix</span> <span class="amarelo">indica hoje</span>
+            </h2>
+            <div id="top4"></div>
+            
+            <h2 class="titulo-custom" style="font-size: 24px; margin-top:40px">
+                <span class="amarelo">Continuar Assistindo</span>
+            </h2>
+            <div class="carousel" id="history"></div>
+        `;
         
         const seed = new Date().getDate();
         const top4 = globalDB.slice(seed % globalDB.length, (seed % globalDB.length) + 4);
         
+        const topContainer = document.getElementById('top4');
         top4.forEach((item, i) => {
-            document.getElementById('top4').innerHTML += `
+            topContainer.innerHTML += `
                 <div class="capa" tabindex="0" onclick='openDetails(${JSON.stringify(item)})'>
                     <span class="num-top">${i+1}</span>
                     <img src="${item.poster}">
-                    <div class="capa-meta"><span>${item.year}</span><span>★${item.rating}</span><span>${item.genero || 'Geral'}</span></div>
+                    <div class="capa-meta">
+                        <span>${item.year}</span>
+                        <span>★ ${item.rating}</span>
+                    </div>
                 </div>`;
         });
     }
@@ -166,25 +208,21 @@
     async function loadData(type, file) {
         document.getElementById('search-layer').style.display = 'none';
         const view = document.getElementById('main-view');
-        view.innerHTML = '<h2 class="row-title">Carregando conteúdo...</h2>';
+        view.innerHTML = '<h2 class="titulo-custom" style="font-size:24px"><span class="amarelo">Carregando conteúdo...</span></h2>';
         const data = await fetch(file).then(r => r.json());
 
         if(type.includes('kids')) {
             data.sort((a,b) => a.titulo.localeCompare(b.titulo));
-            view.innerHTML = `<h2 class="row-title">Kids</h2><div class="carousel" style="flex-wrap:wrap">${drawCapas(data)}</div>`;
+            view.innerHTML = `<h2 class="titulo-custom" style="font-size:24px"><span class="amarelo">Kids</span></h2><div class="carousel">${drawCapas(data)}</div>`;
         } else {
             view.innerHTML = '';
             CATEGORIAS.forEach(cat => {
                 const list = data.filter(i => i.genero === cat);
                 if(list.length > 0) {
-                    const rowId = `row-${cat.replace(/\s/g, '')}`;
                     view.innerHTML += `
                         <div class="row-section">
-                            <h2 class="row-title">${cat}</h2>
-                            <div class="carousel-container">
-                                <div class="carousel" id="${rowId}">${drawCapas(list)}</div>
-                                ${list.length > 4 ? `<button class="seta-nav" onclick="doScroll('${rowId}')">▶</button>` : ''}
-                            </div>
+                            <h2 class="titulo-custom" style="font-size:24px"><span class="amarelo">${cat}</span></h2>
+                            <div class="carousel">${drawCapas(list)}</div>
                         </div>`;
                 }
             });
@@ -195,15 +233,11 @@
         return list.map(item => `
             <div class="capa" tabindex="0" onclick='openDetails(${JSON.stringify(item)})'>
                 <img src="${item.poster}">
-                <div class="capa-meta"><span>${item.year}</span><span>★${item.rating}</span></div>
+                <div class="capa-meta">
+                    <span>${item.year}</span>
+                    <span>★ ${item.rating}</span>
+                </div>
             </div>`).join('');
-    }
-
-    function doScroll(id) {
-        const c = document.getElementById(id);
-        const step = (160 + 18) * 4; // largura + gap * 4
-        if(c.scrollLeft + c.offsetWidth >= c.scrollWidth) c.scrollLeft = 0;
-        else c.scrollLeft += step;
     }
 
     async function openDetails(item) {
@@ -214,7 +248,7 @@
         let playBtn = `<button class="btn-3d" onclick="playVideo('${item.url}', '${item.titulo}')">ASSISTIR AGORA</button>`;
         
         if(item.type === 'serie') {
-            playBtn = `<div id="ep-list">Carregando episódios do Archive...</div>`;
+            playBtn = `<div id="ep-list">Buscando episódios...</div>`;
             const res = await fetch(`https://archive.org/metadata/${item.identificador_archive}`);
             const meta = await res.json();
             const videos = meta.files.filter(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv'));
