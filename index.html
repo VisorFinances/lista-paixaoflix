@@ -13,19 +13,19 @@
 body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto;
   background:#0b0b0f;
-  color:#ffd84d; /* AMARELO PIPOCA */
+  color:#ffd84d;
   overflow:hidden;
 }
 :root{
   --card:#1b1b25;
   --border:rgba(255,255,255,.08);
-  --focus:#e50914; /* VERMELHO LOGOTIPO */
+  --focus:#e50914;
 }
 img{width:100%;display:block}
 </style>
 
 <!-- ==================================================
- BLOCO 02 — SIDEBAR + MENU
+ BLOCO 02 — SIDEBAR (NÃO ALTERADO)
 ================================================== -->
 <style>
 #sidebar{
@@ -58,49 +58,19 @@ img{width:100%;display:block}
 </style>
 
 <!-- ==================================================
- BLOCO 03 — PERFIS
+ BLOCO 03 — HOME
 ================================================== -->
 <style>
-#profiles{
-  position:fixed;
-  inset:0;
-  background:#0b0b0f;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:3rem;
-  z-index:2000;
-  display:none
-}
-.profile{
-  width:220px;
-  text-align:center;
-  cursor:pointer
-}
-.profile img{
-  border-radius:20px;
-  border:4px solid transparent
-}
-.profile:focus img{border-color:var(--focus)}
-.profile span{
-  display:block;
-  margin-top:.8rem;
-  font-size:1.2rem
-}
-</style>
-
-<!-- ==================================================
- BLOCO 04 — HOME / SEÇÕES
-================================================== -->
-<style>
-#app{
+#home{
   margin-left:150px;
   height:100vh;
-  overflow:hidden;
   padding:1.2rem;
 }
-.section{margin-bottom:2.4rem}
-.section h2{margin-bottom:.9rem;font-size:1.25rem}
+.section{margin-bottom:2.6rem}
+.section h2{
+  margin-bottom:1rem;
+  font-size:1.5rem; /* +4px */
+}
 .row{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -120,7 +90,7 @@ img{width:100%;display:block}
 </style>
 
 <!-- ==================================================
- BLOCO 05 — CONTINUAR ASSISTINDO (MAX 3)
+ BLOCO 04 — CONTINUAR ASSISTINDO
 ================================================== -->
 <style>
 .continuar-row{
@@ -144,26 +114,23 @@ img{width:100%;display:block}
 </style>
 
 <!-- ==================================================
- BLOCO 06 — TELA DE DETALHES (ISOLADA)
+ BLOCO 05 — DETALHES (PÁGINA SEPARADA)
 ================================================== -->
 <style>
 #details{
-  position:fixed;
-  inset:0;
+  display:none;
+  height:100vh;
   background-size:cover;
   background-position:center;
-  display:none;
-  z-index:1500
 }
 .details-overlay{
-  background:rgba(0,0,0,.75);
+  background:rgba(0,0,0,.8);
   height:100%;
-  display:flex;
-  padding:3rem
+  padding:3rem;
+  display:flex
 }
 .details-poster{width:260px;margin-right:2rem}
 .details-info{max-width:600px}
-.details-info h1{margin-bottom:.6rem}
 </style>
 
 </head>
@@ -180,28 +147,14 @@ img{width:100%;display:block}
     <a tabindex="1">Início</a>
     <a tabindex="2">Filmes</a>
     <a tabindex="3">Séries</a>
-    <a tabindex="4" onclick="openProfiles()">Trocar perfil</a>
+    <a tabindex="4">Trocar perfil</a>
   </div>
 </nav>
 
 <!-- ==================================================
- PERFIS
-================================================== -->
-<div id="profiles">
-  <div class="profile" tabindex="100" onclick="closeProfiles()">
-    <img src="https://via.placeholder.com/220x220?text=Filme">
-    <span>Adulto</span>
-  </div>
-  <div class="profile" tabindex="101" onclick="closeProfiles()">
-    <img src="https://via.placeholder.com/220x220?text=Desenho">
-    <span>Kids</span>
-  </div>
-</div>
-
-<!-- ==================================================
  HOME
 ================================================== -->
-<div id="app">
+<div id="home">
 
 <section class="section">
 <h2>Em Alta</h2>
@@ -216,10 +169,10 @@ img{width:100%;display:block}
 <section class="section">
 <h2>Novos</h2>
 <div class="row">
-  <div class="card" tabindex="20"><img src="https://via.placeholder.com/300x450"><span>Lançamento 2026</span></div>
-  <div class="card" tabindex="21"><img src="https://via.placeholder.com/300x450"><span>Lançamento 2026</span></div>
-  <div class="card" tabindex="22"><img src="https://via.placeholder.com/300x450"><span>Lançamento 2025</span></div>
-  <div class="card" tabindex="23"><img src="https://via.placeholder.com/300x450"><span>Lançamento 2025</span></div>
+  <div class="card" tabindex="20"><img src="https://via.placeholder.com/300x450"><span>2026</span></div>
+  <div class="card" tabindex="21"><img src="https://via.placeholder.com/300x450"><span>2026</span></div>
+  <div class="card" tabindex="22"><img src="https://via.placeholder.com/300x450"><span>2025</span></div>
+  <div class="card" tabindex="23"><img src="https://via.placeholder.com/300x450"><span>2025</span></div>
 </div>
 </section>
 
@@ -245,7 +198,7 @@ img{width:100%;display:block}
 </div>
 
 <!-- ==================================================
- DETALHES
+ DETALHES (PÁGINA NOVA)
 ================================================== -->
 <div id="details" style="background-image:url('https://via.placeholder.com/1600x900')">
   <div class="details-overlay">
@@ -254,35 +207,46 @@ img{width:100%;display:block}
     </div>
     <div class="details-info">
       <h1>Título</h1>
-      <p>⭐ 8.7 • 2026</p>
+      <p>⭐ 8.9 • 2026</p>
       <p>Descrição completa do conteúdo.</p>
     </div>
   </div>
 </div>
 
 <!-- ==================================================
- BLOCO 07 — NAVEGAÇÃO TV REAL (GRID)
+ BLOCO 06 — NAVEGAÇÃO TV (CORRIGIDA)
 ================================================== -->
 <script>
-const items=[...document.querySelectorAll('[tabindex]')]
-let i=0
-items[i].focus()
+let area='menu'
+let menu=[...document.querySelectorAll('.menu a')]
+let home=[...document.querySelectorAll('#home [tabindex]')]
+let m=0,h=0
+menu[m].focus()
 
 document.addEventListener('keydown',e=>{
-  const cols=4
-  if(e.key==='ArrowRight') i=Math.min(i+1,items.length-1)
-  if(e.key==='ArrowLeft') i=Math.max(i-1,0)
-  if(e.key==='ArrowDown') i=Math.min(i+cols,items.length-1)
-  if(e.key==='ArrowUp') i=Math.max(i-cols,0)
-  if(e.key==='Enter'){
-    if(items[i].classList.contains('card')) openDetails()
+  if(area==='menu'){
+    if(e.key==='ArrowDown'){m=(m+1)%menu.length}
+    if(e.key==='ArrowUp'){m=(m-1+menu.length)%menu.length}
+    if(e.key==='ArrowRight'){area='home';home[h].focus();return}
+    menu[m].focus()
+  }else if(area==='home'){
+    const cols=4
+    if(e.key==='ArrowRight') h=Math.min(h+1,home.length-1)
+    if(e.key==='ArrowLeft'){
+      if(h%cols===0){area='menu';menu[m].focus();return}
+      h--
+    }
+    if(e.key==='ArrowDown') h=Math.min(h+cols,home.length-1)
+    if(e.key==='ArrowUp') h=Math.max(h-cols,0)
+    if(e.key==='Enter') openDetails()
+    home[h].focus()
   }
-  items[i].focus()
 })
 
-function openDetails(){document.getElementById('details').style.display='block'}
-function openProfiles(){document.getElementById('profiles').style.display='flex'}
-function closeProfiles(){document.getElementById('profiles').style.display='none'}
+function openDetails(){
+  document.getElementById('home').style.display='none'
+  document.getElementById('details').style.display='block'
+}
 </script>
 
 </body>
