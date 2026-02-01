@@ -272,5 +272,100 @@ fetch('data/filmes.json').then(r=>r.json()).then(d=>{
 })
 </script>
 
+<!-- ================= CINEMA / SÉRIES ================= -->
+<style>
+#catalogo{
+  display:none;
+  margin-left:150px;
+  height:100vh;
+  padding:1.2rem;
+}
+.categoria{
+  margin-bottom:2.8rem;
+}
+.categoria h2{
+  margin-bottom:1rem;
+  font-size:1.5rem;
+}
+.categoria .row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1rem;
+}
+.info{
+  font-size:.85rem;
+  opacity:.9;
+}
+</style>
+
+<div id="catalogo"></div>
+
+<script>
+/* ================= CATEGORIAS FIXAS ================= */
+const categoriasFixas=[
+"Lançamento 2026","Lançamento 2025","Ação","Aventura","Musical",
+"Comédia","Drama","Nacional","Romance","Religioso","Ficção",
+"Anime","Animação","Família","Clássicos","Dorama","Suspense",
+"Policial","Crime","Terror","Documentários","Faroeste","Adulto"
+]
+
+/* ================= ABRIR CINEMA / SÉRIES ================= */
+function loadCatalogo(path){
+  home.style.display='none'
+  details.style.display='none'
+  catalogo.style.display='block'
+  catalogo.innerHTML=''
+  area='home'
+
+  fetch(path).then(r=>r.json()).then(data=>{
+    categoriasFixas.forEach(cat=>{
+      const itens=data
+        .filter(i=>i.genero===cat)
+        .sort((a,b)=>a.titulo.localeCompare(b.titulo,'pt-BR'))
+
+      if(itens.length===0) return
+
+      const sec=document.createElement('section')
+      sec.className='categoria'
+      sec.innerHTML=`<h2>${cat}</h2><div class="row"></div>`
+      const row=sec.querySelector('.row')
+
+      itens.forEach(item=>{
+        const card=document.createElement('div')
+        card.className='card'
+        card.tabIndex=0
+        card.innerHTML=`
+          <img src="${item.poster}">
+          <span>${item.titulo}</span>
+          <span class="info">${item.year} • ⭐ ${item.rating}</span>
+        `
+        card.onclick=()=>openDetails(item)
+        row.appendChild(card)
+      })
+
+      catalogo.appendChild(sec)
+    })
+
+    refreshFocus()
+  })
+}
+
+/* ================= MENU CONECTADO ================= */
+document.querySelectorAll('.menu a')[2].onclick=()=>{
+  loadCatalogo('data/filmes.json')
+}
+document.querySelectorAll('.menu a')[3].onclick=()=>{
+  loadCatalogo('data/series.json')
+}
+
+/* ================= VOLTAR HOME ================= */
+function goHome(){
+  catalogo.style.display='none'
+  details.style.display='none'
+  home.style.display='block'
+  area='menu'
+  menu[m].focus()
+}
+</script>
 </body>
 </html>
