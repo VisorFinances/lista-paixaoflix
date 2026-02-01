@@ -5,15 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PaixãoFlix</title>
 
-<!-- ======================================================
- BLOCO: RESET E VARIÁVEIS GLOBAIS
-====================================================== -->
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto;
   background:#0b0b0f;
   color:#ffd84d;
+  overflow:hidden;
 }
 :root{
   --card:#1b1b25;
@@ -23,9 +21,7 @@ body{
 img{width:100%;display:block}
 </style>
 
-<!-- ======================================================
- BLOCO: SIDEBAR
-====================================================== -->
+<!-- SIDEBAR -->
 <style>
 #sidebar{
   position:fixed;left:0;top:0;bottom:0;
@@ -34,11 +30,7 @@ img{width:100%;display:block}
   border-right:1px solid var(--border);
   padding:1rem .5rem
 }
-#logo{
-  display:flex;
-  justify-content:center;
-  margin-bottom:2rem
-}
+#logo{display:flex;justify-content:center;margin-bottom:2rem}
 #logo img{width:140px}
 .menu a{
   display:block;
@@ -56,15 +48,12 @@ img{width:100%;display:block}
 }
 </style>
 
-<!-- ======================================================
- BLOCO: HOME
-====================================================== -->
+<!-- HOME -->
 <style>
 #home{
   margin-left:150px;
   height:100vh;
   padding:1.2rem;
-  overflow-y:auto
 }
 .section{margin-bottom:2.6rem}
 .section h2{
@@ -89,9 +78,7 @@ img{width:100%;display:block}
 .card span{display:block;padding:.6rem}
 </style>
 
-<!-- ======================================================
- BLOCO: CONTINUAR ASSISTINDO
-====================================================== -->
+<!-- CONTINUAR -->
 <style>
 .continuar-row{
   display:grid;
@@ -113,9 +100,7 @@ img{width:100%;display:block}
 .continuar p{padding:.6rem}
 </style>
 
-<!-- ======================================================
- BLOCO: DETALHES (LAYOUT)
-====================================================== -->
+<!-- DETALHES -->
 <style>
 #details{
   display:none;
@@ -136,136 +121,123 @@ img{width:100%;display:block}
   font-style:italic;
 }
 .details-info p{
+  margin-top:3px;
   color:#fff;
-  margin-top:3px
 }
 </style>
 </head>
 
 <body>
 
-<!-- ======================================================
- SIDEBAR
-====================================================== -->
 <nav id="sidebar">
   <div id="logo">
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
   </div>
   <div class="menu">
     <a tabindex="1" onclick="goHome()">Início</a>
-    <a tabindex="2" onclick="carregarJSON('data/filmes.json')">Cinema</a>
-    <a tabindex="3" onclick="carregarJSON('data/series.json')">Séries</a>
-    <a tabindex="4" onclick="carregarJSON('data/favoritos.json')">Minha Lista</a>
+    <a tabindex="2" onclick="goHome()">Filmes</a>
+    <a tabindex="3" onclick="goHome()">Séries</a>
+    <a tabindex="4" onclick="trocarPerfil()">Trocar perfil</a>
   </div>
 </nav>
 
-<!-- ======================================================
- HOME
-====================================================== -->
 <div id="home">
 
 <section class="section">
 <h2>Em Alta</h2>
-<div class="row" id="emAlta"></div>
+<div class="row">
+  <div class="card" tabindex="10" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema</span></div>
+  <div class="card" tabindex="11" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries</span></div>
+  <div class="card" tabindex="12" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema Kids</span></div>
+  <div class="card" tabindex="13" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries Kids</span></div>
+</div>
+</section>
+
+<section class="section">
+<h2>Novos</h2>
+<div class="row">
+  <div class="card" tabindex="20"><img src="https://via.placeholder.com/300x450"><span>2026</span></div>
+  <div class="card" tabindex="21"><img src="https://via.placeholder.com/300x450"><span>2026</span></div>
+  <div class="card" tabindex="22"><img src="https://via.placeholder.com/300x450"><span>2025</span></div>
+  <div class="card" tabindex="23"><img src="https://via.placeholder.com/300x450"><span>2025</span></div>
+</div>
 </section>
 
 <section class="section">
 <h2>Continuar assistindo</h2>
 <div class="continuar-row">
-  <div class="continuar" tabindex="30">
-    <img src="https://via.placeholder.com/500x280">
-    <div class="progress"><span></span></div>
-    <p>Filme</p>
-  </div>
-  <div class="continuar" tabindex="31">
-    <img src="https://via.placeholder.com/500x280">
-    <div class="progress"><span></span></div>
-    <p>Série</p>
-  </div>
-  <div class="continuar" tabindex="32">
-    <img src="https://via.placeholder.com/500x280">
-    <div class="progress"><span></span></div>
-    <p>Kids</p>
-  </div>
+  <div class="continuar" tabindex="30"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Filme</p></div>
+  <div class="continuar" tabindex="31"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Série</p></div>
+  <div class="continuar" tabindex="32"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Kids</p></div>
+</div>
+</section>
+
+<section class="section">
+<h2>Recomendados</h2>
+<div class="row">
+  <div class="card" tabindex="40"><img src="https://via.placeholder.com/300x450"><span>A</span></div>
+  <div class="card" tabindex="41"><img src="https://via.placeholder.com/300x450"><span>B</span></div>
+  <div class="card" tabindex="42"><img src="https://via.placeholder.com/300x450"><span>C</span></div>
+  <div class="card" tabindex="43"><img src="https://via.placeholder.com/300x450"><span>D</span></div>
 </div>
 </section>
 
 </div>
 
-<!-- ======================================================
- DETALHES
-====================================================== -->
-<div id="details">
+<div id="details" style="background-image:url('https://via.placeholder.com/1600x900')">
   <div class="details-overlay">
     <div class="details-poster">
-      <img id="detailsPoster">
+      <img src="https://via.placeholder.com/300x450">
     </div>
     <div class="details-info">
-      <h1 id="detailsTitulo"></h1>
-      <p id="detailsMeta"></p>
-      <p id="detailsDesc"></p>
+      <h1>Título do Conteúdo</h1>
+      <p>⭐ 8.9 • 2026</p>
+      <p>Descrição completa do conteúdo.</p>
     </div>
   </div>
 </div>
 
-<!-- ======================================================
- BLOCO 1: LOADER JSON PAIXÃOFLIX
-====================================================== -->
 <script>
-const PaixaoFlixData = {
-  cache: [],
-  origemAtual: ''
-}
+let area='menu'
+let menu=[...document.querySelectorAll('.menu a')]
+let cards=[...document.querySelectorAll('#home .card, .continuar')]
+let m=0,c=0
+menu[m].focus()
 
-function carregarJSON(caminho){
-  PaixaoFlixData.origemAtual = caminho
-  fetch(caminho)
-    .then(r=>r.json())
-    .then(dados=>{
-      PaixaoFlixData.cache = dados
-      renderizarHome(dados)
-    })
-}
-</script>
+document.addEventListener('keydown',e=>{
+  if(area==='menu'){
+    if(e.key==='ArrowDown') m=(m+1)%menu.length
+    if(e.key==='ArrowUp') m=(m-1+menu.length)%menu.length
+    if(e.key==='ArrowRight'){area='home';cards[c].focus();return}
+    if(e.key==='Enter') menu[m].click()
+    menu[m].focus()
+  }else{
+    const cols=4
+    if(e.key==='ArrowRight') c=Math.min(c+1,cards.length-1)
+    if(e.key==='ArrowLeft'){
+      if(c%cols===0){area='menu';menu[m].focus();return}
+      c--
+    }
+    if(e.key==='ArrowDown') c=Math.min(c+cols,cards.length-1)
+    if(e.key==='ArrowUp') c=Math.max(c-cols,0)
+    if(e.key==='Enter') cards[c].click()
+    cards[c].focus()
+  }
+})
 
-<!-- ======================================================
- BLOCO 3: PÁGINA DE DETALHES LENDO JSON
-====================================================== -->
-<script>
-function renderizarHome(lista){
-  const emAlta = document.getElementById('emAlta')
-  emAlta.innerHTML = ''
-
-  lista.slice(0,4).forEach((item,i)=>{
-    const card = document.createElement('div')
-    card.className = 'card'
-    card.tabIndex = 100 + i
-    card.innerHTML = `
-      <img src="${item.poster}">
-      <span>${item.titulo}</span>
-    `
-    card.onclick = ()=>abrirDetalhes(item)
-    emAlta.appendChild(card)
-  })
-}
-
-function abrirDetalhes(item){
-  document.getElementById('home').style.display = 'none'
-  const d = document.getElementById('details')
-  d.style.display = 'block'
-  d.style.backgroundImage = `url(${item.poster})`
-
-  document.getElementById('detailsPoster').src = item.poster
-  document.getElementById('detailsTitulo').textContent = item.titulo
-  document.getElementById('detailsMeta').textContent =
-    `⭐ ${item.rating} • ${item.year}`
-  document.getElementById('detailsDesc').textContent = item.desc
+function openDetails(){
+  home.style.display='none'
+  details.style.display='block'
 }
 
 function goHome(){
-  document.getElementById('details').style.display = 'none'
-  document.getElementById('home').style.display = 'block'
+  details.style.display='none'
+  home.style.display='block'
+  area='menu'
+  menu[m].focus()
 }
+
+function trocarPerfil(){}
 </script>
 
 </body>
