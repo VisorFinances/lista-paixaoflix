@@ -6,7 +6,6 @@
 <title>PaixãoFlix</title>
 
 <style>
-/* ================= RESET ================= */
 *{margin:0;padding:0;box-sizing:border-box}
 body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto;
@@ -23,7 +22,6 @@ img{width:100%;display:block}
 .hidden{display:none}
 </style>
 
-<!-- ================= SIDEBAR (NÃO MEXER) ================= -->
 <style>
 #sidebar{
   position:fixed;
@@ -35,7 +33,6 @@ img{width:100%;display:block}
 }
 #logo{display:flex;justify-content:center;margin-bottom:2rem}
 #logo img{width:140px}
-
 .menu a{
   display:block;
   text-align:center;
@@ -52,17 +49,17 @@ img{width:100%;display:block}
 }
 </style>
 
-<!-- ================= HOME ================= -->
 <style>
 #home{
   margin-left:150px;
   height:100vh;
   padding:1.2rem;
+  overflow-y:auto;
 }
 .section{margin-bottom:2.6rem}
 .section h2{
   margin-bottom:1rem;
-  font-size:1.5rem;
+  font-size:1.6rem;
 }
 .row{
   display:grid;
@@ -82,7 +79,6 @@ img{width:100%;display:block}
 .card span{display:block;padding:.6rem}
 </style>
 
-<!-- ================= CONTINUAR ================= -->
 <style>
 .continuar-row{
   display:grid;
@@ -104,7 +100,6 @@ img{width:100%;display:block}
 .continuar p{padding:.6rem}
 </style>
 
-<!-- ================= DETALHES ================= -->
 <style>
 #details{
   display:none;
@@ -134,53 +129,30 @@ img{width:100%;display:block}
 
 <body>
 
-<!-- ================= MENU ================= -->
 <nav id="sidebar">
   <div id="logo">
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
   </div>
-
   <div class="menu">
     <a tabindex="1" onclick="goHome()">Início</a>
     <a tabindex="2" onclick="openTV()">TV</a>
-    <a tabindex="3" onclick="loadCategory('data/filmes.json')">Cinema</a>
-    <a tabindex="4" onclick="loadCategory('data/series.json')">Séries</a>
+    <a tabindex="3" onclick="loadCatalogo('data/filmes.json')">Cinema</a>
+    <a tabindex="4" onclick="loadCatalogo('data/series.json')">Séries</a>
     <a tabindex="5" onclick="loadCategory('data/favoritos.json')">Minha Lista</a>
     <a tabindex="6" onclick="openKids()">Kids</a>
   </div>
 </nav>
 
-<!-- ================= HOME ================= -->
 <div id="home">
-
-<section class="section">
-<h2>Em Alta</h2>
-<div class="row" id="emAlta"></div>
-</section>
-
-<section class="section">
-<h2>Novos</h2>
-<div class="row" id="novos"></div>
-</section>
-
-<section class="section">
-<h2>Continuar Assistindo</h2>
-<div class="continuar-row" id="continuar"></div>
-</section>
-
-<section class="section">
-<h2>Recomendados</h2>
-<div class="row" id="recomendados"></div>
-</section>
-
+<section class="section"><h2>Em Alta</h2><div class="row" id="emAlta"></div></section>
+<section class="section"><h2>Novos</h2><div class="row" id="novos"></div></section>
+<section class="section"><h2>Continuar Assistindo</h2><div class="continuar-row" id="continuar"></div></section>
+<section class="section"><h2>Recomendados</h2><div class="row" id="recomendados"></div></section>
 </div>
 
-<!-- ================= DETALHES ================= -->
 <div id="details">
   <div class="details-overlay">
-    <div class="details-poster">
-      <img id="detailsPoster">
-    </div>
+    <div class="details-poster"><img id="detailsPoster"></div>
     <div class="details-info">
       <h1 id="detailsTitle"></h1>
       <p id="detailsMeta"></p>
@@ -189,8 +161,27 @@ img{width:100%;display:block}
   </div>
 </div>
 
+<style>
+#catalogo{
+  display:none;
+  margin-left:150px;
+  height:100vh;
+  padding:1.2rem;
+  overflow-y:auto;
+}
+.categoria{margin-bottom:2.8rem}
+.categoria h2{margin-bottom:1rem;font-size:1.5rem}
+.categoria .row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1rem;
+}
+.info{font-size:.85rem;opacity:.9}
+</style>
+
+<div id="catalogo"></div>
+
 <script>
-/* ================= NAVEGAÇÃO TV ================= */
 let area='menu'
 let menu=[...document.querySelectorAll('.menu a')]
 let focusables=[]
@@ -218,10 +209,11 @@ document.addEventListener('keydown',e=>{
   }
 })
 
-/* ================= HOME / DETALHES ================= */
 function openDetails(item){
   home.style.display='none'
+  catalogo.style.display='none'
   details.style.display='block'
+  area='details'
   details.style.backgroundImage=`url(${item.poster})`
   detailsPoster.src=item.poster
   detailsTitle.textContent=item.titulo
@@ -231,12 +223,12 @@ function openDetails(item){
 
 function goHome(){
   details.style.display='none'
+  catalogo.style.display='none'
   home.style.display='block'
   area='menu'
   menu[m].focus()
 }
 
-/* ================= LOADERS ================= */
 function renderCard(item, container){
   const div=document.createElement('div')
   div.className='card'
@@ -262,54 +254,22 @@ function openKids(){
   loadCategory('data/kids_filmes.json')
 }
 
-/* ================= INIT ================= */
 function refreshFocus(){
   focusables=[...document.querySelectorAll('.card,.continuar')]
 }
+
 fetch('data/filmes.json').then(r=>r.json()).then(d=>{
   d.slice(0,4).forEach(i=>renderCard(i,emAlta))
   refreshFocus()
 })
-</script>
 
-<!-- ================= CINEMA / SÉRIES ================= -->
-<style>
-#catalogo{
-  display:none;
-  margin-left:150px;
-  height:100vh;
-  padding:1.2rem;
-}
-.categoria{
-  margin-bottom:2.8rem;
-}
-.categoria h2{
-  margin-bottom:1rem;
-  font-size:1.5rem;
-}
-.categoria .row{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:1rem;
-}
-.info{
-  font-size:.85rem;
-  opacity:.9;
-}
-</style>
-
-<div id="catalogo"></div>
-
-<script>
-/* ================= CATEGORIAS FIXAS ================= */
 const categoriasFixas=[
-"Lançamento 2026","Lançamento 2025","Ação","Aventura","Musical",
-"Comédia","Drama","Nacional","Romance","Religioso","Ficção",
-"Anime","Animação","Família","Clássicos","Dorama","Suspense",
-"Policial","Crime","Terror","Documentários","Faroeste","Adulto"
+"Lançamento 2026","Lançamento 2025","Ação","Aventura","Musical","Comédia",
+"Drama","Nacional","Romance","Religioso","Ficção","Anime","Animação",
+"Família","Clássicos","Dorama","Suspense","Policial","Crime","Terror",
+"Documentários","Faroeste","Adulto"
 ]
 
-/* ================= ABRIR CINEMA / SÉRIES ================= */
 function loadCatalogo(path){
   home.style.display='none'
   details.style.display='none'
@@ -319,11 +279,9 @@ function loadCatalogo(path){
 
   fetch(path).then(r=>r.json()).then(data=>{
     categoriasFixas.forEach(cat=>{
-      const itens=data
-        .filter(i=>i.genero===cat)
+      const itens=data.filter(i=>i.genero===cat)
         .sort((a,b)=>a.titulo.localeCompare(b.titulo,'pt-BR'))
-
-      if(itens.length===0) return
+      if(!itens.length) return
 
       const sec=document.createElement('section')
       sec.className='categoria'
@@ -337,35 +295,16 @@ function loadCatalogo(path){
         card.innerHTML=`
           <img src="${item.poster}">
           <span>${item.titulo}</span>
-          <span class="info">${item.year} • ⭐ ${item.rating}</span>
-        `
+          <span class="info">${item.year} • ⭐ ${item.rating}</span>`
         card.onclick=()=>openDetails(item)
         row.appendChild(card)
       })
-
       catalogo.appendChild(sec)
     })
-
     refreshFocus()
   })
 }
-
-/* ================= MENU CONECTADO ================= */
-document.querySelectorAll('.menu a')[2].onclick=()=>{
-  loadCatalogo('data/filmes.json')
-}
-document.querySelectorAll('.menu a')[3].onclick=()=>{
-  loadCatalogo('data/series.json')
-}
-
-/* ================= VOLTAR HOME ================= */
-function goHome(){
-  catalogo.style.display='none'
-  details.style.display='none'
-  home.style.display='block'
-  area='menu'
-  menu[m].focus()
-}
 </script>
+
 </body>
 </html>
