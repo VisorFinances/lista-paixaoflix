@@ -6,7 +6,7 @@
 <title>PaixãoFlix</title>
 
 <!-- ==================================================
- BLOCO 01 — PALETA & BASE GLOBAL
+ BLOCO 01 — BASE GLOBAL / PALETA
 ================================================== -->
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -19,13 +19,13 @@ body{
 :root{
   --card:#1b1b25;
   --border:rgba(255,255,255,.08);
-  --focus:#e50914; /* VERMELHO PAIXÃOFLIX */
+  --focus:#e50914; /* VERMELHO LOGOTIPO */
 }
 img{width:100%;display:block}
 </style>
 
 <!-- ==================================================
- BLOCO 02 — SIDEBAR
+ BLOCO 02 — SIDEBAR + MENU
 ================================================== -->
 <style>
 #sidebar{
@@ -69,10 +69,11 @@ img{width:100%;display:block}
   align-items:center;
   justify-content:center;
   gap:3rem;
-  z-index:2000
+  z-index:2000;
+  display:none
 }
 .profile{
-  width:200px;
+  width:220px;
   text-align:center;
   cursor:pointer
 }
@@ -80,28 +81,26 @@ img{width:100%;display:block}
   border-radius:20px;
   border:4px solid transparent
 }
-.profile:focus img{
-  border-color:var(--focus)
-}
+.profile:focus img{border-color:var(--focus)}
 .profile span{
   display:block;
-  margin-top:.6rem;
-  font-size:1.1rem
+  margin-top:.8rem;
+  font-size:1.2rem
 }
 </style>
 
 <!-- ==================================================
- BLOCO 04 — APP
+ BLOCO 04 — HOME / SEÇÕES
 ================================================== -->
 <style>
 #app{
   margin-left:150px;
   height:100vh;
+  overflow:hidden;
   padding:1.2rem;
-  display:none
 }
-.section{margin-bottom:2rem}
-.section h2{margin-bottom:.8rem}
+.section{margin-bottom:2.4rem}
+.section h2{margin-bottom:.9rem;font-size:1.25rem}
 .row{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -117,11 +116,11 @@ img{width:100%;display:block}
   box-shadow:0 0 0 4px var(--focus)
 }
 .card img{height:260px;object-fit:cover}
-.card span{padding:.6rem;display:block}
+.card span{display:block;padding:.6rem}
 </style>
 
 <!-- ==================================================
- BLOCO 05 — CONTINUAR ASSISTINDO
+ BLOCO 05 — CONTINUAR ASSISTINDO (MAX 3)
 ================================================== -->
 <style>
 .continuar-row{
@@ -145,7 +144,7 @@ img{width:100%;display:block}
 </style>
 
 <!-- ==================================================
- BLOCO 06 — TELA DE DETALHES
+ BLOCO 06 — TELA DE DETALHES (ISOLADA)
 ================================================== -->
 <style>
 #details{
@@ -162,33 +161,13 @@ img{width:100%;display:block}
   display:flex;
   padding:3rem
 }
-.details-poster{
-  width:260px;
-  margin-right:2rem
-}
-.details-info{
-  max-width:600px
-}
+.details-poster{width:260px;margin-right:2rem}
+.details-info{max-width:600px}
 .details-info h1{margin-bottom:.6rem}
-.details-info p{margin:.6rem 0}
 </style>
 
 </head>
 <body>
-
-<!-- ==================================================
- PERFIS
-================================================== -->
-<div id="profiles">
-  <div class="profile" tabindex="1" onclick="selectProfile()">
-    <img src="https://via.placeholder.com/200x200">
-    <span>Adulto</span>
-  </div>
-  <div class="profile" tabindex="2" onclick="selectProfile()">
-    <img src="https://via.placeholder.com/200x200">
-    <span>Kids</span>
-  </div>
-</div>
 
 <!-- ==================================================
  SIDEBAR
@@ -198,25 +177,49 @@ img{width:100%;display:block}
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
   </div>
   <div class="menu">
-    <a tabindex="10">Início</a>
-    <a tabindex="11">Filmes</a>
-    <a tabindex="12">Séries</a>
-    <a tabindex="13">Kids</a>
+    <a tabindex="1">Início</a>
+    <a tabindex="2">Filmes</a>
+    <a tabindex="3">Séries</a>
+    <a tabindex="4" onclick="openProfiles()">Trocar perfil</a>
   </div>
 </nav>
 
 <!-- ==================================================
- APP
+ PERFIS
+================================================== -->
+<div id="profiles">
+  <div class="profile" tabindex="100" onclick="closeProfiles()">
+    <img src="https://via.placeholder.com/220x220?text=Filme">
+    <span>Adulto</span>
+  </div>
+  <div class="profile" tabindex="101" onclick="closeProfiles()">
+    <img src="https://via.placeholder.com/220x220?text=Desenho">
+    <span>Kids</span>
+  </div>
+</div>
+
+<!-- ==================================================
+ HOME
 ================================================== -->
 <div id="app">
 
 <section class="section">
-<h2>Em alta</h2>
+<h2>Em Alta</h2>
 <div class="row">
-  <div class="card" tabindex="20" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema</span></div>
-  <div class="card" tabindex="21" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries</span></div>
-  <div class="card" tabindex="22" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema Kids</span></div>
-  <div class="card" tabindex="23" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries Kids</span></div>
+  <div class="card" tabindex="10" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema</span></div>
+  <div class="card" tabindex="11" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries</span></div>
+  <div class="card" tabindex="12" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema Kids</span></div>
+  <div class="card" tabindex="13" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries Kids</span></div>
+</div>
+</section>
+
+<section class="section">
+<h2>Novos</h2>
+<div class="row">
+  <div class="card" tabindex="20"><img src="https://via.placeholder.com/300x450"><span>Lançamento 2026</span></div>
+  <div class="card" tabindex="21"><img src="https://via.placeholder.com/300x450"><span>Lançamento 2026</span></div>
+  <div class="card" tabindex="22"><img src="https://via.placeholder.com/300x450"><span>Lançamento 2025</span></div>
+  <div class="card" tabindex="23"><img src="https://via.placeholder.com/300x450"><span>Lançamento 2025</span></div>
 </div>
 </section>
 
@@ -229,10 +232,20 @@ img{width:100%;display:block}
 </div>
 </section>
 
+<section class="section">
+<h2>Recomendados</h2>
+<div class="row">
+  <div class="card" tabindex="40"><img src="https://via.placeholder.com/300x450"><span>Sugestão</span></div>
+  <div class="card" tabindex="41"><img src="https://via.placeholder.com/300x450"><span>Sugestão</span></div>
+  <div class="card" tabindex="42"><img src="https://via.placeholder.com/300x450"><span>Sugestão</span></div>
+  <div class="card" tabindex="43"><img src="https://via.placeholder.com/300x450"><span>Sugestão</span></div>
+</div>
+</section>
+
 </div>
 
 <!-- ==================================================
- TELA DE DETALHES
+ DETALHES
 ================================================== -->
 <div id="details" style="background-image:url('https://via.placeholder.com/1600x900')">
   <div class="details-overlay">
@@ -240,40 +253,36 @@ img{width:100%;display:block}
       <img src="https://via.placeholder.com/300x450">
     </div>
     <div class="details-info">
-      <h1>Título do Filme</h1>
-      <p>⭐ 8.9 • 2026</p>
-      <p>Descrição completa do conteúdo, estilo streaming premium.</p>
+      <h1>Título</h1>
+      <p>⭐ 8.7 • 2026</p>
+      <p>Descrição completa do conteúdo.</p>
     </div>
   </div>
 </div>
 
 <!-- ==================================================
- BLOCO 07 — MODO TV REAL (CORRIGIDO)
+ BLOCO 07 — NAVEGAÇÃO TV REAL (GRID)
 ================================================== -->
 <script>
-let focusables=[...document.querySelectorAll('[tabindex]')]
-let current=0
-focusables[current].focus()
+const items=[...document.querySelectorAll('[tabindex]')]
+let i=0
+items[i].focus()
 
 document.addEventListener('keydown',e=>{
   const cols=4
-  if(e.key==='ArrowRight') current=Math.min(current+1,focusables.length-1)
-  if(e.key==='ArrowLeft') current=Math.max(current-1,0)
-  if(e.key==='ArrowDown') current=Math.min(current+cols,focusables.length-1)
-  if(e.key==='ArrowUp') current=Math.max(current-cols,0)
+  if(e.key==='ArrowRight') i=Math.min(i+1,items.length-1)
+  if(e.key==='ArrowLeft') i=Math.max(i-1,0)
+  if(e.key==='ArrowDown') i=Math.min(i+cols,items.length-1)
+  if(e.key==='ArrowUp') i=Math.max(i-cols,0)
   if(e.key==='Enter'){
-    if(focusables[current].classList.contains('card')) openDetails()
+    if(items[i].classList.contains('card')) openDetails()
   }
-  focusables[current].focus()
+  items[i].focus()
 })
 
-function selectProfile(){
-  document.getElementById('profiles').style.display='none'
-  document.getElementById('app').style.display='block'
-}
-function openDetails(){
-  document.getElementById('details').style.display='block'
-}
+function openDetails(){document.getElementById('details').style.display='block'}
+function openProfiles(){document.getElementById('profiles').style.display='flex'}
+function closeProfiles(){document.getElementById('profiles').style.display='none'}
 </script>
 
 </body>
