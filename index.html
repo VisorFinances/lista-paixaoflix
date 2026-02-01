@@ -19,6 +19,7 @@ body{
   --focus:#e50914;
 }
 img{width:100%;display:block}
+a{text-decoration:none;color:inherit}
 </style>
 
 <!-- SIDEBAR -->
@@ -28,24 +29,38 @@ img{width:100%;display:block}
   width:150px;
   background:#111118;
   border-right:1px solid var(--border);
-  padding:1rem .5rem
+  padding:1rem .4rem
 }
 #logo{display:flex;justify-content:center;margin-bottom:2rem}
 #logo img{width:140px}
-.menu a{
-  display:block;
-  text-align:center;
-  padding:.8rem;
+
+.menu-item{
+  padding:.7rem;
   border-radius:10px;
-  margin-bottom:.3rem;
-  color:#ffd84d;
-  cursor:pointer
+  margin-bottom:.2rem;
+  text-align:center;
+  cursor:pointer;
 }
-.menu a:focus{
+.menu-item:focus{
   outline:none;
-  background:var(--card);
-  box-shadow:0 0 0 3px var(--focus)
+  box-shadow:0 0 0 3px var(--focus);
+  background:var(--card)
 }
+.submenu{
+  display:none;
+  font-size:.85rem;
+  margin-top:.2rem
+}
+.submenu div{
+  padding:.4rem;
+  border-radius:8px;
+}
+.submenu div:focus{
+  outline:none;
+  box-shadow:0 0 0 2px var(--focus);
+  background:var(--card)
+}
+.menu-item.open + .submenu{display:block}
 </style>
 
 <!-- HOME -->
@@ -78,28 +93,6 @@ img{width:100%;display:block}
 .card span{display:block;padding:.6rem}
 </style>
 
-<!-- CONTINUAR -->
-<style>
-.continuar-row{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:1rem
-}
-.continuar{
-  background:var(--card);
-  border-radius:14px;
-  overflow:hidden
-}
-.continuar:focus{
-  outline:none;
-  box-shadow:0 0 0 4px var(--focus)
-}
-.continuar img{height:150px;object-fit:cover}
-.progress{height:4px;background:#333}
-.progress span{height:100%;width:60%;background:var(--focus);display:block}
-.continuar p{padding:.6rem}
-</style>
-
 <!-- DETALHES -->
 <style>
 #details{
@@ -109,7 +102,7 @@ img{width:100%;display:block}
   background-position:center;
 }
 .details-overlay{
-  background:rgba(0,0,0,.8);
+  background:rgba(0,0,0,.85);
   height:100%;
   padding:3rem;
   display:flex
@@ -120,6 +113,11 @@ img{width:100%;display:block}
   font-weight:500;
   font-style:italic;
 }
+.details-info p.desc{
+  margin-top:3px;
+  color:#ffffff;
+  font-size:1.05rem;
+}
 </style>
 </head>
 
@@ -129,55 +127,37 @@ img{width:100%;display:block}
   <div id="logo">
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
   </div>
-  <div class="menu">
-    <a tabindex="1" onclick="goHome()">Início</a>
-    <a tabindex="2" onclick="alert('Filmes')">Filmes</a>
-    <a tabindex="3" onclick="alert('Séries')">Séries</a>
-    <a tabindex="4" onclick="alert('Trocar perfil')">Trocar perfil</a>
+
+  <!-- MENU -->
+  <div tabindex="1" class="menu-item" onclick="goHome()">🏠 Início</div>
+
+  <div tabindex="2" class="menu-item" onclick="toggle(this)">📺 TV ▸</div>
+  <div class="submenu">
+    <div tabindex="20" onclick="load('data/ativa_canais.m3u')">Canais ao vivo</div>
+    <div tabindex="21" onclick="load('data/ativa_kids_canais.m3u')">Canais Kids</div>
+  </div>
+
+  <div tabindex="3" class="menu-item" onclick="load('data/filmes.json')">🎬 Cinema</div>
+  <div tabindex="4" class="menu-item" onclick="load('data/series.json')">📀 Séries</div>
+  <div tabindex="5" class="menu-item" onclick="load('data/favoritos.json')">⭐ Minha Lista</div>
+
+  <div tabindex="6" class="menu-item" onclick="toggle(this)">🧒 Kids ▸</div>
+  <div class="submenu">
+    <div tabindex="30" onclick="load('data/kids_filmes.json')">Filmes Kids</div>
+    <div tabindex="31" onclick="load('data/kids_series.json')">Séries Kids</div>
   </div>
 </nav>
 
 <div id="home">
-
-<section class="section">
-<h2>Em Alta</h2>
-<div class="row">
-  <div class="card" tabindex="10" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema</span></div>
-  <div class="card" tabindex="11" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries</span></div>
-  <div class="card" tabindex="12" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema Kids</span></div>
-  <div class="card" tabindex="13" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries Kids</span></div>
-</div>
-</section>
-
-<section class="section">
-<h2>Novos</h2>
-<div class="row">
-  <div class="card" tabindex="20"><img src="https://via.placeholder.com/300x450"><span>2026</span></div>
-  <div class="card" tabindex="21"><img src="https://via.placeholder.com/300x450"><span>2026</span></div>
-  <div class="card" tabindex="22"><img src="https://via.placeholder.com/300x450"><span>2025</span></div>
-  <div class="card" tabindex="23"><img src="https://via.placeholder.com/300x450"><span>2025</span></div>
-</div>
-</section>
-
-<section class="section">
-<h2>Continuar assistindo</h2>
-<div class="continuar-row">
-  <div class="continuar" tabindex="30"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Filme</p></div>
-  <div class="continuar" tabindex="31"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Série</p></div>
-  <div class="continuar" tabindex="32"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Kids</p></div>
-</div>
-</section>
-
-<section class="section">
-<h2>Recomendados</h2>
-<div class="row">
-  <div class="card" tabindex="40"><img src="https://via.placeholder.com/300x450"><span>A</span></div>
-  <div class="card" tabindex="41"><img src="https://via.placeholder.com/300x450"><span>B</span></div>
-  <div class="card" tabindex="42"><img src="https://via.placeholder.com/300x450"><span>C</span></div>
-  <div class="card" tabindex="43"><img src="https://via.placeholder.com/300x450"><span>D</span></div>
-</div>
-</section>
-
+  <section class="section">
+    <h2>Em Alta</h2>
+    <div class="row">
+      <div class="card" tabindex="100" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema</span></div>
+      <div class="card" tabindex="101" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries</span></div>
+      <div class="card" tabindex="102" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema Kids</span></div>
+      <div class="card" tabindex="103" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries Kids</span></div>
+    </div>
+  </section>
 </div>
 
 <div id="details" style="background-image:url('https://via.placeholder.com/1600x900')">
@@ -188,49 +168,33 @@ img{width:100%;display:block}
     <div class="details-info">
       <h1>Título do Conteúdo</h1>
       <p>⭐ 8.9 • 2026</p>
-      <p>Descrição completa do conteúdo.</p>
+      <p class="desc">Descrição clara, branca e legível em qualquer ambiente.</p>
     </div>
   </div>
 </div>
 
 <script>
-let area='menu'
-let menu=[...document.querySelectorAll('.menu a')]
-let cards=[...document.querySelectorAll('#home .card, .continuar')]
-let m=0,c=0
-menu[m].focus()
+let menuIndex=0
+const menuItems=[...document.querySelectorAll('.menu-item')]
+menuItems[0].focus()
 
-document.addEventListener('keydown',e=>{
-  if(area==='menu'){
-    if(e.key==='ArrowDown') m=(m+1)%menu.length
-    if(e.key==='ArrowUp') m=(m-1+menu.length)%menu.length
-    if(e.key==='ArrowRight'){area='home';cards[c].focus();return}
-    if(e.key==='Enter') menu[m].click()
-    menu[m].focus()
-  }else{
-    const cols=4
-    if(e.key==='ArrowRight') c=Math.min(c+1,cards.length-1)
-    if(e.key==='ArrowLeft'){
-      if(c%cols===0){area='menu';menu[m].focus();return}
-      c--
-    }
-    if(e.key==='ArrowDown') c=Math.min(c+cols,cards.length-1)
-    if(e.key==='ArrowUp') c=Math.max(c-cols,0)
-    if(e.key==='Enter') cards[c].click()
-    cards[c].focus()
-  }
-})
+function toggle(el){
+  el.classList.toggle('open')
+}
+
+function goHome(){
+  details.style.display='none'
+  home.style.display='block'
+  menuItems[0].focus()
+}
 
 function openDetails(){
   home.style.display='none'
   details.style.display='block'
 }
 
-function goHome(){
-  details.style.display='none'
-  home.style.display='block'
-  area='menu'
-  menu[m].focus()
+function load(path){
+  console.log('Carregar:',path)
 }
 </script>
 
