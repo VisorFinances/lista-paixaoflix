@@ -22,6 +22,7 @@ img{width:100%;display:block}
 .hidden{display:none}
 </style>
 
+<!-- ================= SIDEBAR ================= -->
 <style>
 #sidebar{
   position:fixed;
@@ -49,57 +50,70 @@ img{width:100%;display:block}
 }
 </style>
 
+<!-- ================= HOME ================= -->
 <style>
 #home{
   margin-left:150px;
   height:100vh;
   padding:1.2rem;
-  overflow-y:auto;
 }
 .section{margin-bottom:2.6rem}
 .section h2{
-  margin-bottom:1rem;
+  margin-bottom:.8rem;
   font-size:1.6rem;
 }
-.row{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:1rem
+.row-horizontal{
+  position:relative;
+  overflow:hidden;
+}
+.row-track{
+  display:flex;
+  gap:1rem;
+  transition:transform .4s ease;
 }
 .card{
+  min-width:220px;
+  max-width:220px;
   background:var(--card);
   border-radius:14px;
-  overflow:hidden
+  overflow:hidden;
+  text-align:center;
 }
 .card:focus{
   outline:none;
   box-shadow:0 0 0 4px var(--focus)
 }
 .card img{height:260px;object-fit:cover}
-.card span{display:block;padding:.6rem}
+.card .meta{
+  padding:4px 6px;
+}
+.card .title{
+  font-size:.9rem;
+}
+.card .info{
+  font-size:.8rem;
+  margin-top:2px;
+  opacity:.9;
+}
+.arrow{
+  position:absolute;
+  top:40%;
+  width:40px;
+  height:40px;
+  background:rgba(0,0,0,.6);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.5rem;
+  cursor:pointer;
+  z-index:5;
+}
+.arrow.left{left:5px}
+.arrow.right{right:5px}
 </style>
 
-<style>
-.continuar-row{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:1rem
-}
-.continuar{
-  background:var(--card);
-  border-radius:14px;
-  overflow:hidden
-}
-.continuar:focus{
-  outline:none;
-  box-shadow:0 0 0 4px var(--focus)
-}
-.continuar img{height:150px;object-fit:cover}
-.progress{height:4px;background:#333}
-.progress span{height:100%;width:60%;background:var(--focus);display:block}
-.continuar p{padding:.6rem}
-</style>
-
+<!-- ================= DETALHES ================= -->
 <style>
 #details{
   display:none;
@@ -115,18 +129,11 @@ img{width:100%;display:block}
   display:flex
 }
 .details-poster{width:260px;margin-right:2rem}
-.details-info h1{
-  font-size:calc(2rem + 2px);
-  font-weight:500;
-  font-style:italic;
-}
-.details-info p{
-  margin-top:3px;
-  color:#fff;
-}
+.details-info h1{font-size:2.2rem;font-style:italic}
+.details-info p{margin-top:6px;color:#fff}
 </style>
-</head>
 
+</head>
 <body>
 
 <nav id="sidebar">
@@ -144,10 +151,43 @@ img{width:100%;display:block}
 </nav>
 
 <div id="home">
-<section class="section"><h2>Em Alta</h2><div class="row" id="emAlta"></div></section>
-<section class="section"><h2>Novos</h2><div class="row" id="novos"></div></section>
-<section class="section"><h2>Continuar Assistindo</h2><div class="continuar-row" id="continuar"></div></section>
-<section class="section"><h2>Recomendados</h2><div class="row" id="recomendados"></div></section>
+
+<section class="section">
+<h2>Em Alta</h2>
+<div class="row-horizontal">
+  <div class="arrow left" onclick="scrollRow(this,-1)">‹</div>
+  <div class="row-track" id="emAlta"></div>
+  <div class="arrow right" onclick="scrollRow(this,1)">›</div>
+</div>
+</section>
+
+<section class="section">
+<h2>Novos</h2>
+<div class="row-horizontal">
+  <div class="arrow left" onclick="scrollRow(this,-1)">‹</div>
+  <div class="row-track" id="novos"></div>
+  <div class="arrow right" onclick="scrollRow(this,1)">›</div>
+</div>
+</section>
+
+<section class="section">
+<h2>Continuar Assistindo</h2>
+<div class="row-horizontal">
+  <div class="arrow left" onclick="scrollRow(this,-1)">‹</div>
+  <div class="row-track" id="continuar"></div>
+  <div class="arrow right" onclick="scrollRow(this,1)">›</div>
+</div>
+</section>
+
+<section class="section">
+<h2>Recomendados</h2>
+<div class="row-horizontal">
+  <div class="arrow left" onclick="scrollRow(this,-1)">‹</div>
+  <div class="row-track" id="recomendados"></div>
+  <div class="arrow right" onclick="scrollRow(this,1)">›</div>
+</div>
+</section>
+
 </div>
 
 <div id="details">
@@ -167,16 +207,9 @@ img{width:100%;display:block}
   margin-left:150px;
   height:100vh;
   padding:1.2rem;
-  overflow-y:auto;
 }
 .categoria{margin-bottom:2.8rem}
-.categoria h2{margin-bottom:1rem;font-size:1.5rem}
-.categoria .row{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:1rem;
-}
-.info{font-size:.85rem;opacity:.9}
+.categoria h2{margin-bottom:.8rem}
 </style>
 
 <div id="catalogo"></div>
@@ -188,32 +221,32 @@ let focusables=[]
 let m=0,c=0
 menu[m].focus()
 
-document.addEventListener('keydown',e=>{
-  if(area==='menu'){
-    if(e.key==='ArrowDown') m=(m+1)%menu.length
-    if(e.key==='ArrowUp') m=(m-1+menu.length)%menu.length
-    if(e.key==='ArrowRight'){area='home';c=0;focusables[c]?.focus();return}
-    if(e.key==='Enter') menu[m].click()
-    menu[m].focus()
-  }else{
-    const cols=4
-    if(e.key==='ArrowRight') c=Math.min(c+1,focusables.length-1)
-    if(e.key==='ArrowLeft'){
-      if(c%cols===0){area='menu';menu[m].focus();return}
-      c--
-    }
-    if(e.key==='ArrowDown') c=Math.min(c+cols,focusables.length-1)
-    if(e.key==='ArrowUp') c=Math.max(c-cols,0)
-    if(e.key==='Enter') focusables[c]?.click()
-    focusables[c]?.focus()
-  }
-})
+function scrollRow(btn,dir){
+  const track=btn.parentElement.querySelector('.row-track')
+  const w=240
+  track.dataset.x=track.dataset.x||0
+  track.dataset.x=parseInt(track.dataset.x)+(dir*w)
+  track.style.transform=`translateX(${-track.dataset.x}px)`
+}
+
+function renderCard(item,container){
+  const d=document.createElement('div')
+  d.className='card'
+  d.tabIndex=0
+  d.innerHTML=`
+    <img src="${item.poster}">
+    <div class="meta">
+      <div class="title">${item.titulo}</div>
+      <div class="info">${item.year} • ⭐ ${item.rating}</div>
+    </div>`
+  d.onclick=()=>openDetails(item)
+  container.appendChild(d)
+}
 
 function openDetails(item){
   home.style.display='none'
   catalogo.style.display='none'
   details.style.display='block'
-  area='details'
   details.style.backgroundImage=`url(${item.poster})`
   detailsPoster.src=item.poster
   detailsTitle.textContent=item.titulo
@@ -229,45 +262,27 @@ function goHome(){
   menu[m].focus()
 }
 
-function renderCard(item, container){
-  const div=document.createElement('div')
-  div.className='card'
-  div.tabIndex=0
-  div.innerHTML=`<img src="${item.poster}"><span>${item.titulo}</span>`
-  div.onclick=()=>openDetails(item)
-  container.appendChild(div)
-}
-
-function loadCategory(path){
-  fetch(path).then(r=>r.json()).then(data=>{
-    emAlta.innerHTML=''
-    data.slice(0,4).forEach(i=>renderCard(i,emAlta))
-    refreshFocus()
-  })
-}
-
 function openTV(){
-  console.log('TV:', 'data/ativa_canais.m3u', 'data/ativa_kids_canais.m3u')
+  console.log('TV ativa')
 }
 
 function openKids(){
   loadCategory('data/kids_filmes.json')
 }
 
-function refreshFocus(){
-  focusables=[...document.querySelectorAll('.card,.continuar')]
+function loadCategory(path){
+  fetch(path).then(r=>r.json()).then(d=>{
+    emAlta.innerHTML=''
+    d.slice(0,8).forEach(i=>renderCard(i,emAlta))
+  })
 }
 
-fetch('data/filmes.json').then(r=>r.json()).then(d=>{
-  d.slice(0,4).forEach(i=>renderCard(i,emAlta))
-  refreshFocus()
-})
-
 const categoriasFixas=[
-"Lançamento 2026","Lançamento 2025","Ação","Aventura","Musical","Comédia",
-"Drama","Nacional","Romance","Religioso","Ficção","Anime","Animação",
-"Família","Clássicos","Dorama","Suspense","Policial","Crime","Terror",
-"Documentários","Faroeste","Adulto"
+"Lançamento 2026",
+"Lançamento 2025",
+"Ação","Aventura","Musical","Comédia","Drama","Nacional","Romance",
+"Religioso","Ficção","Anime","Animação","Família","Clássicos","Dorama",
+"Suspense","Policial","Crime","Terror","Documentários","Faroeste","Adulto"
 ]
 
 function loadCatalogo(path){
@@ -275,35 +290,38 @@ function loadCatalogo(path){
   details.style.display='none'
   catalogo.style.display='block'
   catalogo.innerHTML=''
-  area='home'
 
   fetch(path).then(r=>r.json()).then(data=>{
     categoriasFixas.forEach(cat=>{
-      const itens=data.filter(i=>i.genero===cat)
-        .sort((a,b)=>a.titulo.localeCompare(b.titulo,'pt-BR'))
+      let itens=[]
+      if(cat==="Lançamento 2026") itens=data.filter(i=>i.year=="2026")
+      else if(cat==="Lançamento 2025") itens=data.filter(i=>i.year=="2025")
+      else itens=data.filter(i=>i.genero===cat)
+
       if(!itens.length) return
+
+      itens.sort((a,b)=>a.titulo.localeCompare(b.titulo,'pt-BR'))
 
       const sec=document.createElement('section')
       sec.className='categoria'
-      sec.innerHTML=`<h2>${cat}</h2><div class="row"></div>`
-      const row=sec.querySelector('.row')
+      sec.innerHTML=`
+        <h2>${cat}</h2>
+        <div class="row-horizontal">
+          <div class="arrow left" onclick="scrollRow(this,-1)">‹</div>
+          <div class="row-track"></div>
+          <div class="arrow right" onclick="scrollRow(this,1)">›</div>
+        </div>`
+      const track=sec.querySelector('.row-track')
 
-      itens.forEach(item=>{
-        const card=document.createElement('div')
-        card.className='card'
-        card.tabIndex=0
-        card.innerHTML=`
-          <img src="${item.poster}">
-          <span>${item.titulo}</span>
-          <span class="info">${item.year} • ⭐ ${item.rating}</span>`
-        card.onclick=()=>openDetails(item)
-        row.appendChild(card)
-      })
+      itens.forEach(i=>renderCard(i,track))
       catalogo.appendChild(sec)
     })
-    refreshFocus()
   })
 }
+
+fetch('data/filmes.json').then(r=>r.json()).then(d=>{
+  d.slice(0,8).forEach(i=>renderCard(i,emAlta))
+})
 </script>
 
 </body>
