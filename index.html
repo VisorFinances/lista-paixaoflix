@@ -36,32 +36,34 @@ img{max-width:100%;display:block}
   display:flex;
   justify-content:center;
   align-items:center;
-  margin-bottom:1.5rem
+  margin:0.5rem 0 1.5rem
 }
 #paixaoflix-brand img{
-  width:96px;       /* TAMANHO DO LOGO */
+  width:132px;      /* LOGO GRANDE – VISÍVEL DE LONGE */
   height:auto;
   object-fit:contain
 }
 </style>
 
 <!-- ===============================
- BLOCO: SIDEBAR
+ BLOCO: SIDEBAR (JUSTA)
 =============================== -->
 <style>
 #sidebar{
   position:fixed;
   left:0;top:0;bottom:0;
-  width:220px;
+  width:160px;               /* REDUZIDA */
   background:#111118;
-  padding:1rem;
+  padding:1rem 0.75rem;
   border-right:1px solid var(--border)
 }
 #sidebar a{
   display:block;
-  padding:.6rem;
+  padding:0.7rem 0.6rem;
   border-radius:8px;
-  color:#ccc
+  color:#ccc;
+  text-align:center;
+  font-size:0.95rem
 }
 #sidebar a:hover{
   background:var(--surface);
@@ -74,11 +76,11 @@ img{max-width:100%;display:block}
 =============================== -->
 <style>
 header{
-  margin-left:220px;
-  height:60px;
+  margin-left:160px;         /* ACOMPANHA SIDEBAR */
+  height:64px;
   display:flex;
   align-items:center;
-  padding:0 1rem;
+  padding:0 1.2rem;
   background:#0f0f14;
   border-bottom:1px solid var(--border)
 }
@@ -89,26 +91,26 @@ header{
 =============================== -->
 <style>
 main{
-  margin-left:220px;
-  padding:1rem
+  margin-left:160px;         /* ACOMPANHA SIDEBAR */
+  padding:1.2rem
 }
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-  gap:1rem
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:1.2rem
 }
 .card{
   background:var(--card);
   border-radius:var(--radius);
   overflow:hidden;
   cursor:pointer;
-  transition:transform .2s
+  transition:transform .2s ease
 }
-.card:hover{transform:scale(1.05)}
+.card:hover{transform:scale(1.06)}
 .card span{
   display:block;
-  padding:.5rem;
-  font-size:.9rem
+  padding:0.6rem;
+  font-size:0.95rem
 }
 </style>
 
@@ -119,24 +121,24 @@ main{
 #player{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.9);
+  background:rgba(0,0,0,.92);
   display:none;
   align-items:center;
   justify-content:center;
   z-index:999
 }
 #player video{
-  width:80%;
-  max-width:900px;
-  border-radius:12px
+  width:82%;
+  max-width:1000px;
+  border-radius:14px
 }
 #player button{
   position:absolute;
-  top:20px;right:20px;
+  top:24px;right:24px;
   background:#000;
   color:#fff;
-  padding:.5rem 1rem;
-  border-radius:8px;
+  padding:.6rem 1.2rem;
+  border-radius:10px;
   cursor:pointer
 }
 </style>
@@ -164,7 +166,7 @@ main{
  HEADER
 =============================== -->
 <header>
-  <strong>Bem-vindo</strong>
+  <strong>Explorar</strong>
 </header>
 
 <!-- ===============================
@@ -173,11 +175,11 @@ main{
 <main>
   <div class="grid">
     <div class="card" onclick="playVideo()">
-      <img src="https://via.placeholder.com/300x170">
+      <img src="https://via.placeholder.com/400x220">
       <span>Filme Exemplo</span>
     </div>
     <div class="card" onclick="playVideo()">
-      <img src="https://via.placeholder.com/300x170">
+      <img src="https://via.placeholder.com/400x220">
       <span>Série Exemplo</span>
     </div>
   </div>
