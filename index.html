@@ -5,16 +5,366 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PaixãoFlix 2026</title>
     <style>
+        /* ====================================================== 
+         BLOCO: CONFIGURAÇÃO BASE UX/UI
+         Padrão visual, estrutural e comportamental do sistema
+         Baseado em best practices de streaming premium
+        ====================================================== */
+
+        /* VARIÁVEIS GLOBAIS - PALETA DE CORES E ESPAÇAMENTO */
         :root {
             --amarelo-pipoca: #ffcc00;
             --vermelho-logo: #ff0000;
             --azul-escuro: #001a33;
             --bg-body: #05070a;
+            --bg-secondary: #0f0f15;
+            --bg-tertiary: #14141a;
+            --texto-primario: #ffffff;
+            --texto-secundario: #cccccc;
+            --texto-terciario: #999999;
             --sombra-3d: 0 5px 0 #b38f00;
-            --capa-w: 160px; 
-            --capa-h: 240px;
+            --sombra-foco: 0 0 20px rgba(255, 204, 0, 0.3);
+            --radius-padrao: 8px;
+            --radius-grande: 12px;
+            --transition-rapida: 0.15s ease;
+            --transition-padrao: 0.25s ease;
+            --transition-lenta: 0.35s ease;
             --sidebar-w: 85px;
+            --header-h: 65px;
+            --capa-w: 160px;
+            --capa-h: 240px;
         }
+
+        /* RESET GLOBAL - REMOVE PADRÕES DO NAVEGADOR */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        *::-webkit-scrollbar { display: none; }
+
+        /* BASE DO CORPO */
+        body {
+            background: var(--bg-body);
+            color: var(--texto-primario);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            overflow: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* PADRÃO DE BOTÕES - ESTILO 3D COM PROFUNDIDADE */
+        button {
+            cursor: pointer;
+            border: none;
+            outline: none;
+            transition: var(--transition-rapida);
+            font-weight: 600;
+        }
+
+        .btn-base {
+            padding: 12px 24px;
+            border-radius: var(--radius-padrao);
+            font-size: 13px;
+            font-weight: bold;
+            transition: var(--transition-rapida);
+        }
+
+        .btn-primary {
+            background: var(--amarelo-pipoca);
+            color: #000;
+            box-shadow: var(--sombra-3d);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 #b38f00;
+        }
+
+        .btn-primary:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #b38f00;
+        }
+
+        .btn-primary:focus {
+            outline: 2px solid #fff;
+            outline-offset: 2px;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--texto-primario);
+            border: 2px solid var(--texto-secundario);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--amarelo-pipoca);
+            color: var(--amarelo-pipoca);
+        }
+
+        /* HIERARQUIA VISUAL - TAMANHOS DE TEXTO */
+        .h1 { font-size: 48px; font-weight: 900; letter-spacing: -2px; }
+        .h2 { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+        .h3 { font-size: 24px; font-weight: 700; }
+        .h4 { font-size: 18px; font-weight: 600; }
+        .p-small { font-size: 12px; color: var(--texto-terciario); }
+
+        /* GRID DE CONTEÚDO - LAYOUT RESPONSIVO */
+        .grid-container {
+            display: grid;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .grid-2-cols {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .grid-4-cols {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        /* CARTA PADRÃO - COMPONENTE REUTILIZÁVEL */
+        .card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-padrao);
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: var(--transition-padrao);
+            cursor: pointer;
+        }
+
+        .card:hover {
+            border-color: var(--amarelo-pipoca);
+            transform: scale(1.05);
+            box-shadow: var(--sombra-foco);
+        }
+
+        .card:focus {
+            outline: 2px solid var(--amarelo-pipoca);
+            outline-offset: 2px;
+        }
+
+        /* ESTADOS DE INTERAÇÃO - FOCO PREVISÍVEL */
+        :focus-visible {
+            outline: 2px solid var(--amarelo-pipoca);
+            outline-offset: 4px;
+        }
+
+        *:focus {
+            outline: none;
+        }
+
+        button:focus,
+        a:focus,
+        input:focus,
+        [tabindex]:focus {
+            box-shadow: var(--sombra-foco);
+        }
+
+        /* ANIMAÇÕES LEVES - SEM EXAGERO */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .animate-fadeIn { animation: fadeIn var(--transition-lenta) ease; }
+        .animate-slideInLeft { animation: slideInLeft var(--transition-padrao) ease; }
+        .animate-slideInRight { animation: slideInRight var(--transition-padrao) ease; }
+
+        /* CONTAINER DE CONTEÚDO - RESPOSTA A DIFERENTES TELAS */
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* INDICADORES DE ESTADO - LOADING, ERROR, SUCCESS */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--bg-tertiary);
+            border-top-color: var(--amarelo-pipoca);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: var(--bg-tertiary);
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-primary {
+            background: var(--amarelo-pipoca);
+            color: #000;
+        }
+
+        .badge-secondary {
+            background: var(--vermelho-logo);
+            color: #fff;
+        }
+
+        /* ACESSIBILIDADE - CONTRASTE E LEGIBILIDADE */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* SUPORTE A MODO ESCURO (FUTURA COMPATIBILIDADE) */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-body: #05070a;
+            }
+        }
+
+        /* ESTRUTURA ESPERADA PARA PLAYER */
+        #playerOverlay {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 5000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #playerOverlay video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        #exitPlayer {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            z-index: 5001;
+            background: var(--vermelho-logo);
+            color: white;
+            padding: 15px 30px;
+            border-radius: var(--radius-padrao);
+            font-weight: bold;
+        }
+
+        /* SUPORTE A BUSCA GLOBAL */
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            color: var(--texto-primario);
+            border: 2px solid var(--bg-tertiary);
+            border-radius: var(--radius-padrao);
+            transition: var(--transition-padrao);
+        }
+
+        .search-container input:focus {
+            border-color: var(--amarelo-pipoca);
+            box-shadow: var(--sombra-foco);
+        }
+
+        /* SUPORTE A LISTA DE CONTINUAÇÃO */
+        .continue-list {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding: 15px 0;
+        }
+
+        .continue-item {
+            flex: 0 0 280px;
+            position: relative;
+        }
+
+        .continue-item img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: var(--radius-padrao);
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: var(--amarelo-pipoca);
+            border-radius: 0 0 var(--radius-padrao) var(--radius-padrao);
+        }
+
+        /* COMPATIBILIDADE COM CONTROLE REMOTO */
+        [tabindex="0"] {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* PREPARAÇÃO PARA FUTURAS LISTAS */
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .list-item {
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-left: 3px solid transparent;
+            transition: var(--transition-padrao);
+            cursor: pointer;
+        }
+
+        .list-item:hover {
+            border-left-color: var(--amarelo-pipoca);
+            background: var(--bg-tertiary);
+        }
+
+        /* FIM DO BLOCO: CONFIGURAÇÃO BASE UX/UI */
+    </style>
 
         /* REMOVER BARRA DE ROLAGEM DE TUDO */
         * { 
@@ -42,6 +392,158 @@
         .icon-btn svg { width: 26px; fill: #666; }
         .icon-btn:focus { background: var(--amarelo-pipoca); box-shadow: 0 0 15px var(--amarelo-pipoca); }
         .icon-btn:focus svg { fill: #000; }
+
+        /* BLOCO: SIDEBAR FUNCIONAL - DISNEY PLUS STYLE */
+        .sidebar-expanded {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            backdrop-filter: blur(10px);
+            border-right: 2px solid rgba(255, 204, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 2500;
+            padding: 20px 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar-expanded.active { display: flex; }
+
+        .sidebar-expanded-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            margin-bottom: 30px;
+        }
+
+        .sidebar-expanded-header h2 {
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(90deg, #ffcc00, #ff6600);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .sidebar-close-btn {
+            background: rgba(255, 204, 0, 0.2);
+            border: 2px solid #ffcc00;
+            color: #ffcc00;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .sidebar-close-btn:hover {
+            background: #ffcc00;
+            color: #000;
+            transform: rotate(90deg);
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 15px;
+        }
+
+        .sidebar-menu-section {
+            margin-bottom: 25px;
+        }
+
+        .sidebar-menu-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #ffcc00;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0 20px 10px;
+            opacity: 0.8;
+        }
+
+        .sidebar-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            margin-bottom: 8px;
+            background: rgba(255, 204, 0, 0.05);
+            border-left: 3px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            color: #ccc;
+            font-weight: 600;
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(255, 204, 0, 0.15);
+            border-left-color: #ffcc00;
+            color: #ffcc00;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item.active {
+            background: rgba(255, 204, 0, 0.25);
+            border-left-color: #ffcc00;
+            color: #ffcc00;
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.2);
+        }
+
+        .sidebar-menu-item svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 204, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 204, 0, 0.1);
+            border-radius: 8px;
+            color: #ffcc00;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .sidebar-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffcc00, #ff6600);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #000;
+        }
+
+        @media (max-width: 1200px) {
+            .sidebar-expanded {
+                width: 250px;
+            }
+        }
+
+        /* FIM DO BLOCO: SIDEBAR FUNCIONAL */
 
         /* BARRA SUPERIOR */
         #topbar {
@@ -181,6 +683,72 @@
     </style>
 </head>
 <body>
+
+<!-- BLOCO: SIDEBAR FUNCIONAL - DISNEY PLUS STYLE -->
+<div class="sidebar-expanded" id="sidebarExpanded">
+    <div class="sidebar-expanded-header">
+        <h2>Menu</h2>
+        <button class="sidebar-close-btn" onclick="toggleSidebarExpanded()">✕</button>
+    </div>
+    
+    <div class="sidebar-menu">
+        <div class="sidebar-menu-section">
+            <div class="sidebar-menu-label">Navegação</div>
+            <div class="sidebar-menu-item active" onclick="handleMenuClick('home')">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                <span>Home</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="handleMenuClick('cinema')">
+                <svg viewBox="0 0 24 24"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
+                <span>Cinema</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="handleMenuClick('series')">
+                <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></svg>
+                <span>Séries</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="handleMenuClick('live')">
+                <svg viewBox="0 0 24 24"><path d="M21 10H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2v-8c0-1.1-.9-2-2-2zm0 10H3v-8h18v8z"/></svg>
+                <span>TV ao Vivo</span>
+            </div>
+        </div>
+
+        <div class="sidebar-menu-section">
+            <div class="sidebar-menu-label">Minha Conta</div>
+            <div class="sidebar-menu-item" onclick="handleMenuClick('mylist')">
+                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <span>Minha Lista</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="handleMenuClick('recently')">
+                <svg viewBox="0 0 24 24"><path d="M12 8v4l3.5 2.5M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                <span>Continuar Assistindo</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="handleMenuClick('profile')">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                <span>Meu Perfil</span>
+            </div>
+        </div>
+
+        <div class="sidebar-menu-section">
+            <div class="sidebar-menu-label">Conteúdo</div>
+            <div class="sidebar-menu-item" onclick="handleMenuClick('kids')">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z"/></svg>
+                <span>Área Kids</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="handleMenuClick('settings')">
+                <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.64l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12c0,0.32 0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.64l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.5 -0.12,-0.64L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z"/></svg>
+                <span>Configurações</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+            <div class="sidebar-user-avatar">U</div>
+            <span>Usuário</span>
+        </div>
+    </div>
+</div>
+<!-- FIM DO BLOCO: SIDEBAR FUNCIONAL -->
 
 <nav id="sidebar">
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="logo" onclick="location.reload()" tabindex="0">
@@ -386,6 +954,256 @@
             }
         }
     }, true);
+
+    /* BLOCO: FUNÇÕES SIDEBAR FUNCIONAL */
+    function toggleSidebarExpanded() {
+        const sidebar = document.getElementById('sidebarExpanded');
+        sidebar.classList.toggle('active');
+    }
+
+    function handleMenuClick(action) {
+        const items = document.querySelectorAll('.sidebar-menu-item');
+        items.forEach(item => item.classList.remove('active'));
+        event.target.closest('.sidebar-menu-item').classList.add('active');
+        
+        console.log('Menu clicado:', action);
+        
+        switch(action) {
+            case 'home':
+                renderHome();
+                break;
+            case 'cinema':
+                loadData('movie', 'data/filmes.json');
+                break;
+            case 'series':
+                loadData('serie', 'data/series.json');
+                break;
+            case 'live':
+                alert('TV ao Vivo - Em desenvolvimento');
+                break;
+            case 'mylist':
+                alert('Minha Lista - Em desenvolvimento');
+                break;
+            case 'recently':
+                alert('Continuar Assistindo - Em desenvolvimento');
+                break;
+            case 'profile':
+                alert('Meu Perfil - Em desenvolvimento');
+                break;
+            case 'kids':
+                loadData('kids_movie', 'data/kids_filmes.json');
+                break;
+            case 'settings':
+                alert('Configurações - Em desenvolvimento');
+                break;
+        }
+        
+        toggleSidebarExpanded();
+    }
+
+    // Botão para abrir sidebar no primeiro ícone
+    document.addEventListener('DOMContentLoaded', () => {
+        const firstIcon = document.querySelector('.icon-btn');
+        if(firstIcon) {
+            firstIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleSidebarExpanded();
+            });
+        }
+    });
+
+    // Fechar sidebar ao clicar fora
+    document.addEventListener('click', (e) => {
+        const sidebar = document.getElementById('sidebarExpanded');
+        const firstIcon = document.querySelector('.icon-btn');
+        if(!sidebar.contains(e.target) && !firstIcon.contains(e.target) && sidebar.classList.contains('active')) {
+            sidebar.classList.remove('active');
+        }
+    });
+
+    // Fechar sidebar com ESC
+    document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape') {
+            const sidebar = document.getElementById('sidebarExpanded');
+            if(sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+            }
+        }
+    });
+    /* FIM DO BLOCO: FUNÇÕES SIDEBAR FUNCIONAL */
+
+    /* ====================================================== 
+     BLOCO: FUNÇÕES BASE UX/UI
+     Padrões comportamentais do sistema
+    ====================================================== */
+
+    // Gerenciador de Estado Global
+    const UXUIConfig = {
+        focusTimeout: null,
+        currentFocus: null,
+        navigationMode: 'keyboard', // ou 'mouse'
+        lastInteraction: Date.now(),
+
+        init() {
+            this.setupKeyboardNavigation();
+            this.setupMouseTracking();
+            this.setupAnimationPreferences();
+            this.logSystem('✓ Sistema UX/UI inicializado');
+        },
+
+        setupKeyboardNavigation() {
+            document.addEventListener('keydown', (e) => {
+                this.navigationMode = 'keyboard';
+                this.lastInteraction = Date.now();
+            });
+
+            document.addEventListener('mousemove', () => {
+                this.navigationMode = 'mouse';
+                this.lastInteraction = Date.now();
+            });
+        },
+
+        setupMouseTracking() {
+            document.addEventListener('mousedown', (e) => {
+                if (e.target.tagName === 'BUTTON' || e.target.classList.contains('clickable')) {
+                    e.target.style.transform = 'scale(0.98)';
+                }
+            });
+
+            document.addEventListener('mouseup', (e) => {
+                if (e.target.tagName === 'BUTTON' || e.target.classList.contains('clickable')) {
+                    e.target.style.transform = '';
+                }
+            });
+        },
+
+        setupAnimationPreferences() {
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (prefersReducedMotion) {
+                document.documentElement.style.setProperty('--transition-rapida', '0.01ms');
+                document.documentElement.style.setProperty('--transition-padrao', '0.01ms');
+                document.documentElement.style.setProperty('--transition-lenta', '0.01ms');
+            }
+        },
+
+        // Log de debug
+        logSystem(msg) {
+            if (window.location.href.includes('debug')) {
+                console.log('%cUX/UI:', 'color: #ffcc00; font-weight: bold;', msg);
+            }
+        }
+    };
+
+    // Gerenciador de Foco Previsível
+    const FocusManager = {
+        focusableElements: [],
+        currentIndex: -1,
+
+        init() {
+            this.updateFocusableElements();
+            document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+        },
+
+        updateFocusableElements() {
+            this.focusableElements = Array.from(
+                document.querySelectorAll('button, [tabindex], a, input')
+            ).filter(el => el.offsetParent !== null);
+        },
+
+        handleKeyboard(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                e.shiftKey ? this.focusPrevious() : this.focusNext();
+            }
+        },
+
+        focusNext() {
+            this.currentIndex++;
+            if (this.currentIndex >= this.focusableElements.length) {
+                this.currentIndex = 0;
+            }
+            this.focusableElements[this.currentIndex]?.focus();
+        },
+
+        focusPrevious() {
+            this.currentIndex--;
+            if (this.currentIndex < 0) {
+                this.currentIndex = this.focusableElements.length - 1;
+            }
+            this.focusableElements[this.currentIndex]?.focus();
+        }
+    };
+
+    // Gerenciador de Performance
+    const PerformanceManager = {
+        metrics: {},
+
+        markStart(label) {
+            this.metrics[label] = performance.now();
+        },
+
+        markEnd(label) {
+            if (this.metrics[label]) {
+                const duration = performance.now() - this.metrics[label];
+                UXUIConfig.logSystem(`⏱ ${label}: ${duration.toFixed(2)}ms`);
+                delete this.metrics[label];
+            }
+        }
+    };
+
+    // Sistema de Notificações
+    const NotificationSystem = {
+        container: null,
+
+        init() {
+            this.container = document.createElement('div');
+            this.container.id = 'notificationContainer';
+            this.container.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                z-index: 4000;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            `;
+            document.body.appendChild(this.container);
+        },
+
+        show(message, type = 'info', duration = 3000) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                padding: 15px 20px;
+                background: ${type === 'error' ? '#ff0000' : type === 'success' ? '#00ff00' : '#ffcc00'};
+                color: ${type === 'success' ? '#000' : '#000'};
+                border-radius: 8px;
+                font-weight: bold;
+                animation: slideInRight 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `;
+            notification.textContent = message;
+            this.container.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideInLeft 0.3s ease reverse';
+                setTimeout(() => notification.remove(), 300);
+            }, duration);
+        }
+    };
+
+    // Inicializar Sistema
+    document.addEventListener('DOMContentLoaded', () => {
+        UXUIConfig.init();
+        FocusManager.init();
+        NotificationSystem.init();
+        PerformanceManager.markStart('app-init');
+    });
+
+    window.addEventListener('load', () => {
+        PerformanceManager.markEnd('app-init');
+    });
+
+    /* FIM DO BLOCO: FUNÇÕES BASE UX/UI */
 
     window.onload = startApp;
 </script>
