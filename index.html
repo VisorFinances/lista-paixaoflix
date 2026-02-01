@@ -8,7 +8,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  font-family:system-ui;
   background:#0b0b0f;
   color:#ffd84d;
   overflow:hidden;
@@ -30,21 +30,20 @@ img{width:100%;display:block}
   border-right:1px solid var(--border);
   padding:1rem .5rem
 }
-#logo{display:flex;justify-content:center;margin-bottom:2rem}
+#logo{text-align:center;margin-bottom:2rem}
 #logo img{width:140px}
 .menu a{
   display:block;
-  text-align:center;
   padding:.8rem;
-  border-radius:10px;
   margin-bottom:.3rem;
-  color:#ffd84d;
-  cursor:pointer
+  border-radius:10px;
+  text-align:center;
+  cursor:pointer;
 }
 .menu a:focus{
   outline:none;
+  box-shadow:0 0 0 3px var(--focus);
   background:var(--card);
-  box-shadow:0 0 0 3px var(--focus)
 }
 </style>
 
@@ -54,12 +53,10 @@ img{width:100%;display:block}
   margin-left:150px;
   height:100vh;
   padding:1.2rem;
+  overflow-y:auto;
 }
 .section{margin-bottom:2.6rem}
-.section h2{
-  margin-bottom:1rem;
-  font-size:1.5rem;
-}
+.section h2{font-size:1.5rem;margin-bottom:1rem}
 .row{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -68,48 +65,18 @@ img{width:100%;display:block}
 .card{
   background:var(--card);
   border-radius:14px;
-  overflow:hidden
+  overflow:hidden;
 }
-.card:focus{
-  outline:none;
-  box-shadow:0 0 0 4px var(--focus)
-}
+.card:focus{box-shadow:0 0 0 4px var(--focus)}
 .card img{height:260px;object-fit:cover}
-.card span{display:block;padding:.6rem}
-</style>
-
-<!-- CONTINUAR -->
-<style>
-.continuar-row{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:1rem
-}
-.continuar{
-  background:var(--card);
-  border-radius:14px;
-  overflow:hidden
-}
-.continuar:focus{
-  outline:none;
-  box-shadow:0 0 0 4px var(--focus)
-}
-.continuar img{height:150px;object-fit:cover}
-.progress{height:4px;background:#333}
-.progress span{height:100%;width:60%;background:var(--focus);display:block}
-.continuar p{padding:.6rem}
+.card span{padding:.6rem;display:block}
 </style>
 
 <!-- DETALHES -->
 <style>
-#details{
-  display:none;
-  height:100vh;
-  background-size:cover;
-  background-position:center;
-}
+#details{display:none;height:100vh;background-size:cover}
 .details-overlay{
-  background:rgba(0,0,0,.8);
+  background:rgba(0,0,0,.85);
   height:100%;
   padding:3rem;
   display:flex
@@ -120,13 +87,10 @@ img{width:100%;display:block}
   font-weight:500;
   font-style:italic;
 }
-.details-info p{
-  margin-top:3px;
-  color:#fff;
-}
+.details-info p{color:#fff;margin-top:3px}
 </style>
-</head>
 
+</head>
 <body>
 
 <nav id="sidebar">
@@ -135,89 +99,49 @@ img{width:100%;display:block}
   </div>
   <div class="menu">
     <a tabindex="1" onclick="goHome()">Início</a>
-    <a tabindex="2" onclick="goHome()">Filmes</a>
-    <a tabindex="3" onclick="goHome()">Séries</a>
-    <a tabindex="4" onclick="trocarPerfil()">Trocar perfil</a>
+    <a tabindex="2" onclick="loadJSON('data/filmes.json')">Cinema</a>
+    <a tabindex="3" onclick="loadJSON('data/series.json')">Séries</a>
+    <a tabindex="4" onclick="loadJSON('data/favoritos.json')">Minha Lista</a>
   </div>
 </nav>
 
 <div id="home">
-
-<section class="section">
-<h2>Em Alta</h2>
-<div class="row">
-  <div class="card" tabindex="10" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema</span></div>
-  <div class="card" tabindex="11" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries</span></div>
-  <div class="card" tabindex="12" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema Kids</span></div>
-  <div class="card" tabindex="13" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries Kids</span></div>
-</div>
-</section>
-
-<section class="section">
-<h2>Novos</h2>
-<div class="row">
-  <div class="card" tabindex="20"><img src="https://via.placeholder.com/300x450"><span>2026</span></div>
-  <div class="card" tabindex="21"><img src="https://via.placeholder.com/300x450"><span>2026</span></div>
-  <div class="card" tabindex="22"><img src="https://via.placeholder.com/300x450"><span>2025</span></div>
-  <div class="card" tabindex="23"><img src="https://via.placeholder.com/300x450"><span>2025</span></div>
-</div>
-</section>
-
-<section class="section">
-<h2>Continuar assistindo</h2>
-<div class="continuar-row">
-  <div class="continuar" tabindex="30"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Filme</p></div>
-  <div class="continuar" tabindex="31"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Série</p></div>
-  <div class="continuar" tabindex="32"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Kids</p></div>
-</div>
-</section>
-
-<section class="section">
-<h2>Recomendados</h2>
-<div class="row">
-  <div class="card" tabindex="40"><img src="https://via.placeholder.com/300x450"><span>A</span></div>
-  <div class="card" tabindex="41"><img src="https://via.placeholder.com/300x450"><span>B</span></div>
-  <div class="card" tabindex="42"><img src="https://via.placeholder.com/300x450"><span>C</span></div>
-  <div class="card" tabindex="43"><img src="https://via.placeholder.com/300x450"><span>D</span></div>
-</div>
-</section>
-
+  <section class="section">
+    <h2>Em Alta</h2>
+    <div class="row" id="emAlta"></div>
+  </section>
 </div>
 
-<div id="details" style="background-image:url('https://via.placeholder.com/1600x900')">
+<div id="details">
   <div class="details-overlay">
     <div class="details-poster">
-      <img src="https://via.placeholder.com/300x450">
+      <img id="dPoster">
     </div>
     <div class="details-info">
-      <h1>Título do Conteúdo</h1>
-      <p>⭐ 8.9 • 2026</p>
-      <p>Descrição completa do conteúdo.</p>
+      <h1 id="dTitle"></h1>
+      <p id="dMeta"></p>
+      <p id="dDesc"></p>
     </div>
   </div>
 </div>
 
 <script>
-let area='menu'
 let menu=[...document.querySelectorAll('.menu a')]
-let cards=[...document.querySelectorAll('#home .card, .continuar')]
-let m=0,c=0
-menu[m].focus()
+let cards=[]
+let area='menu',m=0,c=0
+menu[0].focus()
 
 document.addEventListener('keydown',e=>{
   if(area==='menu'){
     if(e.key==='ArrowDown') m=(m+1)%menu.length
     if(e.key==='ArrowUp') m=(m-1+menu.length)%menu.length
-    if(e.key==='ArrowRight'){area='home';cards[c].focus();return}
+    if(e.key==='ArrowRight'){area='cards';cards[0]?.focus()}
     if(e.key==='Enter') menu[m].click()
     menu[m].focus()
   }else{
     const cols=4
     if(e.key==='ArrowRight') c=Math.min(c+1,cards.length-1)
-    if(e.key==='ArrowLeft'){
-      if(c%cols===0){area='menu';menu[m].focus();return}
-      c--
-    }
+    if(e.key==='ArrowLeft'){if(c%cols===0){area='menu';menu[m].focus();return}else c--}
     if(e.key==='ArrowDown') c=Math.min(c+cols,cards.length-1)
     if(e.key==='ArrowUp') c=Math.max(c-cols,0)
     if(e.key==='Enter') cards[c].click()
@@ -225,19 +149,37 @@ document.addEventListener('keydown',e=>{
   }
 })
 
-function openDetails(){
+function loadJSON(url){
+  fetch(url).then(r=>r.json()).then(data=>{
+    const row=document.getElementById('emAlta')
+    row.innerHTML=''
+    data.slice(0,4).forEach((item,i)=>{
+      row.innerHTML+=`
+      <div class="card" tabindex="${10+i}" onclick='openDetails(${JSON.stringify(item)})'>
+        <img src="${item.poster}">
+        <span>${item.title}</span>
+      </div>`
+    })
+    cards=[...document.querySelectorAll('.card')]
+    area='cards';c=0;cards[0].focus()
+  })
+}
+
+function openDetails(item){
   home.style.display='none'
   details.style.display='block'
+  details.style.backgroundImage=`url(${item.poster})`
+  dPoster.src=item.poster
+  dTitle.textContent=item.title
+  dMeta.textContent=`⭐ ${item.rating} • ${item.year}`
+  dDesc.textContent=item.description
 }
 
 function goHome(){
   details.style.display='none'
   home.style.display='block'
-  area='menu'
-  menu[m].focus()
+  area='menu';menu[m].focus()
 }
-
-function trocarPerfil(){}
 </script>
 
 </body>
