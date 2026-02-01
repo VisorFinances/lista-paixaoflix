@@ -6,26 +6,26 @@
 <title>PaixãoFlix</title>
 
 <!-- ==================================================
- BLOCO 01 — CONFIGURAÇÃO GLOBAL / UX BASE
+ BLOCO 01 — PALETA & BASE GLOBAL
 ================================================== -->
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto;
   background:#0b0b0f;
-  color:#fff;
-  overflow:hidden; /* REMOVE BARRAS DE ROLAGEM */
+  color:#ffd84d; /* AMARELO PIPOCA */
+  overflow:hidden;
 }
 :root{
   --card:#1b1b25;
   --border:rgba(255,255,255,.08);
-  --focus:#00a8ff;
+  --focus:#e50914; /* VERMELHO PAIXÃOFLIX */
 }
 img{width:100%;display:block}
 </style>
 
 <!-- ==================================================
- BLOCO 02 — SIDEBAR + LOGOTIPO (VISÍVEL A 20 PASSOS)
+ BLOCO 02 — SIDEBAR
 ================================================== -->
 <style>
 #sidebar{
@@ -48,33 +48,60 @@ img{width:100%;display:block}
   padding:.8rem;
   border-radius:10px;
   margin-bottom:.3rem;
-  color:#ccc
+  color:#ffd84d
 }
 .menu a:focus{
   outline:none;
   background:var(--card);
-  color:#fff;
-  box-shadow:0 0 0 2px var(--focus)
+  box-shadow:0 0 0 3px var(--focus)
 }
 </style>
 
 <!-- ==================================================
- BLOCO 03 — ÁREA PRINCIPAL
+ BLOCO 03 — PERFIS
+================================================== -->
+<style>
+#profiles{
+  position:fixed;
+  inset:0;
+  background:#0b0b0f;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:3rem;
+  z-index:2000
+}
+.profile{
+  width:200px;
+  text-align:center;
+  cursor:pointer
+}
+.profile img{
+  border-radius:20px;
+  border:4px solid transparent
+}
+.profile:focus img{
+  border-color:var(--focus)
+}
+.profile span{
+  display:block;
+  margin-top:.6rem;
+  font-size:1.1rem
+}
+</style>
+
+<!-- ==================================================
+ BLOCO 04 — APP
 ================================================== -->
 <style>
 #app{
   margin-left:150px;
   height:100vh;
-  overflow:hidden;
-  padding:1.2rem
+  padding:1.2rem;
+  display:none
 }
-.section{
-  margin-bottom:2rem
-}
-.section h2{
-  font-size:1.25rem;
-  margin-bottom:.8rem
-}
+.section{margin-bottom:2rem}
+.section h2{margin-bottom:.8rem}
 .row{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -83,26 +110,18 @@ img{width:100%;display:block}
 .card{
   background:var(--card);
   border-radius:14px;
-  overflow:hidden;
-  cursor:pointer
+  overflow:hidden
 }
 .card:focus{
   outline:none;
-  box-shadow:0 0 0 3px var(--focus)
+  box-shadow:0 0 0 4px var(--focus)
 }
-.card img{
-  height:260px;
-  object-fit:cover
-}
-.card span{
-  display:block;
-  padding:.6rem;
-  font-size:.95rem
-}
+.card img{height:260px;object-fit:cover}
+.card span{padding:.6rem;display:block}
 </style>
 
 <!-- ==================================================
- BLOCO 04 — CONTINUAR ASSISTINDO (MÁX 3)
+ BLOCO 05 — CONTINUAR ASSISTINDO
 ================================================== -->
 <style>
 .continuar-row{
@@ -115,47 +134,61 @@ img{width:100%;display:block}
   border-radius:14px;
   overflow:hidden
 }
-.continuar img{
-  height:150px;
-  object-fit:cover
+.continuar:focus{
+  outline:none;
+  box-shadow:0 0 0 4px var(--focus)
 }
-.progress{
-  height:4px;
-  background:#333
-}
-.progress span{
-  display:block;
-  width:60%;
-  height:100%;
-  background:#00a8ff
-}
-.continuar p{
-  padding:.6rem
-}
+.continuar img{height:150px;object-fit:cover}
+.progress{height:4px;background:#333}
+.progress span{height:100%;width:60%;background:var(--focus);display:block}
+.continuar p{padding:.6rem}
 </style>
 
 <!-- ==================================================
- BLOCO 05 — PLAYER
+ BLOCO 06 — TELA DE DETALHES
 ================================================== -->
 <style>
-#player{
+#details{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.95);
+  background-size:cover;
+  background-position:center;
   display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:1000
+  z-index:1500
 }
-#player video{
-  width:85%;
-  max-width:1100px;
-  border-radius:16px
+.details-overlay{
+  background:rgba(0,0,0,.75);
+  height:100%;
+  display:flex;
+  padding:3rem
 }
+.details-poster{
+  width:260px;
+  margin-right:2rem
+}
+.details-info{
+  max-width:600px
+}
+.details-info h1{margin-bottom:.6rem}
+.details-info p{margin:.6rem 0}
 </style>
 
 </head>
 <body>
+
+<!-- ==================================================
+ PERFIS
+================================================== -->
+<div id="profiles">
+  <div class="profile" tabindex="1" onclick="selectProfile()">
+    <img src="https://via.placeholder.com/200x200">
+    <span>Adulto</span>
+  </div>
+  <div class="profile" tabindex="2" onclick="selectProfile()">
+    <img src="https://via.placeholder.com/200x200">
+    <span>Kids</span>
+  </div>
+</div>
 
 <!-- ==================================================
  SIDEBAR
@@ -165,10 +198,10 @@ img{width:100%;display:block}
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
   </div>
   <div class="menu">
-    <a tabindex="1">Início</a>
-    <a tabindex="2">Filmes</a>
-    <a tabindex="3">Séries</a>
-    <a tabindex="4">Kids</a>
+    <a tabindex="10">Início</a>
+    <a tabindex="11">Filmes</a>
+    <a tabindex="12">Séries</a>
+    <a tabindex="13">Kids</a>
   </div>
 </nav>
 
@@ -177,80 +210,70 @@ img{width:100%;display:block}
 ================================================== -->
 <div id="app">
 
-<!-- EM ALTA -->
 <section class="section">
 <h2>Em alta</h2>
 <div class="row">
-  <div class="card" tabindex="10"><img src="https://via.placeholder.com/300x450"><span>Cinema</span></div>
-  <div class="card" tabindex="11"><img src="https://via.placeholder.com/300x450"><span>Séries</span></div>
-  <div class="card" tabindex="12"><img src="https://via.placeholder.com/300x450"><span>Cinema Kids</span></div>
-  <div class="card" tabindex="13"><img src="https://via.placeholder.com/300x450"><span>Séries Kids</span></div>
+  <div class="card" tabindex="20" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema</span></div>
+  <div class="card" tabindex="21" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries</span></div>
+  <div class="card" tabindex="22" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema Kids</span></div>
+  <div class="card" tabindex="23" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries Kids</span></div>
 </div>
 </section>
 
-<!-- NOVOS -->
-<section class="section">
-<h2>Novos</h2>
-<div class="row">
-  <div class="card" tabindex="20"><img src="https://via.placeholder.com/300x450"><span>Lançamento 2026</span></div>
-  <div class="card" tabindex="21"><img src="https://via.placeholder.com/300x450"><span>Lançamento 2026</span></div>
-  <div class="card" tabindex="22"><img src="https://via.placeholder.com/300x450"><span>Lançamento 2025</span></div>
-  <div class="card" tabindex="23"><img src="https://via.placeholder.com/300x450"><span>Lançamento 2025</span></div>
-</div>
-</section>
-
-<!-- CONTINUAR -->
 <section class="section">
 <h2>Continuar assistindo</h2>
 <div class="continuar-row">
-  <div class="continuar" tabindex="30">
-    <img src="https://via.placeholder.com/500x280">
-    <div class="progress"><span></span></div>
-    <p>Filme em andamento</p>
-  </div>
-  <div class="continuar" tabindex="31">
-    <img src="https://via.placeholder.com/500x280">
-    <div class="progress"><span></span></div>
-    <p>Série em andamento</p>
-  </div>
-  <div class="continuar" tabindex="32">
-    <img src="https://via.placeholder.com/500x280">
-    <div class="progress"><span></span></div>
-    <p>Kids em andamento</p>
-  </div>
+  <div class="continuar" tabindex="30"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Filme</p></div>
+  <div class="continuar" tabindex="31"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Série</p></div>
+  <div class="continuar" tabindex="32"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Kids</p></div>
 </div>
 </section>
 
 </div>
 
 <!-- ==================================================
- PLAYER
+ TELA DE DETALHES
 ================================================== -->
-<div id="player">
-  <video controls autoplay>
-    <source src="https://www.w3schools.com/html/mov_bbb.mp4">
-  </video>
+<div id="details" style="background-image:url('https://via.placeholder.com/1600x900')">
+  <div class="details-overlay">
+    <div class="details-poster">
+      <img src="https://via.placeholder.com/300x450">
+    </div>
+    <div class="details-info">
+      <h1>Título do Filme</h1>
+      <p>⭐ 8.9 • 2026</p>
+      <p>Descrição completa do conteúdo, estilo streaming premium.</p>
+    </div>
+  </div>
 </div>
 
 <!-- ==================================================
- BLOCO 06 — MODO TV REAL (SETAS + OK)
+ BLOCO 07 — MODO TV REAL (CORRIGIDO)
 ================================================== -->
 <script>
 let focusables=[...document.querySelectorAll('[tabindex]')]
-let index=0
-focusables[index].focus()
+let current=0
+focusables[current].focus()
 
 document.addEventListener('keydown',e=>{
-  if(['ArrowRight','ArrowDown'].includes(e.key)){index=(index+1)%focusables.length}
-  if(['ArrowLeft','ArrowUp'].includes(e.key)){index=(index-1+focusables.length)%focusables.length}
+  const cols=4
+  if(e.key==='ArrowRight') current=Math.min(current+1,focusables.length-1)
+  if(e.key==='ArrowLeft') current=Math.max(current-1,0)
+  if(e.key==='ArrowDown') current=Math.min(current+cols,focusables.length-1)
+  if(e.key==='ArrowUp') current=Math.max(current-cols,0)
   if(e.key==='Enter'){
-    if(focusables[index].classList.contains('card')||
-       focusables[index].classList.contains('continuar')){
-      document.getElementById('player').style.display='flex'
-    }
+    if(focusables[current].classList.contains('card')) openDetails()
   }
-  focusables[index].focus()
+  focusables[current].focus()
 })
+
+function selectProfile(){
+  document.getElementById('profiles').style.display='none'
+  document.getElementById('app').style.display='block'
+}
+function openDetails(){
+  document.getElementById('details').style.display='block'
+}
 </script>
 
 </body>
