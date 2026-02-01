@@ -120,10 +120,6 @@ img{width:100%;display:block}
   font-weight:500;
   font-style:italic;
 }
-.details-info p{
-  margin-top:3px;
-  color:#fff;
-}
 </style>
 </head>
 
@@ -135,9 +131,9 @@ img{width:100%;display:block}
   </div>
   <div class="menu">
     <a tabindex="1" onclick="goHome()">Início</a>
-    <a tabindex="2" onclick="goHome()">Filmes</a>
-    <a tabindex="3" onclick="goHome()">Séries</a>
-    <a tabindex="4" onclick="trocarPerfil()">Trocar perfil</a>
+    <a tabindex="2" onclick="alert('Filmes')">Filmes</a>
+    <a tabindex="3" onclick="alert('Séries')">Séries</a>
+    <a tabindex="4" onclick="alert('Trocar perfil')">Trocar perfil</a>
   </div>
 </nav>
 
@@ -236,8 +232,6 @@ function goHome(){
   area='menu'
   menu[m].focus()
 }
-
-function trocarPerfil(){}
 </script>
 
 </body>
