@@ -6,6 +6,7 @@
 <title>PaixãoFlix</title>
 
 <style>
+/* ================= RESET ================= */
 *{margin:0;padding:0;box-sizing:border-box}
 body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto;
@@ -19,9 +20,10 @@ body{
   --focus:#e50914;
 }
 img{width:100%;display:block}
+.hidden{display:none}
 </style>
 
-<!-- SIDEBAR -->
+<!-- ================= SIDEBAR (NÃO MEXER) ================= -->
 <style>
 #sidebar{
   position:fixed;
@@ -50,13 +52,12 @@ img{width:100%;display:block}
 }
 </style>
 
-<!-- HOME -->
+<!-- ================= HOME ================= -->
 <style>
 #home{
   margin-left:150px;
   height:100vh;
   padding:1.2rem;
-  overflow-y:auto;
 }
 .section{margin-bottom:2.6rem}
 .section h2{
@@ -81,7 +82,7 @@ img{width:100%;display:block}
 .card span{display:block;padding:.6rem}
 </style>
 
-<!-- CONTINUAR -->
+<!-- ================= CONTINUAR ================= -->
 <style>
 .continuar-row{
   display:grid;
@@ -103,11 +104,12 @@ img{width:100%;display:block}
 .continuar p{padding:.6rem}
 </style>
 
-<!-- DETALHES -->
+<!-- ================= DETALHES ================= -->
 <style>
 #details{
   display:none;
   height:100vh;
+  margin-left:150px;
   background-size:cover;
   background-position:center;
 }
@@ -132,7 +134,7 @@ img{width:100%;display:block}
 
 <body>
 
-<!-- SIDEBAR -->
+<!-- ================= MENU ================= -->
 <nav id="sidebar">
   <div id="logo">
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
@@ -140,77 +142,58 @@ img{width:100%;display:block}
 
   <div class="menu">
     <a tabindex="1" onclick="goHome()">Início</a>
-
     <a tabindex="2" onclick="openTV()">TV</a>
-    <a tabindex="3" onclick="loadJSON('data/filmes.json')">Cinema</a>
-    <a tabindex="4" onclick="loadJSON('data/series.json')">Séries</a>
-    <a tabindex="5" onclick="loadJSON('data/favoritos.json')">Minha Lista</a>
+    <a tabindex="3" onclick="loadCategory('data/filmes.json')">Cinema</a>
+    <a tabindex="4" onclick="loadCategory('data/series.json')">Séries</a>
+    <a tabindex="5" onclick="loadCategory('data/favoritos.json')">Minha Lista</a>
     <a tabindex="6" onclick="openKids()">Kids</a>
   </div>
 </nav>
 
-<!-- HOME -->
+<!-- ================= HOME ================= -->
 <div id="home">
 
 <section class="section">
 <h2>Em Alta</h2>
-<div class="row">
-  <div class="card" tabindex="10" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema</span></div>
-  <div class="card" tabindex="11" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries</span></div>
-  <div class="card" tabindex="12" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema Kids</span></div>
-  <div class="card" tabindex="13" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries Kids</span></div>
-</div>
+<div class="row" id="emAlta"></div>
 </section>
 
 <section class="section">
 <h2>Novos</h2>
-<div class="row">
-  <div class="card" tabindex="20"><img src="https://via.placeholder.com/300x450"><span>2026</span></div>
-  <div class="card" tabindex="21"><img src="https://via.placeholder.com/300x450"><span>2026</span></div>
-  <div class="card" tabindex="22"><img src="https://via.placeholder.com/300x450"><span>2025</span></div>
-  <div class="card" tabindex="23"><img src="https://via.placeholder.com/300x450"><span>2025</span></div>
-</div>
+<div class="row" id="novos"></div>
 </section>
 
 <section class="section">
 <h2>Continuar Assistindo</h2>
-<div class="continuar-row">
-  <div class="continuar" tabindex="30"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Filme</p></div>
-  <div class="continuar" tabindex="31"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Série</p></div>
-  <div class="continuar" tabindex="32"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Kids</p></div>
-</div>
+<div class="continuar-row" id="continuar"></div>
 </section>
 
 <section class="section">
 <h2>Recomendados</h2>
-<div class="row">
-  <div class="card" tabindex="40"><img src="https://via.placeholder.com/300x450"><span>A</span></div>
-  <div class="card" tabindex="41"><img src="https://via.placeholder.com/300x450"><span>B</span></div>
-  <div class="card" tabindex="42"><img src="https://via.placeholder.com/300x450"><span>C</span></div>
-  <div class="card" tabindex="43"><img src="https://via.placeholder.com/300x450"><span>D</span></div>
-</div>
+<div class="row" id="recomendados"></div>
 </section>
 
 </div>
 
-<!-- DETALHES -->
-<div id="details" style="background-image:url('https://via.placeholder.com/1600x900')">
+<!-- ================= DETALHES ================= -->
+<div id="details">
   <div class="details-overlay">
     <div class="details-poster">
-      <img src="https://via.placeholder.com/300x450">
+      <img id="detailsPoster">
     </div>
     <div class="details-info">
-      <h1>Título do Conteúdo</h1>
-      <p>⭐ 8.9 • 2026</p>
-      <p>Descrição completa do conteúdo.</p>
+      <h1 id="detailsTitle"></h1>
+      <p id="detailsMeta"></p>
+      <p id="detailsDesc"></p>
     </div>
   </div>
 </div>
 
 <script>
+/* ================= NAVEGAÇÃO TV ================= */
 let area='menu'
 let menu=[...document.querySelectorAll('.menu a')]
-let cards=[...document.querySelectorAll('#home .card, .continuar')]
+let focusables=[]
 let m=0,c=0
 menu[m].focus()
 
@@ -218,26 +201,32 @@ document.addEventListener('keydown',e=>{
   if(area==='menu'){
     if(e.key==='ArrowDown') m=(m+1)%menu.length
     if(e.key==='ArrowUp') m=(m-1+menu.length)%menu.length
-    if(e.key==='ArrowRight'){area='home';c=0;cards[c].focus();return}
+    if(e.key==='ArrowRight'){area='home';c=0;focusables[c]?.focus();return}
     if(e.key==='Enter') menu[m].click()
     menu[m].focus()
   }else{
     const cols=4
-    if(e.key==='ArrowRight') c=Math.min(c+1,cards.length-1)
+    if(e.key==='ArrowRight') c=Math.min(c+1,focusables.length-1)
     if(e.key==='ArrowLeft'){
       if(c%cols===0){area='menu';menu[m].focus();return}
       c--
     }
-    if(e.key==='ArrowDown') c=Math.min(c+cols,cards.length-1)
+    if(e.key==='ArrowDown') c=Math.min(c+cols,focusables.length-1)
     if(e.key==='ArrowUp') c=Math.max(c-cols,0)
-    if(e.key==='Enter') cards[c]?.click()
-    cards[c]?.focus()
+    if(e.key==='Enter') focusables[c]?.click()
+    focusables[c]?.focus()
   }
 })
 
-function openDetails(){
+/* ================= HOME / DETALHES ================= */
+function openDetails(item){
   home.style.display='none'
   details.style.display='block'
+  details.style.backgroundImage=`url(${item.poster})`
+  detailsPoster.src=item.poster
+  detailsTitle.textContent=item.titulo
+  detailsMeta.textContent=`⭐ ${item.rating} • ${item.year}`
+  detailsDesc.textContent=item.desc
 }
 
 function goHome(){
@@ -247,8 +236,22 @@ function goHome(){
   menu[m].focus()
 }
 
-function loadJSON(path){
-  console.log('Carregar:',path)
+/* ================= LOADERS ================= */
+function renderCard(item, container){
+  const div=document.createElement('div')
+  div.className='card'
+  div.tabIndex=0
+  div.innerHTML=`<img src="${item.poster}"><span>${item.titulo}</span>`
+  div.onclick=()=>openDetails(item)
+  container.appendChild(div)
+}
+
+function loadCategory(path){
+  fetch(path).then(r=>r.json()).then(data=>{
+    emAlta.innerHTML=''
+    data.slice(0,4).forEach(i=>renderCard(i,emAlta))
+    refreshFocus()
+  })
 }
 
 function openTV(){
@@ -256,8 +259,17 @@ function openTV(){
 }
 
 function openKids(){
-  console.log('Kids:', 'data/kids_filmes.json', 'data/kids_series.json')
+  loadCategory('data/kids_filmes.json')
 }
+
+/* ================= INIT ================= */
+function refreshFocus(){
+  focusables=[...document.querySelectorAll('.card,.continuar')]
+}
+fetch('data/filmes.json').then(r=>r.json()).then(d=>{
+  d.slice(0,4).forEach(i=>renderCard(i,emAlta))
+  refreshFocus()
+})
 </script>
 
 </body>
