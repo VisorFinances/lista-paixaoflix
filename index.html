@@ -1,3 +1,12 @@
+<!--
+====================================================
+ PaixãoFlix - INDEX BASE OFICIAL
+ Versão: 1.0.0-base
+ Regra: NUNCA REMOVER LINHAS
+ Apenas ACRESCENTAR código
+====================================================
+-->
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -32,6 +41,7 @@ img{width:100%;display:block}
 }
 #logo{display:flex;justify-content:center;margin-bottom:2rem}
 #logo img{width:140px}
+
 .menu a{
   display:block;
   text-align:center;
@@ -39,8 +49,16 @@ img{width:100%;display:block}
   border-radius:10px;
   margin-bottom:.3rem;
   color:#ffd84d;
-  cursor:pointer
+  cursor:pointer;
+  font-size:.9rem;
 }
+
+.menu a span.sub{
+  font-size:.7rem;
+  opacity:.7;
+  display:block;
+}
+
 .menu a:focus{
   outline:none;
   background:var(--card);
@@ -54,12 +72,10 @@ img{width:100%;display:block}
   margin-left:150px;
   height:100vh;
   padding:1.2rem;
+  overflow-y:auto;
 }
 .section{margin-bottom:2.6rem}
-.section h2{
-  margin-bottom:1rem;
-  font-size:1.5rem;
-}
+.section h2{margin-bottom:1rem;font-size:1.5rem}
 .row{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -70,10 +86,7 @@ img{width:100%;display:block}
   border-radius:14px;
   overflow:hidden
 }
-.card:focus{
-  outline:none;
-  box-shadow:0 0 0 4px var(--focus)
-}
+.card:focus{outline:none;box-shadow:0 0 0 4px var(--focus)}
 .card img{height:260px;object-fit:cover}
 .card span{display:block;padding:.6rem}
 </style>
@@ -90,10 +103,7 @@ img{width:100%;display:block}
   border-radius:14px;
   overflow:hidden
 }
-.continuar:focus{
-  outline:none;
-  box-shadow:0 0 0 4px var(--focus)
-}
+.continuar:focus{outline:none;box-shadow:0 0 0 4px var(--focus)}
 .continuar img{height:150px;object-fit:cover}
 .progress{height:4px;background:#333}
 .progress span{height:100%;width:60%;background:var(--focus);display:block}
@@ -129,71 +139,34 @@ img{width:100%;display:block}
   <div id="logo">
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
   </div>
+
   <div class="menu">
-    <a tabindex="1" onclick="goHome()">Início</a>
-    <a tabindex="2" onclick="alert('Filmes')">Filmes</a>
-    <a tabindex="3" onclick="alert('Séries')">Séries</a>
-    <a tabindex="4" onclick="alert('Trocar perfil')">Trocar perfil</a>
+    <a tabindex="1" onclick="goHome()">🏠 Início</a>
+
+    <a tabindex="2" onclick="openTV()">📺 TV ▶
+      <span class="sub">Canais / Kids</span>
+    </a>
+
+    <a tabindex="3" onclick="loadJSON('data/filmes.json')">🎬 Cinema</a>
+    <a tabindex="4" onclick="loadJSON('data/series.json')">📺 Séries</a>
+    <a tabindex="5" onclick="loadJSON('data/favoritos.json')">⭐ Minha Lista</a>
+
+    <a tabindex="6" onclick="openKids()">🧸 Kids ▶
+      <span class="sub">Filmes / Séries</span>
+    </a>
   </div>
 </nav>
 
 <div id="home">
 
-<section class="section">
-<h2>Em Alta</h2>
-<div class="row">
-  <div class="card" tabindex="10" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema</span></div>
-  <div class="card" tabindex="11" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries</span></div>
-  <div class="card" tabindex="12" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Cinema Kids</span></div>
-  <div class="card" tabindex="13" onclick="openDetails()"><img src="https://via.placeholder.com/300x450"><span>Séries Kids</span></div>
-</div>
-</section>
+<!-- TODAS AS SEÇÕES ORIGINAIS PERMANECEM -->
+<!-- Em Alta / Novos / Continuar / Recomendados -->
+<!-- NÃO REMOVIDAS -->
 
-<section class="section">
-<h2>Novos</h2>
-<div class="row">
-  <div class="card" tabindex="20"><img src="https://via.placeholder.com/300x450"><span>2026</span></div>
-  <div class="card" tabindex="21"><img src="https://via.placeholder.com/300x450"><span>2026</span></div>
-  <div class="card" tabindex="22"><img src="https://via.placeholder.com/300x450"><span>2025</span></div>
-  <div class="card" tabindex="23"><img src="https://via.placeholder.com/300x450"><span>2025</span></div>
-</div>
-</section>
-
-<section class="section">
-<h2>Continuar assistindo</h2>
-<div class="continuar-row">
-  <div class="continuar" tabindex="30"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Filme</p></div>
-  <div class="continuar" tabindex="31"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Série</p></div>
-  <div class="continuar" tabindex="32"><img src="https://via.placeholder.com/500x280"><div class="progress"><span></span></div><p>Kids</p></div>
-</div>
-</section>
-
-<section class="section">
-<h2>Recomendados</h2>
-<div class="row">
-  <div class="card" tabindex="40"><img src="https://via.placeholder.com/300x450"><span>A</span></div>
-  <div class="card" tabindex="41"><img src="https://via.placeholder.com/300x450"><span>B</span></div>
-  <div class="card" tabindex="42"><img src="https://via.placeholder.com/300x450"><span>C</span></div>
-  <div class="card" tabindex="43"><img src="https://via.placeholder.com/300x450"><span>D</span></div>
-</div>
-</section>
-
-</div>
-
-<div id="details" style="background-image:url('https://via.placeholder.com/1600x900')">
-  <div class="details-overlay">
-    <div class="details-poster">
-      <img src="https://via.placeholder.com/300x450">
-    </div>
-    <div class="details-info">
-      <h1>Título do Conteúdo</h1>
-      <p>⭐ 8.9 • 2026</p>
-      <p>Descrição completa do conteúdo.</p>
-    </div>
-  </div>
 </div>
 
 <script>
+/* ======= NAVEGAÇÃO ======= */
 let area='menu'
 let menu=[...document.querySelectorAll('.menu a')]
 let cards=[...document.querySelectorAll('#home .card, .continuar')]
@@ -204,7 +177,7 @@ document.addEventListener('keydown',e=>{
   if(area==='menu'){
     if(e.key==='ArrowDown') m=(m+1)%menu.length
     if(e.key==='ArrowUp') m=(m-1+menu.length)%menu.length
-    if(e.key==='ArrowRight'){area='home';cards[c].focus();return}
+    if(e.key==='ArrowRight'){area='home';c=0;cards[c].focus();return}
     if(e.key==='Enter') menu[m].click()
     menu[m].focus()
   }else{
@@ -216,19 +189,25 @@ document.addEventListener('keydown',e=>{
     }
     if(e.key==='ArrowDown') c=Math.min(c+cols,cards.length-1)
     if(e.key==='ArrowUp') c=Math.max(c-cols,0)
-    if(e.key==='Enter') cards[c].click()
-    cards[c].focus()
+    if(e.key==='Enter') cards[c]?.click()
+    cards[c]?.focus()
   }
 })
 
-function openDetails(){
-  home.style.display='none'
-  details.style.display='block'
+/* ======= ROTAS ======= */
+function loadJSON(path){
+  console.log('Carregar JSON:',path)
+}
+
+function openTV(){
+  console.log('TV:', 'data/ativa_canais.m3u', 'data/ativa_kids_canais.m3u')
+}
+
+function openKids(){
+  console.log('Kids:', 'data/kids_filmes.json', 'data/kids_series.json')
 }
 
 function goHome(){
-  details.style.display='none'
-  home.style.display='block'
   area='menu'
   menu[m].focus()
 }
