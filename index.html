@@ -1,148 +1,277 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PaixãoFlix 2026 PRO</title>
-    <style>
-        :root { --amarelo: #ffcc00; --vermelho: #ff0000; --bg: #05070a; --sidebar-w: 160px; --gap: 12px; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; outline: none; }
-        body { background: var(--bg); color: white; display: flex; height: 100vh; overflow: hidden; }
-        ::-webkit-scrollbar { display: none; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PaixãoFlix</title>
 
-        /* SIDEBAR PROFISSIONAL */
-        #sidebar {
-            width: var(--sidebar-w); background: #000; border-right: 1px solid #1a1a1a;
-            display: flex; flex-direction: column; padding: 20px 10px; z-index: 100;
-        }
-        .menu-item {
-            padding: 12px 5px; margin-bottom: 8px; border-radius: 8px; color: var(--amarelo);
-            cursor: pointer; font-weight: 800; text-align: center; border: none; background: transparent; font-size: 13px;
-        }
-        .menu-item:focus { background: var(--amarelo); color: #000; transform: scale(1.05); }
+<style>
+/* ================= RESET ================= */
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:#0b0b0f;
+  color:#ffd84d;
+  overflow:hidden;
+}
+:root{
+  --card:#1b1b25;
+  --border:rgba(255,255,255,.08);
+  --focus:#e50914;
+}
+img{width:100%;display:block}
+.hidden{display:none}
+</style>
 
-        /* CONTEÚDO */
-        main { flex: 1; overflow-y: auto; padding: 40px; scrollbar-width: none; }
-        .brand { font-size: 38px; font-weight: 900; text-transform: uppercase; margin-bottom: 25px; }
-        .p-vermelho { color: var(--vermelho); }
-        .i-amarelo { color: var(--amarelo); }
+<!-- ================= SIDEBAR (NÃO MEXER) ================= -->
+<style>
+#sidebar{
+  position:fixed;
+  left:0;top:0;bottom:0;
+  width:150px;
+  background:#111118;
+  border-right:1px solid var(--border);
+  padding:1rem .5rem
+}
+#logo{display:flex;justify-content:center;margin-bottom:2rem}
+#logo img{width:140px}
 
-        .category-section { margin-bottom: 25px; position: relative; width: 100%; }
-        .cat-title { color: var(--amarelo); font-size: 18px; font-weight: 800; margin-bottom: 10px; text-transform: uppercase; border-left: 4px solid var(--vermelho); padding-left: 10px; }
-        
-        .carousel-view { width: 100%; overflow: hidden; position: relative; }
-        .carousel-track { display: flex; gap: var(--gap); transition: transform 0.4s ease; width: max-content; padding: 10px 0; }
+.menu a{
+  display:block;
+  text-align:center;
+  padding:.8rem;
+  border-radius:10px;
+  margin-bottom:.3rem;
+  color:#ffd84d;
+  cursor:pointer;
+}
+.menu a:focus{
+  outline:none;
+  background:var(--card);
+  box-shadow:0 0 0 3px var(--focus)
+}
+</style>
 
-        /* CARD - 4 POR LINHA */
-        .card {
-            flex: 0 0 calc((100vw - var(--sidebar-w) - 100px - (3 * var(--gap))) / 4);
-            aspect-ratio: 2/3; position: relative; border-radius: 10px; overflow: hidden; border: 4px solid transparent; background: #111;
-        }
-        .card:focus { border-color: white; transform: scale(1.05); z-index: 10; }
-        .card img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .rank { position: absolute; left: -10px; bottom: -15px; font-size: 90px; font-weight: 900; color: rgba(0,0,0,0.8); -webkit-text-stroke: 2px var(--amarelo); z-index: 2; }
+<!-- ================= HOME ================= -->
+<style>
+#home{
+  margin-left:150px;
+  height:100vh;
+  padding:1.2rem;
+}
+.section{margin-bottom:2.6rem}
+.section h2{
+  margin-bottom:1rem;
+  font-size:1.5rem;
+}
+.row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1rem
+}
+.card{
+  background:var(--card);
+  border-radius:14px;
+  overflow:hidden
+}
+.card:focus{
+  outline:none;
+  box-shadow:0 0 0 4px var(--focus)
+}
+.card img{height:260px;object-fit:cover}
+.card span{display:block;padding:.6rem}
+</style>
 
-        /* PLAYER OVERLAY */
-        #player-ui { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-    </style>
+<!-- ================= CONTINUAR ================= -->
+<style>
+.continuar-row{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1rem
+}
+.continuar{
+  background:var(--card);
+  border-radius:14px;
+  overflow:hidden
+}
+.continuar:focus{
+  outline:none;
+  box-shadow:0 0 0 4px var(--focus)
+}
+.continuar img{height:150px;object-fit:cover}
+.progress{height:4px;background:#333}
+.progress span{height:100%;width:60%;background:var(--focus);display:block}
+.continuar p{padding:.6rem}
+</style>
+
+<!-- ================= DETALHES ================= -->
+<style>
+#details{
+  display:none;
+  height:100vh;
+  margin-left:150px;
+  background-size:cover;
+  background-position:center;
+}
+.details-overlay{
+  background:rgba(0,0,0,.8);
+  height:100%;
+  padding:3rem;
+  display:flex
+}
+.details-poster{width:260px;margin-right:2rem}
+.details-info h1{
+  font-size:calc(2rem + 2px);
+  font-weight:500;
+  font-style:italic;
+}
+.details-info p{
+  margin-top:3px;
+  color:#fff;
+}
+</style>
 </head>
+
 <body>
 
+<!-- ================= MENU ================= -->
 <nav id="sidebar">
-    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" style="width:100%; margin-bottom:20px">
-    <button class="menu-item" onclick="renderHome()">INÍCIO</button>
-    <button class="menu-item" onclick="alert('Abrindo TV ao Vivo...')">TV AO VIVO</button>
-    <button class="menu-item" onclick="renderCatalogo('movie')">FILMES</button>
-    <button class="menu-item" onclick="renderCatalogo('serie')">SÉRIES</button>
-    <button class="menu-item" onclick="renderCatalogo('kids')">FILMES KIDS</button>
-    <button class="menu-item" onclick="renderCatalogo('kids_serie')">SÉRIES KIDS</button>
+  <div id="logo">
+    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
+  </div>
+
+  <div class="menu">
+    <a tabindex="1" onclick="goHome()">Início</a>
+    <a tabindex="2" onclick="openTV()">TV</a>
+    <a tabindex="3" onclick="loadCategory('data/filmes.json')">Cinema</a>
+    <a tabindex="4" onclick="loadCategory('data/series.json')">Séries</a>
+    <a tabindex="5" onclick="loadCategory('data/favoritos.json')">Minha Lista</a>
+    <a tabindex="6" onclick="openKids()">Kids</a>
+  </div>
 </nav>
 
-<main id="app-view"></main>
+<!-- ================= HOME ================= -->
+<div id="home">
 
-<div id="player-ui">
-    <h1 id="playing-title" style="color:var(--amarelo); margin-bottom: 20px;"></h1>
-    <button class="menu-item" style="background:var(--vermelho); color:white; padding:10px 40px" onclick="closePlayer()">FECHAR PLAYER</button>
+<section class="section">
+<h2>Em Alta</h2>
+<div class="row" id="emAlta"></div>
+</section>
+
+<section class="section">
+<h2>Novos</h2>
+<div class="row" id="novos"></div>
+</section>
+
+<section class="section">
+<h2>Continuar Assistindo</h2>
+<div class="continuar-row" id="continuar"></div>
+</section>
+
+<section class="section">
+<h2>Recomendados</h2>
+<div class="row" id="recomendados"></div>
+</section>
+
+</div>
+
+<!-- ================= DETALHES ================= -->
+<div id="details">
+  <div class="details-overlay">
+    <div class="details-poster">
+      <img id="detailsPoster">
+    </div>
+    <div class="details-info">
+      <h1 id="detailsTitle"></h1>
+      <p id="detailsMeta"></p>
+      <p id="detailsDesc"></p>
+    </div>
+  </div>
 </div>
 
 <script>
-    let db = { filmes: [], series: [], kids_f: [], kids_s: [] };
-    const CATEGORIAS = ["Lançamento 2026", "Ação", "Aventura", "Comédia", "Drama", "Terror", "Suspense", "Dorama", "Animação"];
+/* ================= NAVEGAÇÃO TV ================= */
+let area='menu'
+let menu=[...document.querySelectorAll('.menu a')]
+let focusables=[]
+let m=0,c=0
+menu[m].focus()
 
-    async function init() {
-        try {
-            const [f, s, kf, ks] = await Promise.all([
-                fetch('data/filmes.json').then(r => r.json()),
-                fetch('data/series.json').then(r => r.json()),
-                fetch('data/kids_filmes.json').then(r => r.json()),
-                fetch('data/kids_series.json').then(r => r.json())
-            ]);
-            db = { movie: f, serie: s, kids: kf, kids_serie: ks };
-            renderHome();
-        } catch(e) { console.error("Erro ao carregar JSONs"); }
+document.addEventListener('keydown',e=>{
+  if(area==='menu'){
+    if(e.key==='ArrowDown') m=(m+1)%menu.length
+    if(e.key==='ArrowUp') m=(m-1+menu.length)%menu.length
+    if(e.key==='ArrowRight'){area='home';c=0;focusables[c]?.focus();return}
+    if(e.key==='Enter') menu[m].click()
+    menu[m].focus()
+  }else{
+    const cols=4
+    if(e.key==='ArrowRight') c=Math.min(c+1,focusables.length-1)
+    if(e.key==='ArrowLeft'){
+      if(c%cols===0){area='menu';menu[m].focus();return}
+      c--
     }
+    if(e.key==='ArrowDown') c=Math.min(c+cols,focusables.length-1)
+    if(e.key==='ArrowUp') c=Math.max(c-cols,0)
+    if(e.key==='Enter') focusables[c]?.click()
+    focusables[c]?.focus()
+  }
+})
 
-    function renderHome() {
-        const view = document.getElementById('app-view');
-        view.innerHTML = `<div class="brand"><span class="p-vermelho">PaixãoFlix</span> <span class="i-amarelo">indica hoje</span></div>
-                          <div class="category-section"><div class="carousel-view"><div class="carousel-track" id="row-home"></div></div></div>`;
-        const container = document.getElementById('row-home');
-        const destaques = [...db.movie, ...db.serie].slice(0, 12);
-        destaques.forEach((item, i) => container.innerHTML += createCard(item, i < 4 ? i+1 : null));
-        applyNav(container);
-    }
+/* ================= HOME / DETALHES ================= */
+function openDetails(item){
+  home.style.display='none'
+  details.style.display='block'
+  details.style.backgroundImage=`url(${item.poster})`
+  detailsPoster.src=item.poster
+  detailsTitle.textContent=item.titulo
+  detailsMeta.textContent=`⭐ ${item.rating} • ${item.year}`
+  detailsDesc.textContent=item.desc
+}
 
-    function renderCatalogo(type) {
-        const view = document.getElementById('app-view');
-        view.innerHTML = `<div class="brand"><span class="p-vermelho">PAIXÃO</span> <span class="i-amarelo">${type.replace('_', ' ').toUpperCase()}</span></div>`;
-        
-        CATEGORIAS.forEach(cat => {
-            const itens = db[type].filter(i => (cat.includes("2026") ? i.year === "2026" : i.genero === cat));
-            if (itens.length > 0) {
-                const rowId = `row-${cat.replace(/\s/g, '')}`;
-                view.innerHTML += `<div class="category-section"><div class="cat-title">${cat}</div>
-                                   <div class="carousel-view"><div class="carousel-track" id="${rowId}">${itens.map(i => createCard(i)).join('')}</div></div></div>`;
-                setTimeout(() => applyNav(document.getElementById(rowId)), 50);
-            }
-        });
-    }
+function goHome(){
+  details.style.display='none'
+  home.style.display='block'
+  area='menu'
+  menu[m].focus()
+}
 
-    function createCard(item, rank) {
-        return `<div class="card" tabindex="0" data-url="${item.url}" data-title="${item.titulo}">
-                ${rank ? `<span class="rank">${rank}</span>` : ''}
-                <img src="${item.poster}"></div>`;
-    }
+/* ================= LOADERS ================= */
+function renderCard(item, container){
+  const div=document.createElement('div')
+  div.className='card'
+  div.tabIndex=0
+  div.innerHTML=`<img src="${item.poster}"><span>${item.titulo}</span>`
+  div.onclick=()=>openDetails(item)
+  container.appendChild(div)
+}
 
-    function applyNav(track) {
-        const cards = track.querySelectorAll('.card');
-        cards.forEach((card, index) => {
-            card.addEventListener('keydown', (e) => {
-                const cardWidth = card.offsetWidth + 12;
-                if (e.key === 'ArrowRight') {
-                    e.preventDefault();
-                    if (index === cards.length - 1) { track.style.transform = `translateX(0px)`; cards[0].focus(); }
-                    else { if (index >= 3) track.style.transform = `translateX(-${cardWidth * (index - 2)}px)`; cards[index + 1].focus(); }
-                }
-                if (e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    if (index === 0) { const off = cardWidth * (cards.length - 4); track.style.transform = `translateX(-${off > 0 ? off : 0}px)`; cards[cards.length - 1].focus(); }
-                    else { if (index > 0) track.style.transform = `translateX(-${index <= 3 ? 0 : cardWidth * (index - 3)}px)`; cards[index - 1].focus(); }
-                }
-                if (e.key === 'Enter') { openPlayer(card.dataset.url, card.dataset.title); }
-            });
-        });
-    }
+function loadCategory(path){
+  fetch(path).then(r=>r.json()).then(data=>{
+    emAlta.innerHTML=''
+    data.slice(0,4).forEach(i=>renderCard(i,emAlta))
+    refreshFocus()
+  })
+}
 
-    function openPlayer(url, title) {
-        document.getElementById('playing-title').innerText = "REPRODUZINDO: " + title;
-        document.getElementById('player-ui').style.display = 'flex';
-        console.log("URL de reprodução:", url);
-    }
+function openTV(){
+  console.log('TV:', 'data/ativa_canais.m3u', 'data/ativa_kids_canais.m3u')
+}
 
-    function closePlayer() { document.getElementById('player-ui').style.display = 'none'; }
+function openKids(){
+  loadCategory('data/kids_filmes.json')
+}
 
-    window.onload = init;
+/* ================= INIT ================= */
+function refreshFocus(){
+  focusables=[...document.querySelectorAll('.card,.continuar')]
+}
+fetch('data/filmes.json').then(r=>r.json()).then(d=>{
+  d.slice(0,4).forEach(i=>renderCard(i,emAlta))
+  refreshFocus()
+})
 </script>
+
 </body>
 </html>
