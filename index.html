@@ -149,7 +149,7 @@ img{width:100%;display:block}
     <a tabindex="5" onclick="loadCategory('data/favoritos.json')">Minha Lista</a>
     <a tabindex="6" onclick="loadCategory('data/kids_filmes.json')">Filmes Kids</a>
     <a tabindex="7" onclick="loadCategory('data/kids_series.json')">Séries Kids</a>
-    <a tabindex="8" onclick="loadCategory('data/ativa_kids_canais.m3u')">Canais Kids</a>
+    <a tabindex="8" onclick="openTV('data/ativa_kids_canais.m3u')">Canais Kids</a>
   </div>
 </nav>
 
@@ -508,6 +508,19 @@ document.querySelectorAll(
     abrirCanais('data/ativa_kids_canais.m3u')
   })
 })
+</script>
+
+<script>
+/* ================= PATCH MENU TV ================= */
+
+function openTV(){
+  window.location.href = 'canais.html'
+}
+
+function openKids(){
+  window.location.href = 'canais_kids.html'
+}
+
 </script>
   
 </body>
