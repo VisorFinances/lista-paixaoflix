@@ -261,6 +261,7 @@ function renderCatSection(container, title, data) {
 function renderMovieGrid(grid, list, isFull) {
     grid.innerHTML = "";
     const displayList = isFull ? list : list.slice(0, 4);
+    
     displayList.forEach(m => {
         const card = document.createElement("div");
         card.className = "movie-card";
@@ -274,20 +275,32 @@ function renderMovieGrid(grid, list, isFull) {
     btn.className = "toggle-category-btn";
     btn.setAttribute("data-nav", "movie-btn");
     btn.innerText = isFull ? "FECHAR CATEGORIA" : "VEJA MAIS";
+    
     btn.onclick = (e) => { 
         e.stopPropagation(); 
+        
+        // 1. Redesenha a grade (abre ou fecha)
         renderMovieGrid(grid, list, !isFull); 
-        if(!isFull) { /* Ao abrir, o foco fica no botão */ } 
-        else { /* Ao fechar, foca no primeiro item da categoria */
-            const firstCard = grid.querySelector('[data-nav="movie-card"]');
-            const allItems = Array.from(document.querySelectorAll("#moviesScroll [data-nav]"));
-            movieIdx = allItems.indexOf(firstCard);
+        
+        // ==========================================================
+        // AJUSTE DE FOCO: ESTA PARTE GARANTE QUE O FOCO FIQUE NA CAPA
+        // ==========================================================
+        // Captura todos os itens navegáveis atualizados na tela
+        const allItems = Array.from(document.querySelectorAll("#moviesScroll [data-nav]"));
+        
+        // Localiza o primeiro card desta categoria específica que acabou de ser clicada
+        const firstCardOfThisCat = grid.querySelector('[data-nav="movie-card"]');
+        
+        // Sincroniza o movieIdx para a posição desse primeiro card
+        if (firstCardOfThisCat) {
+            movieIdx = allItems.indexOf(firstCardOfThisCat);
         }
+        // ==========================================================
+
         updateFocus(); 
     };
     grid.appendChild(btn);
 }
-
 function updateFocus() {
     if(isPlayerOpen) return;
     document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
