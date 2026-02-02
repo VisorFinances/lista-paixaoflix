@@ -686,6 +686,338 @@ window.addEventListener('load', ()=>{
 });
 </script>
   
+<!-- ================= PATCH 6 - CANAIS E NAVEGAÇÃO ================= -->
+<style>
+/* Ajusta canais: 7 por linha e remove amontoamento */
+#canais-grid{
+  display:grid !important;
+  grid-template-columns:repeat(7,1fr) !important;
+  gap:10px !important;
+  margin-top:10px; /* espaço entre título e primeira linha */
+}
+
+.canal-card{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  background:none !important;
+  border:none !important;
+  box-shadow:none !important;
+}
+
+.canal-card img{
+  width:100%;
+  height:auto;
+  max-height:120px;
+  object-fit:contain;
+}
+</style>
+
+<script>
+/* Inicializa foco no botão Início */
+function initFocusHome(){
+  focusables = [...document.querySelectorAll(
+    'a, button, .card, .continuar, .canal-card, [tabindex]'
+  )].filter(el => el.offsetParent !== null);
+
+  focusables.forEach((el,i)=>{
+    el.dataset.focusIndex = i;
+    el.tabIndex = -1;
+    el.classList.remove('focused');
+  });
+
+  // foco inicial = botão "Início"
+  const inicioBtn = document.querySelector('#sidebar .menu a:first-child');
+  let inicioIndex = 0;
+  if(inicioBtn) inicioIndex = parseInt(inicioBtn.dataset.focusIndex || 0);
+  setFoco(inicioIndex);
+}
+
+/* Navegação universal (4 direções) */
+function setFoco(index){
+  if(!focusables[index]) return;
+  focusables.forEach(el=>el.classList.remove('focused'));
+  currentIndex = index;
+  const el = focusables[currentIndex];
+  el.classList.add('focused');
+  el.focus({preventScroll:true});
+  el.scrollIntoView({block:'nearest', inline:'nearest'});
+}
+
+function moverFoco(dir){
+  const cols = 4; // para grid normal
+  let next = currentIndex;
+
+  // se estivermos em canais, cols = 7
+  if(focusables[currentIndex]?.classList.contains('canal-card')) cols = 7;
+
+  switch(dir){
+    case 'left': next--; break;
+    case 'right': next++; break;
+    case 'up': next-=cols; break;
+    case 'down': next+=cols; break;
+  }
+
+  if(next<0) next=0;
+  if(next>=focusables.length) next=focusables.length-1;
+  setFoco(next);
+}
+
+document.addEventListener('keydown', e=>{
+  switch(e.key){
+    case 'ArrowLeft': e.preventDefault(); moverFoco('left'); break;
+    case 'ArrowRight': e.preventDefault(); moverFoco('right'); break;
+    case 'ArrowUp': e.preventDefault(); moverFoco('up'); break;
+    case 'ArrowDown': e.preventDefault(); moverFoco('down'); break;
+    case 'Enter':
+    case 'OK':
+      e.preventDefault();
+      focusables[currentIndex]?.click();
+      break;
+  }
+});
+
+/* ================= ABRIR CANAIS ================= */
+function abrirCanaisInterno(dataPath){
+  const homeEl = document.getElementById('home');
+  homeEl.style.display='none';
+  catalogo.style.display='block';
+  catalogo.innerHTML = `<h2>TV ao Vivo</h2><div id="canais-grid"></div>`;
+  const grid = document.getElementById('canais-grid');
+
+  fetch(dataPath).then(r=>r.json()).then(canais=>{
+    canais.forEach(c=>{
+      const div = document.createElement('div');
+      div.className = 'canal-card';
+      div.tabIndex = 0;
+      div.innerHTML = `<img src="${c.logo}" alt="${c.nome}"><span>${c.nome}</span>`;
+      div.onclick = ()=>openDetails(c);
+      grid.appendChild(div);
+    });
+    initFocusHome();
+  });
+}
+
+/* Atualiza os menus para usar abrirCanaisInterno */
+document.querySelectorAll('#sidebar .menu a').forEach(btn=>{
+  const txt = btn.textContent.trim();
+  if(txt==='TV ao Vivo'){
+    btn.onclick = ()=>abrirCanaisInterno('data/ativa_canais.json');
+  }
+  if(txt==='Canais Kids'){
+    btn.onclick = ()=>abrirCanaisInterno('data/ativa_kids_canais.json');
+  }
+});
+</script>
+
+ <!-- ================= PATCH 7 - ROLAGEM VERTICAL GRID DE CANAIS ================= -->
+<style>
+/* Permite rolagem vertical na página de canais */
+#catalogo{
+  overflow-y:auto !important;
+  height:calc(100vh - 150px) !important; /* altura total da tela menos menu */
+  padding-right:10px; /* evita cortar conteúdo no scroll */
+}
+
+/* Capas e logos centralizados com espaçamento ajustado */
+#canais-grid .canal-card span{
+  margin-top:5px !important;
+  text-align:center;
+  display:block;
+}
+
+/* Scroll suave ao mover foco */
+#catalogo::-webkit-scrollbar{
+  width:0px; /* scrollbar invisível */
+}
+</style>
+
+<script>
+/* Atualiza o foco sempre que muda */
+function scrollFocusIntoView(){
+  const el = focusables[currentIndex];
+  if(!el) return;
+  el.scrollIntoView({behavior:'smooth', block:'nearest', inline:'nearest'});
+}
+
+/* Sobrescreve setFoco para suportar rolagem vertical */
+function setFoco(index){
+  if(!focusables[index]) return;
+  focusables.forEach(el=>el.classList.remove('focused'));
+  currentIndex = index;
+  const el = focusables[currentIndex];
+  el.classList.add('focused');
+  el.tabIndex = 0;
+  el.focus({preventScroll:true});
+  scrollFocusIntoView();
+}
+
+/* Recoleta os elementos focusáveis após abrir grid de canais */
+function recolherFocusCanais(){
+  focusables = [...document.querySelectorAll(
+    'a, button, .card, .continuar, .canal-card, [tabindex]'
+  )].filter(el => el.offsetParent !== null);
+
+  focusables.forEach((el,i)=> el.dataset.focusIndex=i);
+
+  // mantém foco inicial no botão Início
+  setFoco(0);
+}
+
+/* Sempre atualizar focusables quando grid é carregado ou alterado */
+document.addEventListener('DOMContentLoaded',()=>{
+  recolherFocusCanais();
+});
+</script>
+
+<!-- ================= PATCH COMPLETO CANAIS ================= -->
+<style>
+/* ================= GRID CANAIS ================= */
+#catalogo{
+  display:none;
+  margin-left:150px;
+  height:100vh;
+  padding:1.2rem;
+  overflow-y:auto; /* vertical scroll */
+  scroll-behavior: smooth;
+}
+
+/* Grid de canais com 7 por linha */
+#catalogo .canal-row{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:10px;
+  margin-bottom:20px;
+}
+
+/* Cartão de canal */
+.canal-card{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  cursor:pointer;
+}
+
+.canal-card img{
+  width:100%;
+  object-fit:cover;
+  height:120px;
+}
+
+.canal-card span{
+  margin-top:10px;
+  text-align:center;
+  color:#ffd84d;
+  font-size:0.9rem;
+  display:block;
+}
+</style>
+
+<script>
+/* ================= FUNÇÃO CARREGAR CANAIS ================= */
+function loadCanais(path){
+  home.style.display='none';
+  details.style.display='none';
+  catalogo.style.display='block';
+  catalogo.innerHTML='<h2>TV</h2>';
+
+  fetch(path).then(r => r.json()).then(data => {
+    const row = document.createElement('div');
+    row.className='canal-row';
+
+    data.forEach(canal => {
+      const card = document.createElement('div');
+      card.className='canal-card';
+      card.tabIndex = 0;
+      card.innerHTML=`
+        <img src="${canal.logo}" alt="${canal.nome}">
+        <span>${canal.nome}</span>
+      `;
+      card.onclick = ()=>openDetails(canal); // Se desejar, abrir detalhes
+      row.appendChild(card);
+    });
+
+    catalogo.appendChild(row);
+    refreshFocus(); // Atualiza foco
+    recolherFocusCanais(); // Recolhe elementos focusáveis do grid
+  });
+}
+
+/* ================= RECOLETAR ELEMENTOS FOCUS ================= */
+function recolherFocusCanais(){
+  focusables = [...document.querySelectorAll(
+    'a, button, .card, .continuar, .canal-card, [tabindex]'
+  )].filter(el=>el.offsetParent!==null);
+
+  focusables.forEach((el,i)=> el.dataset.focusIndex=i);
+
+  // Força foco inicial no botão Início
+  const inicio = document.querySelector('#menu-inicio,.inicio,.home-btn') || focusables[0];
+  setFoco(parseInt(inicio.dataset.focusIndex||0));
+}
+
+/* ================= SET FOCUS CUSTOMIZADO ================= */
+function setFoco(index){
+  if(!focusables[index]) return;
+  focusables.forEach(el=>el.classList.remove('focused'));
+  currentIndex=index;
+  const el=focusables[currentIndex];
+  el.classList.add('focused');
+  el.tabIndex=0;
+  el.focus({preventScroll:true});
+  el.scrollIntoView({block:'nearest',inline:'nearest'});
+}
+
+/* ================= NAVEGAÇÃO SETAS ================= */
+function moveFoco(dir){
+  const cols = 7; // 7 canais por linha
+  let next=currentIndex;
+
+  switch(dir){
+    case 'left': next--; break;
+    case 'right': next++; break;
+    case 'up': next-=cols; break;
+    case 'down': next+=cols; break;
+  }
+
+  if(next<0) next=0;
+  if(next>=focusables.length) next=focusables.length-1;
+  setFoco(next);
+}
+
+document.addEventListener('keydown', e=>{
+  switch(e.key){
+    case 'ArrowLeft': e.preventDefault(); moveFoco('left'); break;
+    case 'ArrowRight': e.preventDefault(); moveFoco('right'); break;
+    case 'ArrowUp': e.preventDefault(); moveFoco('up'); break;
+    case 'ArrowDown': e.preventDefault(); moveFoco('down'); break;
+    case 'Enter':
+    case 'OK':
+      e.preventDefault();
+      focusables[currentIndex]?.click();
+      break;
+  }
+});
+
+/* ================= LINKS MENUS TV ================= */
+document.querySelectorAll(
+  '#menu-tv, .menu-tv, [data-menu="tv"]'
+).forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    loadCanais('data/ativa_canais.json'); // JSON interno do sistema
+  })
+});
+
+document.querySelectorAll(
+  '#menu-canais-kids, .menu-canais-kids, [data-menu="kids-tv"]'
+).forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    loadCanais('data/ativa_kids_canais.json'); // JSON interno do sistema
+  })
+});
+</script>
   
 </body>
 </html>
