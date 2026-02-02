@@ -9,7 +9,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
-    /* CSS PRESERVADO INTEGRALMENTE */
     * { 
         overflow: hidden !important; 
         touch-action: manipulation; 
@@ -26,51 +25,61 @@
         color: #fff; height: 100vh; width: 100vw; 
     }
 
-    #topBar { 
-        position: fixed; top: 0; width: 100%; height: 80px; 
-        border-bottom: 1px solid rgba(255,255,255,0.15);
-        display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 5000;
-        background: rgba(4,7,20,0.98);
+    /* PÁGINA DE DETALHES */
+    #detailsOverlay {
+        position: fixed; inset: 0; background: #040714; z-index: 8000;
+        display: none; flex-direction: column; justify-content: center;
     }
+    #detailsBg {
+        position: absolute; inset: 0;
+        background-size: cover; background-position: center;
+        filter: blur(20px) brightness(0.3); opacity: 0.6; z-index: -1;
+    }
+    #detailsContent {
+        display: flex; align-items: center; padding: 0 80px; gap: 60px; z-index: 1;
+    }
+    .details-poster-wrapper {
+        flex: 0 0 380px; height: 550px;
+        border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        overflow: hidden; border: 3px solid rgba(255,255,255,0.1);
+    }
+    .details-poster-wrapper img { width: 100%; height: 100%; object-fit: contain; background: #000; }
+    .details-info { flex: 1; }
+    #detTitle { font-size: 70px; font-weight: 900; margin-bottom: 10px; line-height: 1.1; text-transform: uppercase; }
+    #detMeta { font-size: 28px; color: #FFCE44; font-weight: 600; margin-bottom: 30px; }
+    #detDesc { 
+        font-size: 24px; color: #fff; line-height: 1.6; font-weight: 400;
+        max-width: 950px; margin-bottom: 40px; 
+        display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .details-btns { display: flex; gap: 13px; }
+    .btn-3d {
+        padding: 20px 45px; font-size: 22px; font-weight: 900; border: none;
+        border-radius: 12px; cursor: pointer; text-transform: uppercase;
+        transition: 0.2s; border-bottom: 5px solid #FFCE44; color: #fff;
+    }
+    .btn-play-3d { background: #1f2332; }
+    .btn-back-3d { background: #E50914; }
+    .btn-3d.focused { transform: scale(1.1) translateY(3px); border-bottom-width: 2px; box-shadow: 0 0 30px rgba(255, 206, 68, 0.4); }
+
+    /* UI GERAL */
+    #topBar { position: fixed; top: 0; width: 100%; height: 80px; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 5000; background: rgba(4,7,20,0.98); }
     #logoMain { height: 65px; filter: drop-shadow(0 0 15px rgba(0,0,0,0.6)); cursor: pointer; }
     #barCounter { font-weight: 900; color: #FFCE44; font-size: 18px; }
     #barDateTime { font-size: 15px; color: #ffffff; text-transform: uppercase; font-weight: 400; }
-
-    #mainScroll { 
-        width: 100%; height: 100vh; 
-        padding-top: 90px; overflow-y: auto !important; scroll-behavior: smooth;
-    }
-
+    #mainScroll { width: 100%; height: 100vh; padding-top: 90px; overflow-y: auto !important; scroll-behavior: smooth; }
     #carouselContainer { width: 100%; padding: 25px 50px; }
-    #editorSlider { 
-        width: 100%; height: 480px; border-radius: 25px; 
-        background-size: cover; background-position: center;
-        border: 5px solid rgba(255,255,255,0.1);
-        display: flex; align-items: flex-end; padding: 50px;
-        position: relative; overflow: hidden; cursor: pointer;
-        transition: 0.8s ease-in-out;
-    }
-    #editorSlider::before { 
-        content: ""; position: absolute; inset: 0; 
-        background: linear-gradient(to top, rgba(4,7,20,1) 10%, transparent 100%); 
-        z-index: 1;
-    }
+    #editorSlider { width: 100%; height: 480px; border-radius: 25px; background-size: cover; background-position: center; border: 5px solid rgba(255,255,255,0.1); display: flex; align-items: flex-end; padding: 50px; position: relative; cursor: pointer; transition: 0.8s ease-in-out; }
+    #editorSlider::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(4,7,20,1) 10%, transparent 100%); z-index: 1; }
     #editorSlider.focused { border-color: #E50914; transform: scale(1.01); box-shadow: 0 0 30px rgba(229, 9, 20, 0.4); }
     #editorTitle { font-size: 45px; font-weight: 900; margin-bottom: 5px; text-shadow: 2px 2px 10px #000; z-index: 2; }
     #editorMeta { font-size: 18px; color: #FFCE44; font-weight: 500; margin-bottom: 20px; z-index: 2; }
     .btn-watch { background: #FFCE44; color: #000; padding: 10px 30px; border-radius: 8px; font-weight: 900; font-size: 13px; text-transform: uppercase; display: inline-block; z-index: 2; }
-
     #menuBrands { display: flex; gap: 15px; padding: 30px 50px; justify-content: center; width: 100%; }
-    .brand-card { 
-        flex: 1; height: 100px; background: linear-gradient(135deg, #1a1d29, #2a2e42);
-        border: 2px solid #FFCE44; border-bottom: 5px solid #b38f00; border-radius: 15px;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        cursor: pointer; transition: 0.2s; color: #fff; position: relative;
-    }
+    .brand-card { flex: 1; height: 100px; background: linear-gradient(135deg, #1a1d29, #2a2e42); border: 2px solid #FFCE44; border-bottom: 5px solid #b38f00; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; color: #fff; }
     .brand-card i { font-size: 26px; margin-bottom: 8px; color: #FFCE44; }
     .brand-card span { font-size: 13px; font-weight: 200; text-transform: uppercase; text-align: center; }
     .brand-card.focused { transform: scale(1.1); background: #f9f9f9; color: #000; border-color: #E50914; z-index: 10; border-width: 3px; }
-
     #top6Section { padding: 80px 50px; text-align: center; width: 100%; }
     #top6Title { font-size: 95px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #FFCE44; text-transform: uppercase; margin-bottom: 80px; }
     .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 160px 50px; }
@@ -78,54 +87,23 @@
     .top6-number { position: absolute; left: -60px; top: 0; font-size: 380px; font-weight: 900; color: rgba(255,255,255,0.9); -webkit-text-stroke: 12px #000; z-index: 5; pointer-events: none; }
     .top6-poster { width: 100%; height: 100%; object-fit: contain; border-radius: 20px; border: 3px solid rgba(255,255,255,0.1); background: #000; position: relative; z-index: 2; }
     .top6-item.focused { transform: translateY(-30px) scale(1.08); z-index: 20; }
-    .top6-item.focused .top6-poster { border: 4px solid #E50914; box-shadow: 0 0 50px rgba(229, 9, 20, 0.7); }
-
-    #channelsOverlay, #moviesOverlay { 
-        position: fixed; inset: 0; background: #040714; z-index: 4000; 
-        display: none; flex-direction: column; padding-top: 80px;
-    }
-    #channelsScroll, #moviesScroll { 
-        overflow-y: auto !important; height: calc(100vh - 180px); 
-        padding: 40px 50px 100px 50px; 
-    }
-
+    #channelsOverlay, #moviesOverlay { position: fixed; inset: 0; background: #040714; z-index: 4000; display: none; flex-direction: column; padding-top: 80px; }
+    #channelsScroll, #moviesScroll { overflow-y: auto !important; height: calc(100vh - 180px); padding: 40px 50px 100px 50px; }
     .category-container { width: 100%; margin-bottom: 80px; }
-    .channel-category-title { 
-        font-size: 28px; font-weight: 900; color: #FFCE44; margin-bottom: 25px; 
-        display: inline-flex; align-items: center; gap: 15px; text-transform: uppercase;
-    }
-    
+    .channel-category-title { font-size: 28px; font-weight: 900; color: #FFCE44; margin-bottom: 25px; display: inline-flex; align-items: center; gap: 15px; text-transform: uppercase; }
     .movie-card { cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; gap: 10px; }
     .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; border: 2px solid transparent; }
     .movie-card.focused .movie-poster { border: 2px solid #E50914 !important; }
-    
-    .toggle-category-btn { 
-        grid-column: 1 / -1; text-align: center; padding: 18px; color: #FFCE44; 
-        font-weight: 900; text-transform: uppercase; cursor: pointer; font-size: 16px; 
-        border: 2px solid rgba(255,206,68,0.2); margin-top: 30px; border-radius: 10px; 
-    }
+    .toggle-category-btn { grid-column: 1 / -1; text-align: center; padding: 18px; color: #FFCE44; font-weight: 900; text-transform: uppercase; cursor: pointer; font-size: 16px; border: 2px solid rgba(255,206,68,0.2); margin-top: 30px; border-radius: 10px; }
     .toggle-category-btn.focused { background: #E50914; color: #fff; border-color: #E50914; }
-
     .channels-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 25px; }
     .movie-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 40px !important; }
     .channel-card { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; border: none; background: transparent; }
     .channel-card img { width: 100%; height: 100%; object-fit: contain; }
     .channel-card.focused { transform: scale(1.3); filter: drop-shadow(0 0 10px #E50914); }
-
+    #playerOverlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; }
+    #btnClosePlayer { position: absolute; top: 30px; right: 30px; z-index: 10000; background: #E50914; color: #fff; border: none; padding: 15px 30px; font-weight: 900; cursor: pointer; border-radius: 10px; text-transform: uppercase; }
     #globalFooter { position: fixed; bottom: 0; width: 100%; height: 80px; background: linear-gradient(transparent, rgba(4,7,20,1)); display: flex; align-items: center; justify-content: center; z-index: 6000; }
-/* ========================================================== */
-    /* AJUSTE OBRIGATÓRIO: CSS DO PLAYER (ESTA PARTE FALTAVA) */
-    /* ========================================================== */
-    #playerOverlay { 
-        position: fixed; inset: 0; background: #000; z-index: 9999; 
-        display: none; /* Escondido por padrão */
-    }
-    #btnClosePlayer { 
-        position: absolute; top: 30px; right: 30px; z-index: 10000; 
-        background: #E50914; color: #fff; border: none; padding: 15px 30px; 
-        font-weight: 900; cursor: pointer; border-radius: 10px;
-        text-transform: uppercase;
-    }
 </style>
 </head>
 <body>
@@ -164,13 +142,24 @@
     <div style="height: 150px;"></div>
 </div>
 
-<div id="channelsOverlay">
-    <div id="channelsScroll"></div>
+<div id="detailsOverlay">
+    <div id="detailsBg"></div>
+    <div id="detailsContent">
+        <div class="details-poster-wrapper"><img id="detPoster" src=""></div>
+        <div class="details-info">
+            <div id="detTitle">...</div>
+            <div id="detMeta">...</div>
+            <div id="detDesc">...</div>
+            <div class="details-btns">
+                <button id="btnDetPlay" class="btn-3d btn-play-3d">Assistir Agora</button>
+                <button id="btnDetBack" class="btn-3d btn-back-3d" onclick="closeDetails()">Voltar</button>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div id="moviesOverlay">
-    <div id="moviesScroll"></div>
-</div>
+<div id="channelsOverlay"><div id="channelsScroll"></div></div>
+<div id="moviesOverlay"><div id="moviesScroll"></div></div>
 
 <div id="playerOverlay">
     <button id="btnClosePlayer" onclick="closePlayer()">SAIR DO PLAY</button>
@@ -184,8 +173,8 @@
 <script>
 let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [];
 let top6Data = [], editorsChoice = [], edIdx = 0;
-let currentFocus = "menu", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0; 
-let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, playerInstance = null;
+let currentFocus = "menu", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0; 
+let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, isDetailsOpen = false, playerInstance = null, currentItem = null;
 
 const Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443, 117], BACK: [8, 27, 461, 10009] };
 
@@ -203,6 +192,26 @@ async function loadData() {
     startCarousel(); renderTop6(); startClock(); updateFocus();
 }
 
+function openDetails(item) {
+    currentItem = item;
+    isDetailsOpen = true;
+    detIdx = 0;
+    document.getElementById("detPoster").src = item.poster;
+    document.getElementById("detailsBg").style.backgroundImage = `url(${item.poster})`;
+    document.getElementById("detTitle").innerText = item.titulo || item.name;
+    document.getElementById("detMeta").innerText = `${item.year || item.ano || '2026'} • ★ ${item.rating || '9.5'} • ${item.genero || 'Geral'}`;
+    document.getElementById("detDesc").innerText = item.descricao || "Aproveite este conteúdo exclusivo na PaixãoFlix. Transformando seus momentos de lazer em lembranças felizes com a melhor qualidade de imagem e som.";
+    document.getElementById("detailsOverlay").style.display = "flex";
+    document.getElementById("btnDetPlay").onclick = () => playChannel(item.url, item.titulo);
+    updateFocus();
+}
+
+function closeDetails() {
+    isDetailsOpen = false;
+    document.getElementById("detailsOverlay").style.display = "none";
+    updateFocus();
+}
+
 function renderCategoryPage(dataList, pageTitle) {
     isChannelsOpen = false; isMoviesOpen = true;
     document.getElementById("mainScroll").style.display = "none";
@@ -214,31 +223,18 @@ function renderCategoryPage(dataList, pageTitle) {
 function renderGridSystem(targetList) {
     const cont = document.getElementById("moviesScroll");
     cont.innerHTML = "";
-    const displayedIds = new Set(); // Rastreia o que já apareceu
 
-    // 1. FILTRAGEM DE LANÇAMENTOS (Eles não devem repetir abaixo)
     const lanc2026 = targetList.filter(m => (m.year == "2026" || m.ano == "2026"));
     const lanc2025 = targetList.filter(m => (m.year == "2025" || m.ano == "2025"));
 
-    if(lanc2026.length > 0) {
-        renderCatSection(cont, "Lançamento 2026", lanc2026);
-        lanc2026.forEach(m => displayedIds.add(m.url)); // Marca como exibido
-    }
-    if(lanc2025.length > 0) {
-        renderCatSection(cont, "Lançamento 2025", lanc2025);
-        lanc2025.forEach(m => displayedIds.add(m.url)); // Marca como exibido
-    }
+    if(lanc2026.length > 0) renderCatSection(cont, "Lançamento 2026", lanc2026);
+    if(lanc2025.length > 0) renderCatSection(cont, "Lançamento 2025", lanc2025);
 
-    // 2. ORGANIZAÇÃO POR GÊNEROS (Apenas o que NÃO é lançamento)
     const fixedOrder = ["Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
     let cats = {};
-
     targetList.forEach(m => {
-        if(displayedIds.has(m.url)) return; // PULA se já apareceu nos lançamentos
-
         let gRaw = m.genero || m.categoria || "Geral";
         let listDeGeneros = Array.isArray(gRaw) ? gRaw : [gRaw];
-        
         listDeGeneros.forEach(gen => {
             if(gen !== "Lançamento") {
                 if(!cats[gen]) cats[gen] = [];
@@ -246,12 +242,9 @@ function renderGridSystem(targetList) {
             }
         });
     });
-
-    fixedOrder.forEach(name => { 
-        if(cats[name] && cats[name].length > 0) renderCatSection(cont, name, cats[name]); 
-    });
+    fixedOrder.forEach(name => { if(cats[name]) renderCatSection(cont, name, cats[name]); });
 }
-    
+
 function renderCatSection(container, title, data) {
     const section = document.createElement("div");
     section.className = "category-container";
@@ -263,50 +256,30 @@ function renderCatSection(container, title, data) {
 function renderMovieGrid(grid, list, isFull) {
     grid.innerHTML = "";
     const displayList = isFull ? list : list.slice(0, 4);
-    
     displayList.forEach(m => {
         const card = document.createElement("div");
         card.className = "movie-card";
         card.setAttribute("data-nav", "movie-card");
         card.innerHTML = `<img class="movie-poster" src="${m.poster}">`;
-        card.onclick = () => playChannel(m.url, m.titulo);
+        card.onclick = () => openDetails(m);
         grid.appendChild(card);
     });
-    
     const btn = document.createElement("div");
     btn.className = "toggle-category-btn";
     btn.setAttribute("data-nav", "movie-btn");
     btn.innerText = isFull ? "FECHAR CATEGORIA" : "VEJA MAIS";
-    
-    btn.onclick = (e) => { 
-        e.stopPropagation(); 
-        
-        // 1. Redesenha a grade (abre ou fecha)
-        renderMovieGrid(grid, list, !isFull); 
-        
-        // ==========================================================
-        // AJUSTE DE FOCO: ESTA PARTE GARANTE QUE O FOCO FIQUE NA CAPA
-        // ==========================================================
-        // Captura todos os itens navegáveis atualizados na tela
-        const allItems = Array.from(document.querySelectorAll("#moviesScroll [data-nav]"));
-        
-        // Localiza o primeiro card desta categoria específica que acabou de ser clicada
-        const firstCardOfThisCat = grid.querySelector('[data-nav="movie-card"]');
-        
-        // Sincroniza o movieIdx para a posição desse primeiro card
-        if (firstCardOfThisCat) {
-            movieIdx = allItems.indexOf(firstCardOfThisCat);
-        }
-        // ==========================================================
-
-        updateFocus(); 
-    };
+    btn.onclick = (e) => { e.stopPropagation(); renderMovieGrid(grid, list, !isFull); updateFocus(); };
     grid.appendChild(btn);
 }
+
 function updateFocus() {
     if(isPlayerOpen) return;
     document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
-    if(isMoviesOpen) {
+    
+    if(isDetailsOpen) {
+        const btns = document.querySelectorAll(".btn-3d");
+        btns[detIdx]?.classList.add("focused");
+    } else if(isMoviesOpen) {
         const items = document.querySelectorAll("#moviesScroll [data-nav]");
         items[movieIdx]?.classList.add("focused");
         items[movieIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -325,46 +298,46 @@ function updateFocus() {
 document.addEventListener("keydown", e => {
     const k = e.keyCode;
     if(isPlayerOpen && Keys.BACK.includes(k)) { closePlayer(); return; }
-    if(isMoviesOpen) {
+    
+    if(isDetailsOpen) {
+        if(Keys.RIGHT.includes(k)) detIdx = 1;
+        if(Keys.LEFT.includes(k)) detIdx = 0;
+        if(Keys.ENTER.includes(k)) {
+            if(detIdx === 0) document.getElementById("btnDetPlay").click();
+            else closeDetails();
+        }
+        if(Keys.BACK.includes(k)) closeDetails();
+    } else if(isMoviesOpen) {
         const items = document.querySelectorAll("#moviesScroll [data-nav]");
         if(Keys.RIGHT.includes(k)) movieIdx = Math.min(items.length-1, movieIdx+1);
         if(Keys.LEFT.includes(k)) movieIdx = Math.max(0, movieIdx-1);
-        
-        if(Keys.DOWN.includes(k)) {
-            // Se estou em um card, tento pular 4 (uma linha) ou ir para o botão
-            let next = movieIdx + 4; 
-            if (next >= items.length) next = items.length - 1; // Se estourar, vai pro último disponível (o botão)
-            movieIdx = next;
-        }
-        
-        if(Keys.UP.includes(k)) {
-            movieIdx = Math.max(0, movieIdx - 4);
-        }
-
+        if(Keys.DOWN.includes(k)) movieIdx = Math.min(items.length-1, movieIdx+4);
+        if(Keys.UP.includes(k)) movieIdx = Math.max(0, movieIdx-4);
         if(Keys.ENTER.includes(k)) items[movieIdx].click();
         if(Keys.BACK.includes(k)) location.reload();
-    
     } else if(isChannelsOpen) {
         const cards = document.querySelectorAll("#channelsScroll .channel-card");
-        if(Keys.RIGHT.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 1);
-        if(Keys.LEFT.includes(k)) chanIdx = Math.max(0, chanIdx - 1);
-        if(Keys.DOWN.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 8);
-        if(Keys.UP.includes(k)) chanIdx = Math.max(0, chanIdx - 8);
+        if(Keys.RIGHT.includes(k)) chanIdx = Math.min(cards.length-1, chanIdx+1);
+        if(Keys.LEFT.includes(k)) chanIdx = Math.max(0, chanIdx-1);
+        if(Keys.DOWN.includes(k)) chanIdx = Math.min(cards.length-1, chanIdx+8);
+        if(Keys.UP.includes(k)) chanIdx = Math.max(0, chanIdx-8);
         if(Keys.ENTER.includes(k)) cards[chanIdx].click();
         if(Keys.BACK.includes(k)) location.reload();
     } else {
         if(currentFocus === "editor") {
             if(Keys.DOWN.includes(k)) { currentFocus = "menu"; menuIdx = 0; }
+            if(Keys.ENTER.includes(k)) openDetails(editorsChoice[edIdx]);
         } else if(currentFocus === "menu") {
-            if(Keys.RIGHT.includes(k)) menuIdx = Math.min(6, menuIdx + 1);
-            if(Keys.LEFT.includes(k)) menuIdx = Math.max(0, menuIdx - 1);
+            if(Keys.RIGHT.includes(k)) menuIdx = Math.min(6, menuIdx+1);
+            if(Keys.LEFT.includes(k)) menuIdx = Math.max(0, menuIdx-1);
             if(Keys.UP.includes(k)) currentFocus = "editor";
             if(Keys.DOWN.includes(k)) { currentFocus = "grid"; gridIdx = 0; }
             if(Keys.ENTER.includes(k)) document.querySelectorAll(".main-menu .brand-card")[menuIdx].click();
         } else if(currentFocus === "grid") {
-            if(Keys.RIGHT.includes(k)) gridIdx = Math.min(5, gridIdx + 1);
-            if(Keys.LEFT.includes(k)) gridIdx = Math.max(0, gridIdx - 1);
+            if(Keys.RIGHT.includes(k)) gridIdx = Math.min(5, gridIdx+1);
+            if(Keys.LEFT.includes(k)) gridIdx = Math.max(0, gridIdx-1);
             if(Keys.UP.includes(k)) { if(gridIdx < 3) currentFocus = "menu"; else gridIdx -= 3; }
+            if(Keys.ENTER.includes(k)) openDetails(top6Data[gridIdx]);
         }
     }
     updateFocus();
@@ -405,7 +378,8 @@ function renderChannels(cats) {
 }
 
 function playChannel(url, name) {
-    isPlayerOpen = true; document.getElementById("playerOverlay").style.display = "block";
+    isPlayerOpen = true; 
+    document.getElementById("playerOverlay").style.display = "block";
     if(playerInstance) playerInstance.destroy();
     playerInstance = new Clappr.Player({ source: url, parentId: "#player", width: "100%", height: "100%", autoPlay: true });
 }
@@ -431,6 +405,7 @@ function renderTop6() {
     top6Data.forEach((item, i) => {
         const div = document.createElement("div"); div.className = "top6-item";
         div.innerHTML = `<span class="top6-number">${i+1}</span><img class="top6-poster" src="${item.poster}">`;
+        div.onclick = () => openDetails(item);
         cont.appendChild(div);
     });
 }
