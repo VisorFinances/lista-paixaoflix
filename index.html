@@ -148,6 +148,7 @@ img{width:100%;display:block}
     <a tabindex="4" onclick="loadCategory('data/series.json')">Séries</a>
     <a tabindex="5" onclick="loadCategory('data/favoritos.json')">Minha Lista</a>
     <a tabindex="6" onclick="openKids()">Kids</a>
+    <a tabindex="7" onclick="loadCategory('data/filmes.json')">TESTE</a>
   </div>
 </nav>
 
@@ -295,7 +296,7 @@ fetch('data/filmes.json').then(r=>r.json()).then(d=>{
 <!-- ================= PATCH TITULOS HOME ================= -->
 <style>
 #home .section h2{
-  font-size: calc(1.5rem + 6px) !important;
+  font-size: calc(1.5rem + 8px) !important;
 }
 </style>
 
@@ -364,6 +365,7 @@ function loadNovos(){
     novos.innerHTML=''
 
     const y26=data.filter(i=>i.year=="2026")
+    const y25=data.filter(i=>i.year=="2025")
     const y25=data.filter(i=>i.year=="2025")
 
     function pick(arr){
