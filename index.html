@@ -486,6 +486,29 @@ window.addEventListener('load',()=>{
 })
 </script>
 
+<script>
+function abrirCanais(url){
+  window.location.href = url
+}
+
+/* TV AO VIVO */
+document.querySelectorAll(
+  '#menu-tv, .menu-tv, [data-menu="tv"]'
+).forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    abrirCanais('data/ativa_canais.m3u')
+  })
+})
+
+/* CANAIS KIDS */
+document.querySelectorAll(
+  '#menu-canais-kids, .menu-canais-kids, [data-menu="kids-tv"]'
+).forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    abrirCanais('data/ativa_kids_canais.m3u')
+  })
+})
+</script>
   
 </body>
 </html>
