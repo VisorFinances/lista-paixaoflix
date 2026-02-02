@@ -324,5 +324,121 @@ fetch('data/filmes.json').then(r=>r.json()).then(d=>{
 })
 </script>
 
+<!-- ================= PATCH HOME FIX ================= -->
+
+<style>
+.rank-badge{
+  position:absolute;
+  left:-10px;
+  bottom:20px;
+  font-size:6rem;
+  font-weight:900;
+  color:#111118;
+  -webkit-text-stroke:4px #ffd84d;
+  z-index:2;
+  line-height:1;
+}
+.card.ranked{
+  position:relative;
+}
+</style>
+
+<script>
+/* ================= CONTINUAR ASSISTINDO REAL ================= */
+function saveProgress(id,time){
+  const data=JSON.parse(localStorage.getItem('continuar')||'{}')
+  data[id]=time
+  localStorage.setItem('continuar',JSON.stringify(data))
+}
+
+function getProgress(){
+  return JSON.parse(localStorage.getItem('continuar')||'{}')
+}
+
+/* ================= EM ALTA (4 FIXOS) ================= */
+function loadEmAlta(){
+  Promise.all([
+    fetch('data/filmes.json').then(r=>r.json()),
+    fetch('data/series.json').then(r=>r.json()),
+    fetch('data/kids_filmes.json').then(r=>r.json()),
+    fetch('data/kids_series.json').then(r=>r.json())
+  ]).then(([f,s,kf,ks])=>{
+    emAlta.innerHTML=''
+    renderCard(f[0],emAlta)
+    renderCard(s[0],emAlta)
+    renderCard(kf[0],emAlta)
+    renderCard(ks[0],emAlta)
+  })
+}
+
+/* ================= NOVOS (ORDEM RIGOROSA) ================= */
+function loadNovos(){
+  fetch('data/filmes.json').then(r=>r.json()).then(data=>{
+    novos.innerHTML=''
+    const y26=data.filter(i=>i.year=="2026")
+    const y25=data.filter(i=>i.year=="2025")
+    renderCard(y26[0],novos)
+    renderCard(y25[0],novos)
+    renderCard(y26[1],novos)
+    renderCard(y25[1],novos)
+  })
+}
+
+/* ================= CONTINUAR ASSISTINDO (3) ================= */
+function loadContinuar(){
+  const progress=getProgress()
+  continuar.innerHTML=''
+  const ids=Object.keys(progress).slice(0,3)
+
+  fetch('data/filmes.json').then(r=>r.json()).then(data=>{
+    ids.forEach(id=>{
+      const item=data.find(i=>i.identificador_archive===id)
+      if(!item) return
+      const card=document.createElement('div')
+      card.className='card'
+      card.tabIndex=0
+      card.innerHTML=`
+        <img src="${item.poster}">
+        <div class="meta">
+          <div class="title">${item.titulo}</div>
+          <div class="info">${item.year} • ⭐ ${item.rating}</div>
+        </div>`
+      card.onclick=()=>{
+        openDetails(item)
+        window.startTime=progress[id]
+      }
+      continuar.appendChild(card)
+    })
+  })
+}
+
+/* ================= RECOMENDADOS COM RANK ================= */
+function loadRecomendados(){
+  fetch('data/filmes.json').then(r=>r.json()).then(data=>{
+    recomendados.innerHTML=''
+    data.slice(0,4).forEach((item,i)=>{
+      const card=document.createElement('div')
+      card.className='card ranked'
+      card.tabIndex=0
+      card.innerHTML=`
+        <div class="rank-badge">${i+1}</div>
+        <img src="${item.poster}">
+        <div class="meta">
+          <div class="title">${item.titulo}</div>
+          <div class="info">${item.year} • ⭐ ${item.rating}</div>
+        </div>`
+      card.onclick=()=>openDetails(item)
+      recomendados.appendChild(card)
+    })
+  })
+}
+
+/* ================= INIT HOME PATCH ================= */
+loadEmAlta()
+loadNovos()
+loadContinuar()
+loadRecomendados()
+</script>
+
 </body>
 </html>
