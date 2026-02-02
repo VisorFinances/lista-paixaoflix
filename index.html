@@ -237,6 +237,7 @@ function renderMovies() {
     cont.innerHTML = "";
     
     // 1. Filtramos os lançamentos (usando year ou ano)
+    // Aqui ele vai pegar as entradas que você marcou como "Lançamento" no genero ou 2026 no ano
     const lanc2026 = movies.filter(m => m.year == "2026" || m.ano == "2026");
     const lanc2025 = movies.filter(m => m.year == "2025" || m.ano == "2025");
     
@@ -248,23 +249,30 @@ function renderMovies() {
     const fixedOrder = ["Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
     
     let cats = {};
+
+    // 2. Lógica de Inclusão (Sem travas)
     movies.forEach(m => { 
-        // CORREÇÃO AQUI: A exclusão agora checa ambas as propriedades (year e ano)
-        // Se for 2026 ou 2025, ele NÃO entra no objeto 'cats' de gêneros
-        const isLancamento = m.year == "2026" || m.ano == "2026" || m.year == "2025" || m.ano == "2025";
+        const c = m.genero || m.categoria || "Geral";
         
-        if(!isLancamento) {
-            const c = m.genero || m.categoria || "Geral"; 
+        // Se o gênero for "Lançamento", nós NÃO criamos uma categoria "Lançamento" 
+        // aqui embaixo, pois elas já foram criadas lá no topo (Lançamento 2026/2025)
+        if (c !== "Lançamento") {
             if(!cats[c]) cats[c] = []; 
             cats[c].push(m); 
         }
     });
 
-    // Renderiza primeiro os lançamentos, depois os gêneros
-    categories.forEach(cat => { if(cat.data.length > 0) renderCatSection(cont, cat.name, cat.data); });
-    fixedOrder.forEach(name => { if(cats[name]) renderCatSection(cont, name, cats[name]); });
-}
+    // 3. Renderiza os blocos de Lançamento (Topo)
+    categories.forEach(cat => { 
+        if(cat.data.length > 0) renderCatSection(cont, cat.name, cat.data); 
+    });
 
+    // 4. Renderiza os blocos de Gênero (Corpo da página)
+    fixedOrder.forEach(name => { 
+        if(cats[name] && cats[name].length > 0) renderCatSection(cont, name, cats[name]); 
+    });
+}
+    
 function renderCatSection(container, title, data) {
     const section = document.createElement("div");
     section.className = "category-container";
