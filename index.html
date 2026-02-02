@@ -440,5 +440,25 @@ loadContinuar()
 loadRecomendados()
 </script>
 
+<!-- ================= PATCH ROLAGEM VERTICAL GLOBAL ================= -->
+<style>
+/* Libera rolagem vertical em TODO o sistema */
+body,
+#home,
+#catalogo,
+#details {
+  overflow-y: auto !important;
+}
+
+/* Garante scroll suave e limpo */
+body::-webkit-scrollbar,
+#home::-webkit-scrollbar,
+#catalogo::-webkit-scrollbar,
+#details::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+</style>
+ 
 </body>
 </html>
