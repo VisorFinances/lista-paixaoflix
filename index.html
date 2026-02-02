@@ -273,5 +273,129 @@ fetch('data/filmes.json').then(r=>r.json()).then(d=>{
 })
 </script>
 
+<!-- ================= PATCH HOME 4 CAPAS FIXAS ================= -->
+<style>
+/* Garante apenas 4 capas grandes por sessão */
+#home .row{
+  grid-template-columns:repeat(4,1fr) !important;
+}
+
+/* Capas maiores */
+#home .card img{
+  height:340px !important;
+}
+
+/* Remove QUALQUER pista visual de continuidade horizontal */
+#home .row::before,
+#home .row::after{
+  display:none !important;
+}
+</style>
+
+<!-- ================= PATCH TITULOS HOME ================= -->
+<style>
+#home .section h2{
+  font-size: calc(1.5rem + 6px) !important;
+}
+</style>
+
+<!-- ================= PATCH ANTI DUPLICAÇÃO HOME ================= -->
+<script>
+const usadosHome = new Set()
+
+function renderCardHome(item, container){
+  if(!item || usadosHome.has(item.poster)) return
+  usadosHome.add(item.poster)
+
+  const div=document.createElement('div')
+  div.className='card'
+  div.tabIndex=0
+  div.innerHTML=`
+    <img src="${item.poster}">
+    <span>${item.titulo}</span>
+    <span class="info">${item.year} • ⭐ ${item.rating}</span>
+  `
+  div.onclick=()=>openDetails(item)
+  container.appendChild(div)
+}
+</script>
+
+<script>
+function loadEmAlta(){
+  usadosHome.clear()
+
+  Promise.all([
+    fetch('data/filmes.json').then(r=>r.json()),
+    fetch('data/series.json').then(r=>r.json()),
+    fetch('data/kids_filmes.json').then(r=>r.json()),
+    fetch('data/kids_series.json').then(r=>r.json())
+  ]).then(([f,s,kf,ks])=>{
+    emAlta.innerHTML=''
+    renderCardHome(f[0],emAlta)
+    renderCardHome(s[0],emAlta)
+    renderCardHome(kf[0],emAlta)
+    renderCardHome(ks[0],emAlta)
+  })
+}
+</script>
+
+<script>
+function loadEmAlta(){
+  usadosHome.clear()
+
+  Promise.all([
+    fetch('data/filmes.json').then(r=>r.json()),
+    fetch('data/series.json').then(r=>r.json()),
+    fetch('data/kids_filmes.json').then(r=>r.json()),
+    fetch('data/kids_series.json').then(r=>r.json())
+  ]).then(([f,s,kf,ks])=>{
+    emAlta.innerHTML=''
+    renderCardHome(f[0],emAlta)
+    renderCardHome(s[0],emAlta)
+    renderCardHome(kf[0],emAlta)
+    renderCardHome(ks[0],emAlta)
+  })
+}
+</script>
+
+<script>
+function loadNovos(){
+  fetch('data/filmes.json').then(r=>r.json()).then(data=>{
+    novos.innerHTML=''
+
+    const y26=data.filter(i=>i.year=="2026")
+    const y25=data.filter(i=>i.year=="2025")
+
+    function pick(arr){
+      return arr.find(i=>!usadosHome.has(i.poster))
+    }
+
+    const ordem=[
+      pick(y26),
+      pick(y25),
+      pick(y26.slice(1)),
+      pick(y25.slice(1))
+    ]
+
+    ordem.forEach(i=>renderCardHome(i,novos))
+    refreshFocus()
+  })
+}
+</script>
+  
+<!-- ================= PATCH RECOMENDADOS POSIÇÃO ================= -->
+<style>
+.rank-badge{
+  bottom:27px !important; /* +7px */
+}
+</style>
+
+<script>
+loadEmAlta()
+loadNovos()
+loadContinuar()
+loadRecomendados()
+</script>
+ 
 </body>
 </html>
