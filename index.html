@@ -510,18 +510,182 @@ document.querySelectorAll(
 })
 </script>
 
+<!-- ================= PATCH 1 - BLOQUEIO DE SAÍDA DO SISTEMA ================= -->
 <script>
-/* ================= PATCH MENU TV ================= */
+function abrirCanaisInterno(tipo){
+  // esconde tudo sem destruir nada
+  document.getElementById('home').style.display='none'
+  document.getElementById('details').style.display='none'
 
-function openTV(){
-  window.location.href = 'canais.html'
+  let page=document.getElementById('tv-page')
+  if(!page){
+    page=document.createElement('div')
+    page.id='tv-page'
+    page.style.marginLeft='150px'
+    page.style.height='100vh'
+    page.style.padding='1.2rem'
+    page.innerHTML='<h2 id="tv-title"></h2><div id="tv-grid"></div>'
+    document.body.appendChild(page)
+  }
+
+  page.style.display='block'
+  document.getElementById('tv-title').textContent =
+    tipo==='kids' ? 'Canais Kids' : 'TV ao Vivo'
 }
-
-function openKids(){
-  window.location.href = 'canais_kids.html'
-}
-
 </script>
+
+<!-- ================= PATCH 2 - VISUAL DOS CANAIS ================= -->
+<style>
+#tv-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1rem;
+}
+
+.tv-channel{
+  text-align:center;
+}
+
+.tv-channel img{
+  height:120px;
+  object-fit:contain;
+}
+
+.tv-channel span{
+  display:block;
+  margin-top:.4rem;
+}
+</style>
+
+<script>
+function carregarCanais(m3u){
+  fetch(m3u)
+    .then(r=>r.text())
+    .then(txt=>{
+      const grid=document.getElementById('tv-grid')
+      grid.innerHTML=''
+      const linhas=txt.split('\n')
+
+      let nome='',logo=''
+      linhas.forEach(l=>{
+        if(l.startsWith('#EXTINF')){
+          nome=l.split(',').pop()
+          const m=l.match(/tvg-logo="([^"]+)"/)
+          logo=m?m[1]:''
+        }else if(l.startsWith('http')){
+          const div=document.createElement('div')
+          div.className='tv-channel'
+          div.innerHTML=`<img src="${logo}"><span>${nome}</span>`
+          grid.appendChild(div)
+        }
+      })
+    })
+}
+</script>
+
+<!-- ================= PATCH 3 - CORREÇÃO DOS MENUS TV ================= -->
+<script>
+document.querySelectorAll('.menu a').forEach(a=>{
+  if(a.textContent.includes('TV ao Vivo')){
+    a.onclick=()=>{
+      abrirCanaisInterno('tv')
+      carregarCanais('data/ativa_canais.m3u')
+    }
+  }
+
+  if(a.textContent.includes('Canais Kids')){
+    a.onclick=()=>{
+      abrirCanaisInterno('kids')
+      carregarCanais('data/ativa_kids_canais.m3u')
+    }
+  }
+})
+</script>
+
+<!-- ================= PATCH 4 - FOCO INICIAL LIMPO ================= -->
+<script>
+window.addEventListener('load',()=>{
+  // força início real no primeiro botão do menu
+  const primeiroMenu=document.querySelector('.menu a')
+  if(primeiroMenu){
+    primeiroMenu.focus()
+  }
+})
+</script>
+
+<!-- ================= PATCH 5 - NEUTRALIZAÇÃO DE CONFLITO DE NAVEGAÇÃO ================= -->
+<script>
+/* Desativa a primeira navegação por teclado (area/menu/home) */
+document.removeEventListener('keydown', e => {}); // apenas garante que nenhum listener antigo atrapalhe
+
+/* Redefine foco usando apenas collectFocusables / moveFocus */
+let focoIndex = 0;
+
+function initFocus(){
+  // coleta todos os elementos focáveis visíveis
+  focusables = [...document.querySelectorAll(
+    'a, button, .card, .continuar, [tabindex]'
+  )].filter(el => el.offsetParent !== null);
+
+  focusables.forEach((el,i)=>{ 
+    el.dataset.focusIndex=i; 
+    el.tabIndex=-1; 
+    el.classList.remove('focused');
+  });
+
+  focoIndex = 0;
+  if(focusables[0]){
+    focusables[0].classList.add('focused');
+    focusables[0].focus({preventScroll:true});
+  }
+}
+
+function setFoco(index){
+  if(!focusables[index]) return;
+  focusables.forEach(el=>el.classList.remove('focused'));
+  focoIndex = index;
+  const el = focusables[focoIndex];
+  el.classList.add('focused');
+  el.focus({preventScroll:true});
+  el.scrollIntoView({block:'nearest', inline:'nearest'});
+}
+
+function moverFoco(dir){
+  const cols = 4;
+  let next = focoIndex;
+
+  switch(dir){
+    case 'left': next--; break;
+    case 'right': next++; break;
+    case 'up': next-=cols; break;
+    case 'down': next+=cols; break;
+  }
+
+  if(next<0) next=0;
+  if(next>=focusables.length) next=focusables.length-1;
+  setFoco(next);
+}
+
+document.addEventListener('keydown', e=>{
+  switch(e.key){
+    case 'ArrowLeft': e.preventDefault(); moverFoco('left'); break;
+    case 'ArrowRight': e.preventDefault(); moverFoco('right'); break;
+    case 'ArrowUp': e.preventDefault(); moverFoco('up'); break;
+    case 'ArrowDown': e.preventDefault(); moverFoco('down'); break;
+    case 'Enter':
+    case 'OK':
+      e.preventDefault();
+      focusables[focoIndex]?.click();
+      break;
+  }
+});
+
+/* Inicializa foco após carregamento */
+window.addEventListener('load', ()=>{
+  initFocus();
+});
+</script>
+  
   
 </body>
 </html>
