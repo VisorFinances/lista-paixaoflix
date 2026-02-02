@@ -7,7 +7,7 @@
 
 <style>
 /* ================= RESET ================= */
-*{margin:0;padding:0;box-sizing:border-box;}
+*{margin:0;padding:0;box-sizing:border-box}
 body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto;
   background:#0b0b0f;
@@ -19,65 +19,135 @@ body{
   --border:rgba(255,255,255,.08);
   --focus:#e50914;
 }
-img{width:100%;display:block;}
-.hidden{display:none;}
-a{color:#ffd84d;text-decoration:none;cursor:pointer;}
-.focused{box-shadow:0 0 0 3px var(--focus);transform:scale(1.05);z-index:9;}
+img{width:100%;display:block}
+.hidden{display:none}
+
+/* ================= BARRA DE ROLAGEM INVISÍVEL ================= */
+body::-webkit-scrollbar{width:0px}
 </style>
 
 <!-- ================= SIDEBAR ================= -->
 <style>
 #sidebar{
-  position:fixed;left:0;top:0;bottom:0;
-  width:150px;background:#111118;
+  position:fixed;
+  left:0;top:0;bottom:0;
+  width:150px;
+  background:#111118;
   border-right:1px solid var(--border);
-  padding:1rem .5rem;
+  padding:1rem .5rem
 }
-#logo{display:flex;justify-content:center;margin-bottom:2rem;}
-#logo img{width:140px;}
+#logo{display:flex;justify-content:center;margin-bottom:2rem}
+#logo img{width:140px}
 .menu a{
-  display:block;text-align:center;
-  padding:.8rem;border-radius:10px;margin-bottom:.3rem;
+  display:block;
+  text-align:center;
+  padding:.8rem;
+  border-radius:10px;
+  margin-bottom:.3rem;
+  color:#ffd84d;
+  cursor:pointer;
 }
-.menu a:focus{outline:none;background:var(--card);}
+.menu a:focus{
+  outline:none;
+  background:var(--card);
+  box-shadow:0 0 0 3px var(--focus)
+}
 </style>
 
-<!-- ================= HOME ================= -->
+<!-- ================= HOME / SEÇÕES ================= -->
 <style>
-#home{margin-left:150px;height:100vh;padding:1.2rem;overflow-y:auto;}
-.section{margin-bottom:2.6rem;}
-.section h2{margin-bottom:1rem;font-size:1.8rem;}
-.row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
-.card{background:var(--card);border-radius:14px;overflow:hidden;cursor:pointer;}
-.card img{height:260px;object-fit:cover;}
-.card span{display:block;padding:.6rem;}
-.continuar-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
-.continuar{background:var(--card);border-radius:14px;overflow:hidden;cursor:pointer;}
-.continuar img{height:150px;object-fit:cover;}
-.continuar p{padding:.6rem;}
-.progress{height:4px;background:#333;}
-.progress span{height:100%;width:60%;background:var(--focus);display:block;}
+#home, #catalogo, #details{
+  margin-left:150px;
+  height:100vh;
+  padding:1.2rem;
+  overflow-y:auto;
+  scroll-behavior:smooth;
+}
+
+.section{
+  margin-bottom:2.6rem;
+}
+
+.section h2{
+  margin-bottom:1rem;
+  font-size:1.5rem;
+}
+
+.row, .category-row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1rem;
+  position:relative;
+}
+
+.row::before, .row::after, .category-row::before, .category-row::after{
+  display:none !important;
+}
+
+.card, .continuar, .canal-card{
+  background:var(--card);
+  border-radius:14px;
+  overflow:hidden;
+  cursor:pointer;
+}
+.card img{
+  height:260px;
+  object-fit:cover;
+}
+.card span, .continuar p, .canal-card span{
+  display:block;
+  padding:.6rem;
+  text-align:center;
+}
+
+.continuar-row{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1rem;
+}
+
+.continuar img{height:150px;object-fit:cover}
+
+.details-overlay{
+  background:rgba(0,0,0,.8);
+  height:100%;
+  padding:3rem;
+  display:flex
+}
+
+.details-poster{width:260px;margin-right:2rem}
+.details-info h1{
+  font-size:calc(2rem + 2px);
+  font-weight:500;
+  font-style:italic;
+}
+.details-info p{
+  margin-top:3px;
+  color:#fff;
+}
+
+/* GRID DE CANAIS 7 POR LINHA */
+#canais-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:10px;
+  margin-top:10px;
+}
+
+.canal-card img{
+  width:100%;
+  max-height:120px;
+  object-fit:contain;
+}
+
+.focused{
+  box-shadow:0 0 0 3px #ffd200;
+  transform:scale(1.05);
+  z-index:9;
+}
+
 </style>
 
-<!-- ================= DETALHES ================= -->
-<style>
-#details{display:none;height:100vh;margin-left:150px;background-size:cover;background-position:center;}
-.details-overlay{background:rgba(0,0,0,.8);height:100%;padding:3rem;display:flex;}
-.details-poster{width:260px;margin-right:2rem;}
-.details-info h1{font-size:calc(2rem + 2px);font-weight:500;font-style:italic;}
-.details-info p{margin-top:3px;color:#fff;}
-</style>
-
-<!-- ================= CANAIS ================= -->
-<style>
-#catalogo{display:none;margin-left:150px;padding:1.2rem;height:calc(100vh);overflow-y:auto;scroll-behavior:smooth;}
-#catalogo .canal-row{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:20px;}
-.canal-card{display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:none;border:none;box-shadow:none;}
-.canal-card img{width:100%;height:120px;object-fit:contain;}
-.canal-card span{margin-top:5px;text-align:center;color:#ffd84d;font-size:0.9rem;display:block;}
-</style>
-
-</head>
 <body>
 
 <!-- ================= MENU ================= -->
@@ -86,23 +156,38 @@ a{color:#ffd84d;text-decoration:none;cursor:pointer;}
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
   </div>
   <div class="menu">
-    <a>Início</a>
-    <a>TV ao Vivo</a>
-    <a>Cinema</a>
-    <a>Séries</a>
-    <a>Minha Lista</a>
-    <a>Filmes Kids</a>
-    <a>Séries Kids</a>
-    <a>Canais Kids</a>
+    <a tabindex="1" id="menu-inicio">Início</a>
+    <a tabindex="2" id="menu-tv">TV ao Vivo</a>
+    <a tabindex="3" id="menu-cinema">Cinema</a>
+    <a tabindex="4" id="menu-series">Séries</a>
+    <a tabindex="5" id="menu-favoritos">Minha Lista</a>
+    <a tabindex="6" id="menu-kids-filmes">Filmes Kids</a>
+    <a tabindex="7" id="menu-kids-series">Séries Kids</a>
+    <a tabindex="8" id="menu-kids-tv">Canais Kids</a>
   </div>
 </nav>
 
 <!-- ================= HOME ================= -->
 <div id="home">
-  <section class="section"><h2>Em Alta</h2><div class="row" id="emAlta"></div></section>
-  <section class="section"><h2>Novos</h2><div class="row" id="novos"></div></section>
-  <section class="section"><h2>Continuar Assistindo</h2><div class="continuar-row" id="continuar"></div></section>
-  <section class="section"><h2>Recomendados</h2><div class="row" id="recomendados"></div></section>
+<section class="section">
+<h2>Em Alta</h2>
+<div class="row" id="emAlta"></div>
+</section>
+
+<section class="section">
+<h2>Novos</h2>
+<div class="row" id="novos"></div>
+</section>
+
+<section class="section">
+<h2>Continuar Assistindo</h2>
+<div class="continuar-row" id="continuar"></div>
+</section>
+
+<section class="section">
+<h2>Recomendados</h2>
+<div class="row" id="recomendados"></div>
+</section>
 </div>
 
 <!-- ================= DETALHES ================= -->
@@ -117,20 +202,31 @@ a{color:#ffd84d;text-decoration:none;cursor:pointer;}
   </div>
 </div>
 
-<!-- ================= CATALOGO DE CANAIS ================= -->
-<div id="catalogo"></div>
+<!-- ================= CATALOGO DINÂMICO ================= -->
+<div id="catalogo" class="hidden"></div>
 
 <script>
-let focusables=[],currentIndex=0;
+/* ================= VARIÁVEIS GLOBAIS ================= */
+let focusables=[], currentIndex=0;
 
-/* ================= COLETAR ELEMENTOS FOCÁVEIS ================= */
-function recolherFocusables(){
-  focusables=[...document.querySelectorAll('a, button, .card, .continuar, .canal-card, [tabindex]')]
-    .filter(el=>el.offsetParent!==null);
-  focusables.forEach((el,i)=>{el.dataset.focusIndex=i;el.tabIndex=-1;el.classList.remove('focused');});
+/* ================= FUNÇÕES DE NAVEGAÇÃO ================= */
+function recolherFocus(){
+  focusables = [...document.querySelectorAll(
+    'a, button, .card, .continuar, .canal-card, [tabindex]'
+  )].filter(el=>el.offsetParent!==null);
+
+  focusables.forEach((el,i)=>{
+    el.dataset.focusIndex=i;
+    el.tabIndex=-1;
+    el.classList.remove('focused');
+  });
+
+  // foco inicial = botão início
+  const inicioBtn = document.querySelector('#menu-inicio') || focusables[0];
+  currentIndex = parseInt(inicioBtn.dataset.focusIndex || 0);
+  setFoco(currentIndex);
 }
 
-/* ================= DEFINIR FOCO ================= */
 function setFoco(index){
   if(!focusables[index]) return;
   focusables.forEach(el=>el.classList.remove('focused'));
@@ -142,50 +238,36 @@ function setFoco(index){
   el.scrollIntoView({block:'nearest',inline:'nearest'});
 }
 
-/* ================= MOVER FOCO ================= */
-function moveFoco(dir){
-  let next=currentIndex;
+function moverFoco(dir){
   let cols=4;
   if(focusables[currentIndex]?.classList.contains('canal-card')) cols=7;
+
+  let next=currentIndex;
   switch(dir){
-    case'left':next--;break;
-    case'right':next++;break;
-    case'up':next-=cols;break;
-    case'down':next+=cols;break;
+    case 'left': next--; break;
+    case 'right': next++; break;
+    case 'up': next-=cols; break;
+    case 'down': next+=cols; break;
   }
+
   if(next<0) next=0;
   if(next>=focusables.length) next=focusables.length-1;
   setFoco(next);
 }
 
-/* ================= TECLADO ================= */
-document.addEventListener('keydown',e=>{
+document.addEventListener('keydown', e=>{
   switch(e.key){
-    case'ArrowLeft':e.preventDefault();moveFoco('left');break;
-    case'ArrowRight':e.preventDefault();moveFoco('right');break;
-    case'ArrowUp':e.preventDefault();moveFoco('up');break;
-    case'ArrowDown':e.preventDefault();moveFoco('down');break;
-    case'Enter':case'OK':e.preventDefault();focusables[currentIndex]?.click();break;
+    case 'ArrowLeft': e.preventDefault(); moverFoco('left'); break;
+    case 'ArrowRight': e.preventDefault(); moverFoco('right'); break;
+    case 'ArrowUp': e.preventDefault(); moverFoco('up'); break;
+    case 'ArrowDown': e.preventDefault(); moverFoco('down'); break;
+    case 'Enter':
+    case 'OK':
+      e.preventDefault();
+      focusables[currentIndex]?.click();
+      break;
   }
 });
-
-/* ================= HOME ================= */
-function renderCard(item,container){
-  if(!item)return;
-  const div=document.createElement('div');
-  div.className='card';div.tabIndex=0;
-  div.innerHTML=`<img src="${item.poster}"><span>${item.titulo}</span>`;
-  div.onclick=()=>openDetails(item);
-  container.appendChild(div);
-}
-
-function loadCategory(path,container){
-  fetch(path).then(r=>r.json()).then(data=>{
-    container.innerHTML='';
-    data.slice(0,4).forEach(i=>renderCard(i,container));
-    recolherFocusables();
-  });
-}
 
 /* ================= DETALHES ================= */
 function openDetails(item){
@@ -198,25 +280,89 @@ function openDetails(item){
   detailsDesc.textContent=item.desc;
 }
 
-/* ================= VOLTAR HOME ================= */
-function goHome(){
-  document.getElementById('details').style.display='none';
-  document.getElementById('catalogo').style.display='none';
-  document.getElementById('home').style.display='block';
-  recolherFocusables();
-  const inicio=document.querySelector('#sidebar .menu a:first-child');
-  setFoco(parseInt(inicio.dataset.focusIndex||0));
+/* ================= HOME ================= */
+function renderCard(item, container){
+  const div=document.createElement('div');
+  div.className='card';
+  div.tabIndex=0;
+  div.innerHTML=`<img src="${item.poster}"><span>${item.titulo}</span>`;
+  div.onclick=()=>openDetails(item);
+  container.appendChild(div);
 }
 
-/* ================= CATALOGO CANAIS ================= */
-function abrirCanais(path,titulo){
+function renderCardHome(item, container){
+  if(!item) return;
+  const div=document.createElement('div');
+  div.className='card';
+  div.tabIndex=0;
+  div.innerHTML=`<img src="${item.poster}"><span>${item.titulo}</span><span class="info">${item.year} • ⭐ ${item.rating}</span>`;
+  div.onclick=()=>openDetails(item);
+  container.appendChild(div);
+}
+
+function loadEmAlta(){
+  Promise.all([
+    fetch('data/filmes.json').then(r=>r.json()),
+    fetch('data/series.json').then(r=>r.json()),
+    fetch('data/kids_filmes.json').then(r=>r.json()),
+    fetch('data/kids_series.json').then(r=>r.json())
+  ]).then(([f,s,kf,ks])=>{
+    emAlta.innerHTML='';
+    renderCardHome(f[0],emAlta);
+    renderCardHome(s[0],emAlta);
+    renderCardHome(kf[0],emAlta);
+    renderCardHome(ks[0],emAlta);
+    recolherFocus();
+  });
+}
+
+function loadNovos(){
+  fetch('data/filmes.json').then(r=>r.json()).then(data=>{
+    novos.innerHTML='';
+    const y26=data.filter(i=>i.year=='2026');
+    const y25=data.filter(i=>i.year=='2025');
+
+    function pick(arr){return arr[0];}
+    [pick(y26), pick(y25)].forEach(i=>renderCardHome(i,novos));
+    recolherFocus();
+  });
+}
+
+function loadContinuar(){ /* simulação */ recolherFocus(); }
+function loadRecomendados(){ /* simulação */ recolherFocus(); }
+
+/* ================= CATEGORIAS CINEMA/SÉRIES ================= */
+const categoriasCinemaSeries = ["Lançamento 2026","Lançamento 2025","Ação","Aventura","Comédia","Drama","Nacional","Romance","Religioso","Ficção","Anime","Animação","Família","Clássicos","Dorama","Suspense","Policial","Crime","Terror","Documentários","Faroeste","Musical","Adulto"];
+
+function loadCategoryFull(path, container){
+  fetch(path).then(r=>r.json()).then(data=>{
+    container.innerHTML='';
+    categoriasCinemaSeries.forEach(cat=>{
+      const section=document.createElement('section');
+      section.className='section';
+      const h2=document.createElement('h2');
+      h2.textContent=cat;
+      section.appendChild(h2);
+      const row=document.createElement('div');
+      row.className='category-row';
+      const filmes=data.filter(f=>f.categoria===cat);
+      filmes.forEach(f=>renderCard(f,row));
+      section.appendChild(row);
+      container.appendChild(section);
+    });
+    recolherFocus();
+  });
+}
+
+/* ================= CANAIS TV / KIDS ================= */
+function loadCanais(path){
+  const catalogo=document.getElementById('catalogo');
   document.getElementById('home').style.display='none';
   document.getElementById('details').style.display='none';
-  const catalogo=document.getElementById('catalogo');
   catalogo.style.display='block';
-  catalogo.innerHTML=`<h2>${titulo}</h2><div id="canais-grid" class="canal-row"></div>`;
-  const grid=document.getElementById('canais-grid');
+  catalogo.innerHTML='<h2>TV</h2><div id="canais-grid"></div>';
   fetch(path).then(r=>r.json()).then(data=>{
+    const grid=document.getElementById('canais-grid');
     data.forEach(c=>{
       const div=document.createElement('div');
       div.className='canal-card';
@@ -225,36 +371,34 @@ function abrirCanais(path,titulo){
       div.onclick=()=>openDetails(c);
       grid.appendChild(div);
     });
-    recolherFocusables();
-    const firstChannel=focusables.findIndex(f=>f.classList.contains('canal-card'))||0;
-    setFoco(firstChannel);
+    recolherFocus();
   });
 }
 
-/* ================= MENU ================= */
-document.querySelectorAll('#sidebar .menu a').forEach(btn=>{
-  const txt=btn.textContent.trim();
-  switch(txt){
-    case'Início': btn.onclick=goHome; break;
-    case'TV ao Vivo': btn.onclick=()=>abrirCanais('data/ativa_canais.json','TV ao Vivo'); break;
-    case'Canais Kids': btn.onclick=()=>abrirCanais('data/ativa_kids_canais.json','Canais Kids'); break;
-    case'Cinema': btn.onclick=()=>loadCategory('data/filmes.json',emAlta); break;
-    case'Séries': btn.onclick=()=>loadCategory('data/series.json',emAlta); break;
-    case'Filmes Kids': btn.onclick=()=>loadCategory('data/kids_filmes.json',emAlta); break;
-    case'Séries Kids': btn.onclick=()=>loadCategory('data/kids_series.json',emAlta); break;
-    case'Minha Lista': btn.onclick=()=>loadCategory('data/favoritos.json',emAlta); break;
-  }
-});
+/* ================= EVENTOS MENU ================= */
+document.querySelector('#menu-inicio').onclick=()=>{
+  document.getElementById('home').style.display='block';
+  document.getElementById('catalogo').style.display='none';
+  document.getElementById('details').style.display='none';
+  recolherFocus();
+};
 
-/* ================= INIT ================= */
+document.querySelector('#menu-tv').onclick=()=>loadCanais('data/ativa_canais.json');
+document.querySelector('#menu-kids-tv').onclick=()=>loadCanais('data/ativa_kids_canais.json');
+document.querySelector('#menu-cinema').onclick=()=>loadCategoryFull('data/filmes.json',document.getElementById('catalogo'));
+document.querySelector('#menu-series').onclick=()=>loadCategoryFull('data/series.json',document.getElementById('catalogo'));
+document.querySelector('#menu-favoritos').onclick=()=>{}; 
+document.querySelector('#menu-kids-filmes').onclick=()=>loadCategoryFull('data/kids_filmes.json',document.getElementById('catalogo'));
+document.querySelector('#menu-kids-series').onclick=()=>loadCategoryFull('data/kids_series.json',document.getElementById('catalogo'));
+
+/* ================= INICIALIZAÇÃO ================= */
 window.addEventListener('load',()=>{
-  recolherFocusables();
-  const inicio=document.querySelector('#sidebar .menu a:first-child')||focusables[0];
-  setFoco(parseInt(inicio.dataset.focusIndex||0));
-  loadCategory('data/filmes.json',document.getElementById('emAlta'));
-  loadCategory('data/series.json',document.getElementById('novos'));
+  loadEmAlta();
+  loadNovos();
+  loadContinuar();
+  loadRecomendados();
+  recolherFocus();
 });
 </script>
-
 </body>
 </html>
