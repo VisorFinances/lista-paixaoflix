@@ -214,39 +214,41 @@ function renderCategoryPage(dataList, pageTitle) {
 function renderGridSystem(targetList) {
     const cont = document.getElementById("moviesScroll");
     cont.innerHTML = "";
-    
-    // 1. FILTRAGEM DE LANÇAMENTOS POR ANO (Aparecem primeiro)
-    const lanc2026 = targetList.filter(m => m.year == "2026" || m.ano == "2026");
-    const lanc2025 = targetList.filter(m => m.year == "2025" || m.ano == "2025");
+    const displayedIds = new Set(); // Rastreia o que já apareceu
 
-    if(lanc2026.length > 0) renderCatSection(cont, "Lançamento 2026", lanc2026);
-    if(lanc2025.length > 0) renderCatSection(cont, "Lançamento 2025", lanc2025);
+    // 1. FILTRAGEM DE LANÇAMENTOS (Eles não devem repetir abaixo)
+    const lanc2026 = targetList.filter(m => (m.year == "2026" || m.ano == "2026"));
+    const lanc2025 = targetList.filter(m => (m.year == "2025" || m.ano == "2025"));
 
-    // 2. ORGANIZAÇÃO POR GÊNEROS (Mantém os itens mesmo que sejam lançamentos)
+    if(lanc2026.length > 0) {
+        renderCatSection(cont, "Lançamento 2026", lanc2026);
+        lanc2026.forEach(m => displayedIds.add(m.url)); // Marca como exibido
+    }
+    if(lanc2025.length > 0) {
+        renderCatSection(cont, "Lançamento 2025", lanc2025);
+        lanc2025.forEach(m => displayedIds.add(m.url)); // Marca como exibido
+    }
+
+    // 2. ORGANIZAÇÃO POR GÊNEROS (Apenas o que NÃO é lançamento)
     const fixedOrder = ["Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
     let cats = {};
 
     targetList.forEach(m => {
+        if(displayedIds.has(m.url)) return; // PULA se já apareceu nos lançamentos
+
         let gRaw = m.genero || m.categoria || "Geral";
-        // Transforma em array se for string para ler os dois modelos de JSON
         let listDeGeneros = Array.isArray(gRaw) ? gRaw : [gRaw];
         
         listDeGeneros.forEach(gen => {
-            // Ignora a tag genérica "Lançamento" na hora de criar categorias de gênero
-            // para não criar uma prateleira duplicada com esse nome.
             if(gen !== "Lançamento") {
                 if(!cats[gen]) cats[gen] = [];
-                // Evita duplicar o mesmo filme dentro do mesmo gênero
                 if(!cats[gen].some(x => x.url === m.url)) cats[gen].push(m);
             }
         });
     });
 
-    // 3. RENDERIZA OS GÊNEROS NA ORDEM FIXA
     fixedOrder.forEach(name => { 
-        if(cats[name] && cats[name].length > 0) {
-            renderCatSection(cont, name, cats[name]); 
-        } 
+        if(cats[name] && cats[name].length > 0) renderCatSection(cont, name, cats[name]); 
     });
 }
     
@@ -327,17 +329,21 @@ document.addEventListener("keydown", e => {
         const items = document.querySelectorAll("#moviesScroll [data-nav]");
         if(Keys.RIGHT.includes(k)) movieIdx = Math.min(items.length-1, movieIdx+1);
         if(Keys.LEFT.includes(k)) movieIdx = Math.max(0, movieIdx-1);
+        
         if(Keys.DOWN.includes(k)) {
-            let type = items[movieIdx].getAttribute('data-nav');
-            if(type === 'movie-card') {
-                let next = movieIdx;
-                while(next < items.length && items[next].getAttribute('data-nav') !== 'movie-btn') next++;
-                movieIdx = next;
-            } else movieIdx = Math.min(items.length - 1, movieIdx + 1);
+            // Se estou em um card, tento pular 4 (uma linha) ou ir para o botão
+            let next = movieIdx + 4; 
+            if (next >= items.length) next = items.length - 1; // Se estourar, vai pro último disponível (o botão)
+            movieIdx = next;
         }
-        if(Keys.UP.includes(k)) movieIdx = Math.max(0, movieIdx-1);
+        
+        if(Keys.UP.includes(k)) {
+            movieIdx = Math.max(0, movieIdx - 4);
+        }
+
         if(Keys.ENTER.includes(k)) items[movieIdx].click();
         if(Keys.BACK.includes(k)) location.reload();
+    
     } else if(isChannelsOpen) {
         const cards = document.querySelectorAll("#channelsScroll .channel-card");
         if(Keys.RIGHT.includes(k)) chanIdx = Math.min(cards.length - 1, chanIdx + 1);
