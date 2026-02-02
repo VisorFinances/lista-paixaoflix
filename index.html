@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -8,7 +7,7 @@
 
 <style>
 /* ================= RESET ================= */
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;}
 body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto;
   background:#0b0b0f;
@@ -20,119 +19,65 @@ body{
   --border:rgba(255,255,255,.08);
   --focus:#e50914;
 }
-img{width:100%;display:block}
-.hidden{display:none}
+img{width:100%;display:block;}
+.hidden{display:none;}
+a{color:#ffd84d;text-decoration:none;cursor:pointer;}
+.focused{box-shadow:0 0 0 3px var(--focus);transform:scale(1.05);z-index:9;}
 </style>
 
-<!-- ================= SIDEBAR (NÃO MEXER) ================= -->
+<!-- ================= SIDEBAR ================= -->
 <style>
 #sidebar{
-  position:fixed;
-  left:0;top:0;bottom:0;
-  width:150px;
-  background:#111118;
+  position:fixed;left:0;top:0;bottom:0;
+  width:150px;background:#111118;
   border-right:1px solid var(--border);
-  padding:1rem .5rem
+  padding:1rem .5rem;
 }
-#logo{display:flex;justify-content:center;margin-bottom:2rem}
-#logo img{width:140px}
-
+#logo{display:flex;justify-content:center;margin-bottom:2rem;}
+#logo img{width:140px;}
 .menu a{
-  display:block;
-  text-align:center;
-  padding:.8rem;
-  border-radius:10px;
-  margin-bottom:.3rem;
-  color:#ffd84d;
-  cursor:pointer;
+  display:block;text-align:center;
+  padding:.8rem;border-radius:10px;margin-bottom:.3rem;
 }
-.menu a:focus{
-  outline:none;
-  background:var(--card);
-  box-shadow:0 0 0 3px var(--focus)
-}
+.menu a:focus{outline:none;background:var(--card);}
 </style>
 
 <!-- ================= HOME ================= -->
 <style>
-#home{
-  margin-left:150px;
-  height:100vh;
-  padding:1.2rem;
-}
-.section{margin-bottom:2.6rem}
-.section h2{
-  margin-bottom:1rem;
-  font-size:1.5rem;
-}
-.row{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:1rem
-}
-.card{
-  background:var(--card);
-  border-radius:14px;
-  overflow:hidden
-}
-.card:focus{
-  outline:none;
-  box-shadow:0 0 0 4px var(--focus)
-}
-.card img{height:260px;object-fit:cover}
-.card span{display:block;padding:.6rem}
-</style>
-
-<!-- ================= CONTINUAR ================= -->
-<style>
-.continuar-row{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:1rem
-}
-.continuar{
-  background:var(--card);
-  border-radius:14px;
-  overflow:hidden
-}
-.continuar:focus{
-  outline:none;
-  box-shadow:0 0 0 4px var(--focus)
-}
-.continuar img{height:150px;object-fit:cover}
-.progress{height:4px;background:#333}
-.progress span{height:100%;width:60%;background:var(--focus);display:block}
-.continuar p{padding:.6rem}
+#home{margin-left:150px;height:100vh;padding:1.2rem;overflow-y:auto;}
+.section{margin-bottom:2.6rem;}
+.section h2{margin-bottom:1rem;font-size:1.8rem;}
+.row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+.card{background:var(--card);border-radius:14px;overflow:hidden;cursor:pointer;}
+.card img{height:260px;object-fit:cover;}
+.card span{display:block;padding:.6rem;}
+.continuar-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
+.continuar{background:var(--card);border-radius:14px;overflow:hidden;cursor:pointer;}
+.continuar img{height:150px;object-fit:cover;}
+.continuar p{padding:.6rem;}
+.progress{height:4px;background:#333;}
+.progress span{height:100%;width:60%;background:var(--focus);display:block;}
 </style>
 
 <!-- ================= DETALHES ================= -->
 <style>
-#details{
-  display:none;
-  height:100vh;
-  margin-left:150px;
-  background-size:cover;
-  background-position:center;
-}
-.details-overlay{
-  background:rgba(0,0,0,.8);
-  height:100%;
-  padding:3rem;
-  display:flex
-}
-.details-poster{width:260px;margin-right:2rem}
-.details-info h1{
-  font-size:calc(2rem + 2px);
-  font-weight:500;
-  font-style:italic;
-}
-.details-info p{
-  margin-top:3px;
-  color:#fff;
-}
+#details{display:none;height:100vh;margin-left:150px;background-size:cover;background-position:center;}
+.details-overlay{background:rgba(0,0,0,.8);height:100%;padding:3rem;display:flex;}
+.details-poster{width:260px;margin-right:2rem;}
+.details-info h1{font-size:calc(2rem + 2px);font-weight:500;font-style:italic;}
+.details-info p{margin-top:3px;color:#fff;}
 </style>
-</head>
 
+<!-- ================= CANAIS ================= -->
+<style>
+#catalogo{display:none;margin-left:150px;padding:1.2rem;height:calc(100vh);overflow-y:auto;scroll-behavior:smooth;}
+#catalogo .canal-row{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:20px;}
+.canal-card{display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:none;border:none;box-shadow:none;}
+.canal-card img{width:100%;height:120px;object-fit:contain;}
+.canal-card span{margin-top:5px;text-align:center;color:#ffd84d;font-size:0.9rem;display:block;}
+</style>
+
+</head>
 <body>
 
 <!-- ================= MENU ================= -->
@@ -140,50 +85,30 @@ img{width:100%;display:block}
   <div id="logo">
     <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png">
   </div>
-
   <div class="menu">
-    <a tabindex="1" onclick="goHome()">Início</a>
-    <a tabindex="2" onclick="openTV('data/ativa_canais.m3u')">TV ao Vivo</a>
-    <a tabindex="3" onclick="loadCategory('data/filmes.json')">Cinema</a>
-    <a tabindex="4" onclick="loadCategory('data/series.json')">Séries</a>
-    <a tabindex="5" onclick="loadCategory('data/favoritos.json')">Minha Lista</a>
-    <a tabindex="6" onclick="loadCategory('data/kids_filmes.json')">Filmes Kids</a>
-    <a tabindex="7" onclick="loadCategory('data/kids_series.json')">Séries Kids</a>
-    <a tabindex="8" onclick="openTV('data/ativa_kids_canais.m3u')">Canais Kids</a>
+    <a>Início</a>
+    <a>TV ao Vivo</a>
+    <a>Cinema</a>
+    <a>Séries</a>
+    <a>Minha Lista</a>
+    <a>Filmes Kids</a>
+    <a>Séries Kids</a>
+    <a>Canais Kids</a>
   </div>
 </nav>
 
 <!-- ================= HOME ================= -->
 <div id="home">
-
-<section class="section">
-<h2>Em Alta</h2>
-<div class="row" id="emAlta"></div>
-</section>
-
-<section class="section">
-<h2>Novos</h2>
-<div class="row" id="novos"></div>
-</section>
-
-<section class="section">
-<h2>Continuar Assistindo</h2>
-<div class="continuar-row" id="continuar"></div>
-</section>
-
-<section class="section">
-<h2>Recomendados</h2>
-<div class="row" id="recomendados"></div>
-</section>
-
+  <section class="section"><h2>Em Alta</h2><div class="row" id="emAlta"></div></section>
+  <section class="section"><h2>Novos</h2><div class="row" id="novos"></div></section>
+  <section class="section"><h2>Continuar Assistindo</h2><div class="continuar-row" id="continuar"></div></section>
+  <section class="section"><h2>Recomendados</h2><div class="row" id="recomendados"></div></section>
 </div>
 
 <!-- ================= DETALHES ================= -->
 <div id="details">
   <div class="details-overlay">
-    <div class="details-poster">
-      <img id="detailsPoster">
-    </div>
+    <div class="details-poster"><img id="detailsPoster"></div>
     <div class="details-info">
       <h1 id="detailsTitle"></h1>
       <p id="detailsMeta"></p>
@@ -192,773 +117,20 @@ img{width:100%;display:block}
   </div>
 </div>
 
-<script>
-/* ================= NAVEGAÇÃO TV ================= */
-let area='menu'
-let menu=[...document.querySelectorAll('.menu a')]
-let focusables=[]
-let m=0,c=0
-menu[m].focus()
-
-document.addEventListener('keydown',e=>{
-  if(area==='menu'){
-    if(e.key==='ArrowDown') m=(m+1)%menu.length
-    if(e.key==='ArrowUp') m=(m-1+menu.length)%menu.length
-    if(e.key==='ArrowRight'){area='home';c=0;focusables[c]?.focus();return}
-    if(e.key==='Enter') menu[m].click()
-    menu[m].focus()
-  }else{
-    const cols=4
-    if(e.key==='ArrowRight') c=Math.min(c+1,focusables.length-1)
-    if(e.key==='ArrowLeft'){
-      if(c%cols===0){area='menu';menu[m].focus();return}
-      c--
-    }
-    if(e.key==='ArrowDown') c=Math.min(c+cols,focusables.length-1)
-    if(e.key==='ArrowUp') c=Math.max(c-cols,0)
-    if(e.key==='Enter') focusables[c]?.click()
-    focusables[c]?.focus()
-  }
-})
-
-/* ================= HOME / DETALHES ================= */
-function openDetails(item){
-  home.style.display='none'
-  details.style.display='block'
-  details.style.backgroundImage=`url(${item.poster})`
-  detailsPoster.src=item.poster
-  detailsTitle.textContent=item.titulo
-  detailsMeta.textContent=`⭐ ${item.rating} • ${item.year}`
-  detailsDesc.textContent=item.desc
-}
-
-function goHome(){
-  details.style.display='none'
-  home.style.display='block'
-  area='menu'
-  menu[m].focus()
-}
-
-/* ================= LOADERS ================= */
-function renderCard(item, container){
-  const div=document.createElement('div')
-  div.className='card'
-  div.tabIndex=0
-  div.innerHTML=`<img src="${item.poster}"><span>${item.titulo}</span>`
-  div.onclick=()=>openDetails(item)
-  container.appendChild(div)
-}
-
-function loadCategory(path){
-  fetch(path).then(r=>r.json()).then(data=>{
-    emAlta.innerHTML=''
-    data.slice(0,4).forEach(i=>renderCard(i,emAlta))
-    refreshFocus()
-  })
-}
-
-function openTV(){
-  console.log('TV:', 'data/ativa_canais.m3u', 'data/ativa_kids_canais.m3u')
-}
-
-function openKids(){
-  loadCategory('data/kids_filmes.json')
-}
-
-/* ================= INIT ================= */
-function refreshFocus(){
-  focusables=[...document.querySelectorAll('.card,.continuar')]
-}
-fetch('data/filmes.json').then(r=>r.json()).then(d=>{
-  d.slice(0,4).forEach(i=>renderCard(i,emAlta))
-  refreshFocus()
-})
-</script>
-
-<!-- ================= PATCH HOME 4 CAPAS FIXAS ================= -->
-<style>
-/* Garante apenas 4 capas grandes por sessão */
-#home .row{
-  grid-template-columns:repeat(4,1fr) !important;
-}
-
-/* Capas maiores */
-#home .card img{
-  height:340px !important;
-}
-
-/* Remove QUALQUER pista visual de continuidade horizontal */
-#home .row::before,
-#home .row::after{
-  display:none !important;
-}
-</style>
-
-<!-- ================= PATCH TITULOS HOME ================= -->
-<style>
-#home .section h2{
-  font-size: calc(1.5rem + 8px) !important;
-}
-</style>
-
-<!-- ================= PATCH ANTI DUPLICAÇÃO HOME ================= -->
-<script>
-const usadosHome = new Set()
-
-function renderCardHome(item, container){
-  if(!item || usadosHome.has(item.poster)) return
-  usadosHome.add(item.poster)
-
-  const div=document.createElement('div')
-  div.className='card'
-  div.tabIndex=0
-  div.innerHTML=`
-    <img src="${item.poster}">
-    <span>${item.titulo}</span>
-    <span class="info">${item.year} • ⭐ ${item.rating}</span>
-  `
-  div.onclick=()=>openDetails(item)
-  container.appendChild(div)
-}
-</script>
+<!-- ================= CATALOGO DE CANAIS ================= -->
+<div id="catalogo"></div>
 
 <script>
-function loadEmAlta(){
-  usadosHome.clear()
+let focusables=[],currentIndex=0;
 
-  Promise.all([
-    fetch('data/filmes.json').then(r=>r.json()),
-    fetch('data/series.json').then(r=>r.json()),
-    fetch('data/kids_filmes.json').then(r=>r.json()),
-    fetch('data/kids_series.json').then(r=>r.json())
-  ]).then(([f,s,kf,ks])=>{
-    emAlta.innerHTML=''
-    renderCardHome(f[0],emAlta)
-    renderCardHome(s[0],emAlta)
-    renderCardHome(kf[0],emAlta)
-    renderCardHome(ks[0],emAlta)
-  })
-}
-</script>
-
-<script>
-function loadEmAlta(){
-  usadosHome.clear()
-
-  Promise.all([
-    fetch('data/filmes.json').then(r=>r.json()),
-    fetch('data/series.json').then(r=>r.json()),
-    fetch('data/kids_filmes.json').then(r=>r.json()),
-    fetch('data/kids_series.json').then(r=>r.json())
-  ]).then(([f,s,kf,ks])=>{
-    emAlta.innerHTML=''
-    renderCardHome(f[0],emAlta)
-    renderCardHome(s[0],emAlta)
-    renderCardHome(kf[0],emAlta)
-    renderCardHome(ks[0],emAlta)
-  })
-}
-</script>
-
-<script>
-function loadNovos(){
-  fetch('data/filmes.json').then(r=>r.json()).then(data=>{
-    novos.innerHTML=''
-
-    const y26=data.filter(i=>i.year=="2026")
-    const y25=data.filter(i=>i.year=="2025")
-    const y25=data.filter(i=>i.year=="2025")
-
-    function pick(arr){
-      return arr.find(i=>!usadosHome.has(i.poster))
-    }
-
-    const ordem=[
-      pick(y26),
-      pick(y25),
-      pick(y26.slice(1)),
-      pick(y25.slice(1))
-    ]
-
-    ordem.forEach(i=>renderCardHome(i,novos))
-    refreshFocus()
-  })
-}
-</script>
-  
-<!-- ================= PATCH RECOMENDADOS POSIÇÃO ================= -->
-<style>
-.rank-badge{
-  bottom:27px !important; /* +7px */
-}
-</style>
-
-<script>
-loadEmAlta()
-loadNovos()
-loadContinuar()
-loadRecomendados()
-</script>
-
-<style>
-:focus{
-  outline:none;
+/* ================= COLETAR ELEMENTOS FOCÁVEIS ================= */
+function recolherFocusables(){
+  focusables=[...document.querySelectorAll('a, button, .card, .continuar, .canal-card, [tabindex]')]
+    .filter(el=>el.offsetParent!==null);
+  focusables.forEach((el,i)=>{el.dataset.focusIndex=i;el.tabIndex=-1;el.classList.remove('focused');});
 }
 
-.focused{
-  box-shadow:0 0 0 3px #ffd200;
-  transform:scale(1.05);
-  z-index:9;
-}
-</style>
-
-<script>
-let focusables=[]
-let currentIndex=0
-
-function collectFocusables(){
-  focusables=[...document.querySelectorAll(
-    'a,button,.card,[tabindex]'
-  )].filter(el=>!el.disabled && el.offsetParent!==null)
-
-  focusables.forEach((el,i)=>{
-    el.dataset.focusIndex=i
-    el.tabIndex=-1
-  })
-}
-
-function setFocus(index){
-  if(!focusables[index]) return
-
-  focusables.forEach(el=>el.classList.remove('focused'))
-
-  currentIndex=index
-  const el=focusables[currentIndex]
-  el.classList.add('focused')
-  el.focus({preventScroll:true})
-  el.scrollIntoView({block:'nearest',inline:'nearest'})
-}
-
-function moveFocus(dir){
-  const cols=4
-  let next=currentIndex
-
-  if(dir==='left')  next--
-  if(dir==='right') next++
-  if(dir==='up')    next-=cols
-  if(dir==='down')  next+=cols
-
-  if(next<0) next=0
-  if(next>=focusables.length) next=focusables.length-1
-
-  setFocus(next)
-}
-
-document.addEventListener('keydown',e=>{
-  switch(e.key){
-    case'ArrowLeft':  e.preventDefault();moveFocus('left');break
-    case'ArrowRight': e.preventDefault();moveFocus('right');break
-    case'ArrowUp':    e.preventDefault();moveFocus('up');break
-    case'ArrowDown':  e.preventDefault();moveFocus('down');break
-    case'Enter':
-    case'OK':
-      e.preventDefault()
-      focusables[currentIndex]?.click()
-      break
-  }
-})
-</script>
-
- <script>
-window.addEventListener('load',()=>{
-  collectFocusables()
-
-  // força foco no botão INÍCIO
-  const inicio=document.querySelector('#menu-inicio,.inicio,.home-btn')
-  if(inicio){
-    setTimeout(()=>{
-      currentIndex=parseInt(inicio.dataset.focusIndex||0)
-      setFocus(currentIndex)
-    },50)
-  }else{
-    setFocus(0)
-  }
-})
-</script>
-
-<script>
-function abrirCanais(url){
-  window.location.href = url
-}
-
-/* TV AO VIVO */
-document.querySelectorAll(
-  '#menu-tv, .menu-tv, [data-menu="tv"]'
-).forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    abrirCanais('data/ativa_canais.m3u')
-  })
-})
-
-/* CANAIS KIDS */
-document.querySelectorAll(
-  '#menu-canais-kids, .menu-canais-kids, [data-menu="kids-tv"]'
-).forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    abrirCanais('data/ativa_kids_canais.m3u')
-  })
-})
-</script>
-
-<!-- ================= PATCH 1 - BLOQUEIO DE SAÍDA DO SISTEMA ================= -->
-<script>
-function abrirCanaisInterno(tipo){
-  // esconde tudo sem destruir nada
-  document.getElementById('home').style.display='none'
-  document.getElementById('details').style.display='none'
-
-  let page=document.getElementById('tv-page')
-  if(!page){
-    page=document.createElement('div')
-    page.id='tv-page'
-    page.style.marginLeft='150px'
-    page.style.height='100vh'
-    page.style.padding='1.2rem'
-    page.innerHTML='<h2 id="tv-title"></h2><div id="tv-grid"></div>'
-    document.body.appendChild(page)
-  }
-
-  page.style.display='block'
-  document.getElementById('tv-title').textContent =
-    tipo==='kids' ? 'Canais Kids' : 'TV ao Vivo'
-}
-</script>
-
-<!-- ================= PATCH 2 - VISUAL DOS CANAIS ================= -->
-<style>
-#tv-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:1rem;
-}
-
-.tv-channel{
-  text-align:center;
-}
-
-.tv-channel img{
-  height:120px;
-  object-fit:contain;
-}
-
-.tv-channel span{
-  display:block;
-  margin-top:.4rem;
-}
-</style>
-
-<script>
-function carregarCanais(m3u){
-  fetch(m3u)
-    .then(r=>r.text())
-    .then(txt=>{
-      const grid=document.getElementById('tv-grid')
-      grid.innerHTML=''
-      const linhas=txt.split('\n')
-
-      let nome='',logo=''
-      linhas.forEach(l=>{
-        if(l.startsWith('#EXTINF')){
-          nome=l.split(',').pop()
-          const m=l.match(/tvg-logo="([^"]+)"/)
-          logo=m?m[1]:''
-        }else if(l.startsWith('http')){
-          const div=document.createElement('div')
-          div.className='tv-channel'
-          div.innerHTML=`<img src="${logo}"><span>${nome}</span>`
-          grid.appendChild(div)
-        }
-      })
-    })
-}
-</script>
-
-<!-- ================= PATCH 3 - CORREÇÃO DOS MENUS TV ================= -->
-<script>
-document.querySelectorAll('.menu a').forEach(a=>{
-  if(a.textContent.includes('TV ao Vivo')){
-    a.onclick=()=>{
-      abrirCanaisInterno('tv')
-      carregarCanais('data/ativa_canais.m3u')
-    }
-  }
-
-  if(a.textContent.includes('Canais Kids')){
-    a.onclick=()=>{
-      abrirCanaisInterno('kids')
-      carregarCanais('data/ativa_kids_canais.m3u')
-    }
-  }
-})
-</script>
-
-<!-- ================= PATCH 4 - FOCO INICIAL LIMPO ================= -->
-<script>
-window.addEventListener('load',()=>{
-  // força início real no primeiro botão do menu
-  const primeiroMenu=document.querySelector('.menu a')
-  if(primeiroMenu){
-    primeiroMenu.focus()
-  }
-})
-</script>
-
-<!-- ================= PATCH 5 - NEUTRALIZAÇÃO DE CONFLITO DE NAVEGAÇÃO ================= -->
-<script>
-/* Desativa a primeira navegação por teclado (area/menu/home) */
-document.removeEventListener('keydown', e => {}); // apenas garante que nenhum listener antigo atrapalhe
-
-/* Redefine foco usando apenas collectFocusables / moveFocus */
-let focoIndex = 0;
-
-function initFocus(){
-  // coleta todos os elementos focáveis visíveis
-  focusables = [...document.querySelectorAll(
-    'a, button, .card, .continuar, [tabindex]'
-  )].filter(el => el.offsetParent !== null);
-
-  focusables.forEach((el,i)=>{ 
-    el.dataset.focusIndex=i; 
-    el.tabIndex=-1; 
-    el.classList.remove('focused');
-  });
-
-  focoIndex = 0;
-  if(focusables[0]){
-    focusables[0].classList.add('focused');
-    focusables[0].focus({preventScroll:true});
-  }
-}
-
-function setFoco(index){
-  if(!focusables[index]) return;
-  focusables.forEach(el=>el.classList.remove('focused'));
-  focoIndex = index;
-  const el = focusables[focoIndex];
-  el.classList.add('focused');
-  el.focus({preventScroll:true});
-  el.scrollIntoView({block:'nearest', inline:'nearest'});
-}
-
-function moverFoco(dir){
-  const cols = 4;
-  let next = focoIndex;
-
-  switch(dir){
-    case 'left': next--; break;
-    case 'right': next++; break;
-    case 'up': next-=cols; break;
-    case 'down': next+=cols; break;
-  }
-
-  if(next<0) next=0;
-  if(next>=focusables.length) next=focusables.length-1;
-  setFoco(next);
-}
-
-document.addEventListener('keydown', e=>{
-  switch(e.key){
-    case 'ArrowLeft': e.preventDefault(); moverFoco('left'); break;
-    case 'ArrowRight': e.preventDefault(); moverFoco('right'); break;
-    case 'ArrowUp': e.preventDefault(); moverFoco('up'); break;
-    case 'ArrowDown': e.preventDefault(); moverFoco('down'); break;
-    case 'Enter':
-    case 'OK':
-      e.preventDefault();
-      focusables[focoIndex]?.click();
-      break;
-  }
-});
-
-/* Inicializa foco após carregamento */
-window.addEventListener('load', ()=>{
-  initFocus();
-});
-</script>
-  
-<!-- ================= PATCH 6 - CANAIS E NAVEGAÇÃO ================= -->
-<style>
-/* Ajusta canais: 7 por linha e remove amontoamento */
-#canais-grid{
-  display:grid !important;
-  grid-template-columns:repeat(7,1fr) !important;
-  gap:10px !important;
-  margin-top:10px; /* espaço entre título e primeira linha */
-}
-
-.canal-card{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  background:none !important;
-  border:none !important;
-  box-shadow:none !important;
-}
-
-.canal-card img{
-  width:100%;
-  height:auto;
-  max-height:120px;
-  object-fit:contain;
-}
-</style>
-
-<script>
-/* Inicializa foco no botão Início */
-function initFocusHome(){
-  focusables = [...document.querySelectorAll(
-    'a, button, .card, .continuar, .canal-card, [tabindex]'
-  )].filter(el => el.offsetParent !== null);
-
-  focusables.forEach((el,i)=>{
-    el.dataset.focusIndex = i;
-    el.tabIndex = -1;
-    el.classList.remove('focused');
-  });
-
-  // foco inicial = botão "Início"
-  const inicioBtn = document.querySelector('#sidebar .menu a:first-child');
-  let inicioIndex = 0;
-  if(inicioBtn) inicioIndex = parseInt(inicioBtn.dataset.focusIndex || 0);
-  setFoco(inicioIndex);
-}
-
-/* Navegação universal (4 direções) */
-function setFoco(index){
-  if(!focusables[index]) return;
-  focusables.forEach(el=>el.classList.remove('focused'));
-  currentIndex = index;
-  const el = focusables[currentIndex];
-  el.classList.add('focused');
-  el.focus({preventScroll:true});
-  el.scrollIntoView({block:'nearest', inline:'nearest'});
-}
-
-function moverFoco(dir){
-  const cols = 4; // para grid normal
-  let next = currentIndex;
-
-  // se estivermos em canais, cols = 7
-  if(focusables[currentIndex]?.classList.contains('canal-card')) cols = 7;
-
-  switch(dir){
-    case 'left': next--; break;
-    case 'right': next++; break;
-    case 'up': next-=cols; break;
-    case 'down': next+=cols; break;
-  }
-
-  if(next<0) next=0;
-  if(next>=focusables.length) next=focusables.length-1;
-  setFoco(next);
-}
-
-document.addEventListener('keydown', e=>{
-  switch(e.key){
-    case 'ArrowLeft': e.preventDefault(); moverFoco('left'); break;
-    case 'ArrowRight': e.preventDefault(); moverFoco('right'); break;
-    case 'ArrowUp': e.preventDefault(); moverFoco('up'); break;
-    case 'ArrowDown': e.preventDefault(); moverFoco('down'); break;
-    case 'Enter':
-    case 'OK':
-      e.preventDefault();
-      focusables[currentIndex]?.click();
-      break;
-  }
-});
-
-/* ================= ABRIR CANAIS ================= */
-function abrirCanaisInterno(dataPath){
-  const homeEl = document.getElementById('home');
-  homeEl.style.display='none';
-  catalogo.style.display='block';
-  catalogo.innerHTML = `<h2>TV ao Vivo</h2><div id="canais-grid"></div>`;
-  const grid = document.getElementById('canais-grid');
-
-  fetch(dataPath).then(r=>r.json()).then(canais=>{
-    canais.forEach(c=>{
-      const div = document.createElement('div');
-      div.className = 'canal-card';
-      div.tabIndex = 0;
-      div.innerHTML = `<img src="${c.logo}" alt="${c.nome}"><span>${c.nome}</span>`;
-      div.onclick = ()=>openDetails(c);
-      grid.appendChild(div);
-    });
-    initFocusHome();
-  });
-}
-
-/* Atualiza os menus para usar abrirCanaisInterno */
-document.querySelectorAll('#sidebar .menu a').forEach(btn=>{
-  const txt = btn.textContent.trim();
-  if(txt==='TV ao Vivo'){
-    btn.onclick = ()=>abrirCanaisInterno('data/ativa_canais.json');
-  }
-  if(txt==='Canais Kids'){
-    btn.onclick = ()=>abrirCanaisInterno('data/ativa_kids_canais.json');
-  }
-});
-</script>
-
- <!-- ================= PATCH 7 - ROLAGEM VERTICAL GRID DE CANAIS ================= -->
-<style>
-/* Permite rolagem vertical na página de canais */
-#catalogo{
-  overflow-y:auto !important;
-  height:calc(100vh - 150px) !important; /* altura total da tela menos menu */
-  padding-right:10px; /* evita cortar conteúdo no scroll */
-}
-
-/* Capas e logos centralizados com espaçamento ajustado */
-#canais-grid .canal-card span{
-  margin-top:5px !important;
-  text-align:center;
-  display:block;
-}
-
-/* Scroll suave ao mover foco */
-#catalogo::-webkit-scrollbar{
-  width:0px; /* scrollbar invisível */
-}
-</style>
-
-<script>
-/* Atualiza o foco sempre que muda */
-function scrollFocusIntoView(){
-  const el = focusables[currentIndex];
-  if(!el) return;
-  el.scrollIntoView({behavior:'smooth', block:'nearest', inline:'nearest'});
-}
-
-/* Sobrescreve setFoco para suportar rolagem vertical */
-function setFoco(index){
-  if(!focusables[index]) return;
-  focusables.forEach(el=>el.classList.remove('focused'));
-  currentIndex = index;
-  const el = focusables[currentIndex];
-  el.classList.add('focused');
-  el.tabIndex = 0;
-  el.focus({preventScroll:true});
-  scrollFocusIntoView();
-}
-
-/* Recoleta os elementos focusáveis após abrir grid de canais */
-function recolherFocusCanais(){
-  focusables = [...document.querySelectorAll(
-    'a, button, .card, .continuar, .canal-card, [tabindex]'
-  )].filter(el => el.offsetParent !== null);
-
-  focusables.forEach((el,i)=> el.dataset.focusIndex=i);
-
-  // mantém foco inicial no botão Início
-  setFoco(0);
-}
-
-/* Sempre atualizar focusables quando grid é carregado ou alterado */
-document.addEventListener('DOMContentLoaded',()=>{
-  recolherFocusCanais();
-});
-</script>
-
-<!-- ================= PATCH COMPLETO CANAIS ================= -->
-<style>
-/* ================= GRID CANAIS ================= */
-#catalogo{
-  display:none;
-  margin-left:150px;
-  height:100vh;
-  padding:1.2rem;
-  overflow-y:auto; /* vertical scroll */
-  scroll-behavior: smooth;
-}
-
-/* Grid de canais com 7 por linha */
-#catalogo .canal-row{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:10px;
-  margin-bottom:20px;
-}
-
-/* Cartão de canal */
-.canal-card{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  cursor:pointer;
-}
-
-.canal-card img{
-  width:100%;
-  object-fit:cover;
-  height:120px;
-}
-
-.canal-card span{
-  margin-top:10px;
-  text-align:center;
-  color:#ffd84d;
-  font-size:0.9rem;
-  display:block;
-}
-</style>
-
-<script>
-/* ================= FUNÇÃO CARREGAR CANAIS ================= */
-function loadCanais(path){
-  home.style.display='none';
-  details.style.display='none';
-  catalogo.style.display='block';
-  catalogo.innerHTML='<h2>TV</h2>';
-
-  fetch(path).then(r => r.json()).then(data => {
-    const row = document.createElement('div');
-    row.className='canal-row';
-
-    data.forEach(canal => {
-      const card = document.createElement('div');
-      card.className='canal-card';
-      card.tabIndex = 0;
-      card.innerHTML=`
-        <img src="${canal.logo}" alt="${canal.nome}">
-        <span>${canal.nome}</span>
-      `;
-      card.onclick = ()=>openDetails(canal); // Se desejar, abrir detalhes
-      row.appendChild(card);
-    });
-
-    catalogo.appendChild(row);
-    refreshFocus(); // Atualiza foco
-    recolherFocusCanais(); // Recolhe elementos focusáveis do grid
-  });
-}
-
-/* ================= RECOLETAR ELEMENTOS FOCUS ================= */
-function recolherFocusCanais(){
-  focusables = [...document.querySelectorAll(
-    'a, button, .card, .continuar, .canal-card, [tabindex]'
-  )].filter(el=>el.offsetParent!==null);
-
-  focusables.forEach((el,i)=> el.dataset.focusIndex=i);
-
-  // Força foco inicial no botão Início
-  const inicio = document.querySelector('#menu-inicio,.inicio,.home-btn') || focusables[0];
-  setFoco(parseInt(inicio.dataset.focusIndex||0));
-}
-
-/* ================= SET FOCUS CUSTOMIZADO ================= */
+/* ================= DEFINIR FOCO ================= */
 function setFoco(index){
   if(!focusables[index]) return;
   focusables.forEach(el=>el.classList.remove('focused'));
@@ -970,54 +142,119 @@ function setFoco(index){
   el.scrollIntoView({block:'nearest',inline:'nearest'});
 }
 
-/* ================= NAVEGAÇÃO SETAS ================= */
+/* ================= MOVER FOCO ================= */
 function moveFoco(dir){
-  const cols = 7; // 7 canais por linha
   let next=currentIndex;
-
+  let cols=4;
+  if(focusables[currentIndex]?.classList.contains('canal-card')) cols=7;
   switch(dir){
-    case 'left': next--; break;
-    case 'right': next++; break;
-    case 'up': next-=cols; break;
-    case 'down': next+=cols; break;
+    case'left':next--;break;
+    case'right':next++;break;
+    case'up':next-=cols;break;
+    case'down':next+=cols;break;
   }
-
   if(next<0) next=0;
   if(next>=focusables.length) next=focusables.length-1;
   setFoco(next);
 }
 
-document.addEventListener('keydown', e=>{
+/* ================= TECLADO ================= */
+document.addEventListener('keydown',e=>{
   switch(e.key){
-    case 'ArrowLeft': e.preventDefault(); moveFoco('left'); break;
-    case 'ArrowRight': e.preventDefault(); moveFoco('right'); break;
-    case 'ArrowUp': e.preventDefault(); moveFoco('up'); break;
-    case 'ArrowDown': e.preventDefault(); moveFoco('down'); break;
-    case 'Enter':
-    case 'OK':
-      e.preventDefault();
-      focusables[currentIndex]?.click();
-      break;
+    case'ArrowLeft':e.preventDefault();moveFoco('left');break;
+    case'ArrowRight':e.preventDefault();moveFoco('right');break;
+    case'ArrowUp':e.preventDefault();moveFoco('up');break;
+    case'ArrowDown':e.preventDefault();moveFoco('down');break;
+    case'Enter':case'OK':e.preventDefault();focusables[currentIndex]?.click();break;
   }
 });
 
-/* ================= LINKS MENUS TV ================= */
-document.querySelectorAll(
-  '#menu-tv, .menu-tv, [data-menu="tv"]'
-).forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    loadCanais('data/ativa_canais.json'); // JSON interno do sistema
-  })
+/* ================= HOME ================= */
+function renderCard(item,container){
+  if(!item)return;
+  const div=document.createElement('div');
+  div.className='card';div.tabIndex=0;
+  div.innerHTML=`<img src="${item.poster}"><span>${item.titulo}</span>`;
+  div.onclick=()=>openDetails(item);
+  container.appendChild(div);
+}
+
+function loadCategory(path,container){
+  fetch(path).then(r=>r.json()).then(data=>{
+    container.innerHTML='';
+    data.slice(0,4).forEach(i=>renderCard(i,container));
+    recolherFocusables();
+  });
+}
+
+/* ================= DETALHES ================= */
+function openDetails(item){
+  document.getElementById('home').style.display='none';
+  document.getElementById('catalogo').style.display='none';
+  document.getElementById('details').style.display='block';
+  detailsPoster.src=item.poster;
+  detailsTitle.textContent=item.titulo;
+  detailsMeta.textContent=`⭐ ${item.rating} • ${item.year}`;
+  detailsDesc.textContent=item.desc;
+}
+
+/* ================= VOLTAR HOME ================= */
+function goHome(){
+  document.getElementById('details').style.display='none';
+  document.getElementById('catalogo').style.display='none';
+  document.getElementById('home').style.display='block';
+  recolherFocusables();
+  const inicio=document.querySelector('#sidebar .menu a:first-child');
+  setFoco(parseInt(inicio.dataset.focusIndex||0));
+}
+
+/* ================= CATALOGO CANAIS ================= */
+function abrirCanais(path,titulo){
+  document.getElementById('home').style.display='none';
+  document.getElementById('details').style.display='none';
+  const catalogo=document.getElementById('catalogo');
+  catalogo.style.display='block';
+  catalogo.innerHTML=`<h2>${titulo}</h2><div id="canais-grid" class="canal-row"></div>`;
+  const grid=document.getElementById('canais-grid');
+  fetch(path).then(r=>r.json()).then(data=>{
+    data.forEach(c=>{
+      const div=document.createElement('div');
+      div.className='canal-card';
+      div.tabIndex=0;
+      div.innerHTML=`<img src="${c.logo}" alt="${c.nome}"><span>${c.nome}</span>`;
+      div.onclick=()=>openDetails(c);
+      grid.appendChild(div);
+    });
+    recolherFocusables();
+    const firstChannel=focusables.findIndex(f=>f.classList.contains('canal-card'))||0;
+    setFoco(firstChannel);
+  });
+}
+
+/* ================= MENU ================= */
+document.querySelectorAll('#sidebar .menu a').forEach(btn=>{
+  const txt=btn.textContent.trim();
+  switch(txt){
+    case'Início': btn.onclick=goHome; break;
+    case'TV ao Vivo': btn.onclick=()=>abrirCanais('data/ativa_canais.json','TV ao Vivo'); break;
+    case'Canais Kids': btn.onclick=()=>abrirCanais('data/ativa_kids_canais.json','Canais Kids'); break;
+    case'Cinema': btn.onclick=()=>loadCategory('data/filmes.json',emAlta); break;
+    case'Séries': btn.onclick=()=>loadCategory('data/series.json',emAlta); break;
+    case'Filmes Kids': btn.onclick=()=>loadCategory('data/kids_filmes.json',emAlta); break;
+    case'Séries Kids': btn.onclick=()=>loadCategory('data/kids_series.json',emAlta); break;
+    case'Minha Lista': btn.onclick=()=>loadCategory('data/favoritos.json',emAlta); break;
+  }
 });
 
-document.querySelectorAll(
-  '#menu-canais-kids, .menu-canais-kids, [data-menu="kids-tv"]'
-).forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    loadCanais('data/ativa_kids_canais.json'); // JSON interno do sistema
-  })
+/* ================= INIT ================= */
+window.addEventListener('load',()=>{
+  recolherFocusables();
+  const inicio=document.querySelector('#sidebar .menu a:first-child')||focusables[0];
+  setFoco(parseInt(inicio.dataset.focusIndex||0));
+  loadCategory('data/filmes.json',document.getElementById('emAlta'));
+  loadCategory('data/series.json',document.getElementById('novos'));
 });
 </script>
-  
+
 </body>
 </html>
