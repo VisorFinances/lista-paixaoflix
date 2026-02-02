@@ -459,6 +459,25 @@ body::-webkit-scrollbar,
   background: transparent;
 }
 </style>
- 
+
+<!-- ================= PATCH HOME 4 CAPAS FIXAS ================= -->
+<style>
+/* Garante apenas 4 capas grandes por sessão */
+#home .row{
+  grid-template-columns:repeat(4,1fr) !important;
+}
+
+/* Capas maiores */
+#home .card img{
+  height:340px !important;
+}
+
+/* Remove QUALQUER pista visual de continuidade horizontal */
+#home .row::before,
+#home .row::after{
+  display:none !important;
+}
+</style>
+  
 </body>
 </html>
