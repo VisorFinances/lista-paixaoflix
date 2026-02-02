@@ -236,7 +236,7 @@ function renderMovies() {
     const cont = document.getElementById("moviesScroll");
     cont.innerHTML = "";
     
-    // Novas categorias obrigatórias
+    // 1. Filtramos os lançamentos (usando year ou ano)
     const lanc2026 = movies.filter(m => m.year == "2026" || m.ano == "2026");
     const lanc2025 = movies.filter(m => m.year == "2025" || m.ano == "2025");
     
@@ -246,14 +246,21 @@ function renderMovies() {
     ];
 
     const fixedOrder = ["Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
+    
     let cats = {};
     movies.forEach(m => { 
-        if(m.year != "2026" && m.year != "2025") {
+        // CORREÇÃO AQUI: A exclusão agora checa ambas as propriedades (year e ano)
+        // Se for 2026 ou 2025, ele NÃO entra no objeto 'cats' de gêneros
+        const isLancamento = m.year == "2026" || m.ano == "2026" || m.year == "2025" || m.ano == "2025";
+        
+        if(!isLancamento) {
             const c = m.genero || m.categoria || "Geral"; 
-            if(!cats[c]) cats[c] = []; cats[c].push(m); 
+            if(!cats[c]) cats[c] = []; 
+            cats[c].push(m); 
         }
     });
 
+    // Renderiza primeiro os lançamentos, depois os gêneros
     categories.forEach(cat => { if(cat.data.length > 0) renderCatSection(cont, cat.name, cat.data); });
     fixedOrder.forEach(name => { if(cats[name]) renderCatSection(cont, name, cats[name]); });
 }
