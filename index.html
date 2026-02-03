@@ -418,19 +418,20 @@ function renderMovieGrid(grid, list, isFull) {
 
 function updateFocus() {
     if(isPlayerOpen) return;
+    
+    // Remove o foco de qualquer lugar antes de aplicar o novo
     document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
     
     const sideBar = document.getElementById("menuBrands");
     
-    // A barra só expande se o foco estiver nela E não houver nada aberto por cima
+    // CORREÇÃO: A barra só expande se o foco for especificamente no menu
     if (currentFocus === "menu" && !isDetailsOpen && !isMoviesOpen && !isChannelsOpen) {
         sideBar.classList.add("expanded");
     } else {
         sideBar.classList.remove("expanded");
     }
     
-    // ... restante do seu código de foco (detalhes, grid, etc)
-}
+    // Lógica de foco para cada estado do sistema
     if(isDetailsOpen) {
         const btns = document.querySelectorAll(".btn-3d");
         btns[detIdx]?.classList.add("focused");
@@ -443,13 +444,19 @@ function updateFocus() {
         cards[chanIdx]?.classList.add("focused");
         cards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
-        if(currentFocus === "menu") document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
-        if(currentFocus === "editor") document.getElementById("editorSlider")?.classList.add("focused");
-        if(currentFocus === "grid") document.querySelectorAll(".top6-item")[gridIdx]?.classList.add("focused");
+        // Foco na Home
+        if(currentFocus === "menu") {
+            document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
+        } else if(currentFocus === "editor") {
+            document.getElementById("editorSlider")?.classList.add("focused");
+        } else if(currentFocus === "grid") {
+            document.querySelectorAll(".top6-item")[gridIdx]?.classList.add("focused");
+        }
+        
+        // Garante que o item focado esteja visível
         document.querySelector(".focused")?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-}
-
+} // <--- Certifique-se de que esta chave fecha a função apenas aqui!
 document.addEventListener("keydown", e => {
     const k = e.keyCode;
     if(isPlayerOpen && Keys.BACK.includes(k)) { closePlayer(); return; }
