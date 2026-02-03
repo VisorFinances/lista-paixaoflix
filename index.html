@@ -73,7 +73,7 @@
     align-items: center; 
     justify-content: space-between; 
     padding: 0 50px; 
-    z-index: 5000; 
+    z-index: 8000; 
     background: #000; 
     border-bottom: 1px solid rgba(255,255,255,0.05);
 }
@@ -124,7 +124,8 @@
     #menuBrands {
         position: fixed;
         left: 0;
-        top: 0;
+        top: 30px; /* Altere de 0 para 30px */
+        height: calc(100vh - 30px); /* Ajuste a altura para não sobrar barra embaixo */ 
         bottom: 0;
         width: 80px;
         background: rgba(0, 0, 0, 0.6);
@@ -132,9 +133,9 @@
         -webkit-backdrop-filter: blur(15px);
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start; /* Muda de center para o início (topo) */
         gap: 20px;
-        padding: 20px 15px;
+        padding: 100px 15px; /* Aumente o primeiro valor (topo) para empurrar os ícones para baixo */
         z-index: 7000;
         transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         border-right: 1px solid rgba(255, 255, 255, 0.05);
@@ -419,14 +420,17 @@ function updateFocus() {
     if(isPlayerOpen) return;
     document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
     
-    // Lógica da Barra Lateral Expansível
     const sideBar = document.getElementById("menuBrands");
+    
+    // A barra só expande se o foco estiver nela E não houver nada aberto por cima
     if (currentFocus === "menu" && !isDetailsOpen && !isMoviesOpen && !isChannelsOpen) {
         sideBar.classList.add("expanded");
     } else {
         sideBar.classList.remove("expanded");
     }
-
+    
+    // ... restante do seu código de foco (detalhes, grid, etc)
+}
     if(isDetailsOpen) {
         const btns = document.querySelectorAll(".btn-3d");
         btns[detIdx]?.classList.add("focused");
