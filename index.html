@@ -105,18 +105,68 @@
     #menuBrands.expanded .brand-card span { opacity: 1; }
     .brand-card.focused { background: #FFCE44 !important; color: #000 !important; transform: scale(1.1); }
 
-    #top6Section { margin-left: 20px; width: 100%; padding: 20px 0; }
-    #top6Title { font-size: 26px; font-weight: 500; color: #FFCE44; margin-bottom: 30px; }
-    .top6-grid { display: flex !important; gap: 60px; padding-left: 60px; }
-    .top6-item { position: relative; flex: 0 0 180px; height: 270px; transition: 0.4s; }
-    .top6-number { 
-        position: absolute; left: -55px; bottom: -15px; font-size: 110px; 
-        font-weight: 900; color: rgba(0,0,0,0.5); -webkit-text-stroke: 2px #FFCE44; z-index: -1; 
-    }
-    .top6-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); }
-    .top6-item.focused { transform: translateY(-30px) scale(1.08); z-index: 20; }
-    .top6-item.focused .top6-poster { border: 3px solid #fff; }
+    #top6Section { 
+    margin-left: 20px; 
+    width: 100%; 
+    padding: 60px 0; /* Aumentado para dar espaço ao movimento de subida (translateY) */
+    background: transparent !important; 
+    overflow: visible !important; /* Impede o corte/barra preta nos efeitos */
+}
 
+#top6Title { 
+    font-size: 26px; 
+    font-weight: 500; 
+    color: #FFCE44; 
+    margin-bottom: 50px; /* Espaço extra para o item focado não encostar no texto */
+    text-transform: uppercase;
+}
+
+.top6-grid { 
+    display: flex !important; 
+    gap: 60px; 
+    padding-left: 60px; 
+    overflow: visible !important; /* Garante que a sombra e o brilho apareçam */
+}
+
+.top6-item { 
+    position: relative; 
+    flex: 0 0 180px; 
+    height: 270px; 
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+    z-index: 1;
+}
+
+.top6-number { 
+    position: absolute; 
+    left: -55px; 
+    bottom: -15px; 
+    font-size: 110px; 
+    font-weight: 900; 
+    color: rgba(0,0,0,0.5); 
+    -webkit-text-stroke: 2px #FFCE44; 
+    z-index: -1; 
+}
+
+.top6-poster { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    border-radius: 12px; 
+    border: 2px solid rgba(255, 255, 255, 0.1); 
+    transition: all 0.4s ease;
+}
+
+/* Efeito de foco otimizado: sobe e brilha sem cortar */
+.top6-item.focused { 
+    transform: translateY(-25px) scale(1.1); 
+    z-index: 100; 
+}
+
+.top6-item.focused .top6-poster { 
+    border: 3px solid #fff; 
+    box-shadow: 0 15px 40px rgba(255, 206, 68, 0.4); /* Brilho amarelo Pipoca */
+    filter: brightness(1.1);
+}
     #channelsOverlay, #moviesOverlay { position: fixed; top: 75px; left: 80px; width: calc(100vw - 80px); height: calc(100vh - 75px); background: #000; z-index: 10000; display: none; flex-direction: column; overflow-y: auto; }
     #channelsScroll, #moviesScroll { padding: 40px 50px 100px 40px; }
 
