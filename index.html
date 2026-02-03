@@ -163,37 +163,33 @@
 /* BARRA LATERAL - ABAIXO DO TOPBAR */
 
 #menuBrands {
-
     position: fixed;
-
     left: 0;
-
-    top: 75px; /* Começa após o topBar */
-
+    top: 75px;
     width: 80px;
-
     height: calc(100vh - 75px);
-
-    background: rgba(0, 0, 0, 0.6);
-
+    z-index: 15000 !important; 
+    background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(15px);
-
-    -webkit-backdrop-filter: blur(15px);
-
-    display: flex;
-
-    flex-direction: column;
-
-    padding: 40px 15px;
-
-    z-index: 10000; /* Abaixo do Logo, mas acima do conteúdo */
-
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    transition: width 0.4s ease;
+}    border-right: 1px solid rgba(255, 255, 255, 0.05);
 
     overflow: hidden !important;
 
+   #menuBrands {
+    z-index: 12000 !important; /* Maior que os Overlays de filmes e canais */
+}
+
+/* Ajuste das páginas de Filmes/Canais para não cobrirem o menu */
+#channelsOverlay, #moviesOverlay {
+    position: fixed;
+    top: 75px;
+    left: 80px; /* Recuo para o menu aparecer */
+    width: calc(100vw - 80px);
+    height: calc(100vh - 75px);
+    background: #000;
+    z-index: 10000;
+    display: none;
 }
 
 
@@ -561,72 +557,37 @@
 
 
 <div id="topBar">
-
     <img id="logoMain" src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" onclick="location.reload()">
-
     <div id="barCounter">JÁ TEMOS <span id="totalItems">0</span> CONTEÚDOS</div>
-
     <div id="barDateTime">CARREGANDO...</div>
-
 </div>
 
-
+<div id="menuBrands" class="main-menu">
+    <div class="brand-card" onclick="openChannelsPage()"><i class="fas fa-tv"></i><span>Canais</span></div>
+    <div class="brand-card" onclick="renderCategoryPage(movies, 'Cinema')"><i class="fas fa-film"></i><span>Cinema</span></div>
+    <div class="brand-card" onclick="renderCategoryPage(series, 'Séries')"><i class="fas fa-clapperboard"></i><span>Séries</span></div>
+    <div class="brand-card" onclick="openChannelsPage()"><i class="fas fa-child"></i><span>Kids TV</span></div>
+    <div class="brand-card" onclick="renderCategoryPage(kidsMovies, 'Kids Filmes')"><i class="fas fa-baby"></i><span>Kids Filmes</span></div>
+    <div class="brand-card" onclick="renderCategoryPage(kidsSeries, 'Kids Séries')"><i class="fas fa-robot"></i><span>Kids Séries</span></div>
+    <div class="brand-card"><i class="fas fa-heart"></i><span>Favoritos</span></div>
+</div>
 
 <div id="mainScroll">
-
     <div id="carouselContainer">
-
         <div id="editorSlider">
-
             <div id="editorInfo">
-
                 <div id="editorTitle">...</div>
-
                 <div id="editorMeta">ANO • ★ 0.0</div>
-
                 <div class="btn-watch">Assistir Agora</div>
-
             </div>
-
         </div>
-
     </div>
-
-
-
-    <div id="menuBrands" class="main-menu">
-
-        <div class="brand-card" onclick="openChannelsPage()"><i class="fas fa-tv"></i><span>Canais</span></div>
-
-        <div class="brand-card" onclick="renderCategoryPage(movies, 'Cinema')"><i class="fas fa-film"></i><span>Cinema</span></div>
-
-        <div class="brand-card" onclick="renderCategoryPage(series, 'Séries')"><i class="fas fa-clapperboard"></i><span>Séries</span></div>
-
-        <div class="brand-card" onclick="openChannelsPage()"><i class="fas fa-child"></i><span>Kids TV</span></div>
-
-        <div class="brand-card" onclick="renderCategoryPage(kidsMovies, 'Kids Filmes')"><i class="fas fa-baby"></i><span>Kids Filmes</span></div>
-
-        <div class="brand-card" onclick="renderCategoryPage(kidsSeries, 'Kids Séries')"><i class="fas fa-robot"></i><span>Kids Séries</span></div>
-
-        <div class="brand-card"><i class="fas fa-heart"></i><span>Favoritos</span></div>
-
-    </div>
-
-
-
     <div id="top6Section">
-
         <div id="top6Title">Top 6 PaixãoFlix</div>
-
         <div class="top6-grid" id="top6Container"></div>
-
     </div>
-
     <div style="height: 150px;"></div>
-
 </div>
-
-
 
 <div id="detailsOverlay">
 
@@ -771,20 +732,30 @@ function closeDetails() {
 
 
 function renderCategoryPage(dataList, pageTitle) {
-
-    isChannelsOpen = false; isMoviesOpen = true;
-
+    isChannelsOpen = false; 
+    isMoviesOpen = true;
+    
+    // Esconde os outros, mas o menuBrands não é citado aqui, logo ele permanece
     document.getElementById("mainScroll").style.display = "none";
-
+    document.getElementById("channelsOverlay").style.display = "none"; 
     document.getElementById("moviesOverlay").style.display = "flex";
-
+    
     renderGridSystem(dataList); 
-
-    currentFocus = "movie_grid"; movieIdx = 0; updateFocus();
-
+    currentFocus = "movie_grid"; 
+    movieIdx = 0; 
+    updateFocus();
 }
 
-
+function openChannelsPage() {
+    isMoviesOpen = false;
+    isChannelsOpen = true;
+    document.getElementById("mainScroll").style.display = "none";
+    document.getElementById("moviesOverlay").style.display = "none";
+    document.getElementById("channelsOverlay").style.display = "flex";
+    currentFocus = "channel_grid";
+    chanIdx = 0;
+    updateFocus();
+}
 
 function renderGridSystem(targetList) {
 
