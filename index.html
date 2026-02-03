@@ -91,7 +91,7 @@
     #editorMeta { font-size: 18px; color: #FFCE44; font-weight: 500; margin-bottom: 20px; z-index: 2; }
     .btn-watch { background: #FFCE44; color: #000; padding: 10px 30px; border-radius: 8px; font-weight: 900; font-size: 13px; text-transform: uppercase; display: inline-block; z-index: 2; }
        
-   ./* BARRA LATERAL ESTILO DISNEY+ (DESLIZA POR CIMA) */
+   /* BARRA LATERAL ESTILO DISNEY+ (DESLIZA POR CIMA) */
     #menuBrands {
         position: fixed;
         left: 0;
@@ -455,11 +455,17 @@ document.addEventListener("keydown", e => {
             if(Keys.DOWN.includes(k)) { currentFocus = "menu"; menuIdx = 0; }
             if(Keys.ENTER.includes(k)) openDetails(editorsChoice[edIdx]);
         } else if(currentFocus === "menu") {
-            if(Keys.RIGHT.includes(k)) menuIdx = Math.min(6, menuIdx+1);
-            if(Keys.LEFT.includes(k)) menuIdx = Math.max(0, menuIdx-1);
-            if(Keys.UP.includes(k)) currentFocus = "editor";
-            if(Keys.DOWN.includes(k)) { currentFocus = "grid"; gridIdx = 0; }
-            if(Keys.ENTER.includes(k)) document.querySelectorAll(".main-menu .brand-card")[menuIdx].click();
+    // Sobe e desce entre os itens do menu
+    if(Keys.DOWN.includes(k)) menuIdx = Math.min(6, menuIdx+1);
+    if(Keys.UP.includes(k)) menuIdx = Math.max(0, menuIdx-1);
+    
+    // SAI do menu e vai para o conteúdo ao apertar DIREITA
+    if(Keys.RIGHT.includes(k)) { 
+        currentFocus = "editor"; 
+    }
+    
+    if(Keys.ENTER.includes(k)) document.querySelectorAll(".main-menu .brand-card")[menuIdx].click();
+}
         } else if(currentFocus === "grid") {
             if(Keys.RIGHT.includes(k)) gridIdx = Math.min(5, gridIdx+1);
             if(Keys.LEFT.includes(k)) gridIdx = Math.max(0, gridIdx-1);
