@@ -319,7 +319,8 @@
 <script>
 let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [];
 let top6Data = [], editorsChoice = [], edIdx = 0;
-let currentFocus = "menu", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0; 
+// O sistema agora inicia focado no Banner central, mantendo a barra lateral fechada
+let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0;
 let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, isDetailsOpen = false, playerInstance = null, currentItem = null;
 
 const Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443, 117], BACK: [8, 27, 461, 10009] };
