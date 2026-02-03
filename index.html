@@ -998,7 +998,6 @@ function updateFocus() {
             document.getElementById("editorSlider")?.classList.add("focused");
 
       // DENTRO DO ELSE (NAVEGAÇÃO NA HOME)
-// Substitua o bloco 'else if(currentFocus === "grid")' por este:
 else if(currentFocus === "grid") {
     if(Keys.RIGHT.includes(k)) {
         gridIdx = Math.min(top6Data.length - 1, gridIdx + 1);
@@ -1019,19 +1018,20 @@ else if(currentFocus === "grid") {
     }
 }    
        
-   // Dentro de updateFocus(), no final do 'else' da Home:
-else if(currentFocus === "grid") {
-    const gridItems = document.querySelectorAll(".top6-item");
-    gridItems[gridIdx]?.classList.add("focused");
-    
-    // Scroll horizontal automático para o item focado
-    gridItems[gridIdx]?.scrollIntoView({ 
-        behavior: 'smooth', 
-        inline: 'center', 
-        block: 'nearest' 
-    });
-}      // Garante que o item focado esteja visível
-       
+  else if(currentFocus === "grid") {
+            const gridItems = document.querySelectorAll(".top6-item");
+            gridItems[gridIdx]?.classList.add("focused");
+            
+            gridItems[gridIdx]?.scrollIntoView({ 
+                behavior: 'smooth', 
+                inline: 'center', 
+                block: 'nearest' 
+            });
+        }
+    }
+    // Fim da função updateFocus
+}
+
 document.addEventListener("keydown", e => {
     const k = e.keyCode;
     if(isPlayerOpen && Keys.BACK.includes(k)) { closePlayer(); return; }
@@ -1046,23 +1046,20 @@ document.addEventListener("keydown", e => {
         if(Keys.BACK.includes(k)) closeDetails();
     } 
     
-    // NAVEGAÇÃO GLOBAL NO MENU LATERAL
     else if(currentFocus === "menu") {
         if(Keys.DOWN.includes(k)) menuIdx = Math.min(6, menuIdx + 1);
         if(Keys.UP.includes(k)) menuIdx = Math.max(0, menuIdx - 1);
         if(Keys.RIGHT.includes(k)) { 
-            // Retorna ao conteúdo baseado na página ativa
             if(isMoviesOpen) currentFocus = "movie_grid";
             else if(isChannelsOpen) currentFocus = "channel_grid";
             else currentFocus = "editor";
         }
         if(Keys.ENTER.includes(k)) {
             const cards = document.querySelectorAll(".main-menu .brand-card");
-            cards[menuIdx].click();
+            if(cards[menuIdx]) cards[menuIdx].click();
         }
     }
 
-    // NAVEGAÇÃO NA HOME (Banner e Top 6)
     else if(!isMoviesOpen && !isChannelsOpen) {
         if(currentFocus === "editor") {
             if(Keys.DOWN.includes(k)) { currentFocus = "grid"; gridIdx = 0; }
@@ -1080,43 +1077,31 @@ document.addEventListener("keydown", e => {
         }
     }
     
-    // NAVEGAÇÃO EM FILMES/CANAIS (Mantida a sua lógica original com ajuste de escape)
     else {
-        // ... (Seu código existente para isMoviesOpen e isChannelsOpen)
         if(Keys.BACK.includes(k)) {
-            location.reload(); // Forma mais segura de resetar para a Home
+            location.reload(); 
         }
     }
     updateFocus();
 });
+
 function parseM3U(content) {
-
     const lines = content.split('\n');
-
     let cats = {};
-
     lines.forEach((line, i) => {
-
         if(line.startsWith("#EXTINF")) {
-
             const name = line.split(',')[1] || "Canal";
-
             const logo = line.match(/tvg-logo="([^"]+)"/)?.[1] || "";
-
             const cat = line.match(/group-title="([^"]+)"/)?.[1]?.trim() || "Geral";
-
             const url = lines[i+1]?.trim();
-
-            if(url && url.startsWith("http")) { if(!cats[cat]) cats[cat] = []; cats[cat].push({ name, logo, url }); }
-
+            if(url && url.startsWith("http")) { 
+                if(!cats[cat]) cats[cat] = []; 
+                cats[cat].push({ name, logo, url }); 
+            }
         }
-
     });
-
     renderChannels(cats);
-
 }
-
 
 
 function renderChannels(cats) {
