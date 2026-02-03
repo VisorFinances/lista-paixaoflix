@@ -89,7 +89,76 @@
     #editorMeta { font-size: 18px; color: #FFCE44; font-weight: 500; margin-bottom: 20px; z-index: 2; }
     .btn-watch { background: #FFCE44; color: #000; padding: 10px 30px; border-radius: 8px; font-weight: 900; font-size: 13px; text-transform: uppercase; display: inline-block; z-index: 2; }
     #menuBrands { display: flex; gap: 15px; padding: 30px 50px; justify-content: center; width: 100%; }
-    .brand-card { flex: 1; height: 100px; background: linear-gradient(135deg, #1a1d29, #2a2e42); border: 2px solid #FFCE44; border-bottom: 5px solid #b38f00; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; color: #fff; }
+    ./* BARRA LATERAL ESTILO DISNEY+ (DESLIZA POR CIMA) */
+    #menuBrands {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 80px; /* Largura fechada (apenas ícones) */
+        background: rgba(0, 0, 0, 0.6); /* Transparência base */
+        backdrop-filter: blur(15px); /* Efeito Vidro */
+        -webkit-backdrop-filter: blur(15px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 20px;
+        padding: 20px 15px;
+        z-index: 7000; /* Abaixo do Player, acima de tudo */
+        transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        overflow: hidden !important;
+    }
+
+    /* Expansão quando a barra ganha foco (classe controlada por JS) */
+    #menuBrands.expanded {
+        width: 260px; /* Largura aberta */
+        background: rgba(0, 0, 0, 0.9);
+    }
+
+    .brand-card {
+        width: 100%;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 0 15px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.3s;
+        color: rgba(255, 255, 255, 0.6);
+        background: transparent;
+        border: none;
+    }
+
+    .brand-card i {
+        font-size: 24px;
+        min-width: 30px;
+        text-align: center;
+    }
+
+    .brand-card span {
+        font-size: 18px;
+        font-weight: 500;
+        white-space: nowrap;
+        opacity: 0; /* Escondido quando fechado */
+        transition: opacity 0.3s;
+    }
+
+    /* Quando a barra expande, mostra o texto */
+    #menuBrands.expanded .brand-card span {
+        opacity: 1;
+    }
+
+    /* Foco no ícone estilo PaixãoFlix */
+    .brand-card.focused {
+        background: #fff;
+        color: #000;
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+
+    .brand-card.focused i { color: #000; }
     .brand-card i { font-size: 26px; margin-bottom: 8px; color: #FFCE44; }
     .brand-card span { font-size: 13px; font-weight: 200; text-transform: uppercase; text-align: center; }
     .brand-card.focused { transform: scale(1.1); background: #f9f9f9; color: #000; border-color: #E50914; z-index: 10; border-width: 3px; }
