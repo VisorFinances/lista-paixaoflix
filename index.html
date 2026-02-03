@@ -166,7 +166,7 @@
     position: fixed;
     left: 0;
     top: 75px;
-    width: 80px;
+    width: 70px;
     height: calc(100vh - 75px);
     z-index: 15000 !important; 
     background: rgba(0, 0, 0, 0.8);
@@ -199,6 +199,7 @@
 #mainScroll {
     margin-top: 75px;  
     margin-left: 80px; /* Margem para o menu fechado */
+    padding-left: 40px; /* Margem extra para o conteúdo respirar */
     padding: 20px 20px 20px 40px; /* Adicionado padding extra na esquerda */
     height: calc(100vh - 75px);
     overflow-y: auto !important;
@@ -443,19 +444,23 @@
     #channelsOverlay, #moviesOverlay { position: fixed; inset: 0; background: #000; z-index: 4000; display: none; flex-direction: column; padding-top: 80px; }
 
     /* Ajuste do Scroll de Canais */
+/* Espaçamento para os Canais */
 #channelsScroll {
-    padding: 40px 50px 100px 100px !important; /* Aumentado o padding-left para 100px */
-    overflow-y: auto !important;
-    height: calc(100vh - 180px);
+    padding-left: 120px !important; /* Abre espaço para o menu não cobrir os ícones */
+    padding-top: 40px;
+    padding-right: 50px;
+    padding-bottom: 100px;
 }
-
+   
 /* Ajuste do Scroll de Filmes e Séries */
+/* Espaçamento para Filmes e Séries */
 #moviesScroll {
-    padding: 40px 50px 100px 100px !important; /* Aumentado o padding-left para 100px */
-    overflow-y: auto !important;
-    height: calc(100vh - 180px);
+    padding-left: 120px !important; /* Abre espaço para o menu não cobrir as capas */
+    padding-top: 40px;
+    padding-right: 50px;
+    padding-bottom: 100px;
 }
-
+   
 /* Ajuste do Título das Categorias */
 .channel-category-title {
     font-size: 28px;
