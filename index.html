@@ -421,24 +421,45 @@
 
     #top6Title { font-size: 95px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #FFCE44; text-transform: uppercase; margin-bottom: 80px; }
 
-    .top6-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 160px 50px; }
+    /* Container que permite o scroll lateral */
+.top6-grid {
+    display: flex !important; /* Muda de grade para linha */
+    flex-direction: row;
+    gap: 60px; /* Espaço entre os cards */
+    padding: 40px 100px; /* Respiro para o menu e borda direita */
+    overflow-x: auto !important; /* Ativa o scroll horizontal */
+    scroll-behavior: smooth;
+}
 
-    .top6-item { position: relative; width: 100%; height: 550px; cursor: pointer; transition: 0.4s; }
+/* O Card agora é mais estreito (proporção 2:3) */
+.top6-item {
+    flex: 0 0 200px; /* Largura fixa do card */
+    height: 300px; /* Altura reduzida para ganhar espaço vertical */
+    position: relative;
+    cursor: pointer;
+    transition: 0.4s;
+}
 
-    .top6-number { position: absolute; left: -60px; top: 0; font-size: 380px; font-weight: 900; color: rgba(255,255,255,0.9); -webkit-text-stroke: 12px #000; z-index: 5; pointer-events: none; }
+/* O Número agora fica atrás ou ao lado da capa, de forma elegante */
+.top6-number {
+    position: absolute;
+    left: -45px;
+    bottom: -10px;
+    font-size: 150px; /* Grande, mas não ocupa a tela toda */
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.1); /* Efeito vazado moderno */
+    -webkit-text-stroke: 2px #FFCE44;
+    z-index: -1; /* Fica atrás da capa */
+}
 
-    .top6-poster { 
-
-        width: 100%; height: 100%; object-fit: cover; 
-
-        border-radius: 15px; 
-
-        border: 1px solid rgba(255,255,255,0.1); 
-
-        transition: all 0.4s ease; 
-
-    }
-
+.top6-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+   
     .top6-item.focused { transform: translateY(-30px) scale(1.08); z-index: 20; }
 
     #channelsOverlay, #moviesOverlay { position: fixed; inset: 0; background: #000; z-index: 4000; display: none; flex-direction: column; padding-top: 80px; }
