@@ -63,21 +63,50 @@
     .btn-3d.focused { transform: scale(1.1) translateY(3px); border-bottom-width: 2px; box-shadow: 0 0 30px rgba(255, 206, 68, 0.4); }
 
     /* UI GERAL */
-    /* Substitua o trecho do #topBar e #logoMain por este */
+/* BARRA SUPERIOR - CAMADA MÁXIMA */
 #topBar { 
     position: fixed; 
     top: 0; 
+    left: 0;
     width: 100%; 
-    height: 75px; /* Altura equilibrada */
+    height: 75px; 
     display: flex; 
     align-items: center; 
     justify-content: space-between; 
     padding: 0 50px; 
-    z-index: 7000; 
+    z-index: 11000; /* Acima de TUDO */
     background: #000; 
     border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
+/* BARRA LATERAL - ABAIXO DO TOPBAR */
+#menuBrands {
+    position: fixed;
+    left: 0;
+    top: 75px; /* Começa após o topBar */
+    width: 80px;
+    height: calc(100vh - 75px);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: flex;
+    flex-direction: column;
+    padding: 40px 15px;
+    z-index: 10000; /* Abaixo do Logo, mas acima do conteúdo */
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden !important;
+}
+
+/* CONTEÚDO PRINCIPAL - RECUO PARA NÃO FICAR ATRÁS */
+#mainScroll {
+    margin-top: 75px;  
+    margin-left: 80px; 
+    padding: 20px;
+    height: calc(100vh - 75px);
+    overflow-y: auto !important;
+}
+   
 #logoMain { 
     height: 50px; /* Logo agora respira dentro da barra */
     width: auto;
@@ -87,8 +116,9 @@
 
 /* Adicione ou ajuste o margin-top no #mainScroll para não cobrir o topo */
 #mainScroll {
-    margin-top: 75px; 
-    padding-left: 80px; 
+    margin-top: 75px;  /* Espaço para não ficar sob o TopBar */
+    margin-left: 80px; /* Espaço para não ficar sob a Barra Lateral fechada */
+    padding: 20px;
 }
     /* Substitua o trecho do #carouselContainer e #editorSlider por este */
 #carouselContainer { 
@@ -120,28 +150,23 @@
 }    #editorMeta { font-size: 18px; color: #FFCE44; font-weight: 500; margin-bottom: 20px; z-index: 2; }
     .btn-watch { background: #FFCE44; color: #000; padding: 10px 30px; border-radius: 8px; font-weight: 900; font-size: 13px; text-transform: uppercase; display: inline-block; z-index: 2; }
         
-   /* BARRA LATERAL ESTILO DISNEY+ */
-    #menuBrands {
-        position: fixed;
-        left: 0;
-        top: 30px; /* Altere de 0 para 30px */
-        height: calc(100vh - 30px); /* Ajuste a altura para não sobrar barra embaixo */ 
-        bottom: 0;
-        width: 80px;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start; /* Muda de center para o início (topo) */
-        gap: 20px;
-        padding: 100px 15px; /* Aumente o primeiro valor (topo) para empurrar os ícones para baixo */
-        z-index: 9000;
-        transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        border-right: 1px solid rgba(255, 255, 255, 0.05);
-        overflow: hidden !important;
-    }
-
+    /* BARRA LATERAL - Menu Disney+ */
+#menuBrands {
+    position: fixed;
+    left: 0;
+    top: 75px; /* Começa EXATAMENTE onde a topBar termina */
+    width: 80px;
+    height: calc(100vh - 75px); /* Ocupa o restante da tela */
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: flex;
+    flex-direction: column;
+    padding: 40px 15px;
+    z-index: 9000; /* CAMADA MÉDIA: Acima do conteúdo, mas abaixo do logo */
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
     #menuBrands.expanded {
         width: 260px;
         background: rgba(0, 0, 0, 0.9);
@@ -419,47 +444,58 @@ function renderMovieGrid(grid, list, isFull) {
 
 function updateFocus() {
     if(isPlayerOpen) return;
+    
+    // Remove foco anterior
     document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
     
     const sideBar = document.getElementById("menuBrands");
     
-    // Regra Global: Se o foco for "menu", expande. Senão, recolhe.
+    // Controle da Barra Lateral (Expandir/Recolher)
     if (currentFocus === "menu") {
         sideBar.classList.add("expanded");
     } else {
         sideBar.classList.remove("expanded");
     }
     
+    // Lógica de Foco por Seção
     if(isDetailsOpen) {
         const btns = document.querySelectorAll(".btn-3d");
         btns[detIdx]?.classList.add("focused");
-    } // Exemplo para Movies
-} else if(isMoviesOpen) {
-    const items = document.querySelectorAll("#moviesScroll [data-nav]");
-    if(Keys.LEFT.includes(k) && movieIdx % 4 === 0) { currentFocus = "menu"; } // Se estiver na primeira coluna e apertar esquerda, vai para o menu
-    // ... restante das suas teclas de movies
-        } else {
-             const items = document.querySelectorAll("#moviesScroll [data-nav]");
-             items[movieIdx]?.classList.add("focused");
-             items[movieIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    } else if(isChannelsOpen) {
+    } 
+    else if(isMoviesOpen) {
         if(currentFocus === "menu") {
-             document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
+            document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
         } else {
-             const cards = document.querySelectorAll("#channelsScroll .channel-card");
-             cards[chanIdx]?.classList.add("focused");
-             cards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const items = document.querySelectorAll("#moviesScroll [data-nav]");
+            items[movieIdx]?.classList.add("focused");
+            items[movieIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-    } else {
-        if(currentFocus === "menu") document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
-        else if(currentFocus === "editor") document.getElementById("editorSlider")?.classList.add("focused");
-        else if(currentFocus === "grid") document.querySelectorAll(".top6-item")[gridIdx]?.classList.add("focused");
-        
-        document.querySelector(".focused")?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } 
+    else if(isChannelsOpen) {
+        if(currentFocus === "menu") {
+            document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
+        } else {
+            const cards = document.querySelectorAll("#channelsScroll .channel-card");
+            cards[chanIdx]?.classList.add("focused");
+            cards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    } 
+    else {
+        // Foco na Home
+        if(currentFocus === "menu") {
+            document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
+        } else if(currentFocus === "editor") {
+            document.getElementById("editorSlider")?.classList.add("focused");
+        } else if(currentFocus === "grid") {
+            const gridItems = document.querySelectorAll(".top6-item");
+            gridItems[gridIdx]?.classList.add("focused");
+        }
     }
-}        
-        // Garante que o item focado esteja visível
+
+    // Scroll automático para qualquer item focado
+    const focusedEl = document.querySelector(".focused");
+    if (focusedEl) focusedEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}        // Garante que o item focado esteja visível
         document.querySelector(".focused")?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 } // <--- Certifique-se de que esta chave fecha a função apenas aqui!
