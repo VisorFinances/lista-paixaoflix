@@ -417,41 +417,54 @@
 
     
 
-    #top6Section { padding: 80px 50px; text-align: center; width: 100%; }
+#top6Section { 
+    padding: 20px 0 20px 100px; /* Alinhado para não ficar sob o menu */
+    text-align: left; 
+    width: 100%; 
+}
+    /* Seção de Preferidos */
+.row-section {
+    padding: 20px 0 20px 120px; /* Alinhado com o recuo do menu */
+    text-align: left;
+}
 
-    #top6Title { font-size: 95px; font-weight: 900; color: transparent; -webkit-text-stroke: 2px #FFCE44; text-transform: uppercase; margin-bottom: 80px; }
-
-    /* Container que permite o scroll lateral */
-.top6-grid {
-    display: flex !important; /* Muda de grade para linha */
+#top6Title { 
+    font-family: 'Poppins', sans-serif;
+    font-size: 26px; 
+    font-weight: 500; 
+    color: #FFCE44; /* Amarelo Pipoca */
+    margin-bottom: 30px; 
+    margin-left: 15px;
+}
+   
+/* Container Horizontal */
+.top6-grid { 
+    display: flex !important; /* Deixa horizontal */
     flex-direction: row;
-    gap: 60px; /* Espaço entre os cards */
-    padding: 40px 100px; /* Respiro para o menu e borda direita */
-    overflow-x: auto !important; /* Ativa o scroll horizontal */
-    scroll-behavior: smooth;
+    gap: 45px; 
+    padding-left: 40px; /* Espaço para o número do primeiro card aparecer */
 }
 
-/* O Card agora é mais estreito (proporção 2:3) */
-.top6-item {
+.top6-item { 
+    position: relative; 
     flex: 0 0 200px; /* Largura fixa do card */
-    height: 300px; /* Altura reduzida para ganhar espaço vertical */
-    position: relative;
-    cursor: pointer;
-    transition: 0.4s;
+    height: 300px; /* Altura reduzida */
+    cursor: pointer; 
+    transition: 0.4s; 
 }
 
-/* O Número agora fica atrás ou ao lado da capa, de forma elegante */
-.top6-number {
-    position: absolute;
-    left: -45px;
-    bottom: -10px;
-    font-size: 150px; /* Grande, mas não ocupa a tela toda */
-    font-weight: 900;
-    color: rgba(255, 255, 255, 0.1); /* Efeito vazado moderno */
-    -webkit-text-stroke: 2px #FFCE44;
-    z-index: -1; /* Fica atrás da capa */
+.top6-number { 
+    position: absolute; 
+    left: -45px; 
+    bottom: -5px; 
+    font-size: 130px; 
+    font-weight: 900; 
+    color: rgba(0,0,0,0.5); 
+    -webkit-text-stroke: 2px #FFCE44; 
+    z-index: -1; 
+    pointer-events: none; 
 }
-
+   
 .top6-poster {
     width: 100%;
     height: 100%;
@@ -634,7 +647,7 @@
         </div>
     </div>
     <div id="top6Section">
-        <div id="top6Title">Top 6 PaixãoFlix</div>
+        <div id="top6Title">Preferidos do momento</div>
         <div class="top6-grid" id="top6Container"></div>
     </div>
     <div style="height: 150px;"></div>
@@ -996,11 +1009,29 @@ function updateFocus() {
 
             document.getElementById("editorSlider")?.classList.add("focused");
 
-        } else if(currentFocus === "grid") {
-
-            const gridItems = document.querySelectorAll(".top6-item");
-
-            gridItems[gridIdx]?.classList.add("focused");
+      // DENTRO DO ELSE (NAVEGAÇÃO NA HOME)
+else if(currentFocus === "grid") {
+    if(Keys.RIGHT.includes(k)) {
+        // Vai para a direita até o limite da lista carregada
+        gridIdx = Math.min(top6Data.length - 1, gridIdx + 1);
+    } 
+    else if(Keys.LEFT.includes(k)) { 
+        if(gridIdx === 0) { 
+            // SÓ entra no menu se já estiver no primeiro item (index 0)
+            currentFocus = "menu"; 
+        } else {
+            // Caso contrário, volta um por um
+            gridIdx--; 
+        }
+    }
+    else if(Keys.UP.includes(k)) { 
+        currentFocus = "editor"; 
+    }
+    
+    // Scroll suave horizontal automático
+    const activeItem = document.querySelectorAll(".top6-item")[gridIdx];
+    if(activeItem) activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}            gridItems[gridIdx]?.classList.add("focused");
 
         }
 
