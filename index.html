@@ -454,9 +454,11 @@ function openContentPage(type) {
     let sourceData = [];
     if(type === 'movies') sourceData = movies;
     else if(type === 'series') sourceData = series;
-    else if(type === 'kids') sourceData = [...kidsMovies, ...kidsSeries];
+    else if(type === 'kids') sourceData = [...kidsMovies, ...kidsSeries]; // Junta os dois arrays kids
 
+    // Restante da função que cria as linhas...
     const overlay = document.getElementById("moviesOverlay");
+    // ... (continua igual ao código anterior)
     const scroll = document.getElementById("moviesScroll");
     overlay.style.display = "flex";
     scroll.innerHTML = `<div class="channel-category-title" style="font-size: 50px; margin-bottom: 30px;">${type.toUpperCase()}</div>`;
