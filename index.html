@@ -112,7 +112,7 @@
     background: transparent !important; 
     overflow: visible !important; /* Impede o corte/barra preta nos efeitos */
 }
-
+   
 #top6Title { 
     font-size: 26px; 
     font-weight: 500; 
@@ -293,13 +293,16 @@ async function openDetails(item) {
             </div>
         </div>
     </div>
+
     <div id="top6Section">
         <div id="top6Title">Preferidos do momento</div>
         <div class="top6-grid" id="top6Container"></div>
     </div>
+
+    <div id="dynamicSections"></div>
+
     <div style="height: 150px;"></div>
 </div>
-
 <div id="detailsOverlay">
     <div id="detailsBg"></div>
     <div id="detailsContent">
@@ -329,6 +332,15 @@ async function openDetails(item) {
 </div>
 
 <script>
+// --- COLE ESTE BLOCO AQUI ---
+const sectionConfigs = [
+    { id: 0, nome: "Nostalgia", categoria: "movies" },
+    { id: 1, nome: "Lançamentos", categoria: "series" },
+    { id: 2, nome: "", categoria: "" },
+    { id: 3, nome: "", categoria: "" } // Deixe vazio para as 13 sessões que você quer
+];
+// ----------------------------
+   
 let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [];
 let top6Data = [], editorsChoice = [], edIdx = 0;
 let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0;
@@ -349,7 +361,9 @@ async function loadData() {
     top6Data = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 6);
     
     startCarousel(); renderTop6(); startClock(); updateFocus();
+    buildDynamicHome(); // <--- ADICIONE ISSO AQUI
 }
+   
 
 function openDetails(item) {
     currentItem = item;
@@ -585,10 +599,40 @@ function renderTop6() {
         cont.appendChild(div);
     });
 }
-
+   
 function startClock() { setInterval(() => { const now = new Date(); document.getElementById("barDateTime").innerText = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase(); }, 1000); }
 
 window.onload = loadData;
+
+function buildDynamicHome() {
+    const container = document.getElementById("dynamicSections");
+    container.innerHTML = ""; // Limpa para não duplicar
+
+    sectionConfigs.forEach(config => {
+        if (config.nome !== "") { // Só cria se você der um nome
+            const section = document.createElement("div");
+            section.className = "category-container"; // Usa seu CSS de grid já existente
+            section.style.marginLeft = "40px";
+            
+            // Pega os dados da categoria (movies, series, etc)
+            const data = window[config.categoria] || [];
+            const limitedData = data.slice(0, 15); // Limita 15 itens por linha na Home
+
+            section.innerHTML = `
+                <div class="channel-category-title">${config.nome}</div>
+                <div class="channels-row movie-grid" id="row-${config.id}">
+                    ${limitedData.map(m => `
+                        <div class="movie-card" onclick='openDetails(${JSON.stringify(m)})'>
+                            <img class="movie-poster" src="${m.poster}">
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(section);
+        }
+    });
+}
+   
 </script>
 </body>
 </html>
