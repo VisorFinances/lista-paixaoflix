@@ -423,7 +423,7 @@ function openDetails(item) {
     document.getElementById("detMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.5'}`;
     document.getElementById("detDesc").innerText = item.descricao || "Conteúdo exclusivo PaixãoFlix.";
     document.getElementById("detailsOverlay").style.display = "flex";
-    document.getElementById("btnDetPlay").onclick = () => playChannel(item.url, item.titulo);
+    document.getElementById("btnDetPlay").onclick = () => playChannel(item.url, item.titulo, item.poster);
 }
 
 function closeDetails() { isDetailsOpen = false; document.getElementById("detailsOverlay").style.display = "none"; }
