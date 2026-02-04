@@ -106,97 +106,41 @@
     .brand-card.focused { background: #FFCE44 !important; color: #000 !important; transform: scale(1.1); }
 
     #top6Section { 
-    margin-left: 20px; 
-    width: 100%; 
-    padding: 60px 0; 
-    background: transparent !important; 
-    overflow: visible !important; 
-}
+        margin-left: 20px; width: 100%; padding: 60px 0; background: transparent !important; overflow: visible !important; 
+    }
 
-#top6Title { 
-    font-size: 26px; 
-    font-weight: 500; 
-    color: #FFCE44; 
-    margin-bottom: 50px; 
-    text-transform: uppercase;
-}
+    #top6Title { font-size: 26px; font-weight: 500; color: #FFCE44; margin-bottom: 50px; text-transform: uppercase; }
 
-.top6-grid { 
-    display: flex !important; 
-    gap: 60px; 
-    padding-left: 60px; 
-    overflow: visible !important; 
-}
+    .top6-grid { display: flex !important; gap: 60px; padding-left: 60px; overflow: visible !important; }
 
-.top6-item { 
-    position: relative; 
-    flex: 0 0 180px; 
-    height: 270px; 
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-    z-index: 1;
-}
+    .top6-item { position: relative; flex: 0 0 180px; height: 270px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
 
-.top6-number { 
-    position: absolute; 
-    left: -55px; 
-    bottom: -15px; 
-    font-size: 110px; 
-    font-weight: 900; 
-    color: rgba(0,0,0,0.5); 
-    -webkit-text-stroke: 2px #FFCE44; 
-    z-index: -1; 
-}
+    .top6-number { position: absolute; left: -55px; bottom: -15px; font-size: 110px; font-weight: 900; color: rgba(0,0,0,0.5); -webkit-text-stroke: 2px #FFCE44; z-index: -1; }
 
-.top6-poster { 
-    width: 100%; 
-    height: 100%; 
-    object-fit: cover; 
-    border-radius: 12px; 
-    border: 2px solid rgba(255, 255, 255, 0.1); 
-    transition: all 0.4s ease;
-}
+    .top6-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); transition: all 0.4s ease; }
 
-.top6-item.focused { 
-    transform: translateY(-25px) scale(1.1); 
-    z-index: 100; 
-}
+    .top6-item.focused { transform: translateY(-25px) scale(1.1); z-index: 100; }
+    .top6-item.focused .top6-poster { border: 3px solid #fff; box-shadow: 0 15px 40px rgba(255, 206, 68, 0.4); filter: brightness(1.1); }
 
-.top6-item.focused .top6-poster { 
-    border: 3px solid #fff; 
-    box-shadow: 0 15px 40px rgba(255, 206, 68, 0.4); 
-    filter: brightness(1.1);
-}
     #channelsOverlay, #moviesOverlay { position: fixed; top: 75px; left: 80px; width: calc(100vw - 80px); height: calc(100vh - 75px); background: #000; z-index: 10000; display: none; flex-direction: column; overflow-y: auto; }
     #channelsScroll, #moviesScroll { padding: 40px 50px 100px 40px; }
 
-    .category-container { width: 100%; margin-bottom: 80px; }
-    .channel-category-title { font-size: 28px; font-weight: 900; color: #FFCE44; margin-bottom: 25px; display: inline-flex; align-items: center; gap: 15px; text-transform: uppercase; }
-    .movie-card { cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; gap: 10px; }
-    .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
-    .movie-card.focused .movie-poster { border: 3px solid #fff; transform: scale(1.1); box-shadow: 0 0 25px rgba(255,255,255,0.3); }
-
-    .channels-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 25px; }
-    .movie-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 40px !important; }
-    .channel-card { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
-    .channel-card img { width: 100%; height: 100%; object-fit: contain; }
-    .channel-card.focused { transform: scale(1.3); filter: drop-shadow(0 0 10px #E50914); }
+    /* PADRONIZAÇÃO DAS 13 SESSÕES DINÂMICAS */
+    .home-category-section { margin-bottom: 60px; display: none; }
+    .category-header { font-size: 26px; font-weight: 700; color: #FFCE44; margin-bottom: 25px; padding-left: 20px; text-transform: uppercase; }
+    .category-row-container { display: flex; gap: 25px; padding: 10px 20px; overflow-x: visible !important; }
+    .standard-card { flex: 0 0 200px; cursor: pointer; transition: transform 0.3s; position: relative; }
+    .standard-card img { width: 100%; height: 300px; object-fit: cover; border-radius: 12px; border: 2px solid rgba(255,255,255,0.1); }
+    .standard-card.focused { transform: scale(1.1); z-index: 100; }
+    .standard-card.focused img { border-color: #fff; box-shadow: 0 0 25px rgba(255, 206, 68, 0.4); }
+    .movie-info-overlay { padding: 10px 5px; }
+    .movie-title-grid { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; margin-bottom: 4px; }
+    .movie-meta-grid { font-size: 12px; color: #FFCE44; display: flex; justify-content: space-between; font-weight: 600; }
 
     #playerOverlay { position: fixed; inset: 0; background: #000; z-index: 20000; display: none; }
     #btnClosePlayer { position: absolute; top: 30px; right: 30px; z-index: 21000; background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid #fff; padding: 12px 25px; cursor: pointer; border-radius: 8px; }
 
     #globalFooter { position: fixed; bottom: 0; width: 100%; height: 80px; background: linear-gradient(transparent, #000); display: flex; align-items: center; justify-content: center; z-index: 6000; }
-
-/* ESTILOS PADRONIZADOS PARA AS 13 SESSÕES */
-.home-category-section { margin-bottom: 60px; display: none; }
-.category-header { font-size: 26px; font-weight: 700; color: #FFCE44; margin-bottom: 25px; padding-left: 20px; text-transform: uppercase; }
-.category-row-container { display: flex; gap: 25px; padding: 10px 20px; overflow-x: visible !important; }
-.standard-card { flex: 0 0 200px; cursor: pointer; transition: transform 0.3s; position: relative; }
-.standard-card img { width: 100%; height: 300px; object-fit: cover; border-radius: 12px; border: 2px solid rgba(255,255,255,0.1); }
-.standard-card.focused { transform: scale(1.1); z-index: 100; }
-.standard-card.focused img { border-color: #fff; box-shadow: 0 0 25px rgba(255, 206, 68, 0.4); }
-.movie-info-overlay { padding: 10px 5px; }
-.movie-title-grid { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; margin-bottom: 4px; }
-.movie-meta-grid { font-size: 12px; color: #FFCE44; display: flex; justify-content: space-between; font-weight: 600; }
 
 </style>
 </head>
@@ -277,21 +221,21 @@ let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, isDetail
 
 const Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443, 117], BACK: [8, 27, 461, 10009] };
 
-// CONFIGURAÇÃO DAS 13 SESSÕES (Preencha 'nome' e 'categoria' para ativar)
+// CONFIGURAÇÃO DAS 13 SESSÕES (Deixe 'nome' vazio para que a sessão FIQUE OCULTA)
 const sectionConfigs = [
-    { id: 0, nome: "Filmes de Ação", categoria: "movies", ativa: true },
-    { id: 1, nome: "Séries Imperdíveis", categoria: "series", ativa: true },
-    { id: 2, nome: "Para a Criançada", categoria: "kidsMovies", ativa: true },
-    { id: 3, nome: "", categoria: "", ativa: false },
-    { id: 4, nome: "", categoria: "", ativa: false },
-    { id: 5, nome: "", categoria: "", ativa: false },
-    { id: 6, nome: "", categoria: "", ativa: false },
-    { id: 7, nome: "", categoria: "", ativa: false },
-    { id: 8, nome: "", categoria: "", ativa: false },
-    { id: 9, nome: "", categoria: "", ativa: false },
-    { id: 10, nome: "", categoria: "", ativa: false },
-    { id: 11, nome: "", categoria: "", ativa: false },
-    { id: 12, nome: "", categoria: "", ativa: false }
+    { id: 0, nome: "", categoria: "" },
+    { id: 1, nome: "", categoria: "" },
+    { id: 2, nome: "", categoria: "" },
+    { id: 3, nome: "", categoria: "" },
+    { id: 4, nome: "", categoria: "" },
+    { id: 5, nome: "", categoria: "" },
+    { id: 6, nome: "", categoria: "" },
+    { id: 7, nome: "", categoria: "" },
+    { id: 8, nome: "", categoria: "" },
+    { id: 9, nome: "", categoria: "" },
+    { id: 10, nome: "", categoria: "" },
+    { id: 11, nome: "", categoria: "" },
+    { id: 12, nome: "", categoria: "" }
 ];
 
 async function loadData() {
@@ -331,16 +275,16 @@ async function getTMDBData(item) {
 async function buildDynamicHome() {
     const container = document.getElementById("dynamicSections");
     container.innerHTML = "";
-    for (const config of sectionConfigs) {
-        if (!config.ativa) continue;
-        const sectionDiv = document.createElement("div");
-        sectionDiv.className = "home-category-section";
-        sectionDiv.style.display = "block";
-        sectionDiv.innerHTML = `<div class="category-header">${config.nome}</div><div class="category-row-container" id="dyn-row-${config.id}"></div>`;
-        container.appendChild(sectionDiv);
-        const dataList = window[config.categoria] || [];
-        renderDynamicCards(dataList.slice(0, 12), `dyn-row-${config.id}`);
-    }
+    sectionConfigs.forEach(config => {
+        if (config.nome && config.categoria && window[config.categoria]?.length > 0) {
+            const sectionDiv = document.createElement("div");
+            sectionDiv.className = "home-category-section";
+            sectionDiv.style.display = "block"; // Só aparece se tiver nome
+            sectionDiv.innerHTML = `<div class="category-header">${config.nome}</div><div class="category-row-container" id="dyn-row-${config.id}"></div>`;
+            container.appendChild(sectionDiv);
+            renderDynamicCards(window[config.categoria].slice(0, 15), `dyn-row-${config.id}`);
+        }
+    });
 }
 
 function renderDynamicCards(items, rowId) {
@@ -348,7 +292,7 @@ function renderDynamicCards(items, rowId) {
     items.forEach(item => {
         const card = document.createElement("div");
         card.className = "standard-card";
-        card.innerHTML = `<img src="${item.poster}"><div class="movie-info-overlay"><span class="movie-title-grid">${item.titulo || item.name}</span><div class="movie-meta-grid"><span class="c-year">${item.year || ''}</span><span class="c-rating">★ ${item.rating || ''}</span></div></div>`;
+        card.innerHTML = `<img src="${item.poster}"><div class="movie-info-overlay"><span class="movie-title-grid">${item.titulo || item.name}</span><div class="movie-meta-grid"><span class="c-year">${item.year || '2026'}</span><span class="c-rating">★ ${item.rating || '9.0'}</span></div></div>`;
         card.onclick = () => openDetails(item);
         row.appendChild(card);
         getTMDBData(item).then(extra => {
@@ -366,23 +310,17 @@ async function openDetails(item) {
     detIdx = 0;
     document.getElementById("detTitle").innerText = "CARREGANDO...";
     document.getElementById("detailsOverlay").style.display = "flex";
-    
     const extra = await getTMDBData(item);
     document.getElementById("detPoster").src = item.poster;
     document.getElementById("detailsBg").style.backgroundImage = `url(${extra?.backdrop || item.poster})`;
     document.getElementById("detTitle").innerText = item.titulo || item.name;
     document.getElementById("detMeta").innerText = `${extra?.ano || item.year || '2026'} • ★ ${extra?.nota || item.rating || '9.5'}`;
     document.getElementById("detDesc").innerText = extra?.descricao || item.descricao || "Aproveite este conteúdo exclusivo na PaixãoFlix.";
-    document.getElementById("detDesc").style.webkitLineClamp = "unset";
     document.getElementById("btnDetPlay").onclick = () => playChannel(item.url, item.titulo);
     updateFocus();
 }
 
-function closeDetails() {
-    isDetailsOpen = false;
-    document.getElementById("detailsOverlay").style.display = "none";
-    updateFocus();
-}
+function closeDetails() { isDetailsOpen = false; document.getElementById("detailsOverlay").style.display = "none"; updateFocus(); }
 
 function renderCategoryPage(dataList, title) {
     isChannelsOpen = false; isMoviesOpen = true;
@@ -390,9 +328,7 @@ function renderCategoryPage(dataList, title) {
     document.getElementById("channelsOverlay").style.display = "none";
     document.getElementById("moviesOverlay").style.display = "flex";
     renderGridSystem(dataList);
-    currentFocus = "movie_grid";
-    movieIdx = 0;
-    updateFocus();
+    currentFocus = "movie_grid"; movieIdx = 0; updateFocus();
 }
 
 function openChannelsPage() {
@@ -400,43 +336,33 @@ function openChannelsPage() {
     document.getElementById("mainScroll").style.display = "none";
     document.getElementById("moviesOverlay").style.display = "none";
     document.getElementById("channelsOverlay").style.display = "flex";
-    currentFocus = "channel_grid";
-    chanIdx = 0;
-    updateFocus();
+    currentFocus = "channel_grid"; chanIdx = 0; updateFocus();
 }
 
 function renderGridSystem(list) {
     const cont = document.getElementById("moviesScroll");
     cont.innerHTML = "";
-    let cats = {"Resultados": list};
-    Object.keys(cats).forEach(cat => {
-        const div = document.createElement("div");
-        div.className = "category-container";
-        div.innerHTML = `<div class="channel-category-title">${cat}</div><div class="channels-row movie-grid"></div>`;
-        const grid = div.querySelector(".movie-grid");
-        cats[cat].forEach(m => {
-            const card = document.createElement("div");
-            card.className = "movie-card";
-            card.innerHTML = `<img class="movie-poster" src="${m.poster}"><div class="movie-info-overlay"><span class="movie-title-grid">${m.titulo || m.name}</span><div class="movie-meta-grid"><span>${m.year || ''}</span><span>★ ${m.rating || ''}</span></div></div>`;
-            card.onclick = () => openDetails(m);
-            grid.appendChild(card);
-        });
-        cont.appendChild(div);
+    const div = document.createElement("div");
+    div.className = "category-container";
+    div.innerHTML = `<div class="channel-category-title">Resultados</div><div class="channels-row movie-grid"></div>`;
+    const grid = div.querySelector(".movie-grid");
+    list.forEach(m => {
+        const card = document.createElement("div");
+        card.className = "movie-card";
+        card.innerHTML = `<img class="movie-poster" src="${m.poster}"><div class="movie-info-overlay"><span class="movie-title-grid">${m.titulo || m.name}</span><div class="movie-meta-grid"><span>${m.year || ''}</span><span>★ ${m.rating || ''}</span></div></div>`;
+        card.onclick = () => openDetails(m);
+        grid.appendChild(card);
     });
+    cont.appendChild(div);
 }
 
 function updateFocus() {
     if(isPlayerOpen) return;
     document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
     const sideBar = document.getElementById("menuBrands");
+    currentFocus === "menu" ? sideBar.classList.add("expanded") : sideBar.classList.remove("expanded");
 
-    if (currentFocus === "menu") sideBar.classList.add("expanded");
-    else sideBar.classList.remove("expanded");
-
-    if(isDetailsOpen) {
-        const btns = document.querySelectorAll(".btn-3d");
-        btns[detIdx]?.classList.add("focused");
-    } 
+    if(isDetailsOpen) document.querySelectorAll(".btn-3d")[detIdx]?.classList.add("focused");
     else if(isMoviesOpen) {
         if(currentFocus === "menu") document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
         else {
@@ -488,14 +414,17 @@ document.addEventListener("keydown", e => {
     else if(!isMoviesOpen && !isChannelsOpen) {
         if(currentFocus === "editor") {
             if(Keys.DOWN.includes(k)) { currentFocus = "grid"; gridIdx = 0; }
-            if(Keys.LEFT.includes(k)) { currentFocus = "menu"; }
+            if(Keys.LEFT.includes(k)) currentFocus = "menu";
             if(Keys.ENTER.includes(k)) openDetails(editorsChoice[edIdx]);
         } 
         else if(currentFocus === "grid") {
             if(Keys.RIGHT.includes(k)) gridIdx = Math.min(5, gridIdx + 1);
             if(Keys.LEFT.includes(k)) gridIdx === 0 ? currentFocus = "menu" : gridIdx--;
             if(Keys.UP.includes(k)) currentFocus = "editor";
-            if(Keys.DOWN.includes(k)) { currentFocus = "dynamic"; dynIdx = 0; dynRowIdx = 0; }
+            if(Keys.DOWN.includes(k)) {
+                const rows = document.querySelectorAll(".category-row-container");
+                if(rows.length > 0) { currentFocus = "dynamic"; dynIdx = 0; dynRowIdx = 0; }
+            }
             if(Keys.ENTER.includes(k)) openDetails(top6Data[gridIdx]);
         }
         else if(currentFocus === "dynamic") {
@@ -506,9 +435,9 @@ document.addEventListener("keydown", e => {
             if(Keys.UP.includes(k)) dynIdx === 0 ? currentFocus = "grid" : dynIdx--;
             if(Keys.DOWN.includes(k)) dynIdx = Math.min(rows.length - 1, dynIdx + 1);
             if(Keys.ENTER.includes(k)) {
-                 const rowConfig = sectionConfigs.filter(s => s.ativa)[dynIdx];
-                 const data = window[rowConfig.categoria][dynRowIdx];
-                 openDetails(data);
+                const activeConfigs = sectionConfigs.filter(s => s.nome && s.categoria);
+                const data = window[activeConfigs[dynIdx].categoria][dynRowIdx];
+                openDetails(data);
             }
         }
     }
@@ -525,37 +454,29 @@ function parseM3U(content) {
             const logo = line.match(/tvg-logo="([^"]+)"/)?.[1] || "";
             const cat = line.match(/group-title="([^"]+)"/)?.[1]?.trim() || "Geral";
             const url = lines[i+1]?.trim();
-            if(url && url.startsWith("http")) { 
-                if(!cats[cat]) cats[cat] = []; 
-                cats[cat].push({ name, logo, url }); 
-            }
+            if(url && url.startsWith("http")) { if(!cats[cat]) cats[cat] = []; cats[cat].push({ name, logo, url }); }
         }
     });
     renderChannels(cats);
 }
 
 function renderChannels(cats) {
-    const cont = document.getElementById("channelsScroll");
-    cont.innerHTML = "";
+    const cont = document.getElementById("channelsScroll"); cont.innerHTML = "";
     Object.keys(cats).forEach(cat => {
-        const div = document.createElement("div");
-        div.className = "category-container";
+        const div = document.createElement("div"); div.className = "category-container";
         div.innerHTML = `<div class="channel-category-title"><i class="fas fa-play"></i> ${cat}</div><div class="channels-row"></div>`;
         const row = div.querySelector(".channels-row");
         cats[cat].forEach(c => {
-            const card = document.createElement("div");
-            card.className = "channel-card";
+            const card = document.createElement("div"); card.className = "channel-card";
             card.onclick = () => playChannel(c.url, c.name);
-            card.innerHTML = `<img src="${c.logo}">`;
-            row.appendChild(card);
+            card.innerHTML = `<img src="${c.logo}">`; row.appendChild(card);
         });
         cont.appendChild(div);
     });
 }
 
 function playChannel(url, name) {
-    isPlayerOpen = true; 
-    document.getElementById("playerOverlay").style.display = "block";
+    isPlayerOpen = true; document.getElementById("playerOverlay").style.display = "block";
     if(playerInstance) playerInstance.destroy();
     playerInstance = new Clappr.Player({ source: url, parentId: "#player", width: "100%", height: "100%", autoPlay: true });
 }
@@ -584,8 +505,7 @@ function renderTop6() {
     top6Data.forEach((item, i) => {
         const div = document.createElement("div"); div.className = "top6-item";
         div.innerHTML = `<span class="top6-number">${i+1}</span><img class="top6-poster" src="${item.poster}">`;
-        div.onclick = () => openDetails(item);
-        cont.appendChild(div);
+        div.onclick = () => openDetails(item); cont.appendChild(div);
     });
 }
 
