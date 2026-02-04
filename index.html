@@ -560,31 +560,34 @@ function updateFocus() {
     
     if(currentFocus === "menu") {
         menu.classList.add("expanded");
-        document.querySelectorAll(".brand-card")[menuIdx]?.classList.add("focused");
+        const menuItems = document.querySelectorAll(".brand-card");
+        if(menuItems[menuIdx]) menuItems[menuIdx].classList.add("focused");
     } else {
         menu.classList.remove("expanded");
         if(currentFocus === "editor") document.getElementById("editorSlider").classList.add("focused");
         
         if(currentFocus === "continue") {
             const items = document.querySelectorAll("#continueContainer .continue-card");
-            items[movieIdx]?.classList.add("focused");
+            if(items[movieIdx]) items[movieIdx].classList.add("focused");
             items[movieIdx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
         
         if(currentFocus === "grid") {
-            document.querySelectorAll(".top6-item")[gridIdx]?.classList.add("focused");
+            const top6Items = document.querySelectorAll(".top6-item");
+            if(top6Items[gridIdx]) top6Items[gridIdx].classList.add("focused");
         }
         
         if(currentFocus === "home_rows") {
             const rows = document.querySelectorAll("#homeRowsContainer .category-container");
             const items = rows[catRowIdx]?.querySelectorAll(".movie-card");
-            items[movieIdx]?.classList.add("focused");
-            rows[catRowIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            items[movieIdx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            if(items && items[movieIdx]) {
+                items[movieIdx].classList.add("focused");
+                rows[catRowIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                items[movieIdx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
         }
     }
-}
-
+ }
 function playChannel(url, titulo, poster) {
     isPlayerOpen = true;
     document.getElementById("playerOverlay").style.display = "block";
@@ -640,7 +643,6 @@ function startCarousel() {
     }, 8000);
 }
 
-// EVENT LISTENER DE TECLADO FINAL
 document.addEventListener("keydown", e => {
     const k = e.keyCode;
     if(isPlayerOpen) { if(Keys.BACK.includes(k)) closePlayer(); return; }
@@ -676,21 +678,23 @@ document.addEventListener("keydown", e => {
              const temCont = document.getElementById('continueWatchingSection').style.display !== 'none';
              currentFocus = temCont ? "continue" : "editor";
         }
-        if(Keys.DOWN.includes(k)) { currentFocus = "home_rows"; catRowIdx = 0; movieIdx = 0; }
+        if(Keys.DOWN.includes(k)) { 
+            const rows = document.querySelectorAll("#homeRowsContainer .category-container");
+            if(rows.length > 0) { currentFocus = "home_rows"; catRowIdx = 0; movieIdx = 0; }
+        }
         if(Keys.ENTER.includes(k)) document.querySelectorAll(".top6-item")[gridIdx].click();
     }
     else if(currentFocus === "home_rows") {
         const rows = document.querySelectorAll("#homeRowsContainer .category-container");
         const items = rows[catRowIdx]?.querySelectorAll(".movie-card");
         if(Keys.LEFT.includes(k)) { if(movieIdx > 0) movieIdx--; else currentFocus = "menu"; }
-        if(Keys.RIGHT.includes(k)) { if(movieIdx < items.length - 1) movieIdx++; }
+        if(Keys.RIGHT.includes(k)) { if(items && movieIdx < items.length - 1) movieIdx++; }
         if(Keys.UP.includes(k)) { if(catRowIdx > 0) { catRowIdx--; movieIdx = 0; } else currentFocus = "grid"; }
         if(Keys.DOWN.includes(k)) { if(catRowIdx < rows.length - 1) { catRowIdx++; movieIdx = 0; } }
-        if(Keys.ENTER.includes(k)) items[movieIdx].click();
+        if(Keys.ENTER.includes(k) && items) items[movieIdx].click();
     }
     updateFocus();
 });
-
 window.onload = loadData;
 </script>
 </body>
