@@ -418,37 +418,50 @@ async function getFullDetails(item) {
 function renderHomeCategories() {
     const container = document.getElementById('homeRowsContainer');
     if(!container) return;
-    container.innerHTML = ""; 
+    container.innerHTML = ""; // Limpa tudo antes de começar
 
-    // 1. FILTRAR DADOS
-    const todosConteudos = [...movies, ...series];
+    const todos = [...movies, ...series];
 
-    const lancamentos2026 = todosConteudos.filter(item => 
-        (item.year == "2026" || (item.categoria && item.categoria.includes("2026")))
-    );
-
-    const nostalgia = todosConteudos.filter(item => {
-        const ano = parseInt(item.year);
-        return (ano >= 1920 && ano <= 2009) || (item.categoria && item.categoria.includes("Clássicos"));
-    });
-
-    // 2. RENDERIZAR LANÇAMENTOS 2026
-    if (lancamentos2026.length > 0) {
+    // --- SESSÃO 1: LANÇAMENTOS 2026 ---
+    const l2026 = todos.filter(item => item.year == "2026" || (item.categoria && item.categoria.includes("2026")));
+    if (l2026.length > 0) {
         const section2026 = document.createElement("div");
-        section2026.className = "category-container row-2026"; 
+        section2026.className = "category-container row-2026";
         section2026.innerHTML = `<div class="channel-category-title">Lançamentos 2026</div><div class="channels-row"></div>`;
         const row2026 = section2026.querySelector(".channels-row");
-
-        lancamentos2026.forEach(m => {
+        
+        l2026.forEach(m => {
             const card = document.createElement("div");
             card.className = "movie-card";
-            card.innerHTML = `<div class="badge-2026">NOVO</div><img class="movie-poster" src="${m.poster}"><div class="movie-meta-float"><span style="color:#FFB400">★ ${m.rating || '9.8'}</span></div>`;
+            card.innerHTML = `<div class="badge-2026">NOVO</div><img class="movie-poster" src="${m.poster}"><div class="movie-meta-float">★ ${m.rating || '9.8'}</div>`;
             card.onclick = () => openDetails(m);
             row2026.appendChild(card);
         });
         container.appendChild(section2026);
     }
 
+    // --- SESSÃO 2: NOSTALGIA ---
+    const nostalgia = todos.filter(item => {
+        const ano = parseInt(item.year);
+        return (ano >= 1920 && ano <= 2009) || (item.categoria && item.categoria.includes("Clássicos"));
+    });
+    if (nostalgia.length > 0) {
+        const sectionNostalgia = document.createElement("div");
+        sectionNostalgia.className = "category-container row-nostalgia";
+        sectionNostalgia.innerHTML = `<div class="channel-category-title">Sessão Nostalgia: Clássicos 80, 90 e 2000</div><div class="channels-row"></div>`;
+        const rowNostalgia = sectionNostalgia.querySelector(".channels-row");
+        
+        nostalgia.forEach(m => {
+            const card = document.createElement("div");
+            card.className = "movie-card";
+            card.innerHTML = `<img class="movie-poster" src="${m.poster}"><div class="movie-meta-float">★ ${m.rating || '9.5'}</div>`;
+            card.onclick = () => openDetails(m);
+            rowNostalgia.appendChild(card);
+        });
+        container.appendChild(sectionNostalgia);
+    }
+    // NADA MAIS É RENDERIZADO AQUI. PONTO FINAL.
+}
     // 3. RENDERIZAR NOSTALGIA
     if (nostalgia.length > 0) {
         const sectionNostalgia = document.createElement("div");
