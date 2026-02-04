@@ -427,7 +427,52 @@ function openDetails(item) {
 }
 
 function closeDetails() { isDetailsOpen = false; document.getElementById("detailsOverlay").style.display = "none"; }
-function playChannel(url) { isPlayerOpen = true; document.getElementById("playerOverlay").style.display = "block"; playerInstance = new Clappr.Player({ source: url, parentId: "#player", width: "100%", height: "100%", autoPlay: true }); }
+// Variável global para sabermos o que está tocando
+let itemAtual = null;
+
+function playChannel(url, titulo, poster) { 
+    isPlayerOpen = true; 
+    document.getElementById("playerOverlay").style.display = "block"; 
+    
+    // Configura o item atual para o histórico
+    itemAtual = { url, titulo, poster };
+
+    playerInstance = new Clappr.Player({ 
+        source: url, 
+        parentId: "#player", 
+        width: "100%", 
+        height: "100%", 
+        autoPlay: true,
+        events: {
+            onTimeUpdate: function(timeData) {
+                // Só salva se for um filme/série (se tiver duração longa)
+                if (timeData.duration > 300) { // Mais de 5 minutos
+                    saveProgress(timeData.current, timeData.duration);
+                }
+            }
+        }
+    }); 
+}
+
+// Função técnica que grava no banco de dados do navegador (localStorage)
+function saveProgress(current, duration) {
+    if (!itemAtual) return;
+    
+    let storage = JSON.parse(localStorage.getItem('paixaoflix_progress') || '{}');
+    
+    // Salva apenas se o usuário assistiu mais de 10 segundos
+    if (current > 10) {
+        storage[itemAtual.titulo] = {
+            titulo: itemAtual.titulo,
+            poster: itemAtual.poster,
+            url: itemAtual.url,
+            currentTime: current,
+            duration: duration,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('paixaoflix_progress', JSON.stringify(storage));
+    }
+}
 function closePlayer() { if(playerInstance) playerInstance.destroy(); document.getElementById("playerOverlay").style.display = "none"; isPlayerOpen = false; }
 function startCarousel() { setInterval(() => { edIdx = (edIdx + 1) % editorsChoice.length; const item = editorsChoice[edIdx]; document.getElementById("editorSlider").style.backgroundImage = `url(${item.poster})`; document.getElementById("editorTitle").innerText = item.titulo; }, 8000); }
 function renderTop6() { const cont = document.getElementById("top6Container"); top6Data.forEach((item, i) => { const div = document.createElement("div"); div.className = "top6-item"; div.innerHTML = `<span class="top6-number">${i+1}</span><img class="top6-poster" src="${item.poster}">`; div.onclick = () => openDetails(item); cont.appendChild(div); }); }
