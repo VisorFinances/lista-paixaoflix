@@ -49,11 +49,29 @@
         position: fixed; inset: 0; background: #000; z-index: 8000;
         display: none; flex-direction: column; justify-content: center;
     }
-    #detailsBg {
-        position: absolute; inset: 0;
-        background-size: cover; background-position: center;
-        filter: blur(20px) brightness(0.3); opacity: 0.6; z-index: -1;
-    }
+   #detailsBg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center top;
+    z-index: -1;
+    transition: background 0.8s ease-in-out;
+}
+
+/* Camada de Gradiente para legibilidade (Estilo Netflix/HBO) */
+#detailsOverlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, #000 35%, transparent 100%),
+                linear-gradient(to top, #000 15%, transparent 50%);
+    z-index: 0;
+}
+
+#detailsContent {
+    position: relative;
+    z-index: 2; /* Fica acima do gradiente */
+}
     #detailsContent {
         display: flex; align-items: center; padding: 0 80px; gap: 60px; z-index: 1;
     }
@@ -318,19 +336,23 @@
 </div>
 
 <script>
+// 1. VARIÁVEIS GLOBAIS E ESTADO
 let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [], kidsChannels = [];
-let top6Data = [], editorsChoice = [], edIdx = 0;
+let top6Data = [], editorsChoice = [], edIdx = 0, itemAtual = null;
 let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0, catRowIdx = 0;
 let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, isDetailsOpen = false, playerInstance = null;
-// --- CONFIGURAÇÕES RÁPIDAS PAIXÃOFLIX ---
-const TAMANHO_FONTE_TITULOS = "42px"; // Altere aqui o tamanho para todo o sistema
 
-// Aplica a configuração no carregamento
+// 2. CONFIGURAÇÕES RÁPIDAS E TMDB
+const TAMANHO_FONTE_TITULOS = "42px";
+const TMDB_API_KEY = "b275ce8e1a6b3d5d879bb0907e4f56ad";
+const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+const TMDB_IMG_PATH = "https://image.tmdb.org/t/p/original";
+
 document.documentElement.style.setProperty('--tamanho-titulo', TAMANHO_FONTE_TITULOS);
 const Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443], BACK: [8, 27, 461, 10009] };
-
 const CATEGORIAS_FIXAS = ["Lançamentos 2026", "Lançamentos 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
 
+// 3. CARREGAMENTO INICIAL
 async function loadData() {
     const fetchJSON = async (url) => { try { const r = await fetch(url); return await r.json(); } catch(e) { return []; } };
     movies = (await fetchJSON("data/filmes.json")).sort((a,b) => (a.titulo||"").localeCompare(b.titulo||""));
@@ -347,77 +369,30 @@ async function loadData() {
     editorsChoice = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 10);
     top6Data = [...movies, ...series].slice(0, 6);
     
-    startCarousel(); renderTop6(); startClock(); updateFocus();
-   renderContinueWatching(); // <--- ADICIONE ESTA LINHA AQUI
-   renderHomeCategories(); // <--- ADICIONE ESTA LINHA AQUI
+    startCarousel(); 
+    renderTop6(); 
+    startClock(); 
+    renderContinueWatching(); 
+    renderHomeCategories();
+    updateFocus();
 }
 
-function renderGridSystem(list, isKids = false) {
-    const cont = document.getElementById("moviesScroll"); cont.innerHTML = "";
-    if(isKids) {
-        createRow(cont, "KIDS - ORDEM ALFABÉTICA", list);
-    } else {
-        CATEGORIAS_FIXAS.forEach(cat => {
-            const filtered = list.filter(m => (m.categoria || m.genero || "").includes(cat));
-            if(filtered.length > 0) createRow(cont, cat, filtered);
-        });
-    }
-}
-   
-function createRow(cont, title, items) {
-    const section = document.createElement("div"); section.className = "category-container";
-    section.innerHTML = `<div class="channel-category-title">${title}</div><div class="channels-row"></div>`;
-    const row = section.querySelector(".channels-row");
-    items.forEach(m => {
-        const card = document.createElement("div"); card.className = "movie-card";
-        card.innerHTML = `<img class="movie-poster" src="${m.poster}"><div class="movie-meta-float"><span>${m.year||'2026'}</span> <span style="color:#FFCE44">★ ${m.rating||'9.5'}</span></div>`;
-        card.onclick = () => openDetails(m);
-        row.appendChild(card);
-    });
-    cont.appendChild(section);
-}
-
-function openChannelsPage(type) {
-    isMoviesOpen = false; isChannelsOpen = true;
-    document.getElementById("mainScroll").style.display = "none";
-    document.getElementById("moviesOverlay").style.display = "none";
-    document.getElementById("channelsOverlay").style.display = "flex";
-    renderChannels(type === 'kids' ? kidsChannels : channels);
-    currentFocus = "channel_grid"; chanIdx = 0; updateFocus();
-}
-
-function renderChannels(list) {
-    const cont = document.getElementById("channelsScroll"); cont.innerHTML = `<div class="live-channels-grid"></div>`;
-    const grid = cont.querySelector(".live-channels-grid");
-    list.forEach(c => {
-        const card = document.createElement("div"); card.className = "live-channel-card";
-        card.innerHTML = `<img src="${c.logo}"><div style="font-size:10px; margin-top:5px">${c.name}</div>`;
-        card.onclick = () => playChannel(c.url, c.name);
-        grid.appendChild(card);
-    });
-}
-
-function updateFocus() {
-    document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
-    const menu = document.getElementById("menuBrands");
-    
-    if(currentFocus === "menu") {
-        menu.classList.add("expanded");
-        document.querySelectorAll(".brand-card")[menuIdx]?.classList.add("focused");
-    } else {
-        menu.classList.remove("expanded");
-        if(currentFocus === "editor") document.getElementById("editorSlider").classList.add("focused");
-        if(currentFocus === "grid") document.querySelectorAll(".top6-item")[gridIdx]?.classList.add("focused");
-        
-        if(currentFocus === "movie_grid") {
-            const items = document.querySelectorAll("#moviesScroll .movie-card, .channels-row .movie-card");
-            items[movieIdx]?.classList.add("focused");
-            items[movieIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+// 4. INTEGRAÇÃO TMDB (O CÉREBRO)
+async function getFullDetails(item) {
+    const query = encodeURIComponent(item.titulo || item.name);
+    try {
+        const searchRes = await fetch(`${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${query}&language=pt-BR`);
+        const searchData = await searchRes.json();
+        if (searchData.results && searchData.results.length > 0) {
+            const res = searchData.results[0];
+            const detailRes = await fetch(`${TMDB_BASE_URL}/${res.media_type}/${res.id}?api_key=${TMDB_API_KEY}&append_to_response=credits&language=pt-BR`);
+            return await detailRes.json();
         }
-    }
+    } catch (e) { console.error("Erro TMDB:", e); }
+    return null;
 }
 
-// FUNÇÃO DE LANÇAMENTOS (FORA DA UPDATEFOCUS)
+// 5. RENDERIZAÇÃO DA HOME E CATEGORIAS
 function renderHomeCategories() {
     const container = document.getElementById('homeRowsContainer');
     if(!container) return;
@@ -430,152 +405,77 @@ function renderHomeCategories() {
     if (lancamentos2026.length > 0) {
         const section = document.createElement("div");
         section.className = "category-container row-2026"; 
-        section.innerHTML = `
-            <div class="channel-category-title">Lançamentos 2026</div>
-            <div class="channels-row"></div>
-        `;
+        section.innerHTML = `<div class="channel-category-title">Lançamentos 2026</div><div class="channels-row"></div>`;
         const row = section.querySelector(".channels-row");
 
         lancamentos2026.forEach(m => {
             const card = document.createElement("div");
             card.className = "movie-card";
-            card.innerHTML = `
-                <div class="badge-2026">NOVO</div>
-                <img class="movie-poster" src="${m.poster}">
-                <div class="movie-meta-float">
-                    <span style="color:#FFB400">★ ${m.rating || '9.8'}</span>
-                </div>
-            `;
+            card.innerHTML = `<div class="badge-2026">NOVO</div><img class="movie-poster" src="${m.poster}"><div class="movie-meta-float"><span style="color:#FFB400">★ ${m.rating || '9.8'}</span></div>`;
             card.onclick = () => openDetails(m);
             row.appendChild(card);
         });
         container.appendChild(section);
     }
 }
-document.addEventListener("keydown", e => {
-    const k = e.keyCode;
-    if(isPlayerOpen && Keys.BACK.includes(k)) { closePlayer(); return; }
-    
-    if(currentFocus === "movie_grid") {
-        const row = document.querySelectorAll(".category-container")[catRowIdx];
-        const items = row.querySelectorAll(".movie-card");
-        if(Keys.RIGHT.includes(k)) { 
-            if(movieIdx >= items.length - 1) movieIdx = 0; else movieIdx++;
-        }
-        if(Keys.LEFT.includes(k)) {
-            if(movieIdx <= 0) movieIdx = items.length - 1; else movieIdx--;
-        }
-        if(Keys.DOWN.includes(k)) { catRowIdx++; movieIdx = 0; }
-        if(Keys.UP.includes(k)) { if(catRowIdx > 0) catRowIdx--; else currentFocus = "menu"; }
-    }
-    
-    if(Keys.ENTER.includes(k)) {
-        const f = document.querySelector(".focused");
-        if(f) f.click();
-    }
-    updateFocus();
-});
-
-function parseM3U(t) { channels = t.split("#EXTINF").slice(1).map(x => ({ name: x.split(",")[1].split("\n")[0], logo: x.match(/tvg-logo="([^"]+)"/)?.[1], url: x.split("\n")[1] })); }
-function parseM3UKids(t) { kidsChannels = t.split("#EXTINF").slice(1).map(x => ({ name: x.split(",")[1].split("\n")[0], logo: x.match(/tvg-logo="([^"]+)"/)?.[1], url: x.split("\n")[1] })); }
-
-function openDetails(item) {
-    isDetailsOpen = true;
-    document.getElementById("detPoster").src = item.poster;
-    document.getElementById("detailsBg").style.backgroundImage = `url(${item.poster})`;
-    document.getElementById("detTitle").innerText = item.titulo || item.name;
-    document.getElementById("detMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.5'}`;
-    document.getElementById("detDesc").innerText = item.descricao || "Conteúdo exclusivo PaixãoFlix.";
-    document.getElementById("detailsOverlay").style.display = "flex";
-    document.getElementById("btnDetPlay").onclick = () => playChannel(item.url, item.titulo, item.poster);
-}
-
-function closeDetails() { isDetailsOpen = false; document.getElementById("detailsOverlay").style.display = "none"; }
-// Variável global para sabermos o que está tocando
-let itemAtual = null;
-
-function playChannel(url, titulo, poster) { 
-    isPlayerOpen = true; 
-    document.getElementById("playerOverlay").style.display = "block"; 
-    
-    // Configura o item atual para o histórico
-    itemAtual = { url, titulo, poster };
-
-    playerInstance = new Clappr.Player({ 
-        source: url, 
-        parentId: "#player", 
-        width: "100%", 
-        height: "100%", 
-        autoPlay: true,
-        events: {
-            onTimeUpdate: function(timeData) {
-                // Só salva se for um filme/série (se tiver duração longa)
-                if (timeData.duration > 300) { // Mais de 5 minutos
-                    saveProgress(timeData.current, timeData.duration);
-                }
-            }
-        }
-    }); 
-}
-
-// Função técnica que grava no banco de dados do navegador (localStorage)
-function saveProgress(current, duration) {
-    if (!itemAtual) return;
-    
-    let storage = JSON.parse(localStorage.getItem('paixaoflix_progress') || '{}');
-    
-    // Salva apenas se o usuário assistiu mais de 10 segundos
-    if (current > 10) {
-        storage[itemAtual.titulo] = {
-            titulo: itemAtual.titulo,
-            poster: itemAtual.poster,
-            url: itemAtual.url,
-            currentTime: current,
-            duration: duration,
-            timestamp: Date.now()
-        };
-        localStorage.setItem('paixaoflix_progress', JSON.stringify(storage));
-    }
-}
-function closePlayer() { if(playerInstance) playerInstance.destroy(); document.getElementById("playerOverlay").style.display = "none"; isPlayerOpen = false; }
-function startCarousel() { setInterval(() => { edIdx = (edIdx + 1) % editorsChoice.length; const item = editorsChoice[edIdx]; document.getElementById("editorSlider").style.backgroundImage = `url(${item.poster})`; document.getElementById("editorTitle").innerText = item.titulo; }, 8000); }
-function renderTop6() { const cont = document.getElementById("top6Container"); top6Data.forEach((item, i) => { const div = document.createElement("div"); div.className = "top6-item"; div.innerHTML = `<span class="top6-number">${i+1}</span><img class="top6-poster" src="${item.poster}">`; div.onclick = () => openDetails(item); cont.appendChild(div); }); }
-function startClock() { setInterval(() => { document.getElementById("barDateTime").innerText = new Date().toLocaleString().toUpperCase(); }, 1000); }
-function renderCategoryPage(list, title, isKids) { isMoviesOpen = true; document.getElementById("mainScroll").style.display = "none"; document.getElementById("moviesOverlay").style.display = "flex"; renderGridSystem(list, isKids); currentFocus = "movie_grid"; movieIdx = 0; updateFocus(); }
-
-window.onload = loadData;
 
 function renderContinueWatching() {
     const storage = JSON.parse(localStorage.getItem('paixaoflix_progress') || '{}');
     const container = document.getElementById('continueContainer');
     const section = document.getElementById('continueWatchingSection');
-    
     const items = Object.values(storage).sort((a, b) => b.timestamp - a.timestamp);
 
-    if (items.length === 0) {
-        section.style.display = 'none';
-        return;
-    }
+    if (!section || items.length === 0) { if(section) section.style.display = 'none'; return; }
 
     section.style.display = 'block';
     container.innerHTML = '';
-
     items.forEach(item => {
         const percent = (item.currentTime / item.duration) * 100;
         const div = document.createElement('div');
         div.className = 'continue-card';
-        div.innerHTML = `
-            <img src="${item.posterHorizontal || item.poster}" class="continue-thumb">
-            <div class="progress-container">
-                <div class="progress-bar" style="width: ${percent}%"></div>
-            </div>
-            <div style="font-size: 14px; margin-top: 8px; font-weight: 500;">${item.titulo}</div>
-        `;
-        div.onclick = () => playUrl(item.url, item.currentTime);
+        div.innerHTML = `<img src="${item.poster}" class="continue-thumb"><div class="progress-container"><div class="progress-bar" style="width: ${percent}%"></div></div><div style="font-size: 14px; margin-top: 8px;">${item.titulo}</div>`;
+        div.onclick = () => playChannel(item.url, item.titulo, item.poster);
         container.appendChild(div);
     });
-} 
- 
+}
+
+// 6. PÁGINA DE DETALHES (COM ELENCO)
+async function openDetails(item) {
+    isDetailsOpen = true;
+    const bg = document.getElementById("detailsBg");
+    document.getElementById("detailsOverlay").style.display = "flex";
+    document.getElementById("detTitle").innerText = item.titulo;
+    document.getElementById("detPoster").src = item.poster;
+    document.getElementById("detDesc").innerText = "Carregando sinopse...";
+
+    const extra = await getFullDetails(item);
+    if (extra) {
+        bg.style.backgroundImage = `url(${TMDB_IMG_PATH + extra.backdrop_path})`;
+        document.getElementById("detDesc").innerText = extra.overview || "Sinopse não disponível.";
+        const ano = (extra.release_date || extra.first_air_date || "2026").split('-')[0];
+        document.getElementById("detMeta").innerText = `${ano} • ★ ${extra.vote_average.toFixed(1)}`;
+        if (extra.credits) renderCast(extra.credits.cast.slice(0, 6));
+    }
+    document.getElementById("btnDetPlay").onclick = () => playChannel(item.url, item.titulo, item.poster);
+}
+
+function renderCast(cast) {
+    const desc = document.getElementById("detDesc");
+    const existing = document.getElementById("castList");
+    if(existing) existing.remove();
+    
+    let html = '<div id="castList" style="display:flex; gap:15px; margin-top:20px;">';
+    cast.forEach(a => {
+        if(a.profile_path) html += `<div style="text-align:center;"><img src="${TMDB_IMG_PATH + a.profile_path}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #FFCE44;"><p style="font-size:10px;">${a.name.split(' ')[0]}</p></div>`;
+    });
+    html += '</div>';
+    desc.insertAdjacentHTML('afterend', html);
+}
+
+// 7. PLAYER E NAVEGAÇÃO (Mantenha suas funções de teclado, startClock, etc abaixo)
+// ... (resto das suas funções originais: playChannel, updateFocus, Keys, etc)
+
+window.onload = loadData;
 </script>
 </body>
 </html>
