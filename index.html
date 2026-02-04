@@ -415,12 +415,13 @@ async function getFullDetails(item) {
     return null;
 }
 
-// 5. RENDERIZAÇÃO DA HOME E CATEGORIAS
+// 5. RENDERIZAÇÃO DA HOME E CATEGORIAS (ORGANIZADA)
 function renderHomeCategories() {
     const container = document.getElementById('homeRowsContainer');
     if(!container) return;
     container.innerHTML = ""; 
 
+    // --- 1. SESSÃO LANÇAMENTOS 2026 ---
     const lancamentos2026 = [...movies, ...series].filter(item => 
         (item.year == "2026" || (item.categoria && item.categoria.includes("2026")))
     );
@@ -438,7 +439,10 @@ function renderHomeCategories() {
             card.onclick = () => openDetails(m);
             row.appendChild(card);
         });
-       // SESSÃO NOSTALGIA: CLÁSSICOS 80, 90 e 2000
+        container.appendChild(section);
+    }
+
+    // --- 2. SESSÃO NOSTALGIA: CLÁSSICOS 80, 90 e 2000 ---
     const nostalgia = [...movies, ...series].filter(item => {
         const ano = parseInt(item.year);
         return (ano >= 1980 && ano <= 2009) || (item.categoria && item.categoria.includes("Clássicos"));
@@ -462,8 +466,30 @@ function renderHomeCategories() {
         });
         container.appendChild(section);
     }
- }
 
+    // --- 3. CATEGORIAS GERAIS (Ação, Comédia, etc) ---
+    CATEGORIAS_FIXAS.forEach(cat => {
+        // Pula 'Lançamentos 2026' aqui para não repetir, já que criamos a linha especial acima
+        if(cat === "Lançamentos 2026") return;
+
+        const filtrados = [...movies, ...series].filter(m => m.categoria && m.categoria.includes(cat));
+        if (filtrados.length > 0) {
+            const section = document.createElement("div");
+            section.className = "category-container";
+            section.innerHTML = `<div class="channel-category-title">${cat}</div><div class="channels-row"></div>`;
+            const row = section.querySelector(".channels-row");
+            
+            filtrados.forEach(m => {
+                const card = document.createElement("div");
+                card.className = "movie-card";
+                card.innerHTML = `<img class="movie-poster" src="${m.poster}"><div class="movie-meta-float">★ ${m.rating || '9.8'}</div>`;
+                card.onclick = () => openDetails(m);
+                row.appendChild(card);
+            });
+            container.appendChild(section);
+        }
+    });
+}
 function renderContinueWatching() {
     const storage = JSON.parse(localStorage.getItem('paixaoflix_progress') || '{}');
     const container = document.getElementById('continueContainer');
