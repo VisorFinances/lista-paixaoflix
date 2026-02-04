@@ -379,20 +379,28 @@ const CATEGORIAS_FIXAS = ["Lançamentos 2026", "Lançamentos 2025", "Ação", "A
 // 3. CARREGAMENTO INICIAL
 async function loadData() {
     const fetchJSON = async (url) => { try { const r = await fetch(url); return await r.json(); } catch(e) { return []; } };
+    
+    // Carregando arrays de dados
     movies = (await fetchJSON("data/filmes.json")).sort((a,b) => (a.titulo||"").localeCompare(b.titulo||""));
     series = (await fetchJSON("data/series.json")).sort((a,b) => (a.titulo||"").localeCompare(b.titulo||""));
     kidsMovies = (await fetchJSON("data/kids_filmes.json")).sort((a,b) => (a.titulo||"").localeCompare(b.titulo||""));
     kidsSeries = (await fetchJSON("data/kids_series.json")).sort((a,b) => (a.titulo||"").localeCompare(b.titulo||""));
     
     try { 
-        const r = await fetch("data/ativa_canais.m3u"); const t = await r.text(); parseM3U(t);
-        const rk = await fetch("data/ativa_kids_canais.m3u"); const tk = await rk.text(); parseM3UKids(tk);
-    } catch(e) {}
+        const r = await fetch("data/ativa_canais.m3u"); 
+        if(r.ok) { const t = await r.text(); parseM3U(t); }
+        
+        const rk = await fetch("data/ativa_kids_canais.m3u"); 
+        if(rk.ok) { const tk = await rk.text(); parseM3UKids(tk); }
+    } catch(e) { console.error("Erro ao carregar M3U"); }
     
     document.getElementById("totalItems").innerText = movies.length + series.length + kidsMovies.length + kidsSeries.length;
+    
+    // Preparando destaques
     editorsChoice = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 10);
     top6Data = [...movies, ...series].slice(0, 6);
     
+    // Iniciando interface
     startCarousel(); 
     renderTop6(); 
     startClock(); 
@@ -416,7 +424,7 @@ async function getFullDetails(item) {
     return null;
 }
 
-// 5. RENDERIZAÇÃO DE PÁGINAS E CATEGORIAS (MANTENDO AS 22)
+// 5. RENDERIZAÇÃO
 function renderHomeCategories() {
     const container = document.getElementById('homeRowsContainer');
     if (!container) return;
@@ -427,7 +435,7 @@ function renderHomeCategories() {
     if (l2026.length > 0) renderRow(container, "Lançamentos 2026", l2026, true);
 
     const nostalgia = todos.filter(item => item.categoria && item.categoria.includes("Clássicos"));
-    if (nostalgia.length > 0) renderRow(container, "Sessão Nostalgia: Clássicos 50, 60, 70, 80, 90 e 2000", nostalgia, false);
+    if (nostalgia.length > 0) renderRow(container, "Sessão Nostalgia: Clássicos e Retrô", nostalgia, false);
 }
 
 function renderRow(container, title, data, isNew = false) {
@@ -445,7 +453,6 @@ function renderRow(container, title, data, isNew = false) {
     container.appendChild(section);
 }
 
-// ABRE CINEMA, SÉRIES OU KIDS COM AS 22 CATEGORIAS
 function openContentPage(type) {
     activePage = "category";
     currentFocus = "grid_page";
@@ -454,13 +461,10 @@ function openContentPage(type) {
     let sourceData = [];
     if(type === 'movies') sourceData = movies;
     else if(type === 'series') sourceData = series;
-    else if(type === 'kids') sourceData = [...kidsMovies, ...kidsSeries]; // Junta os dois arrays kids
+    else if(type === 'kids') sourceData = [...kidsMovies, ...kidsSeries];
 
-    // Restante da função que cria as linhas...
-    const overlay = document.getElementById("moviesOverlay");
-    // ... (continua igual ao código anterior)
+    document.getElementById("moviesOverlay").style.display = "flex";
     const scroll = document.getElementById("moviesScroll");
-    overlay.style.display = "flex";
     scroll.innerHTML = `<div class="channel-category-title" style="font-size: 50px; margin-bottom: 30px;">${type.toUpperCase()}</div>`;
 
     CATEGORIAS_FIXAS.forEach(cat => {
@@ -487,10 +491,9 @@ function openChannelsPage(type) {
     activePage = "channels";
     currentFocus = "grid_page";
     movieIdx = 0;
-    const data = type === 'kids' ? kidsChannels : channels;
-    const overlay = document.getElementById("channelsOverlay");
+    const data = (type === 'kids') ? kidsChannels : channels;
+    document.getElementById("channelsOverlay").style.display = "flex";
     const scroll = document.getElementById("channelsScroll");
-    overlay.style.display = "flex";
     scroll.innerHTML = `<div class="channel-category-title">${type.toUpperCase()}</div><div class="live-channels-grid" id="pageGrid"></div>`;
     const grid = document.getElementById("pageGrid");
     data.forEach(item => {
@@ -663,11 +666,34 @@ document.addEventListener("keydown", e => {
 });
 
 // 8. AUXILIARES
-function parseM3U(d) { const lines = d.split('\n'); for (let i = 0; i < lines.length; i++) { if (lines[i].startsWith('#EXTINF')) { const info = lines[i]; const url = lines[i + 1]; const name = info.split(',')[1]; const logo = info.match(/tvg-logo="([^"]+)"/)?.[1] || ""; channels.push({ titulo: name, url, poster: logo }); } } }
-function parseM3UKids(d) { const lines = d.split('\n'); for (let i = 0; i < lines.length; i++) { if (lines[i].startsWith('#EXTINF')) { const info = lines[i]; const url = lines[i + 1]; const name = info.split(',')[1]; const logo = info.match(/tvg-logo="([^"]+)"/)?.[1] || ""; kidsChannels.push({ titulo: name, url, poster: logo }); } } }
+function parseM3U(d) { 
+    const lines = d.split('\n'); 
+    for (let i = 0; i < lines.length; i++) { 
+        if (lines[i].startsWith('#EXTINF')) { 
+            const info = lines[i]; 
+            const url = lines[i + 1]?.trim(); 
+            const name = info.split(',')[1] || "Canal"; 
+            const logo = info.match(/tvg-logo="([^"]+)"/)?.[1] || ""; 
+            if(url) channels.push({ titulo: name, url, poster: logo }); 
+        } 
+    } 
+}
+function parseM3UKids(d) { 
+    const lines = d.split('\n'); 
+    for (let i = 0; i < lines.length; i++) { 
+        if (lines[i].startsWith('#EXTINF')) { 
+            const info = lines[i]; 
+            const url = lines[i + 1]?.trim(); 
+            const name = info.split(',')[1] || "Canal Kids"; 
+            const logo = info.match(/tvg-logo="([^"]+)"/)?.[1] || ""; 
+            if(url) kidsChannels.push({ titulo: name, url, poster: logo }); 
+        } 
+    } 
+}
 function startClock() { setInterval(() => { document.getElementById("barDateTime").innerText = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}); }, 1000); }
-function startCarousel() { setInterval(() => { if(!isDetailsOpen && !isPlayerOpen && editorsChoice.length > 0) { edIdx = (edIdx + 1) % editorsChoice.length; const item = editorsChoice[edIdx]; document.getElementById("editorSlider").style.backgroundImage = `linear-gradient(to top, #000 10%, transparent 90%), url(${item.poster})`; document.getElementById("editorTitle").innerText = item.titulo; document.getElementById("editorMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.8'}`; } }, 8000); }
+function startCarousel() { setInterval(() => { if(!isDetailsOpen && !isPlayerOpen && activePage === "home" && editorsChoice.length > 0) { edIdx = (edIdx + 1) % editorsChoice.length; const item = editorsChoice[edIdx]; document.getElementById("editorSlider").style.backgroundImage = `linear-gradient(to top, #000 10%, transparent 90%), url(${item.poster})`; document.getElementById("editorTitle").innerText = item.titulo; document.getElementById("editorMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.8'}`; } }, 8000); }
 function renderTop6() { const container = document.getElementById("top6Container"); if (!container) return; container.innerHTML = ""; top6Data.forEach((item, index) => { const div = document.createElement("div"); div.className = "top6-item"; div.innerHTML = `<div class="top6-number">${index + 1}</div><img class="top6-poster" src="${item.poster}">`; div.onclick = () => openDetails(item); container.appendChild(div); }); }
+
 window.onload = loadData;
 
 </script>
