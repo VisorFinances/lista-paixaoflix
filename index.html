@@ -431,23 +431,27 @@ function renderHomeCategories() {
     container.innerHTML = ""; 
     const todos = [...movies, ...series];
     
-    // Filtro inteligente para 2026 (Aceita se for lista ou texto)
+    // FILTRO LANÇAMENTOS 2026 (Busca por '2026' ou 'Lançamento' no texto ou na lista)
     const l2026 = todos.filter(item => {
-        const cat = item.categoria || item.genero || "";
-        return item.year == "2026" || (Array.isArray(cat) ? cat.includes("Lançamentos 2026") : cat.includes("2026"));
+        const c = JSON.stringify(item.categoria || item.genero || "").toLowerCase();
+        return item.year == "2026" || c.includes("2026") || c.includes("lançamento");
     });
-    
     if (l2026.length > 0) renderRow(container, "Lançamentos 2026", l2026, true);
 
-    // Filtro para Nostalgia/Clássicos
-    const nostalgia = todos.filter(item => {
-        const cat = item.categoria || item.genero || "";
-        return Array.isArray(cat) ? cat.includes("Clássicos") : cat.includes("Clássicos");
+    // FILTRO LANÇAMENTOS 2025
+    const l2025 = todos.filter(item => {
+        const c = JSON.stringify(item.categoria || item.genero || "").toLowerCase();
+        return item.year == "2025" || c.includes("2025");
     });
-    
+    if (l2025.length > 0) renderRow(container, "Lançamentos 2025", l2025, true);
+
+    // DEMAIS CATEGORIAS (Clássicos, etc)
+    const nostalgia = todos.filter(item => {
+        const c = JSON.stringify(item.categoria || item.genero || "").toLowerCase();
+        return c.includes("clássicos") || c.includes("nostalgia");
+    });
     if (nostalgia.length > 0) renderRow(container, "Sessão Nostalgia: Clássicos", nostalgia, false);
 }
-
 function openContentPage(type) {
     activePage = "category";
     currentFocus = "grid_page";
