@@ -262,6 +262,12 @@
     text-shadow: none;
 }
 
+/* ESTILO SESSÃO NOSTALGIA */
+.row-nostalgia .movie-card.focused .movie-poster {
+    border: 3px solid #00d2ff !important; /* Um azul nostálgico estilo Disney+ */
+    box-shadow: 0 0 25px rgba(0, 210, 255, 0.4);
+}
+   
     /* CANAIS AO VIVO - 7 POR LINHA */
     .live-channels-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 30px; }
     .live-channel-card { aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
@@ -432,9 +438,31 @@ function renderHomeCategories() {
             card.onclick = () => openDetails(m);
             row.appendChild(card);
         });
+       // SESSÃO NOSTALGIA: CLÁSSICOS 80, 90 e 2000
+    const nostalgia = [...movies, ...series].filter(item => {
+        const ano = parseInt(item.year);
+        return (ano >= 1980 && ano <= 2009) || (item.categoria && item.categoria.includes("Clássicos"));
+    });
+
+    if (nostalgia.length > 0) {
+        const section = document.createElement("div");
+        section.className = "category-container row-nostalgia"; 
+        section.innerHTML = `<div class="channel-category-title">Sessão Nostalgia: Clássicos 80, 90 e 2000</div><div class="channels-row"></div>`;
+        const row = section.querySelector(".channels-row");
+
+        nostalgia.forEach(m => {
+            const card = document.createElement("div");
+            card.className = "movie-card";
+            card.innerHTML = `
+                <img class="movie-poster" src="${m.poster}">
+                <div class="movie-meta-float"><span style="color:#FFB400">★ ${m.rating || '9.5'}</span></div>
+            `;
+            card.onclick = () => openDetails(m);
+            row.appendChild(card);
+        });
         container.appendChild(section);
     }
-}
+ }
 
 function renderContinueWatching() {
     const storage = JSON.parse(localStorage.getItem('paixaoflix_progress') || '{}');
