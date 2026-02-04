@@ -158,6 +158,53 @@
     .movie-card.focused { transform: scale(1.1); z-index: 10; }
     .movie-card.focused .movie-poster { border: 3px solid #fff; filter: brightness(1.1); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
 
+   /* SESSÃO CONTINUAR ASSISTINDO - FORMATO 16:9 */
+.continue-row {
+    display: flex;
+    gap: 20px;
+    padding: 20px 0 40px 0;
+    overflow-x: auto;
+}
+
+.continue-card {
+    flex: 0 0 300px; /* Largura horizontal profissional */
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.continue-card:hover, .continue-card.focused {
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.continue-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* BARRA DE PROGRESSO ESTILO STREAMING */
+.progress-container {
+    position: absolute;
+    bottom: 5px;
+    left: 10px;
+    right: 10px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #FFB400; /* Seu Amarelo Pipoca */
+    box-shadow: 0 0 10px #FFB400;
+    width: 0%; /* O JS vai preencher isso */
+}
+
     /* CANAIS AO VIVO - 7 POR LINHA */
     .live-channels-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 30px; }
     .live-channel-card { aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
