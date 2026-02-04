@@ -415,10 +415,11 @@ async function getFullDetails(item) {
     return null;
 }
 
+// 5. RENDERIZAÇÃO DA HOME (SÓ O QUE IMPORTA)
 function renderHomeCategories() {
     const container = document.getElementById('homeRowsContainer');
-    if(!container) return;
-    container.innerHTML = ""; // Limpa tudo antes de começar
+    if (!container) return;
+    container.innerHTML = ""; 
 
     const todos = [...movies, ...series];
 
@@ -440,11 +441,9 @@ function renderHomeCategories() {
         container.appendChild(section2026);
     }
 
-    // --- SESSÃO 2: NOSTALGIA ---
-    const nostalgia = todos.filter(item => {
-        const ano = parseInt(item.year);
-        return (ano >= 1920 && ano <= 2009) || (item.categoria && item.categoria.includes("Clássicos"));
-    });
+    // --- SESSÃO 2: NOSTALGIA (FILTRANDO PELA CATEGORIA 'CLÁSSICOS') ---
+    const nostalgia = todos.filter(item => item.categoria && item.categoria.includes("Clássicos"));
+    
     if (nostalgia.length > 0) {
         const sectionNostalgia = document.createElement("div");
         sectionNostalgia.className = "category-container row-nostalgia";
@@ -460,28 +459,9 @@ function renderHomeCategories() {
         });
         container.appendChild(sectionNostalgia);
     }
-    // NADA MAIS É RENDERIZADO AQUI. PONTO FINAL.
 }
-    // 3. RENDERIZAR NOSTALGIA
-    if (nostalgia.length > 0) {
-        const sectionNostalgia = document.createElement("div");
-        sectionNostalgia.className = "category-container row-nostalgia"; 
-        sectionNostalgia.innerHTML = `<div class="channel-category-title">Sessão Nostalgia: Clássicos 80, 90 e 2000</div><div class="channels-row"></div>`;
-        const rowNostalgia = sectionNostalgia.querySelector(".channels-row");
 
-        nostalgia.forEach(m => {
-            const card = document.createElement("div");
-            card.className = "movie-card";
-            card.innerHTML = `
-                <img class="movie-poster" src="${m.poster}">
-                <div class="movie-meta-float"><span style="color:#FFB400">★ ${m.rating || '9.5'}</span></div>
-            `;
-            card.onclick = () => openDetails(m);
-            rowNostalgia.appendChild(card);
-        });
-        container.appendChild(sectionNostalgia);
-    }
-}function renderContinueWatching() {
+function renderContinueWatching() {
     const storage = JSON.parse(localStorage.getItem('paixaoflix_progress') || '{}');
     const container = document.getElementById('continueContainer');
     const section = document.getElementById('continueWatchingSection');
@@ -501,7 +481,7 @@ function renderHomeCategories() {
     });
 }
 
-// 6. PÁGINA DE DETALHES (COM ELENCO)
+// 6. PÁGINA DE DETALHES
 async function openDetails(item) {
     isDetailsOpen = true;
     const bg = document.getElementById("detailsBg");
@@ -534,7 +514,6 @@ function renderCast(cast) {
     desc.insertAdjacentHTML('afterend', html);
 }
 
-// FUNÇÕES DE CONSTRUÇÃO DE INTERFACE
 function renderTop6() {
     const container = document.getElementById("top6Container");
     if (!container) return;
@@ -542,42 +521,13 @@ function renderTop6() {
     top6Data.forEach((item, index) => {
         const div = document.createElement("div");
         div.className = "top6-item";
-        div.innerHTML = `
-            <div class="top6-number">${index + 1}</div>
-            <img class="top6-poster" src="${item.poster}">
-        `;
+        div.innerHTML = `<div class="top6-number">${index + 1}</div><img class="top6-poster" src="${item.poster}">`;
         div.onclick = () => openDetails(item);
         container.appendChild(div);
     });
 }
 
-function renderHomeCategories() {
-    const container = document.getElementById('homeRowsContainer');
-    if (!container) return;
-    container.innerHTML = "";
-
-    // Agrupar por categorias fixas
-    CATEGORIAS_FIXAS.forEach(cat => {
-        const filtrados = [...movies, ...series].filter(m => m.categoria && m.categoria.includes(cat));
-        if (filtrados.length > 0) {
-            const section = document.createElement("div");
-            section.className = "category-container";
-            section.innerHTML = `<div class="channel-category-title">${cat}</div><div class="channels-row"></div>`;
-            const row = section.querySelector(".channels-row");
-            
-            filtrados.forEach(m => {
-                const card = document.createElement("div");
-                card.className = "movie-card";
-                card.innerHTML = `<img class="movie-poster" src="${m.poster}"><div class="movie-meta-float">★ ${m.rating || '9.8'}</div>`;
-                card.onclick = () => openDetails(m);
-                row.appendChild(card);
-            });
-            container.appendChild(section);
-        }
-    });
-}
-
-// Funções para M3U (Canais)
+// RESTANTE DAS FUNÇÕES DE SISTEMA (M3U, PLAYER, NAVEGAÇÃO)
 function parseM3U(data) {
     const lines = data.split('\n');
     for (let i = 0; i < lines.length; i++) {
@@ -590,6 +540,7 @@ function parseM3U(data) {
         }
     }
 }
+
 function parseM3UKids(data) {
     const lines = data.split('\n');
     for (let i = 0; i < lines.length; i++) {
@@ -601,8 +552,8 @@ function parseM3UKids(data) {
             kidsChannels.push({ titulo: name, url: url, poster: logo });
         }
     }
-}   
-// 7. PLAYER E NAVEGAÇÃO
+}
+
 function updateFocus() {
     document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
     const menu = document.getElementById("menuBrands");
@@ -662,7 +613,6 @@ function closePlayer() {
     isPlayerOpen = false;
     if(playerInstance) playerInstance.destroy();
     document.getElementById("playerOverlay").style.display = "none";
-    location.reload(); 
 }
 
 function closeDetails() {
@@ -690,7 +640,7 @@ function startCarousel() {
     }, 8000);
 }
 
-// 8. CONTROLES DE TECLADO (EVENT LISTENER)
+// EVENT LISTENER DE TECLADO FINAL
 document.addEventListener("keydown", e => {
     const k = e.keyCode;
     if(isPlayerOpen) { if(Keys.BACK.includes(k)) closePlayer(); return; }
@@ -700,6 +650,7 @@ document.addEventListener("keydown", e => {
         if(Keys.DOWN.includes(k)) { if(menuIdx < 7) menuIdx++; }
         if(Keys.UP.includes(k)) { if(menuIdx > 0) menuIdx--; }
         if(Keys.RIGHT.includes(k)) currentFocus = "editor";
+        if(Keys.ENTER.includes(k)) document.querySelectorAll(".brand-card")[menuIdx].click();
     } 
     else if(currentFocus === "editor") {
         if(Keys.LEFT.includes(k)) currentFocus = "menu";
@@ -708,6 +659,7 @@ document.addEventListener("keydown", e => {
             currentFocus = temCont ? "continue" : "grid";
             movieIdx = 0;
         }
+        if(Keys.ENTER.includes(k)) document.getElementById("editorSlider").click();
     }
     else if(currentFocus === "continue") {
         const items = document.querySelectorAll("#continueContainer .continue-card");
@@ -715,6 +667,7 @@ document.addEventListener("keydown", e => {
         if(Keys.RIGHT.includes(k)) { if(movieIdx < items.length - 1) movieIdx++; }
         if(Keys.UP.includes(k)) currentFocus = "editor";
         if(Keys.DOWN.includes(k)) { currentFocus = "grid"; movieIdx = 0; }
+        if(Keys.ENTER.includes(k)) items[movieIdx].click();
     }
     else if(currentFocus === "grid") {
         if(Keys.LEFT.includes(k)) { if(gridIdx > 0) gridIdx--; else currentFocus = "menu"; }
@@ -724,123 +677,21 @@ document.addEventListener("keydown", e => {
              currentFocus = temCont ? "continue" : "editor";
         }
         if(Keys.DOWN.includes(k)) { currentFocus = "home_rows"; catRowIdx = 0; movieIdx = 0; }
+        if(Keys.ENTER.includes(k)) document.querySelectorAll(".top6-item")[gridIdx].click();
     }
     else if(currentFocus === "home_rows") {
         const rows = document.querySelectorAll("#homeRowsContainer .category-container");
         const items = rows[catRowIdx]?.querySelectorAll(".movie-card");
         if(Keys.LEFT.includes(k)) { if(movieIdx > 0) movieIdx--; else currentFocus = "menu"; }
         if(Keys.RIGHT.includes(k)) { if(movieIdx < items.length - 1) movieIdx++; }
+        if(Keys.UP.includes(k)) { if(catRowIdx > 0) { catRowIdx--; movieIdx = 0; } else currentFocus = "grid"; }
         if(Keys.DOWN.includes(k)) { if(catRowIdx < rows.length - 1) { catRowIdx++; movieIdx = 0; } }
-        if(Keys.UP.includes(k)) { 
-            if(catRowIdx > 0) { catRowIdx--; movieIdx = 0; } 
-            else { currentFocus = "grid"; gridIdx = 0; }
-        }
+        if(Keys.ENTER.includes(k)) items[movieIdx].click();
     }
-
-    if(Keys.ENTER.includes(k)) document.querySelector(".focused")?.click();
     updateFocus();
 });
 
 window.onload = loadData;
-// 1. FUNÇÃO PARA RENDERIZAR O TOP 6 (PREFERIDOS DO MOMENTO)
-function renderTop6() {
-    const container = document.getElementById("top6Container");
-    if (!container || !top6Data.length) return;
-    container.innerHTML = "";
-    top6Data.forEach((item, index) => {
-        const div = document.createElement("div");
-        div.className = "top6-item";
-        div.innerHTML = `
-            <div class="top6-number">${index + 1}</div>
-            <img class="top6-poster" src="${item.poster}">
-        `;
-        div.onclick = () => openDetails(item);
-        container.appendChild(div);
-    });
-}
-
-// 2. FUNÇÃO PARA RENDERIZAR CATEGORIAS (INCLUINDO LANÇAMENTOS 2026)
-function renderHomeCategories() {
-    const container = document.getElementById('homeRowsContainer');
-    if (!container) return;
-    container.innerHTML = ""; 
-
-    // Primeiro, busca e renderiza especificamente os Lançamentos 2026
-    const lancamentos2026 = [...movies, ...series].filter(item => 
-        (item.year == "2026" || (item.categoria && item.categoria.includes("2026")))
-    );
-
-    if (lancamentos2026.length > 0) {
-        const section = document.createElement("div");
-        section.className = "category-container row-2026"; 
-        section.innerHTML = `<div class="channel-category-title">Lançamentos 2026</div><div class="channels-row"></div>`;
-        const row = section.querySelector(".channels-row");
-
-        lancamentos2026.forEach(m => {
-            const card = document.createElement("div");
-            card.className = "movie-card";
-            card.innerHTML = `
-                <div class="badge-2026">NOVO</div>
-                <img class="movie-poster" src="${m.poster}">
-                <div class="movie-meta-float"><span style="color:#FFB400">★ ${m.rating || '9.8'}</span></div>
-            `;
-            card.onclick = () => openDetails(m);
-            row.appendChild(card);
-        });
-        container.appendChild(section);
-    }
-
-    // Depois, renderiza as demais categorias fixas
-    CATEGORIAS_FIXAS.filter(cat => cat !== "Lançamentos 2026").forEach(cat => {
-        const filtrados = [...movies, ...series].filter(m => m.categoria && m.categoria.includes(cat));
-        if (filtrados.length > 0) {
-            const section = document.createElement("div");
-            section.className = "category-container";
-            section.innerHTML = `<div class="channel-category-title">${cat}</div><div class="channels-row"></div>`;
-            const row = section.querySelector(".channels-row");
-            
-            filtrados.forEach(m => {
-                const card = document.createElement("div");
-                card.className = "movie-card";
-                card.innerHTML = `
-                    <img class="movie-poster" src="${m.poster}">
-                    <div class="movie-meta-float">★ ${m.rating || '9.8'}</div>
-                `;
-                card.onclick = () => openDetails(m);
-                row.appendChild(card);
-            });
-            container.appendChild(section);
-        }
-    });
-}
-
-// 3. PARSERS PARA AS LISTAS M3U (CANAIS)
-function parseM3U(data) {
-    const lines = data.split('\n');
-    channels = [];
-    for (let i = 0; i < lines.length; i++) {
-        if (lines[i].startsWith('#EXTINF')) {
-            const name = lines[i].split(',')[1]?.trim() || "Canal";
-            const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1] || "";
-            const url = lines[i + 1]?.trim();
-            if(url) channels.push({ titulo: name, url: url, poster: logo });
-        }
-    }
-}
-
-function parseM3UKids(data) {
-    const lines = data.split('\n');
-    kidsChannels = [];
-    for (let i = 0; i < lines.length; i++) {
-        if (lines[i].startsWith('#EXTINF')) {
-            const name = lines[i].split(',')[1]?.trim() || "Kids";
-            const logo = lines[i].match(/tvg-logo="([^"]+)"/)?.[1] || "";
-            const url = lines[i + 1]?.trim();
-            if(url) kidsChannels.push({ titulo: name, url: url, poster: logo });
-        }
-    }
-}
-   
 </script>
 </body>
 </html>
