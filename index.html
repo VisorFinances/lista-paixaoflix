@@ -415,44 +415,46 @@ async function getFullDetails(item) {
     return null;
 }
 
-// 5. RENDERIZAÇÃO DA HOME E CATEGORIAS (ORGANIZADA)
 function renderHomeCategories() {
     const container = document.getElementById('homeRowsContainer');
     if(!container) return;
     container.innerHTML = ""; 
 
-    // --- 1. SESSÃO LANÇAMENTOS 2026 ---
-    const lancamentos2026 = [...movies, ...series].filter(item => 
+    // 1. FILTRAR DADOS
+    const todosConteudos = [...movies, ...series];
+
+    const lancamentos2026 = todosConteudos.filter(item => 
         (item.year == "2026" || (item.categoria && item.categoria.includes("2026")))
     );
 
+    const nostalgia = todosConteudos.filter(item => {
+        const ano = parseInt(item.year);
+        return (ano >= 1920 && ano <= 2009) || (item.categoria && item.categoria.includes("Clássicos"));
+    });
+
+    // 2. RENDERIZAR LANÇAMENTOS 2026
     if (lancamentos2026.length > 0) {
-        const section = document.createElement("div");
-        section.className = "category-container row-2026"; 
-        section.innerHTML = `<div class="channel-category-title">Lançamentos 2026</div><div class="channels-row"></div>`;
-        const row = section.querySelector(".channels-row");
+        const section2026 = document.createElement("div");
+        section2026.className = "category-container row-2026"; 
+        section2026.innerHTML = `<div class="channel-category-title">Lançamentos 2026</div><div class="channels-row"></div>`;
+        const row2026 = section2026.querySelector(".channels-row");
 
         lancamentos2026.forEach(m => {
             const card = document.createElement("div");
             card.className = "movie-card";
             card.innerHTML = `<div class="badge-2026">NOVO</div><img class="movie-poster" src="${m.poster}"><div class="movie-meta-float"><span style="color:#FFB400">★ ${m.rating || '9.8'}</span></div>`;
             card.onclick = () => openDetails(m);
-            row.appendChild(card);
+            row2026.appendChild(card);
         });
-        container.appendChild(section);
+        container.appendChild(section2026);
     }
 
-    // --- 2. SESSÃO NOSTALGIA: CLÁSSICOS 80, 90 e 2000 ---
-    const nostalgia = [...movies, ...series].filter(item => {
-        const ano = parseInt(item.year);
-        return (ano >= 1980 && ano <= 2009) || (item.categoria && item.categoria.includes("Clássicos"));
-    });
-
+    // 3. RENDERIZAR NOSTALGIA
     if (nostalgia.length > 0) {
-        const section = document.createElement("div");
-        section.className = "category-container row-nostalgia"; 
-        section.innerHTML = `<div class="channel-category-title">Sessão Nostalgia: Clássicos 80, 90 e 2000</div><div class="channels-row"></div>`;
-        const row = section.querySelector(".channels-row");
+        const sectionNostalgia = document.createElement("div");
+        sectionNostalgia.className = "category-container row-nostalgia"; 
+        sectionNostalgia.innerHTML = `<div class="channel-category-title">Sessão Nostalgia: Clássicos 80, 90 e 2000</div><div class="channels-row"></div>`;
+        const rowNostalgia = sectionNostalgia.querySelector(".channels-row");
 
         nostalgia.forEach(m => {
             const card = document.createElement("div");
@@ -462,35 +464,11 @@ function renderHomeCategories() {
                 <div class="movie-meta-float"><span style="color:#FFB400">★ ${m.rating || '9.5'}</span></div>
             `;
             card.onclick = () => openDetails(m);
-            row.appendChild(card);
+            rowNostalgia.appendChild(card);
         });
-        container.appendChild(section);
+        container.appendChild(sectionNostalgia);
     }
-
-    // --- 3. CATEGORIAS GERAIS (Ação, Comédia, etc) ---
-    CATEGORIAS_FIXAS.forEach(cat => {
-        // Pula 'Lançamentos 2026' aqui para não repetir, já que criamos a linha especial acima
-        if(cat === "Lançamentos 2026") return;
-
-        const filtrados = [...movies, ...series].filter(m => m.categoria && m.categoria.includes(cat));
-        if (filtrados.length > 0) {
-            const section = document.createElement("div");
-            section.className = "category-container";
-            section.innerHTML = `<div class="channel-category-title">${cat}</div><div class="channels-row"></div>`;
-            const row = section.querySelector(".channels-row");
-            
-            filtrados.forEach(m => {
-                const card = document.createElement("div");
-                card.className = "movie-card";
-                card.innerHTML = `<img class="movie-poster" src="${m.poster}"><div class="movie-meta-float">★ ${m.rating || '9.8'}</div>`;
-                card.onclick = () => openDetails(m);
-                row.appendChild(card);
-            });
-            container.appendChild(section);
-        }
-    });
-}
-function renderContinueWatching() {
+}function renderContinueWatching() {
     const storage = JSON.parse(localStorage.getItem('paixaoflix_progress') || '{}');
     const container = document.getElementById('continueContainer');
     const section = document.getElementById('continueWatchingSection');
