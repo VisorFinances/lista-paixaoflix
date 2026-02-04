@@ -164,8 +164,9 @@
     gap: 20px;
     padding: 20px 0 40px 0;
     overflow-x: auto;
+    margin-right: 50px; /* Garante que a rolagem não bata na borda direita */
 }
-
+   
 .continue-card {
     flex: 0 0 300px; /* Largura horizontal profissional */
     cursor: pointer;
@@ -246,11 +247,20 @@
             </div>
         </div>
     </div>
+
+    <div id="continueWatchingSection" style="display: none; margin-left: 50px; margin-bottom: 40px;">
+        <div class="channel-category-title">Continuar Assistindo</div>
+        <div id="continueContainer" class="continue-row"></div>
+    </div>
     <div id="top6Section">
         <div id="top6Title">Preferidos do momento</div>
         <div class="top6-grid" id="top6Container"></div>
     </div>
-    <div style="height: 100px;"></div>
+    
+    <div id="homeRows"></div> 
+</div>
+   
+   <div style="height: 100px;"></div>
 </div>
 
 <div id="detailsOverlay">
@@ -312,6 +322,7 @@ async function loadData() {
     top6Data = [...movies, ...series].slice(0, 6);
     
     startCarousel(); renderTop6(); startClock(); updateFocus();
+   renderContinueWatching(); // <--- ADICIONE ESTA LINHA AQUI
 }
 
 function renderGridSystem(list, isKids = false) {
@@ -325,7 +336,7 @@ function renderGridSystem(list, isKids = false) {
         });
     }
 }
-
+   
 function createRow(cont, title, items) {
     const section = document.createElement("div"); section.className = "category-container";
     section.innerHTML = `<div class="channel-category-title">${title}</div><div class="channels-row"></div>`;
