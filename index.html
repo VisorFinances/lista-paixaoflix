@@ -431,26 +431,21 @@ function renderHomeCategories() {
     container.innerHTML = ""; 
     const todos = [...movies, ...series];
     
-    const l2026 = todos.filter(item => item.year == "2026" || (item.categoria && item.categoria.includes("2026")));
+    // Filtro inteligente para 2026 (Aceita se for lista ou texto)
+    const l2026 = todos.filter(item => {
+        const cat = item.categoria || item.genero || "";
+        return item.year == "2026" || (Array.isArray(cat) ? cat.includes("Lançamentos 2026") : cat.includes("2026"));
+    });
+    
     if (l2026.length > 0) renderRow(container, "Lançamentos 2026", l2026, true);
 
-    const nostalgia = todos.filter(item => item.categoria && item.categoria.includes("Clássicos"));
-    if (nostalgia.length > 0) renderRow(container, "Sessão Nostalgia: Clássicos e Retrô", nostalgia, false);
-}
-
-function renderRow(container, title, data, isNew = false) {
-    const section = document.createElement("div");
-    section.className = `category-container ${isNew ? 'row-2026' : ''}`;
-    section.innerHTML = `<div class="channel-category-title">${title}</div><div class="channels-row"></div>`;
-    const row = section.querySelector(".channels-row");
-    data.forEach(m => {
-        const card = document.createElement("div");
-        card.className = "movie-card";
-        card.innerHTML = `${isNew ? '<div class="badge-2026">NOVO</div>' : ''}<img class="movie-poster" src="${m.poster}"><div class="movie-meta-float">★ ${m.rating || '9.5'}</div>`;
-        card.onclick = () => openDetails(m);
-        row.appendChild(card);
+    // Filtro para Nostalgia/Clássicos
+    const nostalgia = todos.filter(item => {
+        const cat = item.categoria || item.genero || "";
+        return Array.isArray(cat) ? cat.includes("Clássicos") : cat.includes("Clássicos");
     });
-    container.appendChild(section);
+    
+    if (nostalgia.length > 0) renderRow(container, "Sessão Nostalgia: Clássicos", nostalgia, false);
 }
 
 function openContentPage(type) {
@@ -458,21 +453,23 @@ function openContentPage(type) {
     currentFocus = "grid_page";
     catRowIdx = 0; movieIdx = 0;
     
-    let sourceData = [];
-    if(type === 'movies') sourceData = movies;
-    else if(type === 'series') sourceData = series;
-    else if(type === 'kids') sourceData = [...kidsMovies, ...kidsSeries];
+    let sourceData = (type === 'movies') ? movies : (type === 'series' ? series : [...kidsMovies, ...kidsSeries]);
 
     document.getElementById("moviesOverlay").style.display = "flex";
     const scroll = document.getElementById("moviesScroll");
     scroll.innerHTML = `<div class="channel-category-title" style="font-size: 50px; margin-bottom: 30px;">${type.toUpperCase()}</div>`;
 
-    CATEGORIAS_FIXAS.forEach(cat => {
-        const filtrados = sourceData.filter(item => item.categoria && item.categoria.includes(cat));
+    CATEGORIAS_FIXAS.forEach(catNome => {
+        // Verifica se a categoria do item (que pode ser array ou string) contém o nome da pasta
+        const filtrados = sourceData.filter(item => {
+            const itemCat = item.categoria || item.genero || "";
+            return Array.isArray(itemCat) ? itemCat.includes(catNome) : itemCat.includes(catNome);
+        });
+
         if (filtrados.length > 0) {
             const section = document.createElement("div");
             section.className = "category-container";
-            section.innerHTML = `<div class="channel-category-title">${cat}</div><div class="channels-row"></div>`;
+            section.innerHTML = `<div class="channel-category-title">${catNome}</div><div class="channels-row"></div>`;
             const row = section.querySelector(".channels-row");
             filtrados.forEach(item => {
                 const card = document.createElement("div");
@@ -486,7 +483,7 @@ function openContentPage(type) {
     });
     updateFocus();
 }
-
+   
 function openChannelsPage(type) {
     activePage = "channels";
     currentFocus = "grid_page";
