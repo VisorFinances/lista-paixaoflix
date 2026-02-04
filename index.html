@@ -186,6 +186,83 @@
     #btnClosePlayer { position: absolute; top: 30px; right: 30px; z-index: 21000; background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid #fff; padding: 12px 25px; cursor: pointer; border-radius: 8px; }
 
     #globalFooter { position: fixed; bottom: 0; width: 100%; height: 80px; background: linear-gradient(transparent, #000); display: flex; align-items: center; justify-content: center; z-index: 6000; }
+/* Informações abaixo das capas no Grid */
+.movie-info-overlay {
+    padding: 8px 5px;
+    background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.8));
+    border-radius: 0 0 10px 10px;
+}
+.movie-title-grid {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+.movie-meta-grid {
+    font-size: 12px;
+    color: #FFCE44;
+    display: flex;
+    justify-content: space-between;
+}
+   const TMDB_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
+const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+
+// Função para buscar dados extras do TMDB
+async function getTMDBData(item) {
+    const query = encodeURIComponent(item.titulo || item.name);
+    // Identifica se é série ou filme (baseado na sua estrutura de pastas do PaixãoFlix)
+    const type = item.isSerie ? 'tv' : 'movie'; 
+    
+    try {
+        const searchRes = await fetch(`${TMDB_BASE_URL}/search/${type}?api_key=${TMDB_KEY}&query=${query}&language=pt-BR`);
+        const searchData = await searchRes.json();
+        
+        if (searchData.results && searchData.results.length > 0) {
+            const result = searchData.results[0];
+            return {
+                ano: (result.release_date || result.first_air_date || "2026").substring(0, 4),
+                nota: result.vote_average.toFixed(1),
+                descricao: result.overview || item.descricao,
+                backdrop: `https://image.tmdb.org/t/p/original${result.backdrop_path}`
+            };
+        }
+    } catch (e) { console.error("Erro TMDB:", e); }
+    return null;
+}
+
+// Atualização da função openDetails para ser assíncrona
+async function openDetails(item) {
+    currentItem = item;
+    isDetailsOpen = true;
+    detIdx = 0;
+
+    // Feedback visual de carregando
+    document.getElementById("detTitle").innerText = "Carregando...";
+    document.getElementById("detailsOverlay").style.display = "flex";
+
+    const extra = await getTMDBData(item);
+    
+    const poster = item.poster;
+    const titulo = item.titulo || item.name;
+    const ano = extra ? extra.ano : (item.year || "2026");
+    const nota = extra ? extra.nota : (item.rating || "0.0");
+    const desc = extra ? extra.descricao : (item.descricao || "Sinopse não disponível.");
+    const bg = extra ? extra.backdrop : poster;
+
+    document.getElementById("detPoster").src = poster;
+    document.getElementById("detailsBg").style.backgroundImage = `url(${bg})`;
+    document.getElementById("detTitle").innerText = titulo;
+    document.getElementById("detMeta").innerText = `${ano} • ★ ${nota}`;
+    document.getElementById("detDesc").innerText = desc;
+    document.getElementById("detDesc").style.display = "block"; // Garante que a descrição apareça completa
+    document.getElementById("detDesc").style.webkitLineClamp = "unset"; // Remove o limite de linhas nos detalhes
+
+    document.getElementById("btnDetPlay").onclick = () => playChannel(item.url, titulo);
+    updateFocus();
+}
+
 </style>
 </head>
 <body>
@@ -318,25 +395,34 @@ function openChannelsPage() {
 function renderGridSystem(list) {
     const cont = document.getElementById("moviesScroll");
     cont.innerHTML = "";
-    // Agrupamento simplificado por gênero para o exemplo
-    let cats = {"Destaques": list.slice(0,12)};
+    
+    let cats = {"Destaques": list};
     Object.keys(cats).forEach(cat => {
         const div = document.createElement("div");
         div.className = "category-container";
         div.innerHTML = `<div class="channel-category-title">${cat}</div><div class="channels-row movie-grid"></div>`;
         const grid = div.querySelector(".movie-grid");
+        
         cats[cat].forEach(m => {
             const card = document.createElement("div");
             card.className = "movie-card";
-            card.setAttribute("data-nav", "movie-card");
-            card.innerHTML = `<img class="movie-poster" src="${m.poster}">`;
+            // Adicionamos o ano e nota fixos ou vindos do seu JSON local se houver
+            card.innerHTML = `
+                <img class="movie-poster" src="${m.poster}">
+                <div class="movie-info-overlay">
+                    <span class="movie-title-grid">${m.titulo || m.name}</span>
+                    <div class="movie-meta-grid">
+                        <span>${m.year || ''}</span>
+                        <span>★ ${m.rating || 'N/A'}</span>
+                    </div>
+                </div>
+            `;
             card.onclick = () => openDetails(m);
             grid.appendChild(card);
         });
         cont.appendChild(div);
     });
 }
-
 function updateFocus() {
     if(isPlayerOpen) return;
     document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
