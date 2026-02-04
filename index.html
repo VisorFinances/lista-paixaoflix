@@ -206,6 +206,33 @@
     width: 0%; /* O JS vai preencher isso */
 }
 
+   /* ESTILO LANÇAMENTOS 2026 - IMPACTO PREMIUM */
+.row-2026 .movie-card {
+    flex: 0 0 240px; /* Um pouco maior que o padrão */
+    margin: 15px 0;
+}
+
+.row-2026 .movie-card.focused .movie-poster {
+    border: 3px solid #FFB400 !important; /* Amarelo Pipoca */
+    box-shadow: 0 0 35px rgba(255, 180, 0, 0.4); /* Efeito Glow */
+    transform: scale(1.15);
+}
+
+/* SELO DE ANO NO CANTO DA CAPA */
+.badge-2026 {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #b20710; /* Vermelho PaixãoFlix */
+    color: white;
+    font-size: 12px;
+    font-weight: 900;
+    padding: 4px 8px;
+    border-radius: 4px;
+    z-index: 5;
+    text-shadow: none;
+}
+
     /* CANAIS AO VIVO - 7 POR LINHA */
     .live-channels-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 30px; }
     .live-channel-card { aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
@@ -252,16 +279,15 @@
         <div class="channel-category-title">Continuar Assistindo</div>
         <div id="continueContainer" class="continue-row"></div>
     </div>
-    <div id="top6Section">
+   <div id="top6Section">
         <div id="top6Title">Preferidos do momento</div>
         <div class="top6-grid" id="top6Container"></div>
     </div>
-    
-    <div id="homeRows"></div> 
-</div>
-   
-   <div style="height: 100px;"></div>
-</div>
+
+    <div id="homeRowsContainer"></div>
+
+    <div style="height: 100px;"></div>
+</div> ```
 
 <div id="detailsOverlay">
     <div id="detailsBg"></div>
@@ -323,6 +349,7 @@ async function loadData() {
     
     startCarousel(); renderTop6(); startClock(); updateFocus();
    renderContinueWatching(); // <--- ADICIONE ESTA LINHA AQUI
+   renderHomeCategories(); // <--- ADICIONE ESTA LINHA AQUI
 }
 
 function renderGridSystem(list, isKids = false) {
@@ -373,6 +400,7 @@ function renderChannels(list) {
 function updateFocus() {
     document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
     const menu = document.getElementById("menuBrands");
+    
     if(currentFocus === "menu") {
         menu.classList.add("expanded");
         document.querySelectorAll(".brand-card")[menuIdx]?.classList.add("focused");
@@ -380,14 +408,50 @@ function updateFocus() {
         menu.classList.remove("expanded");
         if(currentFocus === "editor") document.getElementById("editorSlider").classList.add("focused");
         if(currentFocus === "grid") document.querySelectorAll(".top6-item")[gridIdx]?.classList.add("focused");
+        
         if(currentFocus === "movie_grid") {
-            const items = document.querySelectorAll("#moviesScroll .movie-card");
+            const items = document.querySelectorAll("#moviesScroll .movie-card, .channels-row .movie-card");
             items[movieIdx]?.classList.add("focused");
             items[movieIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
         }
     }
 }
 
+// FUNÇÃO DE LANÇAMENTOS (FORA DA UPDATEFOCUS)
+function renderHomeCategories() {
+    const container = document.getElementById('homeRowsContainer');
+    if(!container) return;
+    container.innerHTML = ""; 
+
+    const lancamentos2026 = [...movies, ...series].filter(item => 
+        (item.year == "2026" || (item.categoria && item.categoria.includes("2026")))
+    );
+
+    if (lancamentos2026.length > 0) {
+        const section = document.createElement("div");
+        section.className = "category-container row-2026"; 
+        section.innerHTML = `
+            <div class="channel-category-title">Lançamentos 2026</div>
+            <div class="channels-row"></div>
+        `;
+        const row = section.querySelector(".channels-row");
+
+        lancamentos2026.forEach(m => {
+            const card = document.createElement("div");
+            card.className = "movie-card";
+            card.innerHTML = `
+                <div class="badge-2026">NOVO</div>
+                <img class="movie-poster" src="${m.poster}">
+                <div class="movie-meta-float">
+                    <span style="color:#FFB400">★ ${m.rating || '9.8'}</span>
+                </div>
+            `;
+            card.onclick = () => openDetails(m);
+            row.appendChild(card);
+        });
+        container.appendChild(section);
+    }
+}
 document.addEventListener("keydown", e => {
     const k = e.keyCode;
     if(isPlayerOpen && Keys.BACK.includes(k)) { closePlayer(); return; }
