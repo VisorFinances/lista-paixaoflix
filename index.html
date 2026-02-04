@@ -262,7 +262,12 @@ async function openDetails(item) {
     document.getElementById("btnDetPlay").onclick = () => playChannel(item.url, titulo);
     updateFocus();
 }
-
+   
+html { scroll-behavior: smooth; }
+#mainScroll { 
+    scroll-behavior: smooth;
+    padding-bottom: 200px; /* Espaço para a última linha não ficar colada no rodapé */
+}
 </style>
 </head>
 <body>
@@ -344,8 +349,8 @@ const sectionConfigs = [
 let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [];
 let top6Data = [], editorsChoice = [], edIdx = 0;
 let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0;
+let dynamicRowIdx = 0, dynamicColIdx = 0; // ADICIONE ESTAS DUAS
 let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, isDetailsOpen = false, playerInstance = null, currentItem = null;
-
 const Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443, 117], BACK: [8, 27, 461, 10009] };
 
 async function loadData() {
@@ -449,40 +454,48 @@ function updateFocus() {
         const btns = document.querySelectorAll(".btn-3d");
         btns[detIdx]?.classList.add("focused");
     } 
-    else if(isMoviesOpen) {
+    else if(isMoviesOpen || isChannelsOpen) {
         if(currentFocus === "menu") {
             document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
         } else {
-            const items = document.querySelectorAll("#moviesScroll .movie-card");
-            items[movieIdx]?.classList.add("focused");
-            items[movieIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    } 
-    else if(isChannelsOpen) {
-        if(currentFocus === "menu") {
-            document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
-        } else {
-            const cards = document.querySelectorAll("#channelsScroll .channel-card");
-            cards[chanIdx]?.classList.add("focused");
-            cards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const selector = isMoviesOpen ? "#moviesScroll .movie-card" : "#channelsScroll .channel-card";
+            const idx = isMoviesOpen ? movieIdx : chanIdx;
+            const items = document.querySelectorAll(selector);
+            items[idx]?.classList.add("focused");
+            items[idx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     } 
     else {
+        // FOCO NA HOME
         if(currentFocus === "menu") {
             document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
         } else if(currentFocus === "editor") {
             document.getElementById("editorSlider")?.classList.add("focused");
+            window.scrollTo({top: 0, behavior: 'smooth'});
         } else if(currentFocus === "grid") {
             const gridItems = document.querySelectorAll(".top6-item");
             gridItems[gridIdx]?.classList.add("focused");
-            gridItems[gridIdx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            gridItems[gridIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if(currentFocus === "dynamic") {
+            const rows = document.querySelectorAll("#dynamicSections .channels-row");
+            const currentRow = rows[dynamicRowIdx];
+            const items = currentRow?.querySelectorAll(".movie-card");
+            const target = items[dynamicColIdx];
+            if(target) {
+                target.classList.add("focused");
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
     }
 }
-
+   
 document.addEventListener("keydown", e => {
     const k = e.keyCode;
+    
+    // 1. Controle do Player
     if(isPlayerOpen && Keys.BACK.includes(k)) { closePlayer(); return; }
+    
+    // 2. Controle dos Detalhes
     if(isDetailsOpen) {
         if(Keys.RIGHT.includes(k)) detIdx = 1;
         if(Keys.LEFT.includes(k)) detIdx = 0;
@@ -491,42 +504,70 @@ document.addEventListener("keydown", e => {
             else closeDetails();
         }
         if(Keys.BACK.includes(k)) closeDetails();
-    } 
-    else if(currentFocus === "menu") {
+        updateFocus();
+        return;
+    }
+
+    // 3. Navegação do Menu Lateral
+    if(currentFocus === "menu") {
         if(Keys.DOWN.includes(k)) menuIdx = Math.min(6, menuIdx + 1);
         if(Keys.UP.includes(k)) menuIdx = Math.max(0, menuIdx - 1);
         if(Keys.RIGHT.includes(k)) { 
-            if(isMoviesOpen) currentFocus = "movie_grid";
-            else if(isChannelsOpen) currentFocus = "channel_grid";
-            else currentFocus = "editor";
+            // Volta para onde o usuário estava antes de ir ao menu
+            currentFocus = isMoviesOpen ? "movie_grid" : (isChannelsOpen ? "channel_grid" : "editor");
         }
-        if(Keys.ENTER.includes(k)) {
-            const cards = document.querySelectorAll(".main-menu .brand-card");
-            cards[menuIdx]?.click();
-        }
+        if(Keys.ENTER.includes(k)) document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.click();
+        updateFocus();
+        return;
     }
-    else if(!isMoviesOpen && !isChannelsOpen) {
+
+    // 4. Navegação na Home (Editor -> Top 6 -> Dynamic)
+    if(!isMoviesOpen && !isChannelsOpen) {
         if(currentFocus === "editor") {
             if(Keys.DOWN.includes(k)) { currentFocus = "grid"; gridIdx = 0; }
-            if(Keys.LEFT.includes(k)) { currentFocus = "menu"; menuIdx = 0; }
+            if(Keys.LEFT.includes(k)) { currentFocus = "menu"; }
             if(Keys.ENTER.includes(k)) openDetails(editorsChoice[edIdx]);
         } 
         else if(currentFocus === "grid") {
             if(Keys.RIGHT.includes(k)) gridIdx = Math.min(5, gridIdx + 1);
-            if(Keys.LEFT.includes(k)) { 
-                if(gridIdx === 0) { currentFocus = "menu"; menuIdx = 0; } 
-                else gridIdx--; 
-            }
+            if(Keys.LEFT.includes(k)) { (gridIdx === 0) ? currentFocus = "menu" : gridIdx--; }
             if(Keys.UP.includes(k)) currentFocus = "editor";
+            if(Keys.DOWN.includes(k)) { 
+                currentFocus = "dynamic"; 
+                dynamicRowIdx = 0; 
+                dynamicColIdx = 0; 
+            }
             if(Keys.ENTER.includes(k)) openDetails(top6Data[gridIdx]);
         }
-    }
+        else if(currentFocus === "dynamic") {
+            const rows = document.querySelectorAll("#dynamicSections .channels-row");
+            const itemsInRow = rows[dynamicRowIdx]?.querySelectorAll(".movie-card") || [];
+
+            if(Keys.RIGHT.includes(k)) dynamicColIdx = Math.min(itemsInRow.length - 1, dynamicColIdx + 1);
+            if(Keys.LEFT.includes(k)) { (dynamicColIdx === 0) ? currentFocus = "menu" : dynamicColIdx--; }
+            if(Keys.UP.includes(k)) {
+                if(dynamicRowIdx === 0) currentFocus = "grid";
+                else { dynamicRowIdx--; dynamicColIdx = 0; }
+            }
+            if(Keys.DOWN.includes(k)) {
+                if(dynamicRowIdx < rows.length - 1) { dynamicRowIdx++; dynamicColIdx = 0; }
+            }
+            if(Keys.ENTER.includes(k)) {
+                // Pega o item correto da configuração para abrir os detalhes
+                const config = sectionConfigs[dynamicRowIdx];
+                const data = window[config.categoria][dynamicColIdx];
+                openDetails(data);
+            }
+        }
+    } 
+    // 5. Navegação em Canais e Cinema (Grids)
     else {
         if(Keys.BACK.includes(k)) location.reload();
+        // Adicione aqui lógica similar para movie_grid se necessário
     }
+    
     updateFocus();
 });
-
 function parseM3U(content) {
     const lines = content.split('\n');
     let cats = {};
