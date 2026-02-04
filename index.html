@@ -472,28 +472,110 @@ function renderCast(cast) {
     desc.insertAdjacentHTML('afterend', html);
 }
 
-// 7. PLAYER E NAVEGAÇÃO (Mantenha suas funções de teclado, startClock, etc abaixo)
-// ... (resto das suas funções originais: playChannel, updateFocus, Keys, etc)
+// 7. PLAYER E NAVEGAÇÃO
+function updateFocus() {
+    document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
+    const menu = document.getElementById("menuBrands");
+    
+    if(currentFocus === "menu") {
+        menu.classList.add("expanded");
+        document.querySelectorAll(".brand-card")[menuIdx]?.classList.add("focused");
+    } else {
+        menu.classList.remove("expanded");
+        if(currentFocus === "editor") document.getElementById("editorSlider").classList.add("focused");
+        
+        if(currentFocus === "continue") {
+            const items = document.querySelectorAll("#continueContainer .continue-card");
+            items[movieIdx]?.classList.add("focused");
+            items[movieIdx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+        
+        if(currentFocus === "grid") {
+            document.querySelectorAll(".top6-item")[gridIdx]?.classList.add("focused");
+        }
+        
+        if(currentFocus === "home_rows") {
+            const rows = document.querySelectorAll("#homeRowsContainer .category-container");
+            const items = rows[catRowIdx]?.querySelectorAll(".movie-card");
+            items[movieIdx]?.classList.add("focused");
+            rows[catRowIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            items[movieIdx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+    }
+}
 
-window.onload = loadData;
+function playChannel(url, titulo, poster) {
+    isPlayerOpen = true;
+    document.getElementById("playerOverlay").style.display = "block";
+    if(playerInstance) playerInstance.destroy();
+    
+    playerInstance = new Clappr.Player({
+        source: url,
+        parentId: "#player",
+        width: "100%", height: "100%",
+        autoPlay: true,
+        events: {
+            onTimeUpdate: function(e) {
+                if (e.duration > 10) saveProgress(e.current, e.duration, titulo, poster, url);
+            }
+        }
+    });
+}
+
+function saveProgress(currentTime, duration, titulo, poster, url) {
+    let progress = JSON.parse(localStorage.getItem('paixaoflix_progress') || '{}');
+    progress[titulo] = { titulo, poster, url, currentTime, duration, timestamp: Date.now() };
+    localStorage.setItem('paixaoflix_progress', JSON.stringify(progress));
+}
+
+function closePlayer() {
+    isPlayerOpen = false;
+    if(playerInstance) playerInstance.destroy();
+    document.getElementById("playerOverlay").style.display = "none";
+    location.reload(); 
+}
+
+function closeDetails() {
+    isDetailsOpen = false;
+    document.getElementById("detailsOverlay").style.display = "none";
+}
+
+function startClock() {
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById("barDateTime").innerText = now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+    }, 1000);
+}
+
+function startCarousel() {
+    setInterval(() => {
+        if(!isDetailsOpen && !isPlayerOpen && editorsChoice.length > 0) {
+            edIdx = (edIdx + 1) % editorsChoice.length;
+            const item = editorsChoice[edIdx];
+            const slider = document.getElementById("editorSlider");
+            slider.style.backgroundImage = `linear-gradient(to top, #000 10%, transparent 90%), url(${item.poster})`;
+            document.getElementById("editorTitle").innerText = item.titulo;
+            document.getElementById("editorMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.8'}`;
+        }
+    }, 8000);
+}
+
+// 8. CONTROLES DE TECLADO (EVENT LISTENER)
 document.addEventListener("keydown", e => {
     const k = e.keyCode;
-    
-    // Bloqueia navegação se o player ou detalhes estiverem abertos (usa apenas o BACK)
     if(isPlayerOpen) { if(Keys.BACK.includes(k)) closePlayer(); return; }
     if(isDetailsOpen) { if(Keys.BACK.includes(k)) closeDetails(); return; }
 
-    // Lógica de Navegação entre Seções
     if(currentFocus === "menu") {
         if(Keys.DOWN.includes(k)) { if(menuIdx < 7) menuIdx++; }
         if(Keys.UP.includes(k)) { if(menuIdx > 0) menuIdx--; }
-        if(Keys.RIGHT.includes(k)) { currentFocus = "editor"; }
+        if(Keys.RIGHT.includes(k)) currentFocus = "editor";
     } 
     else if(currentFocus === "editor") {
         if(Keys.LEFT.includes(k)) currentFocus = "menu";
         if(Keys.DOWN.includes(k)) {
-            const temContinue = document.getElementById('continueWatchingSection').style.display !== 'none';
-            currentFocus = temContinue ? "continue" : "grid";
+            const temCont = document.getElementById('continueWatchingSection').style.display !== 'none';
+            currentFocus = temCont ? "continue" : "grid";
             movieIdx = 0;
         }
     }
@@ -508,8 +590,8 @@ document.addEventListener("keydown", e => {
         if(Keys.LEFT.includes(k)) { if(gridIdx > 0) gridIdx--; else currentFocus = "menu"; }
         if(Keys.RIGHT.includes(k)) { if(gridIdx < 5) gridIdx++; }
         if(Keys.UP.includes(k)) {
-             const temContinue = document.getElementById('continueWatchingSection').style.display !== 'none';
-             currentFocus = temContinue ? "continue" : "editor";
+             const temCont = document.getElementById('continueWatchingSection').style.display !== 'none';
+             currentFocus = temCont ? "continue" : "editor";
         }
         if(Keys.DOWN.includes(k)) { currentFocus = "home_rows"; catRowIdx = 0; movieIdx = 0; }
     }
@@ -528,7 +610,8 @@ document.addEventListener("keydown", e => {
     if(Keys.ENTER.includes(k)) document.querySelector(".focused")?.click();
     updateFocus();
 });
-    
+
+window.onload = loadData;
 </script>
 </body>
 </html>
