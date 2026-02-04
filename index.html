@@ -37,6 +37,12 @@
     font-size: 42px; /* <--- MUDE ESTE VALOR */
     text-transform: uppercase;
     margin-bottom: 20px;
+   /* Esta linha abaixo agora obedece ao JavaScript */
+    /* Esta é a alteração vital: */
+    font-size: var(--tamanho-titulo, 42px) !important; 
+    
+    text-transform: uppercase;
+    margin-bottom: 30px;
 }
 
     #detailsOverlay {
@@ -233,7 +239,11 @@ let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [], k
 let top6Data = [], editorsChoice = [], edIdx = 0;
 let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0, catRowIdx = 0;
 let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, isDetailsOpen = false, playerInstance = null;
+// --- CONFIGURAÇÕES RÁPIDAS PAIXÃOFLIX ---
+const TAMANHO_FONTE_TITULOS = "42px"; // Altere aqui o tamanho para todo o sistema
 
+// Aplica a configuração no carregamento
+document.documentElement.style.setProperty('--tamanho-titulo', TAMANHO_FONTE_TITULOS);
 const Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443], BACK: [8, 27, 461, 10009] };
 
 const CATEGORIAS_FIXAS = ["Lançamentos 2026", "Lançamentos 2025", "Ação", "Aventura", "Comédia", "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", "Animação", "Clássicos", "Dorama", "Suspense", "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"];
