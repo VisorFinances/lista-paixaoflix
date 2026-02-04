@@ -108,16 +108,16 @@
     #top6Section { 
     margin-left: 20px; 
     width: 100%; 
-    padding: 60px 0; /* Aumentado para dar espaço ao movimento de subida (translateY) */
+    padding: 60px 0; 
     background: transparent !important; 
-    overflow: visible !important; /* Impede o corte/barra preta nos efeitos */
+    overflow: visible !important; 
 }
 
 #top6Title { 
     font-size: 26px; 
     font-weight: 500; 
     color: #FFCE44; 
-    margin-bottom: 50px; /* Espaço extra para o item focado não encostar no texto */
+    margin-bottom: 50px; 
     text-transform: uppercase;
 }
 
@@ -125,7 +125,7 @@
     display: flex !important; 
     gap: 60px; 
     padding-left: 60px; 
-    overflow: visible !important; /* Garante que a sombra e o brilho apareçam */
+    overflow: visible !important; 
 }
 
 .top6-item { 
@@ -156,7 +156,6 @@
     transition: all 0.4s ease;
 }
 
-/* Efeito de foco otimizado: sobe e brilha sem cortar */
 .top6-item.focused { 
     transform: translateY(-25px) scale(1.1); 
     z-index: 100; 
@@ -164,7 +163,7 @@
 
 .top6-item.focused .top6-poster { 
     border: 3px solid #fff; 
-    box-shadow: 0 15px 40px rgba(255, 206, 68, 0.4); /* Brilho amarelo Pipoca */
+    box-shadow: 0 15px 40px rgba(255, 206, 68, 0.4); 
     filter: brightness(1.1);
 }
     #channelsOverlay, #moviesOverlay { position: fixed; top: 75px; left: 80px; width: calc(100vw - 80px); height: calc(100vh - 75px); background: #000; z-index: 10000; display: none; flex-direction: column; overflow-y: auto; }
@@ -186,82 +185,18 @@
     #btnClosePlayer { position: absolute; top: 30px; right: 30px; z-index: 21000; background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid #fff; padding: 12px 25px; cursor: pointer; border-radius: 8px; }
 
     #globalFooter { position: fixed; bottom: 0; width: 100%; height: 80px; background: linear-gradient(transparent, #000); display: flex; align-items: center; justify-content: center; z-index: 6000; }
-/* Informações abaixo das capas no Grid */
-.movie-info-overlay {
-    padding: 8px 5px;
-    background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.8));
-    border-radius: 0 0 10px 10px;
-}
-.movie-title-grid {
-    font-size: 14px;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
-}
-.movie-meta-grid {
-    font-size: 12px;
-    color: #FFCE44;
-    display: flex;
-    justify-content: space-between;
-}
-   const TMDB_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
-// Função para buscar dados extras do TMDB
-async function getTMDBData(item) {
-    const query = encodeURIComponent(item.titulo || item.name);
-    // Identifica se é série ou filme (baseado na sua estrutura de pastas do PaixãoFlix)
-    const type = item.isSerie ? 'tv' : 'movie'; 
-    
-    try {
-        const searchRes = await fetch(`${TMDB_BASE_URL}/search/${type}?api_key=${TMDB_KEY}&query=${query}&language=pt-BR`);
-        const searchData = await searchRes.json();
-        
-        if (searchData.results && searchData.results.length > 0) {
-            const result = searchData.results[0];
-            return {
-                ano: (result.release_date || result.first_air_date || "2026").substring(0, 4),
-                nota: result.vote_average.toFixed(1),
-                descricao: result.overview || item.descricao,
-                backdrop: `https://image.tmdb.org/t/p/original${result.backdrop_path}`
-            };
-        }
-    } catch (e) { console.error("Erro TMDB:", e); }
-    return null;
-}
-
-// Atualização da função openDetails para ser assíncrona
-async function openDetails(item) {
-    currentItem = item;
-    isDetailsOpen = true;
-    detIdx = 0;
-
-    // Feedback visual de carregando
-    document.getElementById("detTitle").innerText = "Carregando...";
-    document.getElementById("detailsOverlay").style.display = "flex";
-
-    const extra = await getTMDBData(item);
-    
-    const poster = item.poster;
-    const titulo = item.titulo || item.name;
-    const ano = extra ? extra.ano : (item.year || "2026");
-    const nota = extra ? extra.nota : (item.rating || "0.0");
-    const desc = extra ? extra.descricao : (item.descricao || "Sinopse não disponível.");
-    const bg = extra ? extra.backdrop : poster;
-
-    document.getElementById("detPoster").src = poster;
-    document.getElementById("detailsBg").style.backgroundImage = `url(${bg})`;
-    document.getElementById("detTitle").innerText = titulo;
-    document.getElementById("detMeta").innerText = `${ano} • ★ ${nota}`;
-    document.getElementById("detDesc").innerText = desc;
-    document.getElementById("detDesc").style.display = "block"; // Garante que a descrição apareça completa
-    document.getElementById("detDesc").style.webkitLineClamp = "unset"; // Remove o limite de linhas nos detalhes
-
-    document.getElementById("btnDetPlay").onclick = () => playChannel(item.url, titulo);
-    updateFocus();
-}
+/* ESTILOS PADRONIZADOS PARA AS 13 SESSÕES */
+.home-category-section { margin-bottom: 60px; display: none; }
+.category-header { font-size: 26px; font-weight: 700; color: #FFCE44; margin-bottom: 25px; padding-left: 20px; text-transform: uppercase; }
+.category-row-container { display: flex; gap: 25px; padding: 10px 20px; overflow-x: visible !important; }
+.standard-card { flex: 0 0 200px; cursor: pointer; transition: transform 0.3s; position: relative; }
+.standard-card img { width: 100%; height: 300px; object-fit: cover; border-radius: 12px; border: 2px solid rgba(255,255,255,0.1); }
+.standard-card.focused { transform: scale(1.1); z-index: 100; }
+.standard-card.focused img { border-color: #fff; box-shadow: 0 0 25px rgba(255, 206, 68, 0.4); }
+.movie-info-overlay { padding: 10px 5px; }
+.movie-title-grid { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; margin-bottom: 4px; }
+.movie-meta-grid { font-size: 12px; color: #FFCE44; display: flex; justify-content: space-between; font-weight: 600; }
 
 </style>
 </head>
@@ -297,6 +232,9 @@ async function openDetails(item) {
         <div id="top6Title">Preferidos do momento</div>
         <div class="top6-grid" id="top6Container"></div>
     </div>
+
+    <div id="dynamicSections"></div>
+
     <div style="height: 150px;"></div>
 </div>
 
@@ -329,12 +267,32 @@ async function openDetails(item) {
 </div>
 
 <script>
+const TMDB_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
+const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+
 let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [];
 let top6Data = [], editorsChoice = [], edIdx = 0;
-let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0;
+let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0, dynIdx = 0, dynRowIdx = 0;
 let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, isDetailsOpen = false, playerInstance = null, currentItem = null;
 
 const Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443, 117], BACK: [8, 27, 461, 10009] };
+
+// CONFIGURAÇÃO DAS 13 SESSÕES (Preencha 'nome' e 'categoria' para ativar)
+const sectionConfigs = [
+    { id: 0, nome: "Filmes de Ação", categoria: "movies", ativa: true },
+    { id: 1, nome: "Séries Imperdíveis", categoria: "series", ativa: true },
+    { id: 2, nome: "Para a Criançada", categoria: "kidsMovies", ativa: true },
+    { id: 3, nome: "", categoria: "", ativa: false },
+    { id: 4, nome: "", categoria: "", ativa: false },
+    { id: 5, nome: "", categoria: "", ativa: false },
+    { id: 6, nome: "", categoria: "", ativa: false },
+    { id: 7, nome: "", categoria: "", ativa: false },
+    { id: 8, nome: "", categoria: "", ativa: false },
+    { id: 9, nome: "", categoria: "", ativa: false },
+    { id: 10, nome: "", categoria: "", ativa: false },
+    { id: 11, nome: "", categoria: "", ativa: false },
+    { id: 12, nome: "", categoria: "", ativa: false }
+];
 
 async function loadData() {
     const fetchJSON = async (url) => { try { const r = await fetch(url); return await r.json(); } catch(e) { return []; } };
@@ -348,19 +306,74 @@ async function loadData() {
     editorsChoice = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 10);
     top6Data = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 6);
     
-    startCarousel(); renderTop6(); startClock(); updateFocus();
+    startCarousel(); renderTop6(); buildDynamicHome(); startClock(); updateFocus();
 }
 
-function openDetails(item) {
+async function getTMDBData(item) {
+    const query = encodeURIComponent(item.titulo || item.name);
+    const type = (item.isSerie || series.includes(item) || kidsSeries.includes(item)) ? 'tv' : 'movie';
+    try {
+        const r = await fetch(`${TMDB_BASE_URL}/search/${type}?api_key=${TMDB_KEY}&query=${query}&language=pt-BR`);
+        const d = await r.json();
+        if (d.results && d.results[0]) {
+            const res = d.results[0];
+            return {
+                ano: (res.release_date || res.first_air_date || "2026").substring(0, 4),
+                nota: res.vote_average.toFixed(1),
+                descricao: res.overview,
+                backdrop: `https://image.tmdb.org/t/p/original${res.backdrop_path}`
+            };
+        }
+    } catch (e) {}
+    return null;
+}
+
+async function buildDynamicHome() {
+    const container = document.getElementById("dynamicSections");
+    container.innerHTML = "";
+    for (const config of sectionConfigs) {
+        if (!config.ativa) continue;
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "home-category-section";
+        sectionDiv.style.display = "block";
+        sectionDiv.innerHTML = `<div class="category-header">${config.nome}</div><div class="category-row-container" id="dyn-row-${config.id}"></div>`;
+        container.appendChild(sectionDiv);
+        const dataList = window[config.categoria] || [];
+        renderDynamicCards(dataList.slice(0, 12), `dyn-row-${config.id}`);
+    }
+}
+
+function renderDynamicCards(items, rowId) {
+    const row = document.getElementById(rowId);
+    items.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "standard-card";
+        card.innerHTML = `<img src="${item.poster}"><div class="movie-info-overlay"><span class="movie-title-grid">${item.titulo || item.name}</span><div class="movie-meta-grid"><span class="c-year">${item.year || ''}</span><span class="c-rating">★ ${item.rating || ''}</span></div></div>`;
+        card.onclick = () => openDetails(item);
+        row.appendChild(card);
+        getTMDBData(item).then(extra => {
+            if(extra) {
+                card.querySelector(".c-year").innerText = extra.ano;
+                card.querySelector(".c-rating").innerText = "★ " + extra.nota;
+            }
+        });
+    });
+}
+
+async function openDetails(item) {
     currentItem = item;
     isDetailsOpen = true;
     detIdx = 0;
-    document.getElementById("detPoster").src = item.poster;
-    document.getElementById("detailsBg").style.backgroundImage = `url(${item.poster})`;
-    document.getElementById("detTitle").innerText = item.titulo || item.name;
-    document.getElementById("detMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.5'}`;
-    document.getElementById("detDesc").innerText = item.descricao || "Aproveite este conteúdo exclusivo na PaixãoFlix.";
+    document.getElementById("detTitle").innerText = "CARREGANDO...";
     document.getElementById("detailsOverlay").style.display = "flex";
+    
+    const extra = await getTMDBData(item);
+    document.getElementById("detPoster").src = item.poster;
+    document.getElementById("detailsBg").style.backgroundImage = `url(${extra?.backdrop || item.poster})`;
+    document.getElementById("detTitle").innerText = item.titulo || item.name;
+    document.getElementById("detMeta").innerText = `${extra?.ano || item.year || '2026'} • ★ ${extra?.nota || item.rating || '9.5'}`;
+    document.getElementById("detDesc").innerText = extra?.descricao || item.descricao || "Aproveite este conteúdo exclusivo na PaixãoFlix.";
+    document.getElementById("detDesc").style.webkitLineClamp = "unset";
     document.getElementById("btnDetPlay").onclick = () => playChannel(item.url, item.titulo);
     updateFocus();
 }
@@ -395,34 +408,23 @@ function openChannelsPage() {
 function renderGridSystem(list) {
     const cont = document.getElementById("moviesScroll");
     cont.innerHTML = "";
-    
-    let cats = {"Destaques": list};
+    let cats = {"Resultados": list};
     Object.keys(cats).forEach(cat => {
         const div = document.createElement("div");
         div.className = "category-container";
         div.innerHTML = `<div class="channel-category-title">${cat}</div><div class="channels-row movie-grid"></div>`;
         const grid = div.querySelector(".movie-grid");
-        
         cats[cat].forEach(m => {
             const card = document.createElement("div");
             card.className = "movie-card";
-            // Adicionamos o ano e nota fixos ou vindos do seu JSON local se houver
-            card.innerHTML = `
-                <img class="movie-poster" src="${m.poster}">
-                <div class="movie-info-overlay">
-                    <span class="movie-title-grid">${m.titulo || m.name}</span>
-                    <div class="movie-meta-grid">
-                        <span>${m.year || ''}</span>
-                        <span>★ ${m.rating || 'N/A'}</span>
-                    </div>
-                </div>
-            `;
+            card.innerHTML = `<img class="movie-poster" src="${m.poster}"><div class="movie-info-overlay"><span class="movie-title-grid">${m.titulo || m.name}</span><div class="movie-meta-grid"><span>${m.year || ''}</span><span>★ ${m.rating || ''}</span></div></div>`;
             card.onclick = () => openDetails(m);
             grid.appendChild(card);
         });
         cont.appendChild(div);
     });
 }
+
 function updateFocus() {
     if(isPlayerOpen) return;
     document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
@@ -436,32 +438,34 @@ function updateFocus() {
         btns[detIdx]?.classList.add("focused");
     } 
     else if(isMoviesOpen) {
-        if(currentFocus === "menu") {
-            document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
-        } else {
+        if(currentFocus === "menu") document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
+        else {
             const items = document.querySelectorAll("#moviesScroll .movie-card");
             items[movieIdx]?.classList.add("focused");
             items[movieIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     } 
     else if(isChannelsOpen) {
-        if(currentFocus === "menu") {
-            document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
-        } else {
+        if(currentFocus === "menu") document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
+        else {
             const cards = document.querySelectorAll("#channelsScroll .channel-card");
             cards[chanIdx]?.classList.add("focused");
             cards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     } 
     else {
-        if(currentFocus === "menu") {
-            document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
-        } else if(currentFocus === "editor") {
-            document.getElementById("editorSlider")?.classList.add("focused");
-        } else if(currentFocus === "grid") {
+        if(currentFocus === "menu") document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
+        else if(currentFocus === "editor") document.getElementById("editorSlider")?.classList.add("focused");
+        else if(currentFocus === "grid") {
             const gridItems = document.querySelectorAll(".top6-item");
             gridItems[gridIdx]?.classList.add("focused");
             gridItems[gridIdx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+        else if(currentFocus === "dynamic") {
+            const rows = document.querySelectorAll(".category-row-container");
+            const items = rows[dynIdx]?.querySelectorAll(".standard-card");
+            items[dynRowIdx]?.classList.add("focused");
+            items[dynRowIdx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
     }
 }
@@ -472,44 +476,43 @@ document.addEventListener("keydown", e => {
     if(isDetailsOpen) {
         if(Keys.RIGHT.includes(k)) detIdx = 1;
         if(Keys.LEFT.includes(k)) detIdx = 0;
-        if(Keys.ENTER.includes(k)) {
-            if(detIdx === 0) document.getElementById("btnDetPlay").click();
-            else closeDetails();
-        }
+        if(Keys.ENTER.includes(k)) detIdx === 0 ? document.getElementById("btnDetPlay").click() : closeDetails();
         if(Keys.BACK.includes(k)) closeDetails();
     } 
     else if(currentFocus === "menu") {
         if(Keys.DOWN.includes(k)) menuIdx = Math.min(6, menuIdx + 1);
         if(Keys.UP.includes(k)) menuIdx = Math.max(0, menuIdx - 1);
-        if(Keys.RIGHT.includes(k)) { 
-            if(isMoviesOpen) currentFocus = "movie_grid";
-            else if(isChannelsOpen) currentFocus = "channel_grid";
-            else currentFocus = "editor";
-        }
-        if(Keys.ENTER.includes(k)) {
-            const cards = document.querySelectorAll(".main-menu .brand-card");
-            cards[menuIdx]?.click();
-        }
+        if(Keys.RIGHT.includes(k)) currentFocus = isMoviesOpen ? "movie_grid" : (isChannelsOpen ? "channel_grid" : "editor");
+        if(Keys.ENTER.includes(k)) document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.click();
     }
     else if(!isMoviesOpen && !isChannelsOpen) {
         if(currentFocus === "editor") {
             if(Keys.DOWN.includes(k)) { currentFocus = "grid"; gridIdx = 0; }
-            if(Keys.LEFT.includes(k)) { currentFocus = "menu"; menuIdx = 0; }
+            if(Keys.LEFT.includes(k)) { currentFocus = "menu"; }
             if(Keys.ENTER.includes(k)) openDetails(editorsChoice[edIdx]);
         } 
         else if(currentFocus === "grid") {
             if(Keys.RIGHT.includes(k)) gridIdx = Math.min(5, gridIdx + 1);
-            if(Keys.LEFT.includes(k)) { 
-                if(gridIdx === 0) { currentFocus = "menu"; menuIdx = 0; } 
-                else gridIdx--; 
-            }
+            if(Keys.LEFT.includes(k)) gridIdx === 0 ? currentFocus = "menu" : gridIdx--;
             if(Keys.UP.includes(k)) currentFocus = "editor";
+            if(Keys.DOWN.includes(k)) { currentFocus = "dynamic"; dynIdx = 0; dynRowIdx = 0; }
             if(Keys.ENTER.includes(k)) openDetails(top6Data[gridIdx]);
         }
+        else if(currentFocus === "dynamic") {
+            const rows = document.querySelectorAll(".category-row-container");
+            const items = rows[dynIdx]?.querySelectorAll(".standard-card");
+            if(Keys.RIGHT.includes(k)) dynRowIdx = Math.min(items.length - 1, dynRowIdx + 1);
+            if(Keys.LEFT.includes(k)) dynRowIdx === 0 ? currentFocus = "menu" : dynRowIdx--;
+            if(Keys.UP.includes(k)) dynIdx === 0 ? currentFocus = "grid" : dynIdx--;
+            if(Keys.DOWN.includes(k)) dynIdx = Math.min(rows.length - 1, dynIdx + 1);
+            if(Keys.ENTER.includes(k)) {
+                 const rowConfig = sectionConfigs.filter(s => s.ativa)[dynIdx];
+                 const data = window[rowConfig.categoria][dynRowIdx];
+                 openDetails(data);
+            }
+        }
     }
-    else {
-        if(Keys.BACK.includes(k)) location.reload();
-    }
+    else { if(Keys.BACK.includes(k)) location.reload(); }
     updateFocus();
 });
 
