@@ -149,8 +149,19 @@
     .brand-card.focused { background: #FFCE44 !important; color: #000 !important; }
     .brand-card.focused i { color: #000 !important; }
 
-    #top6Section { margin-left: 50px; width: 100%; padding: 40px 0; overflow: visible !important; }
-    .top6-grid { display: flex !important; gap: 50px; padding: 20px 60px; overflow: visible !important; }
+    #top6Section { 
+    margin-left: 80px; /* Igual ao margin-left do mainScroll para alinhar com o menu */
+    width: calc(100% - 80px); 
+    padding: 40px 0; 
+    overflow: visible !important; 
+}
+
+.top6-grid { 
+    display: flex !important; 
+    gap: 50px; 
+    padding: 20px 0; /* Zerei o padding lateral para alinhar com o título */
+    overflow: visible !important; 
+}
     .top6-item { position: relative; flex: 0 0 190px; height: 280px; transition: 0.4s; z-index: 1; }
     .top6-number { 
         position: absolute; left: -50px; bottom: -10px; font-size: 100px; 
@@ -261,6 +272,12 @@
     #btnClosePlayer { position: absolute; top: 30px; right: 30px; z-index: 21000; background: #b20710; color: #fff; border: none; padding: 12px 25px; cursor: pointer; border-radius: 8px; font-style: italic; }
 
     #globalFooter { position: fixed; bottom: 0; width: 100%; height: 60px; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 6000; }
+
+   #homeRowsContainer {
+    margin-left: 80px; /* Mesma margem das outras sessões */
+    width: calc(100% - 80px);
+}
+
 </style>
 </head>
 <body onclick="void(0)">
@@ -293,7 +310,7 @@
         </div>
     </div>
 
-    <div id="continueWatchingSection" style="display: none; margin-left: 50px; margin-bottom: 40px;">
+    <div id="continueWatchingSection" style="display: none; margin-left: 80px; margin-bottom: 40px;">
         <div class="channel-category-title">Continuar Assistindo</div>
         <div id="continueContainer" class="continue-row"></div>
     </div>
