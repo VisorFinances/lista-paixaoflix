@@ -424,6 +424,38 @@ function startClock() { setInterval(() => { document.getElementById("barDateTime
 function renderCategoryPage(list, title, isKids) { isMoviesOpen = true; document.getElementById("mainScroll").style.display = "none"; document.getElementById("moviesOverlay").style.display = "flex"; renderGridSystem(list, isKids); currentFocus = "movie_grid"; movieIdx = 0; updateFocus(); }
 
 window.onload = loadData;
+
+function renderContinueWatching() {
+    const storage = JSON.parse(localStorage.getItem('paixaoflix_progress') || '{}');
+    const container = document.getElementById('continueContainer');
+    const section = document.getElementById('continueWatchingSection');
+    
+    const items = Object.values(storage).sort((a, b) => b.timestamp - a.timestamp);
+
+    if (items.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = 'block';
+    container.innerHTML = '';
+
+    items.forEach(item => {
+        const percent = (item.currentTime / item.duration) * 100;
+        const div = document.createElement('div');
+        div.className = 'continue-card';
+        div.innerHTML = `
+            <img src="${item.posterHorizontal || item.poster}" class="continue-thumb">
+            <div class="progress-container">
+                <div class="progress-bar" style="width: ${percent}%"></div>
+            </div>
+            <div style="font-size: 14px; margin-top: 8px; font-weight: 500;">${item.titulo}</div>
+        `;
+        div.onclick = () => playUrl(item.url, item.currentTime);
+        container.appendChild(div);
+    });
+} 
+ 
 </script>
 </body>
 </html>
