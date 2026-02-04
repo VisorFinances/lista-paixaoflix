@@ -268,6 +268,32 @@ html { scroll-behavior: smooth; }
     scroll-behavior: smooth;
     padding-bottom: 200px; /* Espaço para a última linha não ficar colada no rodapé */
 }
+/* Container do card relativo para o selo não fugir */
+.movie-card {
+    position: relative;
+    overflow: visible !important;
+}
+
+/* O Selo Novo */
+.badge-novo {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #E50914; /* Vermelho do seu Logotipo */
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 900;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    z-index: 10;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    pointer-events: none;
+}
+
+   
 </style>
 </head>
 <body>
@@ -353,6 +379,14 @@ let dynamicRowIdx = 0, dynamicColIdx = 0; // ADICIONE ESTAS DUAS
 let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, isDetailsOpen = false, playerInstance = null, currentItem = null;
 const Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443, 117], BACK: [8, 27, 461, 10009] };
 
+// Esta é a sua lista oficial. O sistema vai ler de cima para baixo.
+const categoriasOrdem = [
+    "Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", 
+    "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", 
+    "Animação", "Família", "Clássicos", "Dorama", "Suspense", "Policial", 
+    "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"
+];
+   
 async function loadData() {
     const fetchJSON = async (url) => { try { const r = await fetch(url); return await r.json(); } catch(e) { return []; } };
     movies = await fetchJSON("data/filmes.json");
@@ -412,37 +446,55 @@ function openChannelsPage() {
 }
 
 function renderGridSystem(list) {
-    const cont = document.getElementById("moviesScroll");
+    const cont = isMoviesOpen ? document.getElementById("moviesScroll") : document.getElementById("seriesScroll");
     cont.innerHTML = "";
     
-    let cats = {"Destaques": list};
-    Object.keys(cats).forEach(cat => {
-        const div = document.createElement("div");
-        div.className = "category-container";
-        div.innerHTML = `<div class="channel-category-title">${cat}</div><div class="channels-row movie-grid"></div>`;
-        const grid = div.querySelector(".movie-grid");
-        
-        cats[cat].forEach(m => {
-            const card = document.createElement("div");
-            card.className = "movie-card";
-            // Adicionamos o ano e nota fixos ou vindos do seu JSON local se houver
-            card.innerHTML = `
-                <img class="movie-poster" src="${m.poster}">
-                <div class="movie-info-overlay">
-                    <span class="movie-title-grid">${m.titulo || m.name}</span>
-                    <div class="movie-meta-grid">
-                        <span>${m.year || ''}</span>
-                        <span>★ ${m.rating || 'N/A'}</span>
+    dynamicRowIdx = 0;
+    dynamicColIdx = 0;
+
+    categoriasOrdem.forEach((catNome, index) => {
+        // Filtra itens que possuem a categoria EXATA
+        const itensFiltrados = list.filter(item => 
+            item.genero && item.genero.includes(catNome)
+        );
+
+        if (itensFiltrados.length > 0) {
+            const section = document.createElement("div");
+            section.className = "category-container";
+            
+            // Gerar o HTML dos cards com verificação de selo
+            const cardsHTML = itensFiltrados.map(m => {
+                // Verifica se é lançamento 2026 para por o selo
+                const temSelo = m.genero.includes("Lançamento 2026") ? 
+                    `<div class="badge-novo">NOVO</div>` : '';
+                
+                return `
+                    <div class="movie-card" onclick='openDetails(${JSON.stringify(m)})'>
+                        ${temSelo}
+                        <img class="movie-poster" src="${m.poster}">
+                        <div class="movie-info-overlay">
+                            <span class="movie-title-grid">${m.titulo || m.name}</span>
+                            <div class="movie-meta-grid">
+                                <span>${m.year || '2026'}</span>
+                                <span>★ ${m.rating || '0.0'}</span>
+                            </div>
+                        </div>
                     </div>
+                `;
+            }).join('');
+
+            section.innerHTML = `
+                <div class="channel-category-title">${catNome}</div>
+                <div class="channels-row movie-grid" id="row-cat-${index}">
+                    ${cardsHTML}
                 </div>
             `;
-            card.onclick = () => openDetails(m);
-            grid.appendChild(card);
-        });
-        cont.appendChild(div);
+            cont.appendChild(section);
+        }
     });
 }
-function updateFocus() {
+   
+   function updateFocus() {
     if(isPlayerOpen) return;
     document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
     const sideBar = document.getElementById("menuBrands");
@@ -454,73 +506,51 @@ function updateFocus() {
         const btns = document.querySelectorAll(".btn-3d");
         btns[detIdx]?.classList.add("focused");
     } 
-    else if(isMoviesOpen || isChannelsOpen) {
-        if(currentFocus === "menu") {
-            document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
+    // Dentro do seu document.addEventListener("keydown"...)
+// No bloco else que cuida de isMoviesOpen ou isChannelsOpen:
+
+if (isMoviesOpen || isChannelsOpen) {
+    const allRows = document.querySelectorAll(".category-container");
+    const currentRow = allRows[dynamicRowIdx];
+    const cards = currentRow?.querySelectorAll(".movie-card, .channel-card") || [];
+
+    if (Keys.RIGHT.includes(k)) {
+        dynamicColIdx = Math.min(cards.length - 1, dynamicColIdx + 1);
+    }
+    if (Keys.LEFT.includes(k)) {
+        if (dynamicColIdx === 0) {
+            currentFocus = "menu";
         } else {
-            const selector = isMoviesOpen ? "#moviesScroll .movie-card" : "#channelsScroll .channel-card";
-            const idx = isMoviesOpen ? movieIdx : chanIdx;
-            const items = document.querySelectorAll(selector);
-            items[idx]?.classList.add("focused");
-            items[idx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    } 
-    else {
-        // FOCO NA HOME
-        if(currentFocus === "menu") {
-            document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
-        } else if(currentFocus === "editor") {
-            document.getElementById("editorSlider")?.classList.add("focused");
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        } else if(currentFocus === "grid") {
-            const gridItems = document.querySelectorAll(".top6-item");
-            gridItems[gridIdx]?.classList.add("focused");
-            gridItems[gridIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else if(currentFocus === "dynamic") {
-            const rows = document.querySelectorAll("#dynamicSections .channels-row");
-            const currentRow = rows[dynamicRowIdx];
-            const items = currentRow?.querySelectorAll(".movie-card");
-            const target = items[dynamicColIdx];
-            if(target) {
-                target.classList.add("focused");
-                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            dynamicColIdx--;
         }
     }
+    if (Keys.DOWN.includes(k)) {
+        if (dynamicRowIdx < allRows.length - 1) {
+            dynamicRowIdx++;
+            dynamicColIdx = 0; // Reseta para o primeiro item da nova linha
+        }
+    }
+    if (Keys.UP.includes(k)) {
+        if (dynamicRowIdx > 0) {
+            dynamicRowIdx--;
+            dynamicColIdx = 0;
+        }
+    }
+    if (Keys.ENTER.includes(k)) {
+        cards[dynamicColIdx]?.click();
+    }
+    if (Keys.BACK.includes(k)) {
+        // Volta para a Home em vez de recarregar tudo
+        isMoviesOpen = false;
+        isChannelsOpen = false;
+        document.getElementById("moviesOverlay").style.display = "none";
+        document.getElementById("channelsOverlay").style.display = "none";
+        document.getElementById("mainScroll").style.display = "block";
+        currentFocus = "editor";
+    }
+    updateFocus();
+    return;
 }
-   
-document.addEventListener("keydown", e => {
-    const k = e.keyCode;
-    
-    // 1. Controle do Player
-    if(isPlayerOpen && Keys.BACK.includes(k)) { closePlayer(); return; }
-    
-    // 2. Controle dos Detalhes
-    if(isDetailsOpen) {
-        if(Keys.RIGHT.includes(k)) detIdx = 1;
-        if(Keys.LEFT.includes(k)) detIdx = 0;
-        if(Keys.ENTER.includes(k)) {
-            if(detIdx === 0) document.getElementById("btnDetPlay").click();
-            else closeDetails();
-        }
-        if(Keys.BACK.includes(k)) closeDetails();
-        updateFocus();
-        return;
-    }
-
-    // 3. Navegação do Menu Lateral
-    if(currentFocus === "menu") {
-        if(Keys.DOWN.includes(k)) menuIdx = Math.min(6, menuIdx + 1);
-        if(Keys.UP.includes(k)) menuIdx = Math.max(0, menuIdx - 1);
-        if(Keys.RIGHT.includes(k)) { 
-            // Volta para onde o usuário estava antes de ir ao menu
-            currentFocus = isMoviesOpen ? "movie_grid" : (isChannelsOpen ? "channel_grid" : "editor");
-        }
-        if(Keys.ENTER.includes(k)) document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.click();
-        updateFocus();
-        return;
-    }
-
     // 4. Navegação na Home (Editor -> Top 6 -> Dynamic)
     if(!isMoviesOpen && !isChannelsOpen) {
         if(currentFocus === "editor") {
