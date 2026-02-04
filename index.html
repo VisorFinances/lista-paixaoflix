@@ -364,6 +364,7 @@ let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [], k
 let top6Data = [], editorsChoice = [], edIdx = 0, itemAtual = null;
 let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0, catRowIdx = 0;
 let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, isDetailsOpen = false, playerInstance = null;
+let activePage = "home"; // Controle de página ativa para navegação
 
 // 2. CONFIGURAÇÕES RÁPIDAS E TMDB
 const TAMANHO_FONTE_TITULOS = "42px";
@@ -415,22 +416,18 @@ async function getFullDetails(item) {
     return null;
 }
 
-// 5. RENDERIZAÇÃO DA HOME (SÓ O QUE IMPORTA)
+// 5. RENDERIZAÇÃO DA HOME
 function renderHomeCategories() {
     const container = document.getElementById('homeRowsContainer');
     if (!container) return;
     container.innerHTML = ""; 
-
     const todos = [...movies, ...series];
-
-    // --- SESSÃO 1: LANÇAMENTOS 2026 ---
     const l2026 = todos.filter(item => item.year == "2026" || (item.categoria && item.categoria.includes("2026")));
     if (l2026.length > 0) {
         const section2026 = document.createElement("div");
         section2026.className = "category-container row-2026";
         section2026.innerHTML = `<div class="channel-category-title">Lançamentos 2026</div><div class="channels-row"></div>`;
         const row2026 = section2026.querySelector(".channels-row");
-        
         l2026.forEach(m => {
             const card = document.createElement("div");
             card.className = "movie-card";
@@ -440,16 +437,12 @@ function renderHomeCategories() {
         });
         container.appendChild(section2026);
     }
-
-    // --- SESSÃO 2: NOSTALGIA (FILTRANDO PELA CATEGORIA 'CLÁSSICOS') ---
     const nostalgia = todos.filter(item => item.categoria && item.categoria.includes("Clássicos"));
-    
     if (nostalgia.length > 0) {
         const sectionNostalgia = document.createElement("div");
         sectionNostalgia.className = "category-container row-nostalgia";
         sectionNostalgia.innerHTML = `<div class="channel-category-title">Sessão Nostalgia: Clássicos 80, 90 e 2000</div><div class="channels-row"></div>`;
         const rowNostalgia = sectionNostalgia.querySelector(".channels-row");
-        
         nostalgia.forEach(m => {
             const card = document.createElement("div");
             card.className = "movie-card";
@@ -461,14 +454,52 @@ function renderHomeCategories() {
     }
 }
 
+// NOVAS FUNÇÕES DE PÁGINAS (PARA OS BOTÕES DO MENU)
+function renderCategoryPage(data, title) {
+    activePage = "category";
+    currentFocus = "grid_page";
+    movieIdx = 0;
+    const overlay = document.getElementById("moviesOverlay");
+    const scroll = document.getElementById("moviesScroll");
+    overlay.style.display = "flex";
+    scroll.innerHTML = `<div class="channel-category-title">${title}</div><div class="live-channels-grid" id="pageGrid"></div>`;
+    const grid = document.getElementById("pageGrid");
+    data.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "movie-card";
+        card.innerHTML = `<img class="movie-poster" src="${item.poster}">`;
+        card.onclick = () => openDetails(item);
+        grid.appendChild(card);
+    });
+    updateFocus();
+}
+
+function openChannelsPage(type) {
+    activePage = "channels";
+    currentFocus = "grid_page";
+    movieIdx = 0;
+    const data = type === 'kids' ? kidsChannels : channels;
+    const overlay = document.getElementById("channelsOverlay");
+    const scroll = document.getElementById("channelsScroll");
+    overlay.style.display = "flex";
+    scroll.innerHTML = `<div class="channel-category-title">${type.toUpperCase()}</div><div class="live-channels-grid" id="pageGrid"></div>`;
+    const grid = document.getElementById("pageGrid");
+    data.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "live-channel-card";
+        card.innerHTML = `<img src="${item.poster}">`;
+        card.onclick = () => playChannel(item.url, item.titulo, item.poster);
+        grid.appendChild(card);
+    });
+    updateFocus();
+}
+
 function renderContinueWatching() {
     const storage = JSON.parse(localStorage.getItem('paixaoflix_progress') || '{}');
     const container = document.getElementById('continueContainer');
     const section = document.getElementById('continueWatchingSection');
     const items = Object.values(storage).sort((a, b) => b.timestamp - a.timestamp);
-
     if (!section || items.length === 0) { if(section) section.style.display = 'none'; return; }
-
     section.style.display = 'block';
     container.innerHTML = '';
     items.forEach(item => {
@@ -489,7 +520,6 @@ async function openDetails(item) {
     document.getElementById("detTitle").innerText = item.titulo;
     document.getElementById("detPoster").src = item.poster;
     document.getElementById("detDesc").innerText = "Carregando sinopse...";
-
     const extra = await getFullDetails(item);
     if (extra) {
         bg.style.backgroundImage = `url(${TMDB_IMG_PATH + extra.backdrop_path})`;
@@ -505,7 +535,6 @@ function renderCast(cast) {
     const desc = document.getElementById("detDesc");
     const existing = document.getElementById("castList");
     if(existing) existing.remove();
-    
     let html = '<div id="castList" style="display:flex; gap:15px; margin-top:20px;">';
     cast.forEach(a => {
         if(a.profile_path) html += `<div style="text-align:center;"><img src="${TMDB_IMG_PATH + a.profile_path}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #FFCE44;"><p style="font-size:10px;">${a.name.split(' ')[0]}</p></div>`;
@@ -527,16 +556,14 @@ function renderTop6() {
     });
 }
 
-// RESTANTE DAS FUNÇÕES DE SISTEMA (M3U, PLAYER, NAVEGAÇÃO)
+// FUNÇÕES DE SISTEMA
 function parseM3U(data) {
     const lines = data.split('\n');
     for (let i = 0; i < lines.length; i++) {
         if (lines[i].startsWith('#EXTINF')) {
-            const info = lines[i];
-            const url = lines[i + 1];
-            const name = info.split(',')[1];
+            const info = lines[i]; const url = lines[i + 1]; const name = info.split(',')[1];
             const logo = info.match(/tvg-logo="([^"]+)"/)?.[1] || "";
-            channels.push({ titulo: name, url: url, poster: logo });
+            channels.push({ titulo: name, url, poster: logo });
         }
     }
 }
@@ -545,11 +572,9 @@ function parseM3UKids(data) {
     const lines = data.split('\n');
     for (let i = 0; i < lines.length; i++) {
         if (lines[i].startsWith('#EXTINF')) {
-            const info = lines[i];
-            const url = lines[i + 1];
-            const name = info.split(',')[1];
+            const info = lines[i]; const url = lines[i + 1]; const name = info.split(',')[1];
             const logo = info.match(/tvg-logo="([^"]+)"/)?.[1] || "";
-            kidsChannels.push({ titulo: name, url: url, poster: logo });
+            kidsChannels.push({ titulo: name, url, poster: logo });
         }
     }
 }
@@ -564,19 +589,20 @@ function updateFocus() {
         if(menuItems[menuIdx]) menuItems[menuIdx].classList.add("focused");
     } else {
         menu.classList.remove("expanded");
+        if(currentFocus === "grid_page") {
+            const items = document.querySelectorAll("#pageGrid > div");
+            if(items[movieIdx]) { items[movieIdx].classList.add("focused"); items[movieIdx].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        }
         if(currentFocus === "editor") document.getElementById("editorSlider").classList.add("focused");
-        
         if(currentFocus === "continue") {
             const items = document.querySelectorAll("#continueContainer .continue-card");
             if(items[movieIdx]) items[movieIdx].classList.add("focused");
             items[movieIdx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
-        
         if(currentFocus === "grid") {
             const top6Items = document.querySelectorAll(".top6-item");
             if(top6Items[gridIdx]) top6Items[gridIdx].classList.add("focused");
         }
-        
         if(currentFocus === "home_rows") {
             const rows = document.querySelectorAll("#homeRowsContainer .category-container");
             const items = rows[catRowIdx]?.querySelectorAll(".movie-card");
@@ -587,22 +613,15 @@ function updateFocus() {
             }
         }
     }
- }
+}
+
 function playChannel(url, titulo, poster) {
     isPlayerOpen = true;
     document.getElementById("playerOverlay").style.display = "block";
     if(playerInstance) playerInstance.destroy();
-    
     playerInstance = new Clappr.Player({
-        source: url,
-        parentId: "#player",
-        width: "100%", height: "100%",
-        autoPlay: true,
-        events: {
-            onTimeUpdate: function(e) {
-                if (e.duration > 10) saveProgress(e.current, e.duration, titulo, poster, url);
-            }
-        }
+        source: url, parentId: "#player", width: "100%", height: "100%", autoPlay: true,
+        events: { onTimeUpdate: function(e) { if (e.duration > 10) saveProgress(e.current, e.duration, titulo, poster, url); } }
     });
 }
 
@@ -613,22 +632,14 @@ function saveProgress(currentTime, duration, titulo, poster, url) {
 }
 
 function closePlayer() {
-    isPlayerOpen = false;
-    if(playerInstance) playerInstance.destroy();
+    isPlayerOpen = false; if(playerInstance) playerInstance.destroy();
     document.getElementById("playerOverlay").style.display = "none";
+    renderContinueWatching(); // Atualiza ao fechar
 }
 
-function closeDetails() {
-    isDetailsOpen = false;
-    document.getElementById("detailsOverlay").style.display = "none";
-}
+function closeDetails() { isDetailsOpen = false; document.getElementById("detailsOverlay").style.display = "none"; }
 
-function startClock() {
-    setInterval(() => {
-        const now = new Date();
-        document.getElementById("barDateTime").innerText = now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-    }, 1000);
-}
+function startClock() { setInterval(() => { document.getElementById("barDateTime").innerText = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}); }, 1000); }
 
 function startCarousel() {
     setInterval(() => {
@@ -647,55 +658,59 @@ document.addEventListener("keydown", e => {
     const k = e.keyCode;
     if(isPlayerOpen) { if(Keys.BACK.includes(k)) closePlayer(); return; }
     if(isDetailsOpen) { if(Keys.BACK.includes(k)) closeDetails(); return; }
+    
+    // Voltar para Home de qualquer página aberta
+    if(Keys.BACK.includes(k) && activePage !== "home") {
+        document.getElementById("moviesOverlay").style.display = "none";
+        document.getElementById("channelsOverlay").style.display = "none";
+        activePage = "home"; currentFocus = "menu"; updateFocus(); return;
+    }
 
     if(currentFocus === "menu") {
-        if(Keys.DOWN.includes(k)) { if(menuIdx < 7) menuIdx++; }
-        if(Keys.UP.includes(k)) { if(menuIdx > 0) menuIdx--; }
-        if(Keys.RIGHT.includes(k)) currentFocus = "editor";
+        if(Keys.DOWN.includes(k) && menuIdx < 7) menuIdx++;
+        if(Keys.UP.includes(k) && menuIdx > 0) menuIdx--;
+        if(Keys.RIGHT.includes(k)) currentFocus = (activePage === "home") ? "editor" : "grid_page";
         if(Keys.ENTER.includes(k)) document.querySelectorAll(".brand-card")[menuIdx].click();
     } 
+    else if(currentFocus === "grid_page") {
+        const items = document.querySelectorAll("#pageGrid > div");
+        if(Keys.LEFT.includes(k)) { if(movieIdx % 7 === 0) currentFocus = "menu"; else movieIdx--; }
+        if(Keys.RIGHT.includes(k) && movieIdx < items.length - 1) movieIdx++;
+        if(Keys.DOWN.includes(k) && movieIdx + 7 < items.length) movieIdx += 7;
+        if(Keys.UP.includes(k) && movieIdx - 7 >= 0) movieIdx -= 7;
+        if(Keys.ENTER.includes(k)) items[movieIdx].click();
+    }
     else if(currentFocus === "editor") {
         if(Keys.LEFT.includes(k)) currentFocus = "menu";
-        if(Keys.DOWN.includes(k)) {
-            const temCont = document.getElementById('continueWatchingSection').style.display !== 'none';
-            currentFocus = temCont ? "continue" : "grid";
-            movieIdx = 0;
-        }
+        if(Keys.DOWN.includes(k)) { currentFocus = document.getElementById('continueWatchingSection').style.display !== 'none' ? "continue" : "grid"; movieIdx = 0; }
         if(Keys.ENTER.includes(k)) document.getElementById("editorSlider").click();
     }
     else if(currentFocus === "continue") {
         const items = document.querySelectorAll("#continueContainer .continue-card");
         if(Keys.LEFT.includes(k)) { if(movieIdx > 0) movieIdx--; else currentFocus = "menu"; }
-        if(Keys.RIGHT.includes(k)) { if(movieIdx < items.length - 1) movieIdx++; }
+        if(Keys.RIGHT.includes(k) && movieIdx < items.length - 1) movieIdx++;
         if(Keys.UP.includes(k)) currentFocus = "editor";
         if(Keys.DOWN.includes(k)) { currentFocus = "grid"; movieIdx = 0; }
         if(Keys.ENTER.includes(k)) items[movieIdx].click();
     }
     else if(currentFocus === "grid") {
         if(Keys.LEFT.includes(k)) { if(gridIdx > 0) gridIdx--; else currentFocus = "menu"; }
-        if(Keys.RIGHT.includes(k)) { if(gridIdx < 5) gridIdx++; }
-        if(Keys.UP.includes(k)) {
-             const temCont = document.getElementById('continueWatchingSection').style.display !== 'none';
-             currentFocus = temCont ? "continue" : "editor";
-        }
-        if(Keys.DOWN.includes(k)) { 
-            const rows = document.querySelectorAll("#homeRowsContainer .category-container");
-            if(rows.length > 0) { currentFocus = "home_rows"; catRowIdx = 0; movieIdx = 0; }
-        }
+        if(Keys.RIGHT.includes(k) && gridIdx < 5) gridIdx++;
+        if(Keys.UP.includes(k)) currentFocus = document.getElementById('continueWatchingSection').style.display !== 'none' ? "continue" : "editor";
+        if(Keys.DOWN.includes(k)) { const rows = document.querySelectorAll("#homeRowsContainer .category-container"); if(rows.length > 0) { currentFocus = "home_rows"; catRowIdx = 0; movieIdx = 0; } }
         if(Keys.ENTER.includes(k)) document.querySelectorAll(".top6-item")[gridIdx].click();
     }
     else if(currentFocus === "home_rows") {
         const rows = document.querySelectorAll("#homeRowsContainer .category-container");
         const items = rows[catRowIdx]?.querySelectorAll(".movie-card");
         if(Keys.LEFT.includes(k)) { if(movieIdx > 0) movieIdx--; else currentFocus = "menu"; }
-        if(Keys.RIGHT.includes(k)) { if(items && movieIdx < items.length - 1) movieIdx++; }
+        if(Keys.RIGHT.includes(k) && items && movieIdx < items.length - 1) movieIdx++;
         if(Keys.UP.includes(k)) { if(catRowIdx > 0) { catRowIdx--; movieIdx = 0; } else currentFocus = "grid"; }
-        if(Keys.DOWN.includes(k)) { if(catRowIdx < rows.length - 1) { catRowIdx++; movieIdx = 0; } }
+        if(Keys.DOWN.includes(k) && catRowIdx < rows.length - 1) { catRowIdx++; movieIdx = 0; }
         if(Keys.ENTER.includes(k) && items) items[movieIdx].click();
     }
     updateFocus();
 });
-window.onload = loadData;
-</script>
+window.onload = loadData;</script>
 </body>
 </html>
