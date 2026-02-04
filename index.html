@@ -386,7 +386,7 @@ async function loadData() {
     
     try { 
         const r = await fetch("data/ativa_canais.m3u"); const t = await r.text(); parseM3U(t);
-        const rk = await fetch("data/canais_kids.m3u"); const tk = await rk.text(); parseM3UKids(tk);
+        const rk = await fetch("data/ativa_kids_canais.m3u"); const tk = await rk.text(); parseM3UKids(tk);
     } catch(e) {}
     
     document.getElementById("totalItems").innerText = movies.length + series.length + kidsMovies.length + kidsSeries.length;
@@ -427,7 +427,7 @@ function renderHomeCategories() {
     if (l2026.length > 0) renderRow(container, "Lançamentos 2026", l2026, true);
 
     const nostalgia = todos.filter(item => item.categoria && item.categoria.includes("Clássicos"));
-    if (nostalgia.length > 0) renderRow(container, "Sessão Nostalgia: Clássicos 80, 90 e 2000", nostalgia, false);
+    if (nostalgia.length > 0) renderRow(container, "Sessão Nostalgia: Clássicos 50, 60, 70, 80, 90 e 2000", nostalgia, false);
 }
 
 function renderRow(container, title, data, isNew = false) {
