@@ -9,139 +9,71 @@
 <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
 
 <style>
-    * { 
-        overflow: hidden !important; 
-        touch-action: manipulation; 
-        box-sizing: border-box; 
-        outline: none; 
-        -ms-overflow-style: none; 
-        scrollbar-width: none; 
-        font-family: 'Poppins', sans-serif; 
-    }
-    
-    body { 
-        margin: 0; padding: 0; 
-        background: #000; 
-        color: #fff; height: 100vh; width: 100vw;
-    }
+    * { overflow: hidden !important; touch-action: manipulation; box-sizing: border-box; outline: none; -ms-overflow-style: none; scrollbar-width: none; font-family: 'Poppins', sans-serif; }
+    body { margin: 0; padding: 0; background: #000; color: #fff; height: 100vh; width: 100vw; }
 
-    #detailsOverlay {
-        position: fixed; inset: 0; background: #000; z-index: 8000;
-        display: none; flex-direction: column; justify-content: center;
-    }
-    #detailsBg {
-        position: absolute; inset: 0;
-        background-size: cover; background-position: center;
-        filter: blur(20px) brightness(0.3); opacity: 0.6; z-index: -1;
-    }
-    #detailsContent {
-        display: flex; align-items: center; padding: 0 80px; gap: 60px; z-index: 1;
-    }
-    .details-poster-wrapper {
-        flex: 0 0 380px; height: 550px;
-        border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-        overflow: hidden; border: 3px solid rgba(255,255,255,0.1);
-    }
+    /* Overlay de Detalhes */
+    #detailsOverlay { position: fixed; inset: 0; background: #000; z-index: 8000; display: none; flex-direction: column; justify-content: center; }
+    #detailsBg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(20px) brightness(0.3); opacity: 0.6; z-index: -1; }
+    #detailsContent { display: flex; align-items: center; padding: 0 80px; gap: 60px; z-index: 1; }
+    .details-poster-wrapper { flex: 0 0 380px; height: 550px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); overflow: hidden; border: 3px solid rgba(255,255,255,0.1); }
     .details-poster-wrapper img { width: 100%; height: 100%; object-fit: contain; background: #000; }
     .details-info { flex: 1; }
     #detTitle { font-size: 70px; font-weight: 900; margin-bottom: 10px; line-height: 1.1; text-transform: uppercase; }
     #detMeta { font-size: 28px; color: #FFCE44; font-weight: 600; margin-bottom: 30px; }
-    #detDesc { 
-        font-size: 24px; color: #fff; line-height: 1.6; font-weight: 400;
-        max-width: 950px; margin-bottom: 40px; 
-        display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;
-    }
+    #detDesc { font-size: 24px; color: #fff; line-height: 1.6; font-weight: 400; max-width: 950px; margin-bottom: 40px; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
     .details-btns { display: flex; gap: 13px; }
-    .btn-3d {
-        padding: 20px 45px; font-size: 22px; font-weight: 900; border: none;
-        border-radius: 12px; cursor: pointer; text-transform: uppercase;
-        transition: 0.2s; border-bottom: 5px solid #FFCE44; color: #fff;
-    }
+    .btn-3d { padding: 20px 45px; font-size: 22px; font-weight: 900; border: none; border-radius: 12px; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-bottom: 5px solid #FFCE44; color: #fff; }
     .btn-play-3d { background: #1f2332; }
     .btn-back-3d { background: #E50914; }
     .btn-3d.focused { transform: scale(1.1) translateY(3px); border-bottom-width: 2px; box-shadow: 0 0 30px rgba(255, 206, 68, 0.4); }
 
-    #topBar { 
-        position: fixed; top: 0; left: 0; width: 100%; height: 75px; 
-        display: flex; align-items: center; justify-content: space-between; 
-        padding: 0 50px; z-index: 11000; background: #000; 
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-
-    #menuBrands {
-        position: fixed; left: 0; top: 75px; width: 80px; height: calc(100vh - 75px);
-        z-index: 12000; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(15px);
-        transition: width 0.4s ease; display: flex; flex-direction: column; padding: 40px 15px;
-        border-right: 1px solid rgba(255, 255, 255, 0.05);
-    }
+    /* TopBar e Menu */
+    #topBar { position: fixed; top: 0; left: 0; width: 100%; height: 75px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 11000; background: #000; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    #menuBrands { position: fixed; left: 0; top: 75px; width: 80px; height: calc(100vh - 75px); z-index: 12000; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(15px); transition: width 0.4s ease; display: flex; flex-direction: column; padding: 40px 15px; border-right: 1px solid rgba(255, 255, 255, 0.05); }
     #menuBrands.expanded { width: 260px; }
-
-    #mainScroll {
-        margin-top: 75px; margin-left: 80px; padding: 20px 20px 20px 40px;
-        height: calc(100vh - 75px); overflow-y: auto !important;
-    }
-
-    #logoMain { height: 50px; cursor: pointer; }
-
-    #carouselContainer { width: 100%; padding: 20px 50px; }
-    #editorSlider { 
-        width: 100%; height: 350px; border-radius: 20px; 
-        background-size: cover; background-position: center; 
-        border: 5px solid rgba(255,255,255,0.1); display: flex; 
-        align-items: flex-end; padding: 30px; position: relative; 
-        cursor: pointer; transition: 0.5s ease-in-out; 
-    }
-    #editorTitle { font-size: 35px; font-weight: 900; margin-bottom: 5px; text-shadow: 2px 2px 10px #000; z-index: 2; }
-    #editorMeta { font-size: 18px; color: #FFCE44; font-weight: 500; margin-bottom: 20px; z-index: 2; }
-    .btn-watch { background: #FFCE44; color: #000; padding: 10px 30px; border-radius: 8px; font-weight: 900; font-size: 13px; text-transform: uppercase; display: inline-block; z-index: 2; }
-
-    .brand-card {
-        width: 100%; min-height: 60px; display: flex; align-items: center; gap: 20px;
-        padding: 0 15px; border-radius: 12px; cursor: pointer; transition: 0.3s;
-        color: rgba(255, 255, 255, 0.6); background: transparent; border: none;
-    }
+    .brand-card { width: 100%; min-height: 60px; display: flex; align-items: center; gap: 20px; padding: 0 15px; border-radius: 12px; cursor: pointer; transition: 0.3s; color: rgba(255, 255, 255, 0.6); background: transparent; border: none; }
     .brand-card i { font-size: 24px; min-width: 30px; text-align: center; }
     .brand-card span { font-size: 18px; font-weight: 500; white-space: nowrap; opacity: 0; transition: opacity 0.3s; }
     #menuBrands.expanded .brand-card span { opacity: 1; }
     .brand-card.focused { background: #FFCE44 !important; color: #000 !important; transform: scale(1.1); }
 
-    #top6Section { 
-        margin-left: 20px; width: 100%; padding: 60px 0; background: transparent !important; overflow: visible !important; 
-    }
+    /* Conteúdo Principal */
+    #mainScroll { margin-top: 75px; margin-left: 80px; padding: 20px 20px 20px 40px; height: calc(100vh - 75px); overflow-y: auto !important; }
+    #carouselContainer { width: 100%; padding: 20px 50px; }
+    #editorSlider { width: 100%; height: 350px; border-radius: 20px; background-size: cover; background-position: center; border: 5px solid rgba(255,255,255,0.1); display: flex; align-items: flex-end; padding: 30px; position: relative; cursor: pointer; transition: 0.5s ease-in-out; }
+    #editorSlider.focused { border-color: #FFCE44; transform: scale(1.02); }
 
+    /* Top 6 */
+    #top6Section { margin-left: 20px; width: 100%; padding: 60px 0; overflow: visible !important; }
     #top6Title { font-size: 26px; font-weight: 500; color: #FFCE44; margin-bottom: 50px; text-transform: uppercase; }
-
     .top6-grid { display: flex !important; gap: 60px; padding-left: 60px; overflow: visible !important; }
-
-    .top6-item { position: relative; flex: 0 0 180px; height: 270px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
-
+    .top6-item { position: relative; flex: 0 0 180px; height: 270px; transition: 0.4s; z-index: 1; }
     .top6-number { position: absolute; left: -55px; bottom: -15px; font-size: 110px; font-weight: 900; color: rgba(0,0,0,0.5); -webkit-text-stroke: 2px #FFCE44; z-index: -1; }
-
-    .top6-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); transition: all 0.4s ease; }
-
+    .top6-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); }
     .top6-item.focused { transform: translateY(-25px) scale(1.1); z-index: 100; }
-    .top6-item.focused .top6-poster { border: 3px solid #fff; box-shadow: 0 15px 40px rgba(255, 206, 68, 0.4); filter: brightness(1.1); }
+    .top6-item.focused .top6-poster { border: 3px solid #fff; box-shadow: 0 15px 40px rgba(255, 206, 68, 0.4); }
 
-    #channelsOverlay, #moviesOverlay { position: fixed; top: 75px; left: 80px; width: calc(100vw - 80px); height: calc(100vh - 75px); background: #000; z-index: 10000; display: none; flex-direction: column; overflow-y: auto; }
+    /* Grid de Filmes/Séries/Canais */
+    #channelsOverlay, #moviesOverlay { position: fixed; top: 75px; left: 80px; width: calc(100vw - 80px); height: calc(100vh - 75px); background: #000; z-index: 10000; display: none; flex-direction: column; overflow-y: auto !important; }
     #channelsScroll, #moviesScroll { padding: 40px 50px 100px 40px; }
+    .category-container { margin-bottom: 40px; }
+    .category-title { font-size: 24px; color: #FFCE44; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; }
+    .grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 30px; }
+    .movie-card { cursor: pointer; transition: 0.3s; position: relative; border-radius: 12px; overflow: hidden; border: 2px solid transparent; }
+    .movie-card img { width: 100%; height: 300px; object-fit: cover; }
+    .movie-card.focused { transform: scale(1.05); border-color: #fff; box-shadow: 0 0 20px rgba(255,206,68,0.5); z-index: 10; }
 
-    /* PADRONIZAÇÃO DAS 13 SESSÕES DINÂMICAS */
+    /* Sessões Dinâmicas Home */
     .home-category-section { margin-bottom: 60px; display: none; }
     .category-header { font-size: 26px; font-weight: 700; color: #FFCE44; margin-bottom: 25px; padding-left: 20px; text-transform: uppercase; }
     .category-row-container { display: flex; gap: 25px; padding: 10px 20px; overflow-x: visible !important; }
     .standard-card { flex: 0 0 200px; cursor: pointer; transition: transform 0.3s; position: relative; }
     .standard-card img { width: 100%; height: 300px; object-fit: cover; border-radius: 12px; border: 2px solid rgba(255,255,255,0.1); }
     .standard-card.focused { transform: scale(1.1); z-index: 100; }
-    .standard-card.focused img { border-color: #fff; box-shadow: 0 0 25px rgba(255, 206, 68, 0.4); }
-    .movie-info-overlay { padding: 10px 5px; }
-    .movie-title-grid { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; margin-bottom: 4px; }
-    .movie-meta-grid { font-size: 12px; color: #FFCE44; display: flex; justify-content: space-between; font-weight: 600; }
 
     #playerOverlay { position: fixed; inset: 0; background: #000; z-index: 20000; display: none; }
-    #btnClosePlayer { position: absolute; top: 30px; right: 30px; z-index: 21000; background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid #fff; padding: 12px 25px; cursor: pointer; border-radius: 8px; }
-
-    #globalFooter { position: fixed; bottom: 0; width: 100%; height: 80px; background: linear-gradient(transparent, #000); display: flex; align-items: center; justify-content: center; z-index: 6000; }
-
+    #btnClosePlayer { position: absolute; top: 30px; right: 30px; z-index: 21000; background: #E50914; color: #fff; border: none; padding: 12px 25px; cursor: pointer; border-radius: 8px; font-weight: 900; }
 </style>
 </head>
 <body>
@@ -166,19 +98,19 @@
     <div id="carouselContainer">
         <div id="editorSlider">
             <div id="editorInfo">
-                <div id="editorTitle">...</div>
-                <div id="editorMeta">ANO • ★ 0.0</div>
-                <div class="btn-watch">Assistir Agora</div>
+                <div id="editorTitle" style="font-size: 35px; font-weight: 900; text-shadow: 2px 2px 10px #000;">...</div>
+                <div id="editorMeta" style="color: #FFCE44; margin-bottom: 20px;">ANO • ★ 0.0</div>
+                <div class="btn-watch" style="background: #FFCE44; color: #000; padding: 10px 30px; border-radius: 8px; font-weight: 900;">Assistir Agora</div>
             </div>
         </div>
     </div>
+    
     <div id="top6Section">
         <div id="top6Title">Preferidos do momento</div>
         <div class="top6-grid" id="top6Container"></div>
     </div>
 
     <div id="dynamicSections"></div>
-
     <div style="height: 150px;"></div>
 </div>
 
@@ -192,7 +124,7 @@
             <div id="detDesc">...</div>
             <div class="details-btns">
                 <button id="btnDetPlay" class="btn-3d btn-play-3d">Assistir Agora</button>
-                <button id="btnDetBack" class="btn-3d btn-back-3d" onclick="closeDetails()">Voltar</button>
+                <button class="btn-3d btn-back-3d" onclick="closeDetails()">Voltar</button>
             </div>
         </div>
     </div>
@@ -200,42 +132,23 @@
 
 <div id="channelsOverlay"><div id="channelsScroll"></div></div>
 <div id="moviesOverlay"><div id="moviesScroll"></div></div>
-
-<div id="playerOverlay">
-    <button id="btnClosePlayer" onclick="closePlayer()">SAIR DO PLAY</button>
-    <div id="player" style="width:100%; height:100%;"></div>
-</div>
-
-<div id="globalFooter">
-    <div id="footerText" style="font-style: italic; font-weight: 500; color: #ffffff; font-size: 20px; text-shadow: 2px 2px 4px #000;">PaixãoFlix, transformando momentos de lazer em lembranças felizes!</div>
-</div>
+<div id="playerOverlay"><button id="btnClosePlayer" onclick="closePlayer()">SAIR DO PLAY</button><div id="player" style="width:100%; height:100%;"></div></div>
 
 <script>
 const TMDB_KEY = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-
 let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [];
 let top6Data = [], editorsChoice = [], edIdx = 0;
-let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0, dynIdx = 0, dynRowIdx = 0;
-let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, isDetailsOpen = false, playerInstance = null, currentItem = null;
+let currentFocus = "editor", menuIdx = 0, gridIdx = 0, movieIdx = 0, chanIdx = 0, detIdx = 0, dynIdx = 0, dynRowIdx = 0;
+let isChannelsOpen = false, isMoviesOpen = false, isDetailsOpen = false, isPlayerOpen = false, playerInstance = null;
 
-const Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443, 117], BACK: [8, 27, 461, 10009] };
+const Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443], BACK: [8, 27, 461] };
 
-// CONFIGURAÇÃO DAS 13 SESSÕES (Deixe 'nome' vazio para que a sessão FIQUE OCULTA)
 const sectionConfigs = [
-    { id: 0, nome: "Nostalgia", categoria: "Clássicos" },
-    { id: 1, nome: "", categoria: "" },
-    { id: 2, nome: "", categoria: "" },
-    { id: 3, nome: "", categoria: "" },
-    { id: 4, nome: "", categoria: "" },
-    { id: 5, nome: "", categoria: "" },
-    { id: 6, nome: "", categoria: "" },
-    { id: 7, nome: "", categoria: "" },
-    { id: 8, nome: "", categoria: "" },
-    { id: 9, nome: "", categoria: "" },
-    { id: 10, nome: "", categoria: "" },
-    { id: 11, nome: "", categoria: "" },
-    { id: 12, nome: "", categoria: "" }
+    { id: 0, nome: "Nostalgia", categoria: "movies" }, // Exemplo: usando movies filtrados ou total
+    { id: 1, nome: "", categoria: "" }, { id: 2, nome: "", categoria: "" }, { id: 3, nome: "", categoria: "" },
+    { id: 4, nome: "", categoria: "" }, { id: 5, nome: "", categoria: "" }, { id: 6, nome: "", categoria: "" },
+    { id: 7, nome: "", categoria: "" }, { id: 8, nome: "", categoria: "" }, { id: 9, nome: "", categoria: "" },
+    { id: 10, nome: "", categoria: "" }, { id: 11, nome: "", categoria: "" }, { id: 12, nome: "", categoria: "" }
 ];
 
 async function loadData() {
@@ -250,198 +163,157 @@ async function loadData() {
     editorsChoice = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 10);
     top6Data = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 6);
     
-    startCarousel(); renderTop6(); buildDynamicHome(); startClock(); updateFocus();
-}
-
-async function getTMDBData(item) {
-    const query = encodeURIComponent(item.titulo || item.name);
-    const type = (item.isSerie || series.includes(item) || kidsSeries.includes(item)) ? 'tv' : 'movie';
-    try {
-        const r = await fetch(`${TMDB_BASE_URL}/search/${type}?api_key=${TMDB_KEY}&query=${query}&language=pt-BR`);
-        const d = await r.json();
-        if (d.results && d.results[0]) {
-            const res = d.results[0];
-            return {
-                ano: (res.release_date || res.first_air_date || "2026").substring(0, 4),
-                nota: res.vote_average.toFixed(1),
-                descricao: res.overview,
-                backdrop: `https://image.tmdb.org/t/p/original${res.backdrop_path}`
-            };
-        }
-    } catch (e) {}
-    return null;
-}
-
-async function buildDynamicHome() {
-    const container = document.getElementById("dynamicSections");
-    container.innerHTML = "";
-    sectionConfigs.forEach(config => {
-        if (config.nome && config.categoria && window[config.categoria]?.length > 0) {
-            const sectionDiv = document.createElement("div");
-            sectionDiv.className = "home-category-section";
-            sectionDiv.style.display = "block"; // Só aparece se tiver nome
-            sectionDiv.innerHTML = `<div class="category-header">${config.nome}</div><div class="category-row-container" id="dyn-row-${config.id}"></div>`;
-            container.appendChild(sectionDiv);
-            renderDynamicCards(window[config.categoria].slice(0, 15), `dyn-row-${config.id}`);
-        }
-    });
-}
-
-function renderDynamicCards(items, rowId) {
-    const row = document.getElementById(rowId);
-    items.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "standard-card";
-        card.innerHTML = `<img src="${item.poster}"><div class="movie-info-overlay"><span class="movie-title-grid">${item.titulo || item.name}</span><div class="movie-meta-grid"><span class="c-year">${item.year || '2026'}</span><span class="c-rating">★ ${item.rating || '9.0'}</span></div></div>`;
-        card.onclick = () => openDetails(item);
-        row.appendChild(card);
-        getTMDBData(item).then(extra => {
-            if(extra) {
-                card.querySelector(".c-year").innerText = extra.ano;
-                card.querySelector(".c-rating").innerText = "★ " + extra.nota;
-            }
-        });
-    });
-}
-
-async function openDetails(item) {
-    currentItem = item;
-    isDetailsOpen = true;
-    detIdx = 0;
-    document.getElementById("detTitle").innerText = "CARREGANDO...";
-    document.getElementById("detailsOverlay").style.display = "flex";
-    const extra = await getTMDBData(item);
-    document.getElementById("detPoster").src = item.poster;
-    document.getElementById("detailsBg").style.backgroundImage = `url(${extra?.backdrop || item.poster})`;
-    document.getElementById("detTitle").innerText = item.titulo || item.name;
-    document.getElementById("detMeta").innerText = `${extra?.ano || item.year || '2026'} • ★ ${extra?.nota || item.rating || '9.5'}`;
-    document.getElementById("detDesc").innerText = extra?.descricao || item.descricao || "Aproveite este conteúdo exclusivo na PaixãoFlix.";
-    document.getElementById("btnDetPlay").onclick = () => playChannel(item.url, item.titulo);
+    renderTop6();
+    buildDynamicHome();
+    startCarousel();
+    startClock();
     updateFocus();
 }
 
-function closeDetails() { isDetailsOpen = false; document.getElementById("detailsOverlay").style.display = "none"; updateFocus(); }
+function buildDynamicHome() {
+    const container = document.getElementById("dynamicSections");
+    container.innerHTML = "";
+    sectionConfigs.forEach(config => {
+        const data = window[config.categoria];
+        if (config.nome && data && data.length > 0) {
+            const section = document.createElement("div");
+            section.className = "home-category-section";
+            section.style.display = "block";
+            section.innerHTML = `<div class="category-header">${config.nome}</div><div class="category-row-container" id="dyn-row-${config.id}"></div>`;
+            container.appendChild(section);
+            const row = section.querySelector(".category-row-container");
+            data.slice(0, 15).forEach(item => {
+                const card = document.createElement("div");
+                card.className = "standard-card";
+                card.innerHTML = `<img src="${item.poster}">`;
+                card.onclick = () => openDetails(item);
+                row.appendChild(card);
+            });
+        }
+    });
+}
 
 function renderCategoryPage(dataList, title) {
-    isChannelsOpen = false; isMoviesOpen = true;
+    isMoviesOpen = true; isChannelsOpen = false;
     document.getElementById("mainScroll").style.display = "none";
     document.getElementById("channelsOverlay").style.display = "none";
     document.getElementById("moviesOverlay").style.display = "flex";
-    renderGridSystem(dataList);
+    
+    const cont = document.getElementById("moviesScroll");
+    cont.innerHTML = `<div class="category-title">${title}</div><div class="grid-layout" id="movieGrid"></div>`;
+    const grid = document.getElementById("movieGrid");
+    
+    dataList.forEach(m => {
+        const card = document.createElement("div");
+        card.className = "movie-card";
+        card.innerHTML = `<img src="${m.poster}"><div style="padding:10px; font-size:14px; text-align:center;">${m.titulo || m.name}</div>`;
+        card.onclick = () => openDetails(m);
+        grid.appendChild(card);
+    });
     currentFocus = "movie_grid"; movieIdx = 0; updateFocus();
 }
 
 function openChannelsPage() {
-    isMoviesOpen = false; isChannelsOpen = true;
+    isChannelsOpen = true; isMoviesOpen = false;
     document.getElementById("mainScroll").style.display = "none";
     document.getElementById("moviesOverlay").style.display = "none";
     document.getElementById("channelsOverlay").style.display = "flex";
     currentFocus = "channel_grid"; chanIdx = 0; updateFocus();
 }
 
-function renderGridSystem(list) {
-    const cont = document.getElementById("moviesScroll");
-    cont.innerHTML = "";
-    const div = document.createElement("div");
-    div.className = "category-container";
-    div.innerHTML = `<div class="channel-category-title">Resultados</div><div class="channels-row movie-grid"></div>`;
-    const grid = div.querySelector(".movie-grid");
-    list.forEach(m => {
-        const card = document.createElement("div");
-        card.className = "movie-card";
-        card.innerHTML = `<img class="movie-poster" src="${m.poster}"><div class="movie-info-overlay"><span class="movie-title-grid">${m.titulo || m.name}</span><div class="movie-meta-grid"><span>${m.year || ''}</span><span>★ ${m.rating || ''}</span></div></div>`;
-        card.onclick = () => openDetails(m);
-        grid.appendChild(card);
-    });
-    cont.appendChild(div);
+async function openDetails(item) {
+    isDetailsOpen = true; detIdx = 0;
+    const overlay = document.getElementById("detailsOverlay");
+    overlay.style.display = "flex";
+    document.getElementById("detPoster").src = item.poster;
+    document.getElementById("detTitle").innerText = item.titulo || item.name;
+    document.getElementById("detMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.0'}`;
+    document.getElementById("detDesc").innerText = item.descricao || "Conteúdo exclusivo PaixãoFlix.";
+    document.getElementById("btnDetPlay").onclick = () => playMedia(item.url);
+    updateFocus();
 }
 
-function updateFocus() {
-    if(isPlayerOpen) return;
-    document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
-    const sideBar = document.getElementById("menuBrands");
-    currentFocus === "menu" ? sideBar.classList.add("expanded") : sideBar.classList.remove("expanded");
+function closeDetails() { isDetailsOpen = false; document.getElementById("detailsOverlay").style.display = "none"; updateFocus(); }
 
-    if(isDetailsOpen) document.querySelectorAll(".btn-3d")[detIdx]?.classList.add("focused");
-    else if(isMoviesOpen) {
-        if(currentFocus === "menu") document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
+function playMedia(url) {
+    isPlayerOpen = true; document.getElementById("playerOverlay").style.display = "block";
+    if(playerInstance) playerInstance.destroy();
+    playerInstance = new Clappr.Player({ source: url, parentId: "#player", width: "100%", height: "100%", autoPlay: true });
+}
+
+function closePlayer() { if(playerInstance) playerInstance.destroy(); document.getElementById("playerOverlay").style.display = "none"; isPlayerOpen = false; }
+
+function updateFocus() {
+    document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
+    const menu = document.getElementById("menuBrands");
+    currentFocus === "menu" ? menu.classList.add("expanded") : menu.classList.remove("expanded");
+
+    if (isDetailsOpen) document.querySelectorAll(".btn-3d")[detIdx]?.classList.add("focused");
+    else if (isMoviesOpen) {
+        if(currentFocus === "menu") document.querySelectorAll(".brand-card")[menuIdx]?.classList.add("focused");
         else {
-            const items = document.querySelectorAll("#moviesScroll .movie-card");
-            items[movieIdx]?.classList.add("focused");
-            items[movieIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const cards = document.querySelectorAll(".movie-card");
+            cards[movieIdx]?.classList.add("focused");
+            cards[movieIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-    } 
-    else if(isChannelsOpen) {
-        if(currentFocus === "menu") document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
+    }
+    else if (isChannelsOpen) {
+        if(currentFocus === "menu") document.querySelectorAll(".brand-card")[menuIdx]?.classList.add("focused");
         else {
-            const cards = document.querySelectorAll("#channelsScroll .channel-card");
+            const cards = document.querySelectorAll(".channel-card");
             cards[chanIdx]?.classList.add("focused");
             cards[chanIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-    } 
+    }
     else {
-        if(currentFocus === "menu") document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.classList.add("focused");
-        else if(currentFocus === "editor") document.getElementById("editorSlider")?.classList.add("focused");
-        else if(currentFocus === "grid") {
-            const gridItems = document.querySelectorAll(".top6-item");
-            gridItems[gridIdx]?.classList.add("focused");
-            gridItems[gridIdx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-        }
-        else if(currentFocus === "dynamic") {
+        if (currentFocus === "menu") document.querySelectorAll(".brand-card")[menuIdx]?.classList.add("focused");
+        else if (currentFocus === "editor") document.getElementById("editorSlider").classList.add("focused");
+        else if (currentFocus === "grid") document.querySelectorAll(".top6-item")[gridIdx]?.classList.add("focused");
+        else if (currentFocus === "dynamic") {
             const rows = document.querySelectorAll(".category-row-container");
-            const items = rows[dynIdx]?.querySelectorAll(".standard-card");
-            items[dynRowIdx]?.classList.add("focused");
-            items[dynRowIdx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            rows[dynIdx]?.querySelectorAll(".standard-card")[dynRowIdx]?.classList.add("focused");
         }
     }
 }
 
 document.addEventListener("keydown", e => {
     const k = e.keyCode;
-    if(isPlayerOpen && Keys.BACK.includes(k)) { closePlayer(); return; }
-    if(isDetailsOpen) {
-        if(Keys.RIGHT.includes(k)) detIdx = 1;
-        if(Keys.LEFT.includes(k)) detIdx = 0;
-        if(Keys.ENTER.includes(k)) detIdx === 0 ? document.getElementById("btnDetPlay").click() : closeDetails();
-        if(Keys.BACK.includes(k)) closeDetails();
+    if (isPlayerOpen && Keys.BACK.includes(k)) { closePlayer(); return; }
+    if (isDetailsOpen) {
+        if (Keys.RIGHT.includes(k)) detIdx = 1;
+        if (Keys.LEFT.includes(k)) detIdx = 0;
+        if (Keys.ENTER.includes(k)) detIdx === 0 ? document.getElementById("btnDetPlay").click() : closeDetails();
+        if (Keys.BACK.includes(k)) closeDetails();
     } 
-    else if(currentFocus === "menu") {
-        if(Keys.DOWN.includes(k)) menuIdx = Math.min(6, menuIdx + 1);
-        if(Keys.UP.includes(k)) menuIdx = Math.max(0, menuIdx - 1);
-        if(Keys.RIGHT.includes(k)) currentFocus = isMoviesOpen ? "movie_grid" : (isChannelsOpen ? "channel_grid" : "editor");
-        if(Keys.ENTER.includes(k)) document.querySelectorAll(".main-menu .brand-card")[menuIdx]?.click();
+    else if (currentFocus === "menu") {
+        if (Keys.DOWN.includes(k)) menuIdx = Math.min(6, menuIdx + 1);
+        if (Keys.UP.includes(k)) menuIdx = Math.max(0, menuIdx - 1);
+        if (Keys.RIGHT.includes(k)) currentFocus = isMoviesOpen ? "movie_grid" : (isChannelsOpen ? "channel_grid" : "editor");
+        if (Keys.ENTER.includes(k)) document.querySelectorAll(".brand-card")[menuIdx].click();
     }
-    else if(!isMoviesOpen && !isChannelsOpen) {
-        if(currentFocus === "editor") {
-            if(Keys.DOWN.includes(k)) { currentFocus = "grid"; gridIdx = 0; }
-            if(Keys.LEFT.includes(k)) currentFocus = "menu";
-            if(Keys.ENTER.includes(k)) openDetails(editorsChoice[edIdx]);
-        } 
-        else if(currentFocus === "grid") {
-            if(Keys.RIGHT.includes(k)) gridIdx = Math.min(5, gridIdx + 1);
-            if(Keys.LEFT.includes(k)) gridIdx === 0 ? currentFocus = "menu" : gridIdx--;
-            if(Keys.UP.includes(k)) currentFocus = "editor";
-            if(Keys.DOWN.includes(k)) {
-                const rows = document.querySelectorAll(".category-row-container");
-                if(rows.length > 0) { currentFocus = "dynamic"; dynIdx = 0; dynRowIdx = 0; }
-            }
-            if(Keys.ENTER.includes(k)) openDetails(top6Data[gridIdx]);
+    else if (isMoviesOpen) {
+        if (Keys.LEFT.includes(k)) currentFocus = "menu";
+        if (Keys.RIGHT.includes(k)) movieIdx++;
+        if (Keys.DOWN.includes(k)) movieIdx += 4;
+        if (Keys.UP.includes(k)) movieIdx -= 4;
+        if (Keys.ENTER.includes(k)) document.querySelectorAll(".movie-card")[movieIdx].click();
+        if (Keys.BACK.includes(k)) location.reload();
+    }
+    else {
+        // Lógica Home
+        if (currentFocus === "editor") {
+            if (Keys.DOWN.includes(k)) { currentFocus = "grid"; gridIdx = 0; }
+            if (Keys.LEFT.includes(k)) currentFocus = "menu";
+            if (Keys.ENTER.includes(k)) openDetails(editorsChoice[edIdx]);
         }
-        else if(currentFocus === "dynamic") {
-            const rows = document.querySelectorAll(".category-row-container");
-            const items = rows[dynIdx]?.querySelectorAll(".standard-card");
-            if(Keys.RIGHT.includes(k)) dynRowIdx = Math.min(items.length - 1, dynRowIdx + 1);
-            if(Keys.LEFT.includes(k)) dynRowIdx === 0 ? currentFocus = "menu" : dynRowIdx--;
-            if(Keys.UP.includes(k)) dynIdx === 0 ? currentFocus = "grid" : dynIdx--;
-            if(Keys.DOWN.includes(k)) dynIdx = Math.min(rows.length - 1, dynIdx + 1);
-            if(Keys.ENTER.includes(k)) {
-                const activeConfigs = sectionConfigs.filter(s => s.nome && s.categoria);
-                const data = window[activeConfigs[dynIdx].categoria][dynRowIdx];
-                openDetails(data);
-            }
+        else if (currentFocus === "grid") {
+            if (Keys.RIGHT.includes(k)) gridIdx = Math.min(5, gridIdx + 1);
+            if (Keys.LEFT.includes(k)) gridIdx === 0 ? currentFocus = "menu" : gridIdx--;
+            if (Keys.UP.includes(k)) currentFocus = "editor";
+            if (Keys.DOWN.includes(k)) { currentFocus = "dynamic"; dynIdx = 0; dynRowIdx = 0; }
+            if (Keys.ENTER.includes(k)) openDetails(top6Data[gridIdx]);
         }
     }
-    else { if(Keys.BACK.includes(k)) location.reload(); }
     updateFocus();
 });
 
@@ -457,45 +329,29 @@ function parseM3U(content) {
             if(url && url.startsWith("http")) { if(!cats[cat]) cats[cat] = []; cats[cat].push({ name, logo, url }); }
         }
     });
-    renderChannels(cats);
-}
-
-function renderChannels(cats) {
-    const cont = document.getElementById("channelsScroll"); cont.innerHTML = "";
+    const cont = document.getElementById("channelsScroll");
     Object.keys(cats).forEach(cat => {
         const div = document.createElement("div"); div.className = "category-container";
-        div.innerHTML = `<div class="channel-category-title"><i class="fas fa-play"></i> ${cat}</div><div class="channels-row"></div>`;
-        const row = div.querySelector(".channels-row");
+        div.innerHTML = `<div class="category-title">${cat}</div><div class="grid-layout"></div>`;
+        const grid = div.querySelector(".grid-layout");
         cats[cat].forEach(c => {
-            const card = document.createElement("div"); card.className = "channel-card";
-            card.onclick = () => playChannel(c.url, c.name);
-            card.innerHTML = `<img src="${c.logo}">`; row.appendChild(card);
+            const card = document.createElement("div"); card.className = "movie-card channel-card";
+            card.innerHTML = `<img src="${c.logo}"><div style="padding:5px; font-size:12px;">${c.name}</div>`;
+            card.onclick = () => playMedia(c.url); grid.appendChild(card);
         });
         cont.appendChild(div);
     });
 }
 
-function playChannel(url, name) {
-    isPlayerOpen = true; document.getElementById("playerOverlay").style.display = "block";
-    if(playerInstance) playerInstance.destroy();
-    playerInstance = new Clappr.Player({ source: url, parentId: "#player", width: "100%", height: "100%", autoPlay: true });
-}
-
-function closePlayer() { if(playerInstance) playerInstance.destroy(); document.getElementById("playerOverlay").style.display = "none"; isPlayerOpen = false; }
-
 function startCarousel() {
-    const slider = document.getElementById("editorSlider");
     setInterval(() => {
         if(editorsChoice.length > 0) {
-            slider.style.opacity = 0;
-            setTimeout(() => {
-                edIdx = (edIdx + 1) % editorsChoice.length;
-                const item = editorsChoice[edIdx];
-                slider.style.backgroundImage = `url(${item.poster})`;
-                document.getElementById("editorTitle").innerText = item.titulo || item.name;
-                document.getElementById("editorMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.5'}`;
-                slider.style.opacity = 1;
-            }, 800);
+            edIdx = (edIdx + 1) % editorsChoice.length;
+            const item = editorsChoice[edIdx];
+            const slider = document.getElementById("editorSlider");
+            slider.style.backgroundImage = `url(${item.poster})`;
+            document.getElementById("editorTitle").innerText = item.titulo || item.name;
+            document.getElementById("editorMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.5'}`;
         }
     }, 8000);
 }
