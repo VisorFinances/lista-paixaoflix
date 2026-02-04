@@ -472,6 +472,74 @@ function renderCast(cast) {
     desc.insertAdjacentHTML('afterend', html);
 }
 
+// FUNÇÕES DE CONSTRUÇÃO DE INTERFACE
+function renderTop6() {
+    const container = document.getElementById("top6Container");
+    if (!container) return;
+    container.innerHTML = "";
+    top6Data.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "top6-item";
+        div.innerHTML = `
+            <div class="top6-number">${index + 1}</div>
+            <img class="top6-poster" src="${item.poster}">
+        `;
+        div.onclick = () => openDetails(item);
+        container.appendChild(div);
+    });
+}
+
+function renderHomeCategories() {
+    const container = document.getElementById('homeRowsContainer');
+    if (!container) return;
+    container.innerHTML = "";
+
+    // Agrupar por categorias fixas
+    CATEGORIAS_FIXAS.forEach(cat => {
+        const filtrados = [...movies, ...series].filter(m => m.categoria && m.categoria.includes(cat));
+        if (filtrados.length > 0) {
+            const section = document.createElement("div");
+            section.className = "category-container";
+            section.innerHTML = `<div class="channel-category-title">${cat}</div><div class="channels-row"></div>`;
+            const row = section.querySelector(".channels-row");
+            
+            filtrados.forEach(m => {
+                const card = document.createElement("div");
+                card.className = "movie-card";
+                card.innerHTML = `<img class="movie-poster" src="${m.poster}"><div class="movie-meta-float">★ ${m.rating || '9.8'}</div>`;
+                card.onclick = () => openDetails(m);
+                row.appendChild(card);
+            });
+            container.appendChild(section);
+        }
+    });
+}
+
+// Funções para M3U (Canais)
+function parseM3U(data) {
+    const lines = data.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith('#EXTINF')) {
+            const info = lines[i];
+            const url = lines[i + 1];
+            const name = info.split(',')[1];
+            const logo = info.match(/tvg-logo="([^"]+)"/)?.[1] || "";
+            channels.push({ titulo: name, url: url, poster: logo });
+        }
+    }
+}
+function parseM3UKids(data) {
+    const lines = data.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith('#EXTINF')) {
+            const info = lines[i];
+            const url = lines[i + 1];
+            const name = info.split(',')[1];
+            const logo = info.match(/tvg-logo="([^"]+)"/)?.[1] || "";
+            kidsChannels.push({ titulo: name, url: url, poster: logo });
+        }
+    }
+}   
 // 7. PLAYER E NAVEGAÇÃO
 function updateFocus() {
     document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
