@@ -271,6 +271,18 @@ async function openDetails(item) {
     scroll-behavior: smooth;
 }
    
+.channels-row.movie-grid {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scroll-behavior: smooth;
+    padding: 20px 0;
+}
+
+.movie-card {
+    flex: 0 0 220px; /* Largura fixa das capas */
+    margin-right: 20px;
+}   
 </style>
 </head>
 <body>
@@ -515,36 +527,41 @@ document.addEventListener("keydown", e => {
             cards[menuIdx]?.click();
         }
     }
-    else if(currentFocus === "movie_grid") {
-        const items = document.querySelectorAll("#moviesScroll .movie-card");
-        const total = items.length;
-        if(Keys.RIGHT.includes(k)) movieIdx = (movieIdx + 1) % total; // Rolagem Infinita Filmes
-        if(Keys.LEFT.includes(k)) {
-            if(movieIdx === 0) currentFocus = "menu";
-            else movieIdx = (movieIdx - 1 + total) % total;
-        }
-        if(Keys.ENTER.includes(k)) items[movieIdx]?.click();
-        if(Keys.BACK.includes(k)) location.reload();
+   else if(currentFocus === "movie_grid") {
+    // 1. Identifica todas as categorias na tela
+    const containers = document.querySelectorAll(".category-container");
+    // 2. Descobre em qual categoria (fileira) você está (baseado no movieIdx / 4 ou lógica similar)
+    // Para simplificar e ser idêntico à Netflix, vamos focar na fileira atual:
+    const currentRow = containers[Math.floor(movieIdx / 4)]; // Ajuste se usar grid fixo
+    const items = document.querySelectorAll("#moviesScroll .movie-card");
+    const total = items.length;
+
+    if(Keys.RIGHT.includes(k)) {
+        // Se for o último item da lista total, volta para o primeiro (Loop Horizontal)
+        movieIdx = (movieIdx + 1) % total; 
     }
-    else if(!isMoviesOpen && !isChannelsOpen) {
-        if(currentFocus === "editor") {
-            if(Keys.DOWN.includes(k)) { currentFocus = "grid"; gridIdx = 0; }
-            if(Keys.LEFT.includes(k)) { currentFocus = "menu"; menuIdx = 1; }
-            if(Keys.ENTER.includes(k)) openDetails(editorsChoice[edIdx]);
-        } 
-        else if(currentFocus === "grid") {
-            if(Keys.RIGHT.includes(k)) gridIdx = (gridIdx + 1) % 6; // Rolagem Infinita Top 6
-            if(Keys.LEFT.includes(k)) { 
-                if(gridIdx === 0) currentFocus = "menu"; 
-                else gridIdx = (gridIdx - 1 + 6) % 6; 
-            }
-            if(Keys.UP.includes(k)) currentFocus = "editor";
-            if(Keys.ENTER.includes(k)) openDetails(top6Data[gridIdx]);
+    if(Keys.LEFT.includes(k)) {
+        if(movieIdx % 4 === 0) { 
+            // Se estiver no canto esquerdo da fileira, volta para o menu
+            currentFocus = "menu"; 
+        } else {
+            // Senão, volta um item (Loop Horizontal inverso)
+            movieIdx = (movieIdx - 1 + total) % total;
         }
     }
-    else {
-        if(Keys.BACK.includes(k)) location.reload();
+    if(Keys.DOWN.includes(k)) {
+        // Pula para a fileira de baixo (Netflix style)
+        if (movieIdx + 4 < total) movieIdx += 4;
+        else movieIdx = movieIdx % 4; // Volta para o topo se chegar no fim
     }
+    if(Keys.UP.includes(k)) {
+        if (movieIdx - 4 >= 0) movieIdx -= 4;
+        else currentFocus = "editor"; // Se subir demais, volta para o destaque
+    }
+
+    if(Keys.ENTER.includes(k)) items[movieIdx]?.click();
+    if(Keys.BACK.includes(k)) location.reload();
+}
     updateFocus();
 });
 function parseM3U(content) {
