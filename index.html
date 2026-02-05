@@ -396,34 +396,48 @@ function renderGridSystem(list) {
     const cont = document.getElementById("moviesScroll");
     cont.innerHTML = "";
     
-    let cats = {"Destaques": list};
-    Object.keys(cats).forEach(cat => {
-        const div = document.createElement("div");
-        div.className = "category-container";
-        div.innerHTML = `<div class="channel-category-title">${cat}</div><div class="channels-row movie-grid"></div>`;
-        const grid = div.querySelector(".movie-grid");
-        
-        cats[cat].forEach(m => {
-            const card = document.createElement("div");
-            card.className = "movie-card";
-            // Adicionamos o ano e nota fixos ou vindos do seu JSON local se houver
-            card.innerHTML = `
-                <img class="movie-poster" src="${m.poster}">
-                <div class="movie-info-overlay">
-                    <span class="movie-title-grid">${m.titulo || m.name}</span>
-                    <div class="movie-meta-grid">
-                        <span>${m.year || ''}</span>
-                        <span>★ ${m.rating || 'N/A'}</span>
+    // 1. Definimos sua lista oficial de categorias
+    const categoriasDesejadas = [
+        "Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", 
+        "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", 
+        "Animação", "Família", "Clássicos", "Dorama", "Suspense", 
+        "Policial", "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"
+    ];
+
+    // 2. Criamos as fileiras para cada categoria
+    categoriasDesejadas.forEach(cat => {
+        // Filtramos os filmes que pertencem a esta categoria específica
+        const filmesDaCat = list.filter(m => m.genero && m.genero.includes(cat));
+
+        // Só criamos a fileira se houver algum filme nela
+        if (filmesDaCat.length > 0) {
+            const div = document.createElement("div");
+            div.className = "category-container";
+            div.innerHTML = `<div class="channel-category-title">${cat}</div><div class="channels-row movie-grid"></div>`;
+            const grid = div.querySelector(".movie-grid");
+            
+            filmesDaCat.forEach(m => {
+                const card = document.createElement("div");
+                card.className = "movie-card";
+                card.innerHTML = `
+                    <img class="movie-poster" src="${m.poster}">
+                    <div class="movie-info-overlay">
+                        <span class="movie-title-grid">${m.titulo || m.name}</span>
+                        <div class="movie-meta-grid">
+                            <span>${m.year || ''}</span>
+                            <span>★ ${m.rating || 'N/A'}</span>
+                        </div>
                     </div>
-                </div>
-            `;
-            card.onclick = () => openDetails(m);
-            grid.appendChild(card);
-        });
-        cont.appendChild(div);
+                `;
+                card.onclick = () => openDetails(m);
+                grid.appendChild(card);
+            });
+            cont.appendChild(div);
+        }
     });
 }
-function updateFocus() {
+   
+   function updateFocus() {
     if(isPlayerOpen) return;
     document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
     const sideBar = document.getElementById("menuBrands");
