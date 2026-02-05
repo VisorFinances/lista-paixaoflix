@@ -540,6 +540,49 @@ function renderCategoryPage(dataList, title) {
 
 window.onload = loadData;
 
+/* ================================
+   PATCH GLOBAL DE ROLAGEM INFINITA
+   PaixãoFlix – não remove nada
+================================ */
+
+/* Libera rolagem vertical global */
+html, body {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Container principal */
+#mainScroll,
+#moviesOverlay,
+#channelsOverlay,
+#channelsScroll,
+#moviesScroll {
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+}
+
+/* Rolagem horizontal infinita (carrosséis e grids) */
+.top6-grid,
+.channels-row {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    scroll-behavior: smooth;
+}
+
+/* Remove bloqueio herdado do seletor universal */
+#mainScroll *,
+#moviesOverlay *,
+#channelsOverlay * {
+    overflow: visible !important;
+}
+
+/* Scroll invisível (estilo Netflix / TV) */
+*::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+   
 </script>           
 </body>
 </html>
