@@ -481,19 +481,17 @@ function renderGridSystem(list) {
         } else if(currentFocus === "editor") {
             document.getElementById("editorSlider")?.classList.add("focused");
         } else if(currentFocus === "grid") {
-    if(Keys.RIGHT.includes(k)) gridIdx = (gridIdx + 1) % 6; // Loop entre os 6 itens
-    if(Keys.LEFT.includes(k)) gridIdx = (gridIdx - 1 + 6) % 6;
-    // ... restante do código
             const gridItems = document.querySelectorAll(".top6-item");
             gridItems[gridIdx]?.classList.add("focused");
             gridItems[gridIdx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
-      }
-    
+    }
+}
 
 document.addEventListener("keydown", e => {
     const k = e.keyCode;
     if(isPlayerOpen && Keys.BACK.includes(k)) { closePlayer(); return; }
+    
     if(isDetailsOpen) {
         if(Keys.RIGHT.includes(k)) detIdx = 1;
         if(Keys.LEFT.includes(k)) detIdx = 0;
@@ -503,43 +501,43 @@ document.addEventListener("keydown", e => {
         }
         if(Keys.BACK.includes(k)) closeDetails();
     } 
-    if(currentFocus === "menu") {
-    const totalMenu = 7; // Total de itens no seu menu
-    if(Keys.DOWN.includes(k)) menuIdx = (menuIdx + 1) % totalMenu;
-    if(Keys.UP.includes(k)) menuIdx = (menuIdx - 1 + totalMenu) % totalMenu;
-    // ... restante do código
+    else if(currentFocus === "menu") {
+        const totalMenu = 7; 
+        if(Keys.DOWN.includes(k)) menuIdx = (menuIdx + 1) % totalMenu; // Rolagem Infinita Menu
+        if(Keys.UP.includes(k)) menuIdx = (menuIdx - 1 + totalMenu) % totalMenu; // Rolagem Infinita Menu
         if(Keys.RIGHT.includes(k)) { 
             if(isMoviesOpen) currentFocus = "movie_grid";
             else if(isChannelsOpen) currentFocus = "channel_grid";
             else currentFocus = "editor";
-        }
         }
         if(Keys.ENTER.includes(k)) {
             const cards = document.querySelectorAll(".main-menu .brand-card");
             cards[menuIdx]?.click();
         }
     }
+    else if(currentFocus === "movie_grid") {
+        const items = document.querySelectorAll("#moviesScroll .movie-card");
+        const total = items.length;
+        if(Keys.RIGHT.includes(k)) movieIdx = (movieIdx + 1) % total; // Rolagem Infinita Filmes
+        if(Keys.LEFT.includes(k)) {
+            if(movieIdx === 0) currentFocus = "menu";
+            else movieIdx = (movieIdx - 1 + total) % total;
+        }
+        if(Keys.ENTER.includes(k)) items[movieIdx]?.click();
+        if(Keys.BACK.includes(k)) location.reload();
+    }
     else if(!isMoviesOpen && !isChannelsOpen) {
         if(currentFocus === "editor") {
             if(Keys.DOWN.includes(k)) { currentFocus = "grid"; gridIdx = 0; }
-            if(Keys.LEFT.includes(k)) { currentFocus = "menu"; menuIdx = 0; }
+            if(Keys.LEFT.includes(k)) { currentFocus = "menu"; menuIdx = 1; }
             if(Keys.ENTER.includes(k)) openDetails(editorsChoice[edIdx]);
         } 
-        // Dentro do seu EventListener de Teclado, na parte dos filmes/canais:
-if(currentFocus === "movie_grid") {
-    const items = document.querySelectorAll("#moviesScroll .movie-card");
-    const total = items.length;
-
-    if(Keys.RIGHT.includes(k)) {
-        movieIdx = (movieIdx + 1) % total; // Se passar do último, volta pro 0
-    }
-    if(Keys.LEFT.includes(k)) {
-        movieIdx = (movieIdx - 1 + total) % total; // Se for antes do 0, vai pro último
-        if(movieIdx === total - 1 && Keys.LEFT.includes(k)) {
-            // Opcional: Se quiser que o menu abra ao ir pra esquerda no item 0, remova o loop aqui
-        }
-    }
-}
+        else if(currentFocus === "grid") {
+            if(Keys.RIGHT.includes(k)) gridIdx = (gridIdx + 1) % 6; // Rolagem Infinita Top 6
+            if(Keys.LEFT.includes(k)) { 
+                if(gridIdx === 0) currentFocus = "menu"; 
+                else gridIdx = (gridIdx - 1 + 6) % 6; 
+            }
             if(Keys.UP.includes(k)) currentFocus = "editor";
             if(Keys.ENTER.includes(k)) openDetails(top6Data[gridIdx]);
         }
@@ -549,7 +547,6 @@ if(currentFocus === "movie_grid") {
     }
     updateFocus();
 });
-
 function parseM3U(content) {
     const lines = content.split('\n');
     let cats = {};
