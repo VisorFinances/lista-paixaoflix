@@ -262,7 +262,15 @@ async function openDetails(item) {
     document.getElementById("btnDetPlay").onclick = () => playChannel(item.url, titulo);
     updateFocus();
 }
+/* Isso faz com que o navegador centralize o item focado suavemente */
+.movie-card, .channel-card, .brand-card, .top6-item {
+    scroll-margin: 100px; /* Dá um respiro nas bordas ao rolar */
+}
 
+#moviesOverlay, #channelsOverlay, #mainScroll {
+    scroll-behavior: smooth;
+}
+   
 </style>
 </head>
 <body>
@@ -473,12 +481,15 @@ function renderGridSystem(list) {
         } else if(currentFocus === "editor") {
             document.getElementById("editorSlider")?.classList.add("focused");
         } else if(currentFocus === "grid") {
+    if(Keys.RIGHT.includes(k)) gridIdx = (gridIdx + 1) % 6; // Loop entre os 6 itens
+    if(Keys.LEFT.includes(k)) gridIdx = (gridIdx - 1 + 6) % 6;
+    // ... restante do código
             const gridItems = document.querySelectorAll(".top6-item");
             gridItems[gridIdx]?.classList.add("focused");
             gridItems[gridIdx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
-    }
-}
+      }
+    
 
 document.addEventListener("keydown", e => {
     const k = e.keyCode;
@@ -492,13 +503,16 @@ document.addEventListener("keydown", e => {
         }
         if(Keys.BACK.includes(k)) closeDetails();
     } 
-    else if(currentFocus === "menu") {
-        if(Keys.DOWN.includes(k)) menuIdx = Math.min(6, menuIdx + 1);
-        if(Keys.UP.includes(k)) menuIdx = Math.max(0, menuIdx - 1);
+    if(currentFocus === "menu") {
+    const totalMenu = 7; // Total de itens no seu menu
+    if(Keys.DOWN.includes(k)) menuIdx = (menuIdx + 1) % totalMenu;
+    if(Keys.UP.includes(k)) menuIdx = (menuIdx - 1 + totalMenu) % totalMenu;
+    // ... restante do código
         if(Keys.RIGHT.includes(k)) { 
             if(isMoviesOpen) currentFocus = "movie_grid";
             else if(isChannelsOpen) currentFocus = "channel_grid";
             else currentFocus = "editor";
+        }
         }
         if(Keys.ENTER.includes(k)) {
             const cards = document.querySelectorAll(".main-menu .brand-card");
@@ -511,12 +525,21 @@ document.addEventListener("keydown", e => {
             if(Keys.LEFT.includes(k)) { currentFocus = "menu"; menuIdx = 0; }
             if(Keys.ENTER.includes(k)) openDetails(editorsChoice[edIdx]);
         } 
-        else if(currentFocus === "grid") {
-            if(Keys.RIGHT.includes(k)) gridIdx = Math.min(5, gridIdx + 1);
-            if(Keys.LEFT.includes(k)) { 
-                if(gridIdx === 0) { currentFocus = "menu"; menuIdx = 0; } 
-                else gridIdx--; 
-            }
+        // Dentro do seu EventListener de Teclado, na parte dos filmes/canais:
+if(currentFocus === "movie_grid") {
+    const items = document.querySelectorAll("#moviesScroll .movie-card");
+    const total = items.length;
+
+    if(Keys.RIGHT.includes(k)) {
+        movieIdx = (movieIdx + 1) % total; // Se passar do último, volta pro 0
+    }
+    if(Keys.LEFT.includes(k)) {
+        movieIdx = (movieIdx - 1 + total) % total; // Se for antes do 0, vai pro último
+        if(movieIdx === total - 1 && Keys.LEFT.includes(k)) {
+            // Opcional: Se quiser que o menu abra ao ir pra esquerda no item 0, remova o loop aqui
+        }
+    }
+}
             if(Keys.UP.includes(k)) currentFocus = "editor";
             if(Keys.ENTER.includes(k)) openDetails(top6Data[gridIdx]);
         }
