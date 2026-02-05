@@ -362,48 +362,77 @@ html { scroll-behavior: smooth; }
     <div id="footerText" style="font-style: italic; font-weight: 500; color: #ffffff; font-size: 20px; text-shadow: 2px 2px 4px #000;">PaixãoFlix, transformando momentos de lazer em lembranças felizes!</div>
 </div>
 
-<script>
-// --- COLE ESTE BLOCO AQUI ---
-const sectionConfigs = [
-    { id: 0, nome: "Nostalgia", categoria: "movies" },
-    { id: 1, nome: "Lançamentos", categoria: "series" },
-    { id: 2, nome: "", categoria: "" },
-    { id: 3, nome: "", categoria: "" } // Deixe vazio para as 13 sessões que você quer
-];
-// ----------------------------
-   
+<script>   
 let movies = [], series = [], kidsMovies = [], kidsSeries = [], channels = [];
 let top6Data = [], editorsChoice = [], edIdx = 0;
 let currentFocus = "editor", menuIdx = 0, gridIdx = 0, chanIdx = 0, movieIdx = 0, detIdx = 0;
-let dynamicRowIdx = 0, dynamicColIdx = 0; // ADICIONE ESTAS DUAS
+let dynamicRowIdx = 0, dynamicColIdx = 0;
 let isChannelsOpen = false, isMoviesOpen = false, isPlayerOpen = false, isDetailsOpen = false, playerInstance = null, currentItem = null;
+
 const Keys = { UP: [38, 1], DOWN: [40, 2], LEFT: [37, 3], RIGHT: [39, 4], ENTER: [13, 29443, 117], BACK: [8, 27, 461, 10009] };
 
-// Esta é a sua lista oficial. O sistema vai ler de cima para baixo.
 const categoriasOrdem = [
     "Lançamento 2026", "Lançamento 2025", "Ação", "Aventura", "Comédia", 
     "Drama", "Nacional", "Romance", "Religioso", "Ficção", "Anime", 
     "Animação", "Família", "Clássicos", "Dorama", "Suspense", "Policial", 
     "Crime", "Terror", "Documentários", "Faroeste", "Musical", "Adulto"
 ];
-   
+
+// Carregamento de Dados
 async function loadData() {
     const fetchJSON = async (url) => { try { const r = await fetch(url); return await r.json(); } catch(e) { return []; } };
     movies = await fetchJSON("data/filmes.json");
     series = await fetchJSON("data/series.json");
     kidsMovies = await fetchJSON("data/kids_filmes.json");
     kidsSeries = await fetchJSON("data/kids_series.json");
-    try { const r = await fetch("data/ativa_canais.m3u"); const t = await r.text(); parseM3U(t); } catch(e) {}
     
-    document.getElementById("totalItems").innerText = movies.length + series.length + kidsMovies.length + kidsSeries.length;
+    try { 
+        const r = await fetch("data/ativa_canais.m3u"); 
+        const t = await r.text(); 
+        parseM3U(t); 
+    } catch(e) {}
+    
+    document.getElementById("totalItems").innerText = movies.length + series.length;
     editorsChoice = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 10);
     top6Data = [...movies, ...series].sort(() => 0.5 - Math.random()).slice(0, 6);
     
-    startCarousel(); renderTop6(); startClock(); updateFocus();
-    buildDynamicHome(); // <--- ADICIONE ISSO AQUI
+    startCarousel(); 
+    renderTop6(); 
+    startClock(); 
+    updateFocus();
 }
-   
 
+// Renderização das Páginas de Cinema e Séries
+function renderGridSystem(list) {
+    const cont = isMoviesOpen ? document.getElementById("moviesScroll") : document.getElementById("channelsScroll");
+    cont.innerHTML = "";
+    dynamicRowIdx = 0;
+    dynamicColIdx = 0;
+
+    categoriasOrdem.forEach((catNome, index) => {
+        const itensFiltrados = list.filter(item => item.genero && item.genero.includes(catNome));
+        if (itensFiltrados.length > 0) {
+            const section = document.createElement("div");
+            section.className = "category-container";
+            const cardsHTML = itensFiltrados.map(m => {
+                const temSelo = m.genero.includes("Lançamento 2026") ? `<div class="badge-novo">NOVO</div>` : '';
+                return `
+                    <div class="movie-card" onclick='openDetails(${JSON.stringify(m)})'>
+                        ${temSelo}
+                        <img class="movie-poster" src="${m.poster}">
+                        <div class="movie-info-overlay">
+                            <span class="movie-title-grid">${m.titulo || m.name}</span>
+                            <div class="movie-meta-grid"><span>${m.year || '2026'}</span><span>★ ${m.rating || '0.0'}</span></div>
+                        </div>
+                    </div>`;
+            }).join('');
+            section.innerHTML = `<div class="channel-category-title">${catNome}</div><div class="channels-row movie-grid">${cardsHTML}</div>`;
+            cont.appendChild(section);
+        }
+    });
+}
+
+// Abrir Detalhes
 function openDetails(item) {
     currentItem = item;
     isDetailsOpen = true;
@@ -412,7 +441,7 @@ function openDetails(item) {
     document.getElementById("detailsBg").style.backgroundImage = `url(${item.poster})`;
     document.getElementById("detTitle").innerText = item.titulo || item.name;
     document.getElementById("detMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.5'}`;
-    document.getElementById("detDesc").innerText = item.descricao || "Aproveite este conteúdo exclusivo na PaixãoFlix.";
+    document.getElementById("detDesc").innerText = item.descricao || "Disponível no PaixãoFlix.";
     document.getElementById("detailsOverlay").style.display = "flex";
     document.getElementById("btnDetPlay").onclick = () => playChannel(item.url, item.titulo);
     updateFocus();
@@ -424,243 +453,56 @@ function closeDetails() {
     updateFocus();
 }
 
-function renderCategoryPage(dataList, title) {
-    isChannelsOpen = false; isMoviesOpen = true;
-    document.getElementById("mainScroll").style.display = "none";
-    document.getElementById("channelsOverlay").style.display = "none";
-    document.getElementById("moviesOverlay").style.display = "flex";
-    renderGridSystem(dataList);
-    currentFocus = "movie_grid";
-    movieIdx = 0;
-    updateFocus();
-}
+// Controle Remoto (Onde estava o erro)
+document.addEventListener("keydown", (e) => {
+    const k = e.keyCode;
 
-function openChannelsPage() {
-    isMoviesOpen = false; isChannelsOpen = true;
-    document.getElementById("mainScroll").style.display = "none";
-    document.getElementById("moviesOverlay").style.display = "none";
-    document.getElementById("channelsOverlay").style.display = "flex";
-    currentFocus = "channel_grid";
-    chanIdx = 0;
-    updateFocus();
-}
-
-function renderGridSystem(list) {
-    const cont = isMoviesOpen ? document.getElementById("moviesScroll") : document.getElementById("seriesScroll");
-    cont.innerHTML = "";
-    
-    dynamicRowIdx = 0;
-    dynamicColIdx = 0;
-
-    categoriasOrdem.forEach((catNome, index) => {
-        // Filtra itens que possuem a categoria EXATA
-        const itensFiltrados = list.filter(item => 
-            item.genero && item.genero.includes(catNome)
-        );
-
-        if (itensFiltrados.length > 0) {
-            const section = document.createElement("div");
-            section.className = "category-container";
-            
-            // Gerar o HTML dos cards com verificação de selo
-            const cardsHTML = itensFiltrados.map(m => {
-                // Verifica se é lançamento 2026 para por o selo
-                const temSelo = m.genero.includes("Lançamento 2026") ? 
-                    `<div class="badge-novo">NOVO</div>` : '';
-                
-                return `
-                    <div class="movie-card" onclick='openDetails(${JSON.stringify(m)})'>
-                        ${temSelo}
-                        <img class="movie-poster" src="${m.poster}">
-                        <div class="movie-info-overlay">
-                            <span class="movie-title-grid">${m.titulo || m.name}</span>
-                            <div class="movie-meta-grid">
-                                <span>${m.year || '2026'}</span>
-                                <span>★ ${m.rating || '0.0'}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            section.innerHTML = `
-                <div class="channel-category-title">${catNome}</div>
-                <div class="channels-row movie-grid" id="row-cat-${index}">
-                    ${cardsHTML}
-                </div>
-            `;
-            cont.appendChild(section);
+    if (isDetailsOpen) {
+        if (Keys.LEFT.includes(k)) detIdx = 0;
+        if (Keys.RIGHT.includes(k)) detIdx = 1;
+        if (Keys.ENTER.includes(k)) {
+            if (detIdx === 0) document.getElementById("btnDetPlay").click();
+            else closeDetails();
         }
-    });
-}
-   
-   function updateFocus() {
-    if(isPlayerOpen) return;
-    document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
-    const sideBar = document.getElementById("menuBrands");
+        if (Keys.BACK.includes(k)) closeDetails();
+        updateFocus();
+        return;
+    }
 
-    if (currentFocus === "menu") sideBar.classList.add("expanded");
-    else sideBar.classList.remove("expanded");
+    if (isMoviesOpen) {
+        const rows = document.querySelectorAll("#moviesScroll .category-container");
+        const cards = rows[dynamicRowIdx]?.querySelectorAll(".movie-card");
 
-    if(isDetailsOpen) {
-        const btns = document.querySelectorAll(".btn-3d");
-        btns[detIdx]?.classList.add("focused");
-    } 
-    // Dentro do seu document.addEventListener("keydown"...)
-// No bloco else que cuida de isMoviesOpen ou isChannelsOpen:
+        if (Keys.RIGHT.includes(k)) dynamicColIdx = Math.min(cards.length - 1, dynamicColIdx + 1);
+        if (Keys.LEFT.includes(k)) (dynamicColIdx === 0) ? (isMoviesOpen = false, document.getElementById("moviesOverlay").style.display="none", document.getElementById("mainScroll").style.display="block", currentFocus="menu") : dynamicColIdx--;
+        if (Keys.DOWN.includes(k)) { if (dynamicRowIdx < rows.length - 1) { dynamicRowIdx++; dynamicColIdx = 0; } }
+        if (Keys.UP.includes(k)) { if (dynamicRowIdx > 0) { dynamicRowIdx--; dynamicColIdx = 0; } }
+        if (Keys.ENTER.includes(k)) cards[dynamicColIdx].click();
+        if (Keys.BACK.includes(k)) location.reload();
+        updateFocus();
+        return;
+    }
 
-if (isMoviesOpen || isChannelsOpen) {
-    const allRows = document.querySelectorAll(".category-container");
-    const currentRow = allRows[dynamicRowIdx];
-    const cards = currentRow?.querySelectorAll(".movie-card, .channel-card") || [];
-
-    if (Keys.RIGHT.includes(k)) {
-        dynamicColIdx = Math.min(cards.length - 1, dynamicColIdx + 1);
+    // Navegação na Home
+    if (currentFocus === "menu") {
+        if (Keys.RIGHT.includes(k)) currentFocus = "editor";
+        if (Keys.DOWN.includes(k)) menuIdx = Math.min(6, menuIdx + 1);
+        if (Keys.UP.includes(k)) menuIdx = Math.max(0, menuIdx - 1);
+        if (Keys.ENTER.includes(k)) document.querySelectorAll(".brand-card")[menuIdx].click();
+    } else if (currentFocus === "editor") {
+        if (Keys.DOWN.includes(k)) currentFocus = "grid";
+        if (Keys.LEFT.includes(k)) currentFocus = "menu";
+        if (Keys.ENTER.includes(k)) openDetails(editorsChoice[edIdx]);
+    } else if (currentFocus === "grid") {
+        if (Keys.RIGHT.includes(k)) gridIdx = Math.min(5, gridIdx + 1);
+        if (Keys.LEFT.includes(k)) (gridIdx === 0) ? currentFocus = "menu" : gridIdx--;
+        if (Keys.UP.includes(k)) currentFocus = "editor";
+        if (Keys.ENTER.includes(k)) openDetails(top6Data[gridIdx]);
     }
-    if (Keys.LEFT.includes(k)) {
-        if (dynamicColIdx === 0) {
-            currentFocus = "menu";
-        } else {
-            dynamicColIdx--;
-        }
-    }
-    if (Keys.DOWN.includes(k)) {
-        if (dynamicRowIdx < allRows.length - 1) {
-            dynamicRowIdx++;
-            dynamicColIdx = 0; // Reseta para o primeiro item da nova linha
-        }
-    }
-    if (Keys.UP.includes(k)) {
-        if (dynamicRowIdx > 0) {
-            dynamicRowIdx--;
-            dynamicColIdx = 0;
-        }
-    }
-    if (Keys.ENTER.includes(k)) {
-        cards[dynamicColIdx]?.click();
-    }
-    if (Keys.BACK.includes(k)) {
-        // Volta para a Home em vez de recarregar tudo
-        isMoviesOpen = false;
-        isChannelsOpen = false;
-        document.getElementById("moviesOverlay").style.display = "none";
-        document.getElementById("channelsOverlay").style.display = "none";
-        document.getElementById("mainScroll").style.display = "block";
-        currentFocus = "editor";
-    }
-    updateFocus();
-    return;
-}
-    // 4. Navegação na Home (Editor -> Top 6 -> Dynamic)
-    if(!isMoviesOpen && !isChannelsOpen) {
-        if(currentFocus === "editor") {
-            if(Keys.DOWN.includes(k)) { currentFocus = "grid"; gridIdx = 0; }
-            if(Keys.LEFT.includes(k)) { currentFocus = "menu"; }
-            if(Keys.ENTER.includes(k)) openDetails(editorsChoice[edIdx]);
-        } 
-        else if(currentFocus === "grid") {
-            if(Keys.RIGHT.includes(k)) gridIdx = Math.min(5, gridIdx + 1);
-            if(Keys.LEFT.includes(k)) { (gridIdx === 0) ? currentFocus = "menu" : gridIdx--; }
-            if(Keys.UP.includes(k)) currentFocus = "editor";
-            if(Keys.DOWN.includes(k)) { 
-                currentFocus = "dynamic"; 
-                dynamicRowIdx = 0; 
-                dynamicColIdx = 0; 
-            }
-            if(Keys.ENTER.includes(k)) openDetails(top6Data[gridIdx]);
-        }
-        else if(currentFocus === "dynamic") {
-            const rows = document.querySelectorAll("#dynamicSections .channels-row");
-            const itemsInRow = rows[dynamicRowIdx]?.querySelectorAll(".movie-card") || [];
-
-            if(Keys.RIGHT.includes(k)) dynamicColIdx = Math.min(itemsInRow.length - 1, dynamicColIdx + 1);
-            if(Keys.LEFT.includes(k)) { (dynamicColIdx === 0) ? currentFocus = "menu" : dynamicColIdx--; }
-            if(Keys.UP.includes(k)) {
-                if(dynamicRowIdx === 0) currentFocus = "grid";
-                else { dynamicRowIdx--; dynamicColIdx = 0; }
-            }
-            if(Keys.DOWN.includes(k)) {
-                if(dynamicRowIdx < rows.length - 1) { dynamicRowIdx++; dynamicColIdx = 0; }
-            }
-            if(Keys.ENTER.includes(k)) {
-                // Pega o item correto da configuração para abrir os detalhes
-                const config = sectionConfigs[dynamicRowIdx];
-                const data = window[config.categoria][dynamicColIdx];
-                openDetails(data);
-            }
-        }
-    } 
-    // 5. Navegação em Canais e Cinema (Grids)
-    else {
-        if(Keys.BACK.includes(k)) location.reload();
-        // Adicione aqui lógica similar para movie_grid se necessário
-    }
-    
     updateFocus();
 });
-function parseM3U(content) {
-    const lines = content.split('\n');
-    let cats = {};
-    lines.forEach((line, i) => {
-        if(line.startsWith("#EXTINF")) {
-            const name = line.split(',')[1] || "Canal";
-            const logo = line.match(/tvg-logo="([^"]+)"/)?.[1] || "";
-            const cat = line.match(/group-title="([^"]+)"/)?.[1]?.trim() || "Geral";
-            const url = lines[i+1]?.trim();
-            if(url && url.startsWith("http")) { 
-                if(!cats[cat]) cats[cat] = []; 
-                cats[cat].push({ name, logo, url }); 
-            }
-        }
-    });
-    renderChannels(cats);
-}
 
-function renderChannels(cats) {
-    const cont = document.getElementById("channelsScroll");
-    cont.innerHTML = "";
-    Object.keys(cats).forEach(cat => {
-        const div = document.createElement("div");
-        div.className = "category-container";
-        div.innerHTML = `<div class="channel-category-title"><i class="fas fa-play"></i> ${cat}</div><div class="channels-row"></div>`;
-        const row = div.querySelector(".channels-row");
-        cats[cat].forEach(c => {
-            const card = document.createElement("div");
-            card.className = "channel-card";
-            card.onclick = () => playChannel(c.url, c.name);
-            card.innerHTML = `<img src="${c.logo}">`;
-            row.appendChild(card);
-        });
-        cont.appendChild(div);
-    });
-}
-
-function playChannel(url, name) {
-    isPlayerOpen = true; 
-    document.getElementById("playerOverlay").style.display = "block";
-    if(playerInstance) playerInstance.destroy();
-    playerInstance = new Clappr.Player({ source: url, parentId: "#player", width: "100%", height: "100%", autoPlay: true });
-}
-
-function closePlayer() { if(playerInstance) playerInstance.destroy(); document.getElementById("playerOverlay").style.display = "none"; isPlayerOpen = false; }
-
-function startCarousel() {
-    const slider = document.getElementById("editorSlider");
-    setInterval(() => {
-        if(editorsChoice.length > 0) {
-            slider.style.opacity = 0;
-            setTimeout(() => {
-                edIdx = (edIdx + 1) % editorsChoice.length;
-                const item = editorsChoice[edIdx];
-                slider.style.backgroundImage = `url(${item.poster})`;
-                document.getElementById("editorTitle").innerText = item.titulo || item.name;
-                document.getElementById("editorMeta").innerText = `${item.year || '2026'} • ★ ${item.rating || '9.5'}`;
-                slider.style.opacity = 1;
-            }, 800);
-        }
-    }, 8000);
-}
-
+// Funções Auxiliares (Canais, Relógio, etc)
 function renderTop6() {
     const cont = document.getElementById("top6Container");
     top6Data.forEach((item, i) => {
@@ -670,40 +512,34 @@ function renderTop6() {
         cont.appendChild(div);
     });
 }
-   
+
 function startClock() { setInterval(() => { const now = new Date(); document.getElementById("barDateTime").innerText = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase(); }, 1000); }
+function playChannel(url, name) { isPlayerOpen = true; document.getElementById("playerOverlay").style.display = "block"; playerInstance = new Clappr.Player({ source: url, parentId: "#player", width: "100%", height: "100%", autoPlay: true }); }
+function closePlayer() { if(playerInstance) playerInstance.destroy(); document.getElementById("playerOverlay").style.display = "none"; isPlayerOpen = false; }
+function startCarousel() { setInterval(() => { if(editorsChoice.length > 0) { edIdx = (edIdx + 1) % editorsChoice.length; const item = editorsChoice[edIdx]; document.getElementById("editorSlider").style.backgroundImage = `url(${item.poster})`; document.getElementById("editorTitle").innerText = item.titulo || item.name; } }, 8000); }
+
+function updateFocus() {
+    document.querySelectorAll(".focused").forEach(el => el.classList.remove("focused"));
+    if (currentFocus === "menu") document.querySelectorAll(".brand-card")[menuIdx].classList.add("focused");
+    if (currentFocus === "editor") document.getElementById("editorSlider").classList.add("focused");
+    if (currentFocus === "grid") document.querySelectorAll(".top6-item")[gridIdx].classList.add("focused");
+    if (isMoviesOpen) {
+        const rows = document.querySelectorAll("#moviesScroll .category-container");
+        rows[dynamicRowIdx]?.querySelectorAll(".movie-card")[dynamicColIdx]?.classList.add("focused");
+        rows[dynamicRowIdx]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+}
+
+function renderCategoryPage(dataList, title) {
+    isMoviesOpen = true;
+    document.getElementById("mainScroll").style.display = "none";
+    document.getElementById("moviesOverlay").style.display = "flex";
+    renderGridSystem(dataList);
+    updateFocus();
+}
 
 window.onload = loadData;
 
-function buildDynamicHome() {
-    const container = document.getElementById("dynamicSections");
-    container.innerHTML = ""; // Limpa para não duplicar
-
-    sectionConfigs.forEach(config => {
-        if (config.nome !== "") { // Só cria se você der um nome
-            const section = document.createElement("div");
-            section.className = "category-container"; // Usa seu CSS de grid já existente
-            section.style.marginLeft = "40px";
-            
-            // Pega os dados da categoria (movies, series, etc)
-            const data = window[config.categoria] || [];
-            const limitedData = data.slice(0, 15); // Limita 15 itens por linha na Home
-
-            section.innerHTML = `
-                <div class="channel-category-title">${config.nome}</div>
-                <div class="channels-row movie-grid" id="row-${config.id}">
-                    ${limitedData.map(m => `
-                        <div class="movie-card" onclick='openDetails(${JSON.stringify(m)})'>
-                            <img class="movie-poster" src="${m.poster}">
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            container.appendChild(section);
-        }
-    });
-}
-   
-</script>
+</script>           
 </body>
 </html>
