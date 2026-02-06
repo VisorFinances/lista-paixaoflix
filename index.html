@@ -4100,6 +4100,12 @@
         const heroPlayBtn = document.getElementById('hero-play-btn');
         const ambientReflection = document.getElementById('ambient-reflection');
         
+        // Verificar se elementos existem antes de acessar
+        if (!heroBackground || !heroTitle || !heroMeta || !heroGenres || !heroSynopsis || !heroPoster || !heroPlayBtn) {
+            console.warn('Elementos do banner não encontrados');
+            return;
+        }
+        
         // Atualizar conteúdo do banner
         heroBackground.style.backgroundImage = `url(${hero.backdrop || hero.poster})`;
         heroTitle.textContent = hero.titulo;
