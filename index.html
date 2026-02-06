@@ -2493,12 +2493,14 @@
     }
     
     async function initPaixaoFlix() {
-        await loadData();
-        setupInputHandlers();
-        loadHeroContent();
-        setTimeout(() => {
-            setupNavigationGrid();
-        }, 1000);
+        try {
+            await loadData();
+            renderHome();
+            loadHeroContent();
+            initializeNavigation(); // Inicializar navegação por teclado
+        } catch(error) {
+            console.error("Erro ao carregar banco de dados", error);
+        }
     }
     
     async function enrichWithTMDBData() {
@@ -3095,6 +3097,7 @@
                         <div class="details-description">${item.desc || 'Sem descrição disponível'}</div>
                         <div class="details-actions">
                             ${actions}
+                            <button class="btn-assistir-dark" onclick="startPlay('${item.url || ''}', '${item.titulo}')">ASSISTIR AGORA</button>
                             <button class="btn-voltar" onclick="document.getElementById('page-details').style.display='none'">VOLTAR</button>
                         </div>
                         <div class="vote-info">👍 0 | 🎎 0</div>
@@ -3430,6 +3433,175 @@
     let progressInterval;
     let recommendationsTimer;
     let currentRecommendations = [];
+    
+    // --- SISTEMA DE NAVEGAÇÃO ---
+    let currentFocusIndex = 0;
+    let currentRowIndex = 0;
+    let currentColIndex = 0;
+    let isMenuExpanded = false;
+    let navigationHistory = [];
+    let currentSection = 'home';
+    let gridItems = [];
+    let focusedElement = null;
+    
+    // --- FUNÇÕES DE NAVEGAÇÃO ---
+    function initializeNavigation() {
+        // Coletar todos os itens navegáveis
+        collectGridItems();
+        
+        // Adicionar event listeners de teclado
+        document.addEventListener('keydown', handleKeyPress);
+        
+        // Foco inicial no primeiro item
+        if(gridItems.length > 0) {
+            focusElement(gridItems[0]);
+        }
+    }
+    
+    function collectGridItems() {
+        gridItems = [];
+        const items = document.querySelectorAll('.capa-item, .episode-btn, .channel-item, .menu-item');
+        items.forEach((item, index) => {
+            item.tabIndex = index;
+            gridItems.push(item);
+        });
+    }
+    
+    function handleKeyPress(event) {
+        const key = event.key;
+        
+        // Prevenir comportamento padrão do navegador
+        if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Escape', 'Backspace'].includes(key)) {
+            event.preventDefault();
+        }
+        
+        switch(key) {
+            case 'ArrowUp':
+                navigateVertical('up');
+                break;
+            case 'ArrowDown':
+                navigateVertical('down');
+                break;
+            case 'ArrowLeft':
+                navigateHorizontal('left');
+                break;
+            case 'ArrowRight':
+                navigateHorizontal('right');
+                break;
+            case 'Enter':
+            case ' ':
+                selectFocusedItem();
+                break;
+            case 'Escape':
+            case 'Backspace':
+                goBack();
+                break;
+        }
+    }
+    
+    function navigateVertical(direction) {
+        if(!focusedElement) return;
+        
+        const currentRect = focusedElement.getBoundingClientRect();
+        const container = focusedElement.parentElement;
+        const containerRect = container.getBoundingClientRect();
+        const items = Array.from(container.children);
+        const currentIndex = items.indexOf(focusedElement);
+        
+        if(direction === 'up') {
+            // Navegação vertical dentro da mesma coluna
+            const prevIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+            focusElement(items[prevIndex]);
+        } else {
+            // Navegação vertical dentro da mesma coluna
+            const nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
+            focusElement(items[nextIndex]);
+        }
+        
+        // Scroll suave
+        focusedElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    function navigateHorizontal(direction) {
+        if(!focusedElement) return;
+        
+        // Verificar se estamos no menu lateral
+        if(focusedElement.classList.contains('menu-item')) {
+            navigateMenu(direction);
+            return;
+        }
+        
+        // Navegação horizontal entre colunas
+        const currentRect = focusedElement.getBoundingClientRect();
+        const currentCol = Math.floor((currentRect.left - containerRect.left) / (currentRect.width + 15));
+        
+        if(direction === 'left') {
+            if(currentCol > 0) {
+                const prevCol = currentCol - 1;
+                const targetItem = getItemInColumn(prevCol, currentRow);
+                if(targetItem) focusElement(targetItem);
+            }
+        } else {
+            if(currentCol < 3) { // Máximo 4 colunas
+                const nextCol = currentCol + 1;
+                const targetItem = getItemInColumn(nextCol, currentRow);
+                if(targetItem) focusElement(targetItem);
+            }
+        }
+    }
+    
+    function getItemInColumn(col, row) {
+        const containers = document.querySelectorAll('.row-container');
+        if(containers[row]) {
+            const items = containers[row].querySelectorAll('.capa-item');
+            return items[col] || null;
+        }
+        return null;
+    }
+    
+    function focusElement(element) {
+        if(focusedElement) {
+            focusedElement.style.transform = 'scale(1)';
+            focusedElement.style.boxShadow = 'none';
+        }
+        
+        focusedElement = element;
+        element.style.transform = 'scale(1.15)';
+        element.style.boxShadow = '0 0 20px rgba(255, 204, 0, 0.8)';
+        element.style.zIndex = '1000';
+    }
+    
+    function selectFocusedItem() {
+        if(!focusedElement) return;
+        
+        if(focusedElement.classList.contains('capa-item')) {
+            const itemData = JSON.parse(focusedElement.getAttribute('onclick').replace(/.*openInfo\((.*)\).*/, '$1'));
+            openInfo(itemData);
+        } else if(focusedElement.classList.contains('episode-btn')) {
+            focusedElement.click();
+        } else if(focusedElement.classList.contains('menu-item')) {
+            focusedElement.click();
+        }
+    }
+    
+    function goBack() {
+        // Se estiver em detalhes, voltar para página anterior
+        const detailsPage = document.getElementById('page-details');
+        if(detailsPage && detailsPage.style.display !== 'none') {
+            detailsPage.style.display = 'none';
+            return;
+        }
+        
+        // Se estiver no player, parar
+        const playerScreen = document.getElementById('player-screen');
+        if(playerScreen && playerScreen.style.display !== 'none') {
+            stopPlayer();
+            return;
+        }
+        
+        // Voltar para menu
+        toggleSearch(false);
+    }
     
     function startPlay(url, poster, title, isLive = false, episodes = [], currentIndex = 0) {
         currentContentId = title;
