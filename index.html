@@ -3471,10 +3471,16 @@
             fluid: true,
             playbackRates: [0.5, 1, 1.25, 1.5, 2],
             plugins: {
-                hotkeys: {
-                    volumeStep: 0.1,
-                    seekStep: 5,
-                    enableModifiersForNumbers: false
+                seekButtons: {
+                    forward: 10,
+                    back: 10
+                },
+                textTrackSettings: {},
+                persistVolume: {},
+                vttThumbnails: {
+                    src: function() {
+                        return this.currentSrc().replace(/\.(mp4|webm|m3u8)$/i, '.vtt');
+                    }
                 }
             }
         };
@@ -3484,25 +3490,15 @@
             playerOptions.liveui = true;
             playerOptions.plugins.liveTracker = true;
         } else {
-            // Adicionar marcadores para Skip Intro/Recap em conteúdo não ao vivo
-            playerOptions.plugins.markers = {
-                markers: [
-                    { time: 0, text: "Início" },
-                    // Adicionar marcadores dinâmicos baseados no conteúdo
-                    ...(episodes && episodes[currentIndex] ? [
-                        { time: 90, text: "Skip Intro" },
-                        { time: episodes[currentIndex].duration - 60, text: "Próximo Episódio" }
-                    ] : [])
-                ]
-            };
-            
-            // Adicionar comandos de voz
-            playerOptions.voiceCommands = true;
-            
-            // Adicionar GroupWatch se disponível
-            if (window.location.hash.includes('groupwatch')) {
-                playerOptions.groupWatch = window.location.hash.replace('#groupwatch=', '');
-            }
+            // Conteúdo não ao vivo - sem marcadores por enquanto
+        }
+        
+        // Adicionar comandos de voz
+        playerOptions.voiceCommands = true;
+        
+        // Adicionar GroupWatch se disponível
+        if (window.location.hash.includes('groupwatch')) {
+            playerOptions.groupWatch = window.location.hash.replace('#groupwatch=', '');
         }
         
         // Inicializar player Video.js completo com skin City
@@ -3528,10 +3524,12 @@
 
     function stopPlayer() {
         const v = document.getElementById('html5-video');
-        if(v.currentTime > 0) {
+        if(v && v.currentTime > 0) {
             updateWatchTime(currentVideoTitle, v.currentTime);
         }
-        v.pause();
+        if(v) {
+            v.pause();
+        }
         document.getElementById('player-screen').style.display = 'none';
         document.getElementById('recommendations-footer').style.display = 'none';
         clearInterval(progressInterval);
