@@ -3063,13 +3063,15 @@
         // Usar backdrop do TMDB se disponível, senão usar poster
         p.style.backgroundImage = `url(${item.backdrop || item.poster})`;
         
-        let actions = `<button class="btn-assistir-dark" onclick="startPlay('${item.url || ''}', '${item.titulo}')">ASSISTIR AGORA</button>`;
+        let actions = '';
         
         if(item.type === 'serie' && item.identificador_archive) {
             actions = `<div id="eps-box">Buscando episódios no Archive.org...</div>`;
             getArchiveEps(item.identificador_archive);
         } else if(item.type === 'serie' && !item.identificador_archive) {
             actions = `<p style="color:#ff6b6b;">Identificador do Archive.org não encontrado</p>`;
+        } else {
+            actions = `<button class="btn-assistir-dark" onclick="startPlay('${item.url || ''}', '${item.titulo}')">ASSISTIR AGORA</button>`;
         }
         
         // Formatar gêneros para exibição
@@ -3095,7 +3097,6 @@
                         <div class="details-description">${item.desc || 'Sem descrição disponível'}</div>
                         <div class="details-actions">
                             ${actions}
-                            <button class="btn-assistir-dark" onclick="startPlay('${item.url || ''}', '${item.titulo}')">ASSISTIR AGORA</button>
                             <button class="btn-voltar" onclick="document.getElementById('page-details').style.display='none'">VOLTAR</button>
                         </div>
                         <div class="vote-info">👍 0 | 🎎 0</div>
