@@ -1534,16 +1534,16 @@
         <button class="icon-btn" onclick="loadLive('kids')" tabindex="0" title="Canais Kids">
             <i class="fa-light fa-tv-retro"></i>
         </button>
-        <button class="icon-btn" onclick="loadContent('cinema', 'cinema.json')" tabindex="0" title="Cinema">
+        <button class="icon-btn" onclick="loadContent('cinema', 'data/filmes.json')" tabindex="0" title="Cinema">
             <i class="fa-regular fa-projector"></i>
         </button>
-        <button class="icon-btn" onclick="loadContent('filmes-kids', 'filmes-kids.json')" tabindex="0" title="Filmes Kids">
+        <button class="icon-btn" onclick="loadContent('filmes-kids', 'data/kids_filmes.json')" tabindex="0" title="Filmes Kids">
             <i class="fa-sharp fa-regular fa-projector"></i>
         </button>
-        <button class="icon-btn" onclick="loadContent('series', 'series.json')" tabindex="0" title="Séries">
+        <button class="icon-btn" onclick="loadContent('series', 'data/series.json')" tabindex="0" title="Séries">
             <i class="fa-sharp fa-regular fa-clapperboard-play"></i>
         </button>
-        <button class="icon-btn" onclick="loadContent('series-kids', 'series-kids.json')" tabindex="0" title="Séries Kids">
+        <button class="icon-btn" onclick="loadContent('series-kids', 'data/kids_series.json')" tabindex="0" title="Séries Kids">
             <i class="fa-regular fa-clapperboard-play"></i>
         </button>
         <button class="icon-btn" onclick="loadMyList()" tabindex="0" title="Minha Lista">
@@ -2141,9 +2141,10 @@
     async function loadData() {
         try {
             const res = await Promise.all([
-                fetch('filmes.json').then(r => r.json()),
-                fetch('series.json').then(r => r.json()),
-                fetch('kids.json').then(r => r.json())
+                fetch('data/filmes.json').then(r => r.json()),
+                fetch('data/series.json').then(r => r.json()),
+                fetch('data/kids_filmes.json').then(r => r.json()),
+                fetch('data/kids_series.json').then(r => r.json())
             ]);
             masterData = res.flat();
             document.getElementById('val-total').innerText = masterData.length;
@@ -2151,7 +2152,131 @@
         } catch(e) { 
             console.error("Erro ao carregar banco de dados", e); 
             // Fallback para dados de exemplo se necessário
-            masterData = [];
+            masterData = [
+                // Filmes
+                {
+                    "titulo": "Oppenheimer",
+                    "type": "filme",
+                    "year": "2023",
+                    "rating": "4.8",
+                    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/8Gxv8gSFCU0XGDykEGv7zR1n2uT.jpg",
+                    "desc": "A história do cientista J. Robert Oppenheimer e seu papel no desenvolvimento da bomba atômica.",
+                    "genero": ["Drama", "História"],
+                    "url": "https://example.com/oppenheimer.mp4"
+                },
+                {
+                    "titulo": "Barbie",
+                    "type": "filme", 
+                    "year": "2023",
+                    "rating": "4.2",
+                    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/iuFYVIIxg9J8VlDJdLJP2qeu6yl.jpg",
+                    "desc": "Barbie vive em Barbielândia, mas é expulsa por não ser uma Barbie perfeita.",
+                    "genero": ["Comédia", "Aventura"],
+                    "url": "https://example.com/barbie.mp4"
+                },
+                {
+                    "titulo": "Guardiões da Galáxia Vol. 3",
+                    "type": "filme",
+                    "year": "2023",
+                    "rating": "4.5",
+                    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/r2J04Z24QFPObAl3YWHxQ2pT3Fo.jpg",
+                    "desc": "Peter Quill e sua equipe devem proteger o universo.",
+                    "genero": ["Ação", "Ficção Científica"],
+                    "url": "https://example.com/guardians3.mp4"
+                },
+                {
+                    "titulo": "Fast X",
+                    "type": "filme",
+                    "year": "2023",
+                    "rating": "4.0",
+                    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/1iTT1hS1GyR75hl4H3JL7RqY4Ih.jpg",
+                    "desc": "Dom Toretto e sua família enfrentam um novo inimigo.",
+                    "genero": ["Ação", "Thriller"],
+                    "url": "https://example.com/fastx.mp4"
+                },
+                {
+                    "titulo": "Avatar: O Caminho da Água",
+                    "type": "filme",
+                    "year": "2022",
+                    "rating": "4.6",
+                    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/t6HI2RAzDclkgcAdrc5VDhVkH1W.jpg",
+                    "desc": "Jake Sully e Ney'tiri protegem sua família e Pandora.",
+                    "genero": ["Ação", "Ficção Científica"],
+                    "url": "https://example.com/avatar2.mp4"
+                },
+                {
+                    "titulo": "John Wick 4",
+                    "type": "filme",
+                    "year": "2023",
+                    "rating": "4.4",
+                    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/vZloFAK7NmvMGKE7VkF4kAyJCJf.jpg",
+                    "desc": "John Wick enfrenta sua maior batalha.",
+                    "genero": ["Ação", "Crime"],
+                    "url": "https://example.com/johnwick4.mp4"
+                },
+                // Séries
+                {
+                    "titulo": "The Last of Us",
+                    "type": "serie",
+                    "year": "2023",
+                    "rating": "4.7",
+                    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/kdPMUMJzyMVP6RzrLgT2c8in4GQ.jpg",
+                    "desc": "Em um mundo pós-apocalíptico, Joel e Ellie lutam para sobreviver.",
+                    "genero": ["Drama", "Ação"],
+                    "url": "https://example.com/lastofus.mp4"
+                },
+                {
+                    "titulo": "Stranger Things",
+                    "type": "serie",
+                    "year": "2022",
+                    "rating": "4.5",
+                    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/49WJfeN0t4a0N9yL6k9t267hAie.jpg",
+                    "desc": "Os amigos de Hawkins enfrentam o Mundo Invertido.",
+                    "genero": ["Ficção Científica", "Terror"],
+                    "url": "https://example.com/strangerthings.mp4"
+                },
+                {
+                    "titulo": "The Mandalorian",
+                    "type": "serie",
+                    "year": "2023",
+                    "rating": "4.6",
+                    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/9yEFqGwcAFVwMzaxxl7qk8DPn9b.jpg",
+                    "desc": "Um mandaloriano viaja pelos confins da galáxia.",
+                    "genero": ["Aventura", "Ficção Científica"],
+                    "url": "https://example.com/mandalorian.mp4"
+                },
+                // Kids
+                {
+                    "titulo": "Super Mario Bros",
+                    "type": "filme",
+                    "year": "2023",
+                    "rating": "4.1",
+                    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/16DmUee2J2Q3Wb0uhVUaIXnLbxa.jpg",
+                    "desc": "Mario e Luigi são transportados para um mundo mágico.",
+                    "genero": ["Animação", "Aventura"],
+                    "url": "https://example.com/mario.mp4"
+                },
+                {
+                    "titulo": "Minions",
+                    "type": "filme",
+                    "year": "2022",
+                    "rating": "3.8",
+                    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/wKiOkZtu9dkhVlPW9pSUzsTnRky.jpg",
+                    "desc": "Os minions procuram um novo mestre.",
+                    "genero": ["Animação", "Comédia"],
+                    "url": "https://example.com/minions.mp4"
+                },
+                {
+                    "titulo": "Paw Patrol",
+                    "type": "serie",
+                    "year": "2023",
+                    "rating": "4.0",
+                    "poster": "https://image.tmdb.org/t/p/w600_and_h900_face/gPuLTuskbvyrvbUIpBl0qoa0c5G.jpg",
+                    "desc": "Os filhotes resgatam Adventure Bay.",
+                    "genero": ["Animação", "Aventura"],
+                    "url": "https://example.com/pawpatrol.mp4"
+                }
+            ];
             renderHome();
         }
     }
@@ -3539,7 +3664,8 @@
         const app = document.getElementById('main-app');
         app.innerHTML = '<div class="channels-page" id="channels-container"></div>';
         
-        renderChannels();
+        // Carregar canais do arquivo M3U
+        loadChannelsFromM3U('data/ativa_canais.m3u');
         setupChannelsNavigation();
     }
     
@@ -3549,8 +3675,112 @@
         const app = document.getElementById('main-app');
         app.innerHTML = '<div class="channels-page" id="channels-container"></div>';
         
-        renderChannelsByCategory(categoryFile);
+        // Carregar canais kids do arquivo M3U
+        loadChannelsFromM3U('data/ativa_kids_canais.m3u', true); // true para canais kids
         setupChannelsNavigation();
+    }
+    
+    function loadChannelsFromM3U(m3uFile, isKids = false) {
+        fetch(m3uFile)
+            .then(response => response.text())
+            .then(data => {
+                const channels = parseM3U(data);
+                renderChannelsList(channels);
+            })
+            .catch(error => {
+                console.error('Erro ao carregar canais:', error);
+                // Fallback para canais de exemplo
+                let exampleChannels;
+                
+                if (isKids) {
+                    // Canais kids específicos
+                    exampleChannels = [
+                        {name: "Cartoon Network", url: "https://example.com/cartoon.m3u8", logo: "https://via.placeholder.com/150x150/ff6600/ffffff?text=CARTOON"},
+                        {name: "Nickelodeon", url: "https://example.com/nick.m3u8", logo: "https://via.placeholder.com/150x150/ff6600/ffffff?text=NICK"},
+                        {name: "Discovery Kids", url: "https://example.com/discoverykids.m3u8", logo: "https://via.placeholder.com/150x150/00cccc/ffffff?text=DKIDS"},
+                        {name: "Disney Channel", url: "https://example.com/disneychannel.m3u8", logo: "https://via.placeholder.com/150x150/0066ff/ffffff?text=DISNEY"},
+                        {name: "Gloob", url: "https://example.com/gloob.m3u8", logo: "https://via.placeholder.com/150x150/ff6600/ffffff?text=GLOOB"},
+                        {name: "Baby TV", url: "https://example.com/babytv.m3u8", logo: "https://via.placeholder.com/150x150/ffcc00/000000?text=BABY"},
+                        {name: "Pajamas", url: "https://example.com/pajamas.m3u8", logo: "https://via.placeholder.com/150x150/ff9900/ffffff?text=PAJAMAS"},
+                        {name: "ZooMoo", url: "https://example.com/zoomoo.m3u8", logo: "https://via.placeholder.com/150x150/00cc66/ffffff?text=ZOO"}
+                    ];
+                } else {
+                    // Canais gerais
+                    exampleChannels = [
+                        {name: "Globo News", url: "https://example.com/globonews.m3u8", logo: "https://via.placeholder.com/150x150/ff0000/ffffff?text=GLOBO"},
+                        {name: "CNN Brasil", url: "https://example.com/cnnbrasil.m3u8", logo: "https://via.placeholder.com/150x150/000000/ffffff?text=CNN"},
+                        {name: "Record TV", url: "https://example.com/recordtv.m3u8", logo: "https://via.placeholder.com/150x150/ff0000/ffffff?text=RECORD"},
+                        {name: "SBT", url: "https://example.com/sbt.m3u8", logo: "https://via.placeholder.com/150x150/ff6600/ffffff?text=SBT"},
+                        {name: "Band", url: "https://example.com/band.m3u8", logo: "https://via.placeholder.com/150x150/0066ff/ffffff?text=BAND"},
+                        {name: "ESPN", url: "https://example.com/espn.m3u8", logo: "https://via.placeholder.com/150x150/cc0000/ffffff?text=ESPN"},
+                        {name: "Sportv", url: "https://example.com/sportv.m3u8", logo: "https://via.placeholder.com/150x150/006600/ffffff?text=SPORTV"},
+                        {name: "Discovery Channel", url: "https://example.com/discovery.m3u8", logo: "https://via.placeholder.com/150x150/00cccc/ffffff?text=DISC"},
+                        {name: "National Geographic", url: "https://example.com/natgeo.m3u8", logo: "https://via.placeholder.com/150x150/ffff00/000000?text=NATGEO"},
+                        {name: "HBO", url: "https://example.com/hbo.m3u8", logo: "https://via.placeholder.com/150x150/000000/ffffff?text=HBO"},
+                        {name: "Telecine", url: "https://example.com/telecine.m3u8", logo: "https://via.placeholder.com/150x150/ff6600/ffffff?text=TELECINE"},
+                        {name: "Prime Video", url: "https://example.com/prime.m3u8", logo: "https://via.placeholder.com/150x150/0066ff/ffffff?text=PRIME"},
+                        {name: "Netflix", url: "https://example.com/netflix.m3u8", logo: "https://via.placeholder.com/150x000/000000/ffffff?text=NETFLIX"},
+                        {name: "Disney+", url: "https://example.com/disney.m3u8", logo: "https://via.placeholder.com/150x150/0066ff/ffffff?text=DISNEY"},
+                        {name: "Paramount+", url: "https://example.com/paramount.m3u8", logo: "https://via.placeholder.com/150x150/000000/ffffff?text=PARAMOUNT"}
+                    ];
+                }
+                
+                renderChannelsList(exampleChannels);
+            });
+    }
+    
+    function parseM3U(m3uData) {
+        const lines = m3uData.split('\n');
+        const channels = [];
+        let currentChannel = {};
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            
+            if (line.startsWith('#EXTINF:')) {
+                // Extrair informações do canal
+                const nameMatch = line.match(/,(.+)$/);
+                if (nameMatch) {
+                    currentChannel.name = nameMatch[1];
+                }
+                
+                const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+                if (logoMatch) {
+                    currentChannel.logo = logoMatch[1];
+                }
+            } else if (line && !line.startsWith('#') && currentChannel.name) {
+                // URL do canal
+                currentChannel.url = line;
+                channels.push({...currentChannel});
+                currentChannel = {};
+            }
+        }
+        
+        return channels;
+    }
+    
+    function renderChannelsList(channels) {
+        const container = document.getElementById('channels-container');
+        container.innerHTML = '<div class="channels-grid"></div>';
+        const grid = container.querySelector('.channels-grid');
+        
+        channels.forEach((channel, index) => {
+            const channelElement = document.createElement('div');
+            channelElement.className = 'channel-item';
+            channelElement.tabIndex = 0;
+            channelElement.innerHTML = `
+                <div class="channel-number">${index + 1}</div>
+                <img src="${channel.logo || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMDUwNzBhIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjRkZDRTQ0IiBmb250LXNpemU9IjEyIiBmb250LXdlaWdodD0iYm9sZCI+VFY8L3RleHQ+Cjwvc3ZnPgo='}" alt="${channel.name}" class="channel-logo">
+                <div class="channel-info">${channel.name}</div>
+            `;
+            
+            channelElement.addEventListener('click', () => playChannel(channel));
+            grid.appendChild(channelElement);
+        });
+    }
+    
+    function playChannel(channel) {
+        startPlay(channel.url, channel.logo || '', channel.name, true);
     }
     
     function renderChannels() {
