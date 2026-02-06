@@ -3279,8 +3279,10 @@
         const overlay = document.getElementById('like-dislike-overlay');
         const title = document.getElementById('like-dislike-title');
         
-        title.textContent = `Você gosta de "${contentTitle}"?`;
-        overlay.style.display = 'flex';
+        if(overlay && title) {
+            title.textContent = `Você gosta de "${contentTitle}"?`;
+            overlay.style.display = 'flex';
+        }
     }
     
     function submitLike(liked) {
@@ -3433,6 +3435,7 @@
         currentContentId = title;
         currentEpisodes = episodes;
         currentEpisodeIndex = currentIndex;
+        currentVideoTitle = title; // Adicionar variável global
         
         // Esconder voting overlay se estiver visível
         const overlay = document.getElementById('like-dislike-overlay');
@@ -3475,7 +3478,6 @@
                     forward: 10,
                     back: 10
                 },
-                textTrackSettings: {},
                 persistVolume: {},
                 vttThumbnails: {
                     src: function() {
@@ -3523,15 +3525,23 @@
     }
 
     function stopPlayer() {
-        const v = document.getElementById('html5-video');
-        if(v && v.currentTime > 0) {
-            updateWatchTime(currentVideoTitle, v.currentTime);
+        if(currentPlayer) {
+            const currentTime = currentPlayer.currentTime();
+            if(currentTime > 0) {
+                updateWatchTime(currentVideoTitle, currentTime);
+            }
+            currentPlayer.pause();
+            currentPlayer.dispose();
+            currentPlayer = null;
         }
-        if(v) {
-            v.pause();
+        const playerScreen = document.getElementById('player-screen');
+        if(playerScreen) {
+            playerScreen.style.display = 'none';
         }
-        document.getElementById('player-screen').style.display = 'none';
-        document.getElementById('recommendations-footer').style.display = 'none';
+        const recommendationsFooter = document.getElementById('recommendations-footer');
+        if(recommendationsFooter) {
+            recommendationsFooter.style.display = 'none';
+        }
         clearInterval(progressInterval);
         
         // Limpar timer de recomendações
