@@ -819,10 +819,9 @@
         
         /* Badge NOVO para lançamentos */
         .novo-badge {
-            position: absolute; top: 10px; right: 10px; background: var(--amarelo-pipoca);
-            color: black; font-weight: bold; font-size: 12px; padding: 5px 10px;
-            border-radius: 5px; z-index: 10; text-transform: uppercase;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            position: absolute; top: 10px; right: 10px; background: var(--vermelho-pipoca);
+            color: white; font-weight: bold; font-size: 12px; padding: 5px 10px;
+            border-radius: 4px; z-index: 10; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         /* PÁGINA DE DETALHES */
@@ -2989,15 +2988,14 @@
         const lancamentosContainer = document.getElementById('row-lancamentos');
         lancamentosContainer.innerHTML = '';
         
-        // Filtrar conteúdos recentes (últimos 2 anos) ou com gênero "Lançamento"
+        // Filtrar conteúdos de 2026 ou com gênero "Lançamento 2026"
         const recentContent = masterData.filter(item => {
             const itemYear = parseInt(item.year);
-            const currentYear = new Date().getFullYear();
-            const isRecent = itemYear >= currentYear - 2;
-            const isLancamentoGenre = Array.isArray(item.genero) ? 
-                item.genero.some(g => g.includes('Lançamento')) : 
-                (item.genero || '').includes('Lançamento');
-            return isRecent || isLancamentoGenre;
+            const is2026 = itemYear === 2026;
+            const isLancamento2026Genre = Array.isArray(item.genero) ? 
+                item.genero.some(g => g.includes('Lançamento 2026')) : 
+                (item.genero || '').includes('Lançamento 2026');
+            return is2026 || isLancamento2026Genre;
         }).sort((a, b) => {
             // Ordenar por ano (mais recente primeiro)
             const yearA = parseInt(a.year) || 0;
