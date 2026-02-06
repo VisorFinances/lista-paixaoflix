@@ -1512,6 +1512,36 @@
         .save-to-list.in-list:hover {
             background: rgba(255, 0, 0, 0.9);
         }
+        
+        /* Badges adicionais */
+        .num-top {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: var(--amarelo-pipoca);
+            color: var(--bg-body);
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            z-index: 10;
+        }
+        .novo-badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
+        }
 
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -2279,6 +2309,139 @@
             ];
             renderHome();
         }
+    }
+    
+    // Função auxiliar para renderizar item com botão de salvar
+    function renderCapaItem(item, additionalClasses = '', additionalButtons = '') {
+        const myList = JSON.parse(localStorage.getItem('paixaoflix_mylist') || '[]');
+        const isInList = myList.find(listItem => listItem.titulo === item.titulo);
+        
+        return `
+            <div class="capa-item ${additionalClasses}" tabindex="0" onclick='openInfo(${JSON.stringify(item)})'>
+                <img src="${item.poster}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjMDUwNzBhIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjRkZDRTQ0IiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iYm9sZCI+UGFpeMOjby1GbGl4PC90ZXh0Pgo8L3N2Zz4='">
+                <div class="capa-footer">
+                    <span>${item.year}</span>
+                    <span>★${item.rating}</span>
+                    <button class="save-to-list ${isInList ? 'in-list' : ''}" 
+                            onclick='event.stopPropagation(); ${isInList ? 'removeFromList' : 'addToMyList'}(${JSON.stringify(item)})' 
+                            title="${isInList ? 'Remover da lista' : 'Adicionar à Minha Lista'}">
+                        <i class="fa-solid ${isInList ? 'fa-heart' : 'fa-heart'}"></i>
+                    </button>
+                    ${additionalButtons}
+                </div>
+            </div>`;
+    }
+    
+    // --- PÁGINA INICIAL COMPLETA ---
+    function renderHome() {
+        const app = document.getElementById('main-app');
+        app.innerHTML = `
+            <h2 class="section-title">Os queridinhos de agora</h2><div class="row-container full-screen" id="row-top4"></div>
+            <h2 class="section-title">Continuar Assistindo</h2><div class="row-container history" id="row-history"></div>
+            <h2 class="section-title">Paixões da Semana</h2><div class="row-container full-screen" id="row-lancamentos"></div>
+            <h2 class="section-title">Clássicos</h2><div class="row-container full-screen" id="row-classicos"></div>
+            <h2 class="section-title">Premiados pela Mídia</h2><div class="row-container full-screen" id="row-aclamados"></div>
+            <h2 class="section-title">Mais Vistos em 2025</h2><div class="row-container full-screen" id="row-mais-vistos-2025"></div>
+            <h2 class="section-title">Porque você assistiu</h2><div class="row-container full-screen" id="row-recomendacoes"></div>
+        `;
+        
+        // Renderizar todas as seções
+        renderTop4();
+        loadHistory();
+        renderLancamentos();
+        renderMaratonar();
+        renderClassicos();
+        renderAwardWinners();
+        renderSabadoNoite();
+        renderMaisVistos2025();
+        renderRecomendacoesPersonalizadas();
+    }
+    
+    function renderTop4() {
+        const topContainer = document.getElementById('row-top4');
+        if (!topContainer) return;
+        
+        // Pegar os 4 melhores conteúdos
+        const top4 = masterData
+            .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
+            .slice(0, 4);
+        
+        top4.forEach((item, i) => {
+            topContainer.innerHTML += renderCapaItem(item, '', `<span class="num-top">${i+1}</span>`);
+        });
+    }
+    
+    function renderLancamentos() {
+        const container = document.getElementById('row-lancamentos');
+        if (!container) return;
+        
+        // Filtrar conteúdos mais recentes
+        const lancamentos = masterData
+            .filter(item => item.year >= "2022")
+            .sort((a, b) => b.year - a.year)
+            .slice(0, 10);
+        
+        lancamentos.forEach(item => {
+            container.innerHTML += renderCapaItem(item, '', '<span class="novo-badge">NOVO</span>');
+        });
+    }
+    
+    function renderClassicos() {
+        const container = document.getElementById('row-classicos');
+        if (!container) return;
+        
+        // Filtrar clássicos (antes de 2020)
+        const classicos = masterData
+            .filter(item => item.year <= "2020")
+            .slice(0, 10);
+        
+        classicos.forEach(item => {
+            container.innerHTML += renderCapaItem(item);
+        });
+    }
+    
+    function renderAwardWinners() {
+        const container = document.getElementById('row-aclamados');
+        if (!container) return;
+        
+        // Filtrar conteúdos com rating alto
+        const awardWinners = masterData
+            .filter(item => parseFloat(item.rating) >= 4.5)
+            .slice(0, 10);
+        
+        awardWinners.forEach(item => {
+            container.innerHTML += renderCapaItem(item);
+        });
+    }
+    
+    function renderMaratonar() {
+        const container = document.getElementById('row-maratonar');
+        if (!container) return;
+        
+        // Séries para maratona
+        const series = masterData
+            .filter(item => item.type === 'serie')
+            .slice(0, 10);
+        
+        series.forEach(item => {
+            container.innerHTML += renderCapaItem(item);
+        });
+    }
+    
+    function renderSabadoNoite() {
+        const container = document.getElementById('row-sabado');
+        if (!container) return;
+        
+        // Conteúdo leve para sábado
+        const sabadoContent = masterData
+            .filter(item => item.genero && item.genero.some(g => 
+                g.includes('Comédia') || g.includes('Aventura') || g.includes('Animação')
+            ))
+            .slice(0, 10);
+        
+        sabadoContent.forEach(item => {
+            container.innerHTML += renderCapaItem(item);
+        });
     }
     
     async function initPaixaoFlix() {
