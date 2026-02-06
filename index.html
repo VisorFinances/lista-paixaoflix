@@ -2313,13 +2313,15 @@
             case 'filmes-kids':
                 filteredContent = masterData.filter(item => 
                     item.type === 'filme' && 
-                    (item.genero && item.genero.some(g => g.includes('Animação') || g.includes('Kids')))
+                    item.genero && Array.isArray(item.genero) && 
+                    item.genero.some(g => g.includes('Animação') || g.includes('Kids'))
                 );
                 break;
             case 'series-kids':
                 filteredContent = masterData.filter(item => 
                     item.type === 'serie' && 
-                    (item.genero && item.genero.some(g => g.includes('Animação') || g.includes('Kids')))
+                    item.genero && Array.isArray(item.genero) && 
+                    item.genero.some(g => g.includes('Animação') || g.includes('Kids'))
                 );
                 break;
             default:
@@ -2471,7 +2473,7 @@
         
         // Conteúdo leve para sábado
         const sabadoContent = masterData
-            .filter(item => item.genero && item.genero.some(g => 
+            .filter(item => item.genero && Array.isArray(item.genero) && item.genero.some(g => 
                 g.includes('Comédia') || g.includes('Aventura') || g.includes('Animação')
             ))
             .slice(0, 10);
@@ -2608,7 +2610,7 @@
             if (item.titulo === lastWatched.title) return false;
             
             // Recomendar baseado em gênero, tipo e rating similar
-            const sameGenre = item.genero && lastWatchedItem.genero && 
+            const sameGenre = item.genero && Array.isArray(item.genero) && lastWatchedItem.genero && Array.isArray(lastWatchedItem.genero) && 
                 item.genero.some(g => lastWatchedItem.genero.includes(g));
             const sameType = item.type === lastWatchedItem.type;
             const similarRating = Math.abs(item.rating - lastWatchedItem.rating) <= 1.5;
@@ -3260,6 +3262,18 @@
     }
 
     // --- SISTEMA DE LIKE/DISLIKE ---
+    function showLikeDislikeOverlay(contentId, contentTitle) {
+        currentContentId = contentId;
+        currentVoteStep = 1;
+        firstVoteAnswer = null;
+        
+        const overlay = document.getElementById('like-dislike-overlay');
+        const title = document.getElementById('like-dislike-title');
+        
+        title.textContent = `Você gosta de "${contentTitle}"?`;
+        overlay.style.display = 'flex';
+    }
+    
     function submitLike(liked) {
         if (!currentContentId) return;
         
