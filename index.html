@@ -2389,6 +2389,7 @@
             <h2 class="section-title">Os queridinhos de agora</h2><div class="row-container full-screen" id="row-top4"></div>
             <h2 class="section-title">Continuar Assistindo</h2><div class="row-container history" id="row-history"></div>
             <h2 class="section-title">Paixões da Semana</h2><div class="row-container full-screen" id="row-lancamentos"></div>
+            <h2 class="section-title">Maratonar</h2><div class="row-container full-screen" id="row-maratonar"></div>
             <h2 class="section-title">Clássicos</h2><div class="row-container full-screen" id="row-classicos"></div>
             <h2 class="section-title">Premiados pela Mídia</h2><div class="row-container full-screen" id="row-aclamados"></div>
             <h2 class="section-title">Mais Vistos em 2025</h2><div class="row-container full-screen" id="row-mais-vistos-2025"></div>
@@ -2464,22 +2465,8 @@
         });
     }
     
-    function renderMaratonar() {
-        const container = document.getElementById('row-maratonar');
-        if (!container) return;
-        
-        // Séries para maratona
-        const series = masterData
-            .filter(item => item.type === 'serie')
-            .slice(0, 10);
-        
-        series.forEach(item => {
-            container.innerHTML += renderCapaItem(item);
-        });
-    }
-    
     function renderSabadoNoite() {
-        const container = document.getElementById('row-sabado');
+        const container = document.getElementById('row-sabado-noite');
         if (!container) return;
         
         // Conteúdo leve para sábado
@@ -2651,7 +2638,7 @@
     }
     
     function renderAwardWinners() {
-        const container = document.getElementById('row-award-winners');
+        const container = document.getElementById('row-aclamados');
         if (!container) return;
         
         // Obter data atual para calcular rotação
@@ -2818,7 +2805,7 @@
         }
         
         const container = document.getElementById('sabado-noite-container');
-        container.innerHTML = `<h2 class="section-title">Sábado a Noite Merece</h2><div class="row-container" id="row-sabado-noite"></div>`;
+        container.innerHTML = `<h2 class="section-title">Sábado a Noite Merece</h2><div class="row-container full-screen" id="row-sabado-noite"></div>`;
         
         const sabadoContainer = document.getElementById('row-sabado-noite');
         
