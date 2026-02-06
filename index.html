@@ -1697,6 +1697,116 @@
     let heroContent = [];
     let currentHeroIndex = 0;
 
+    let currentVideoTitle = '';
+    let progressInterval;
+    let recommendationsTimer;
+    let currentRecommendations = [];
+
+    // --- SISTEMA DE NAVEGAÇÃO ---
+    let currentFocusIndex = 0;
+    let currentRowIndex = 0;
+    let currentColIndex = 0;
+    let isMenuExpanded = false;
+    let navigationHistory = [];
+    let currentSection = 'home';
+    let gridItems = [];
+    let focusedElement = null;
+
+    function startPlay(url, poster, title, isLive = false, episodes = [], currentIndex = 0) {
+        currentContentId = title;
+        currentEpisodes = episodes;
+        currentEpisodeIndex = currentIndex;
+        currentVideoTitle = title;
+        
+        // Esconder voting overlay se estiver visível
+        const overlay = document.getElementById('like-dislike-overlay');
+        if(overlay) overlay.style.display = 'none';
+        
+        // Esconder mensagem de próximo episódio
+        hideNextEpisodeMessage();
+        
+        // Mostrar player
+        const playerScreen = document.getElementById('player-screen');
+        playerScreen.style.display = 'flex';
+        
+        // Criar elemento de vídeo HTML5
+        playerScreen.innerHTML = `
+            <video 
+                id="html5-video" 
+                controls 
+                autoplay 
+                preload="auto" 
+                poster="${poster}"
+                style="width: 100%; height: 100%; background: #000;">
+                <source src="${url}" type="video/mp4">
+                <source src="${url}" type="application/x-mpegURL">
+                Seu navegador não suporta o elemento de vídeo.
+            </video>
+            <button class="exit-btn" onclick="stopPlayer()">✕ SAIR</button>
+        `;
+        
+        // Inicializar player HTML5
+        const videoElement = document.getElementById('html5-video');
+        
+        // Adicionar eventos do player
+        videoElement.addEventListener('loadedmetadata', function() {
+            console.log('Vídeo carregado:', title);
+        });
+        
+        videoElement.addEventListener('error', function(e) {
+            console.error('Erro ao carregar vídeo:', e);
+            // Tentar fallback
+            if(url.includes('.m3u8')) {
+                // Tentar converter para MP4
+                const fallbackUrl = url.replace('.m3u8', '.mp4');
+                videoElement.src = fallbackUrl;
+            }
+        });
+        
+        videoElement.addEventListener('timeupdate', function() {
+            updateWatchTime(title, videoElement.currentTime);
+        });
+        
+        videoElement.addEventListener('ended', function() {
+            if(episodes && episodes.length > 0 && currentIndex < episodes.length - 1) {
+                // Mostrar próximo episódio
+                showNextEpisodeMessage(episodes[currentIndex + 1]);
+            } else {
+                // Voltar para página inicial
+                setTimeout(() => {
+                    stopPlayer();
+                }, 3000);
+            }
+        });
+        
+        // Salvar no histórico
+        saveHistory(title, url, poster);
+        
+        // Focar no player
+        setTimeout(() => {
+            videoElement.focus();
+        }, 100);
+    }
+    
+    function stopPlayer() {
+        const v = document.getElementById('html5-video');
+        if(v && v.currentTime > 0) {
+            updateWatchTime(currentVideoTitle, v.currentTime);
+        }
+        if(v) {
+            v.pause();
+            v.src = '';
+        }
+        document.getElementById('player-screen').style.display = 'none';
+        document.getElementById('recommendations-footer').style.display = 'none';
+        clearInterval(progressInterval);
+        
+        // Limpar timer de recomendações
+        if(recommendationsTimer) {
+            clearInterval(recommendationsTimer);
+        }
+    }
+
     // Sistema completo de Video.js com todos os plugins
     function initVideoJSPlayer(videoElement, source, options = {}) {
         // Destruir player anterior se existir
@@ -2291,6 +2401,7 @@
                 <div class="capa-footer">
                     <span>${item.year}</span>
                     <span>★${item.rating}</span>
+                    ${item.duration ? `<span>${item.duration}</span>` : ''}
                     <button class="save-to-list ${isInList ? 'in-list' : ''}" 
                             onclick='event.stopPropagation(); ${isInList ? 'removeFromList' : 'addToMyList'}(${JSON.stringify(item)})' 
                             title="${isInList ? 'Remover da lista' : 'Adicionar à Minha Lista'}">
@@ -2396,6 +2507,33 @@
     function renderHome() {
         const app = document.getElementById('main-app');
         app.innerHTML = `
+            <!-- Banner Hero -->
+            <div class="hero-banner" id="hero-banner">
+                <div class="hero-background" id="hero-background"></div>
+                <div class="hero-content">
+                    <div class="hero-info">
+                        <h1 id="hero-title">Carregando...</h1>
+                        <div class="hero-meta" id="hero-meta">
+                            <span id="hero-year">2024</span>
+                            <span>★ <span id="hero-rating">4.5</span></span>
+                            <span id="hero-genres">Ação | Aventura</span>
+                        </div>
+                        <p id="hero-synopsis">Uma experiência incrível que vai te prender do início ao fim...</p>
+                        <button id="hero-play-btn" class="hero-play-btn">
+                            <i class="fa-solid fa-play"></i> ASSISTIR AGORA
+                        </button>
+                    </div>
+                    <div class="hero-poster">
+                        <img id="hero-poster-img" src="https://via.placeholder.com/300x450/05070a/FFCE44?text=PAIXÃO+FLIX" alt="Poster">
+                    </div>
+                </div>
+                <div class="ambient-reflection" id="ambient-reflection"></div>
+            </div>
+            
+            <!-- Data/Hora -->
+            <div class="datetime-display" id="datetime-display"></div>
+            
+            <!-- Conteúdo -->
             <h2 class="section-title">Os queridinhos de agora</h2><div class="row-container full-screen" id="row-top4"></div>
             <h2 class="section-title">Continuar Assistindo</h2><div class="row-container history" id="row-history"></div>
             <h2 class="section-title">Paixões da Semana</h2><div class="row-container full-screen" id="row-lancamentos"></div>
@@ -2416,6 +2554,9 @@
         renderSabadoNoite();
         renderMaisVistos2025();
         renderRecomendacoesPersonalizadas();
+        
+        // Inicializar banner hero
+        loadHeroContent();
     }
     
     function renderTop4() {
@@ -3092,6 +3233,7 @@
                         <div class="details-meta">
                             <span>${item.year}</span>
                             <span>★ ${item.rating}</span>
+                            ${item.duration ? `<span>${item.duration}</span>` : ''}
                             <span>${generoText}</span>
                         </div>
                         <div class="details-description">${item.desc || 'Sem descrição disponível'}</div>
@@ -3427,179 +3569,6 @@
                 element.appendChild(voteInfoDiv);
             }
         });
-    }
-    let currentVideoTitle = '';
-    let progressInterval;
-    let recommendationsTimer;
-    let currentRecommendations = [];
-    
-    // --- SISTEMA DE NAVEGAÇÃO ---
-    let currentFocusIndex = 0;
-    let currentRowIndex = 0;
-    let currentColIndex = 0;
-    let isMenuExpanded = false;
-    let navigationHistory = [];
-    let currentSection = 'home';
-    let gridItems = [];
-    let focusedElement = null;
-    
-    // --- FUNÇÕES DE NAVEGAÇÃO ---
-    function initializeNavigation() {
-        // Coletar todos os itens navegáveis
-        collectGridItems();
-        
-        // Adicionar event listeners de teclado
-        document.addEventListener('keydown', handleKeyPress);
-        
-        // Foco inicial no primeiro item
-        if(gridItems.length > 0) {
-            focusElement(gridItems[0]);
-        }
-    }
-    
-    function collectGridItems() {
-        gridItems = [];
-        const items = document.querySelectorAll('.capa-item, .episode-btn, .channel-item, .menu-item');
-        items.forEach((item, index) => {
-            item.tabIndex = index;
-            gridItems.push(item);
-        });
-    }
-    
-    function handleKeyPress(event) {
-        const key = event.key;
-        
-        // Prevenir comportamento padrão do navegador
-        if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Escape', 'Backspace'].includes(key)) {
-            event.preventDefault();
-        }
-        
-        switch(key) {
-            case 'ArrowUp':
-                navigateVertical('up');
-                break;
-            case 'ArrowDown':
-                navigateVertical('down');
-                break;
-            case 'ArrowLeft':
-                navigateHorizontal('left');
-                break;
-            case 'ArrowRight':
-                navigateHorizontal('right');
-                break;
-            case 'Enter':
-            case ' ':
-                selectFocusedItem();
-                break;
-            case 'Escape':
-            case 'Backspace':
-                goBack();
-                break;
-        }
-    }
-    
-    function navigateVertical(direction) {
-        if(!focusedElement) return;
-        
-        const currentRect = focusedElement.getBoundingClientRect();
-        const container = focusedElement.parentElement;
-        const containerRect = container.getBoundingClientRect();
-        const items = Array.from(container.children);
-        const currentIndex = items.indexOf(focusedElement);
-        
-        if(direction === 'up') {
-            // Navegação vertical dentro da mesma coluna
-            const prevIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
-            focusElement(items[prevIndex]);
-        } else {
-            // Navegação vertical dentro da mesma coluna
-            const nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
-            focusElement(items[nextIndex]);
-        }
-        
-        // Scroll suave
-        focusedElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-    
-    function navigateHorizontal(direction) {
-        if(!focusedElement) return;
-        
-        // Verificar se estamos no menu lateral
-        if(focusedElement.classList.contains('menu-item')) {
-            navigateMenu(direction);
-            return;
-        }
-        
-        // Navegação horizontal entre colunas
-        const currentRect = focusedElement.getBoundingClientRect();
-        const currentCol = Math.floor((currentRect.left - containerRect.left) / (currentRect.width + 15));
-        
-        if(direction === 'left') {
-            if(currentCol > 0) {
-                const prevCol = currentCol - 1;
-                const targetItem = getItemInColumn(prevCol, currentRow);
-                if(targetItem) focusElement(targetItem);
-            }
-        } else {
-            if(currentCol < 3) { // Máximo 4 colunas
-                const nextCol = currentCol + 1;
-                const targetItem = getItemInColumn(nextCol, currentRow);
-                if(targetItem) focusElement(targetItem);
-            }
-        }
-    }
-    
-    function getItemInColumn(col, row) {
-        const containers = document.querySelectorAll('.row-container');
-        if(containers[row]) {
-            const items = containers[row].querySelectorAll('.capa-item');
-            return items[col] || null;
-        }
-        return null;
-    }
-    
-    function focusElement(element) {
-        if(focusedElement) {
-            focusedElement.style.transform = 'scale(1)';
-            focusedElement.style.boxShadow = 'none';
-        }
-        
-        focusedElement = element;
-        element.style.transform = 'scale(1.15)';
-        element.style.boxShadow = '0 0 20px rgba(255, 204, 0, 0.8)';
-        element.style.zIndex = '1000';
-    }
-    
-    function selectFocusedItem() {
-        if(!focusedElement) return;
-        
-        if(focusedElement.classList.contains('capa-item')) {
-            const itemData = JSON.parse(focusedElement.getAttribute('onclick').replace(/.*openInfo\((.*)\).*/, '$1'));
-            openInfo(itemData);
-        } else if(focusedElement.classList.contains('episode-btn')) {
-            focusedElement.click();
-        } else if(focusedElement.classList.contains('menu-item')) {
-            focusedElement.click();
-        }
-    }
-    
-    function goBack() {
-        // Se estiver em detalhes, voltar para página anterior
-        const detailsPage = document.getElementById('page-details');
-        if(detailsPage && detailsPage.style.display !== 'none') {
-            detailsPage.style.display = 'none';
-            return;
-        }
-        
-        // Se estiver no player, parar
-        const playerScreen = document.getElementById('player-screen');
-        if(playerScreen && playerScreen.style.display !== 'none') {
-            stopPlayer();
-            return;
-        }
-        
-        // Voltar para menu
-        toggleSearch(false);
     }
     
     function startPlay(url, poster, title, isLive = false, episodes = [], currentIndex = 0) {
