@@ -13,13 +13,92 @@
             --sidebar-w: 90px;
         }
 
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
+        /* ESTILOS GLOBAIS E PADRÕES DO SISTEMA */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: 'Open Sans', 'Segoe UI', Roboto, sans-serif; 
             outline: none; 
         }
+        
+        /* CLASSES DE SISTEMA */
+        .skeleton {
+            animation: skeletonPulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes skeletonPulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        
+        .scrim-gradient {
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+        }
+        
+        .focus-glow {
+            box-shadow: 0 0 20px rgba(255, 206, 68, 0.6);
+        }
+        
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        /* MARGENS DE SEGURANÇA (SAFE AREA) */
+        .safe-area-left {
+            margin-left: 60px;
+        }
+        
+        .safe-area-top {
+            margin-top: 50px;
+        }
+        
+        /* ESPAÇAMENTO PADRÃO */
+        .horizontal-gap {
+            gap: 15px;
+        }
+        
+        .vertical-gap {
+            margin-bottom: 49px;
+        }
+        
+        .card-spacing {
+            margin-bottom: 71px;
+        }
+        
+        /* SCROLL BEHAVIOR */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* REMOVER BARRAS DE ROLAGEM (EXCETO EPISÓDIOS) */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        
+        * {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .episodes-container::-webkit-scrollbar,
+        .episodes-container *::-webkit-scrollbar {
+            display: block;
+            width: 8px;
+            height: 8px;
+        }
+        
+        .episodes-container::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+        
+        .episodes-container::-webkit-scrollbar-thumb {
+            background: var(--amarelo-pipoca);
+            border-radius: 4px;
+        }
+
         body { 
             background: var(--bg-body); 
             color: white; 
@@ -29,6 +108,93 @@
         
         /* Importar Open Sans */
         @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+        
+        /* Customização da Skin City para PaixãoFlix */
+        .vjs-city-skin {
+            font-family: 'Open Sans', sans-serif;
+        }
+        
+        .vjs-city-skin .vjs-big-play-button {
+            background-color: var(--amarelo-pipoca);
+            border-color: var(--amarelo-pipoca);
+            color: var(--bg-body);
+            font-size: 3em;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            margin-top: -40px;
+            margin-left: -40px;
+        }
+        
+        .vjs-city-skin .vjs-big-play-button:hover {
+            background-color: #FFD700;
+            border-color: #FFD700;
+            transform: scale(1.1);
+        }
+        
+        .vjs-city-skin .vjs-control-bar {
+            background: linear-gradient(to bottom, rgba(5, 7, 10, 0.9), rgba(5, 7, 10, 0.95));
+            backdrop-filter: blur(10px);
+        }
+        
+        .vjs-city-skin .vjs-play-progress,
+        .vjs-city-skin .vjs-load-progress {
+            background: var(--amarelo-pipoca);
+        }
+        
+        .vjs-city-skin .vjs-slider {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .vjs-city-skin .vjs-played-progress {
+            background: var(--amarelo-pipoca);
+        }
+        
+        .vjs-city-skin .vjs-volume-level {
+            background: var(--amarelo-pipoca);
+        }
+        
+        .vjs-city-skin .vjs-button:hover {
+            color: var(--amarelo-pipoca);
+        }
+        
+        .vjs-city-skin .vjs-menu {
+            background: rgba(5, 7, 10, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 206, 68, 0.3);
+        }
+        
+        .vjs-city-skin .vjs-menu-item {
+            color: white;
+            font-size: 14px;
+        }
+        
+        .vjs-city-skin .vjs-menu-item:hover {
+            background: var(--amarelo-pipoca);
+            color: var(--bg-body);
+        }
+        
+        .vjs-city-skin .vjs-overlay {
+            background: rgba(5, 7, 10, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        
+        /* Responsive para skin City */
+        @media (max-width: 768px) {
+            .vjs-city-skin .vjs-big-play-button {
+                width: 60px;
+                height: 60px;
+                line-height: 60px;
+                margin-top: -30px;
+                margin-left: -30px;
+                font-size: 2em;
+            }
+            
+            .vjs-city-skin .vjs-control-bar {
+                font-size: 12px;
+            }
+        }
         
         /* Estilos universais para títulos */
         .universal-title {
@@ -50,6 +216,11 @@
         #sidebar {
             width: var(--sidebar-w); height: 100vh; background: #000; border-right: 1px solid #1a1a1a;
             display: flex; flex-direction: column; align-items: center; padding-top: 20px; z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        #sidebar:hover {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
         }
         .logo { width: 60px; cursor: pointer; margin-bottom: 25px; transition: 0.3s; }
         .logo:focus { transform: scale(1.1); }
@@ -58,9 +229,17 @@
         .icon-btn { 
             width: 55px; height: 55px; border-radius: 12px; cursor: pointer;
             display: flex; align-items: center; justify-content: center; transition: 0.2s;
+            font-size: 24px;
+            font-weight: 500;
+            color: #666;
         }
         .icon-btn svg { width: 30px; fill: #666; }
-        .icon-btn:focus { background: var(--amarelo-pipoca); box-shadow: 0 0 15px var(--amarelo-pipoca); }
+        .icon-btn:focus { 
+            background: var(--amarelo-pipoca); 
+            box-shadow: 0 0 15px var(--amarelo-pipoca); 
+            font-size: 28px;
+            font-weight: 500;
+        }
         .icon-btn:focus svg { fill: #000; }
 
         /* --- BARRA SUPERIOR --- */
@@ -111,8 +290,184 @@
                 transform: scale(1);
                 transition: transform 0.2s ease;
             }
-            .capa-item:active {
-                transform: scale(0.95);
+        }
+        
+        /* RESPONSIVO SMART TV */
+        @media (max-width: 1920px) {
+            /* Desktop / Laptop */
+            .main-content {
+                padding-left: 60px;
+                padding-top: 50px;
+            }
+            
+            .capa-item {
+                width: 200px;
+                height: 300px;
+            }
+            
+            .row-container {
+                gap: 15px;
+            }
+        }
+        
+        @media (max-width: 1366px) {
+            /* Tablet */
+            .main-content {
+                padding-left: 40px;
+                padding-top: 40px;
+            }
+            
+            .capa-item {
+                width: 180px;
+                height: 270px;
+            }
+            
+            .row-container {
+                gap: 12px;
+            }
+            
+            .section-title {
+                font-size: 38px;
+            }
+            
+            .hero-title {
+                font-size: 60px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            /* Smartphone */
+            .main-content {
+                padding-left: 20px;
+                padding-top: 30px;
+            }
+            
+            .capa-item {
+                width: 150px;
+                height: 225px;
+            }
+            
+            .row-container {
+                gap: 10px;
+            }
+            
+            .section-title {
+                font-size: 32px;
+            }
+            
+            .hero-title {
+                font-size: 50px;
+            }
+            
+            .sidebar {
+                width: 200px;
+            }
+            
+            .icon-btn {
+                font-size: 20px;
+                padding: 12px;
+            }
+            
+            .details-content {
+                flex-direction: column;
+                max-width: 100%;
+            }
+            
+            .details-poster {
+                width: 200px;
+                height: 300px;
+            }
+        }
+        
+        /* FORÇAR ORIENTAÇÃO HORIZONTAL EM DISPOSITIVOS MÓVEIS */
+        @media (max-width: 1024px) and (orientation: portrait) {
+            body {
+                transform: rotate(90deg);
+                transform-origin: top left;
+                width: 100vh;
+                height: 100vw;
+                overflow-x: hidden;
+            }
+            
+            .main-content {
+                width: 100vh;
+                height: 100vw;
+                padding-left: 30px;
+                padding-top: 30px;
+                transform: rotate(-90deg);
+                transform-origin: top left;
+            }
+            
+            .sidebar {
+                width: 150px;
+            }
+            
+            .hero-content {
+                padding: 30px;
+            }
+        }
+        
+        @media (max-width: 768px) and (orientation: portrait) {
+            .main-content {
+                padding-left: 15px;
+                padding-top: 20px;
+            }
+            
+            .capa-item {
+                width: 120px;
+                height: 180px;
+            }
+            
+            .row-container {
+                gap: 8px;
+            }
+        }
+        
+        /* AJUSTES PARA TELAS PEQUENAS */
+        @media (max-width: 480px) {
+            .main-content {
+                padding-left: 10px;
+                padding-top: 15px;
+            }
+            
+            .capa-item {
+                width: 100px;
+                height: 150px;
+            }
+            
+            .row-container {
+                gap: 6px;
+            }
+            
+            .section-title {
+                font-size: 24px;
+            }
+            
+            .hero-title {
+                font-size: 36px;
+            }
+            
+            .sidebar {
+                width: 120px;
+            }
+            
+            .icon-btn {
+                font-size: 16px;
+                padding: 8px;
+            }
+            
+            .details-info {
+                padding: 15px;
+            }
+            
+            .details-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn-assistir-dark, .btn-voltar {
+                width: 100%;
+                max-width: 200px;
             }
         }
         
@@ -133,22 +488,179 @@
         
         /* BOTÕES 3D PADRONIZADOS */
         .btn-3d {
-            background: var(--amarelo-pipoca); border: none; padding: 12px 25px;
+            background: #FFCE44; border: none; padding: 12px 25px;
             font-weight: bold; border-radius: 8px; box-shadow: var(--sombra-3d);
             cursor: pointer; transition: 0.1s; color: black; text-transform: uppercase;
         }
         .btn-3d:active, .btn-3d:focus { transform: translateY(3px); box-shadow: 0 2px 0 #b38f00; border: 2px solid white; }
+        
+        .btn-assistir-dark {
+            background: #FFCE44;
+            color: black;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+        
+        .btn-assistir-dark:hover {
+            background: #ffd54f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 206, 68, 0.3);
+        }
+        
+        .btn-assistir-dark:focus {
+            outline: 2px solid white;
+            outline-offset: 2px;
+            transform: translateY(-2px);
+        }
+        
+        .btn-voltar {
+            background: #E50914;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+        
+        .btn-voltar:hover {
+            background: #ff0a16;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+        }
+        
+        .btn-voltar:focus {
+            outline: 2px solid white;
+            outline-offset: 2px;
+            transform: translateY(-2px);
+        }
+        
+        /* BANNER CINEMÁTICO NETFLIX */
+        .hero-banner {
+            position: relative;
+            width: 100%;
+            height: 70vh;
+            min-height: 400px;
+            margin-bottom: 49px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        
+        .hero-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+        }
+        
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+            z-index: 2;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            height: 100%;
+            padding: 0 60px;
+        }
+        
+        .hero-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-width: 50%;
+            padding-right: 40px;
+        }
+        
+        .hero-title {
+            font-size: 70px;
+            font-weight: 900;
+            color: white;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            line-height: 1.1;
+        }
+        
+        .hero-meta {
+            font-size: 24px;
+            font-weight: 400;
+            color: #ccc;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .hero-genres {
+            font-size: 18px;
+            color: #aaa;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .hero-synopsis {
+            font-size: 26px;
+            font-weight: 400;
+            color: white;
+            gap: 19px;
+            align-items: center;
+        }
+        
+        .hero-poster {
+            position: absolute;
+            right: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 300px;
+            height: 450px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 3;
+        }
+        
+        /* REFLEXO DINÂMICO NO FUNDO (AMBIENT MODE) */
+        .ambient-reflection {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: -1;
+            filter: blur(80px) brightness(0.3);
+            transition: all 0.5s ease;
+            opacity: 0.7;
+        }
 
         /* SEÇÕES E CARROSSEL */
         .section-title { 
             margin: 20px 0; 
-            font-size: 24px; 
-            font-weight: 600; 
+            font-size: 42px; 
+            font-weight: 700; 
             font-family: 'Open Sans', sans-serif;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
         .row-container { 
             display: flex; 
-            gap: 20px; 
+            gap: 15px; 
             overflow-x: auto; 
             overflow-y: hidden; 
             padding: 15px 0; 
@@ -175,6 +687,27 @@
         .capa-item {
             scroll-snap-align: start;
             flex-shrink: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .capa-item:focus {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 206, 68, 0.6);
+            z-index: 10;
+        }
+        
+        .capa-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .capa-item img.error {
+            content: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjMDUwNzBhIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjRkZDRTQ0IiBmb250LXNpemU9IjI0IiBmb250LXdlaWdodD0iYm9sZCI+UGFpeMOjby1GbGl4PC90ZXh0Pgo8L3N2Zz4=');
         }
         
         /* Sessões com até 5 capas - ocupam tela inteira */
@@ -410,26 +943,74 @@
             background: #fff;
             color: black;
         }
+        
+        /* MENSAGEM DE PRÓXIMO EPISÓDIO */
         .next-episode-message {
             position: fixed;
-            bottom: 20px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.9);
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
             color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            font-size: 14px;
-            z-index: 3001;
+            padding: 40px 60px;
+            border-radius: 12px;
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 10000;
             display: none;
+            flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 2px solid #FFCE44;
+            animation: slideInUp 0.5s ease-out;
         }
-        .next-episode-message img {
-            width: 40px;
-            height: 40px;
+        
+        .next-episode-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .next-episode-content img {
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #FFCE44;
         }
+        
+        .next-episode-text {
+            text-align: center;
+        }
+        
+        .next-episode-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #FFCE44;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+        
+        .next-episode-info {
+            font-size: 24px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -40%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        
         .btn-voltar {
             background: #ff6b6b;
             color: white;
@@ -664,6 +1245,29 @@
             color: var(--amarelo-pipoca);
             margin-bottom: 10px;
         }
+        .thank-you-message {
+            font-size: 20px;
+            color: #4CAF50;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            animation: fadeInScale 0.5s ease-out;
+        }
+        .smiley-happy {
+            font-size: 48px;
+            margin: 10px 0;
+            animation: bounce 0.6s ease-in-out;
+        }
+        @keyframes fadeInScale {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80% { transform: translateY(0); }
+            10% { transform: translateY(-10px); }
+            40% { transform: translateY(-5px); }
+            60% { transform: translateY(0); }
+        }
         .channels-page {
             padding: 90px 40px 40px;
             height: 100vh;
@@ -811,24 +1415,142 @@
             font-size: 12px;
             color: white;
         }
+        
+        /* Notificações e Lista */
+        .notification-toast {
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .remove-from-list {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 68, 68, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .remove-from-list:hover {
+            background: rgba(255, 0, 0, 0.9);
+            transform: scale(1.1);
+        }
+        
+        /* Badges para seções especiais */
+        .mais-visto-badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
+        }
+        .recomendacao-badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
+        }
+        .recomendacoes-title {
+            color: var(--amarelo-pipoca);
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .capa-item.recomendacao {
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .capa-item.recomendacao:hover {
+            border-color: var(--amarelo-pipoca);
+            transform: scale(1.05);
+        }
+        
+        /* Botões de salvar na lista */
+        .save-to-list {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .save-to-list:hover {
+            background: var(--amarelo-pipoca);
+            transform: scale(1.1);
+        }
+        .save-to-list.in-list {
+            background: rgba(255, 68, 68, 0.9);
+        }
+        .save-to-list.in-list:hover {
+            background: rgba(255, 0, 0, 0.9);
+        }
 
-    </style>
-</head>
-<body>
-
-<nav id="sidebar">
-    <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" class="logo" onclick="location.reload()" tabindex="0">
-    <div class="nav-icons">
-        <div class="icon-btn" tabindex="0" onclick="toggleSearch()" title="Pesquisa"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></div>
-        <div class="icon-btn" tabindex="0" onclick="loadContent('movie', 'data/filmes.json')" title="Cinema"><svg viewBox="0 0 24 24"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg></div>
-        <div class="icon-btn" tabindex="0" onclick="loadContent('serie', 'data/series.json')" title="Séries"><svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></svg></div>
-        <div class="icon-btn" tabindex="0" onclick="loadChannels()" title="Canais ao Vivo"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14c0-1.1.9-2 2-2h2c0 1.1.9 2 2v8c0 1.1.9 2 2h8c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm4 6c0-1.1.9-2 2-2h2c0 1.1.9 2 2v8c0 1.1.9 2 2h8c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/></svg></div>
-        <div class="icon-btn" tabindex="0" onclick="loadContent('kids_movie', 'data/kids_filmes.json')" title="Filmes Kids"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z"/></svg></div>
-        <div class="icon-btn" tabindex="0" onclick="loadContent('kids_serie', 'data/kids_series.json')" title="Séries Kids"><svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
-        <div class="icon-btn" tabindex="0" onclick="loadLive('data/ativa_kids_canais.m3u')" title="Canais Kids"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
-        <div class="icon-btn" tabindex="0" onclick="loadContent('fav', 'data/favoritos.json')" title="Minha Lista"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<aside id="sidebar">
+    <div class="logo">
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+            <rect width="60" height="60" rx="8" fill="#FFCE44"/>
+            <path d="M15 20C15 18.9 15.9 18 17 18H43C44.1 18 45 18.9 45 20V25C45 26.1 44.1 27 43 27H17C15.9 27 15 26.1 15 25V20Z" fill="#05070A"/>
+            <path d="M15 35C15 33.9 15.9 33 17 33H43C44.1 33 45 33.9 45 35V40C45 41.1 44.1 42 43 42H17C15.9 42 15 41.1 15 40V35Z" fill="#05070A"/>
+            <circle cx="30" cy="30" r="8" fill="#05070A"/>
+        </svg>
     </div>
-</nav>
+    <nav class="nav-icons">
+        <button class="icon-btn" onclick="renderHome()" tabindex="0" title="Home">
+            <i class="fa-regular fa-house"></i>
+        </button>
+        <button class="icon-btn" onclick="loadChannels()" tabindex="0" title="Canais ao Vivo">
+            <i class="fa-thin fa-tv-retro"></i>
+        </button>
+        <button class="icon-btn" onclick="loadLive('kids')" tabindex="0" title="Canais Kids">
+            <i class="fa-light fa-tv-retro"></i>
+        </button>
+        <button class="icon-btn" onclick="loadContent('cinema', 'cinema.json')" tabindex="0" title="Cinema">
+            <i class="fa-regular fa-projector"></i>
+        </button>
+        <button class="icon-btn" onclick="loadContent('filmes-kids', 'filmes-kids.json')" tabindex="0" title="Filmes Kids">
+            <i class="fa-sharp fa-regular fa-projector"></i>
+        </button>
+        <button class="icon-btn" onclick="loadContent('series', 'series.json')" tabindex="0" title="Séries">
+            <i class="fa-sharp fa-regular fa-clapperboard-play"></i>
+        </button>
+        <button class="icon-btn" onclick="loadContent('series-kids', 'series-kids.json')" tabindex="0" title="Séries Kids">
+            <i class="fa-regular fa-clapperboard-play"></i>
+        </button>
+        <button class="icon-btn" onclick="loadMyList()" tabindex="0" title="Minha Lista">
+            <i class="fa-solid fa-heart"></i>
+        </button>
+    </nav>
+</aside>
 
 <header id="topbar">
     <div id="contador-global">Estamos evoluindo: <span id="val-total">0</span></div>
@@ -854,7 +1576,7 @@
     </div>
     <div class="like-dislike-overlay" id="like-dislike-overlay">
         <div class="like-dislike-content">
-            <div class="like-dislike-title">Gostou deste conteúdo?</div>
+            <div class="like-dislike-title" id="like-dislike-title">Você gosta de sua escolha de hoje?</div>
             <div class="like-dislike-buttons">
                 <button class="like-dislike-btn like-btn" onclick="submitLike(true)">👍 GOSTEI</button>
                 <button class="like-dislike-btn dislike-btn" onclick="submitLike(false)">👎 NÃO GOSTEI</button>
@@ -862,12 +1584,443 @@
             <div class="like-dislike-vote-info">
                 <div class="vote-count" id="vote-count">0 votos</div>
             </div>
+            <div class="thank-you-message" id="thank-you-message" style="display: none;">
+                <div class="smiley-happy">😊</div>
+                <div>Obrigado pelo seu voto!</div>
+            </div>
         </div>
     </div>
 </div>
 
-<script>
+<!-- Video.js e Plugins Essenciais -->
+    <link href="https://vjs.zencdn.net/8.12.0/video-js.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/videojs-city@1.0.0/dist/videojs-city.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/videojs-mobile-ui@1.3.0/dist/videojs-mobile-ui.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/videojs-quality-selector@1.1.4/dist/videojs-quality-selector.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/videojs-contextmenu-ui@5.3.0/dist/videojs-contextmenu-ui.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/videojs-seek-buttons@2.2.1/dist/videojs-seek-buttons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/videojs-markers@0.5.0/dist/videojs-markers.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/videojs-text-track-settings@5.4.1/dist/videojs-text-track-settings.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/silvemine-videojs-chromecast@1.0.0/dist/videojs-chromecast.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/silvemine-videojs-airplay@1.0.0/dist/videojs-airplay.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/videojs-playlist@5.1.0/dist/videojs-playlist.css" rel="stylesheet">
+    
+    <script src="https://vjs.zencdn.net/8.12.0/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-city@1.0.0/dist/videojs-city.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-hls@5.15.0/dist/videojs-contrib-hls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-mobile-ui@1.3.0/dist/videojs-mobile-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-http-streaming@2.16.2/dist/videojs-http-streaming.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-vtt-thumbnails@0.0.13/dist/videojs-vtt-thumbnails.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-contextmenu-ui@5.3.0/dist/videojs-contextmenu-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-persist-volume@1.0.0/dist/videojs-persist-volume.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-overlay@2.2.3/dist/videojs-overlay.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-playback-rate-adjuster@1.0.0/dist/videojs-playback-rate-adjuster.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-quality-selector@1.1.4/dist/videojs-quality-selector.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-hotkeys@0.2.27/dist/videojs.hotkeys.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-picture-in-picture@1.0.0/dist/videojs-picture-in-picture.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-fullscreen@1.0.0/dist/videojs-fullscreen.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-seek-buttons@2.2.1/dist/videojs-seek-buttons.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-markers@0.5.0/dist/videojs-markers.min.js"></script>
+    <script src="https://togetherjs.com/togetherjs-min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/annyang@2.6.1/dist/annyang.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-playlist@4.2.6/dist/videojs-playlist.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-chapters-button@1.0.0/dist/videojs-chapters-button.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-audio-track-selector@1.0.0/dist/videojs-audio-track-selector.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-text-track-settings@5.4.1/dist/videojs-text-track-settings.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-language-switch@1.0.0/dist/videojs-language-switch.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/silvemine-videojs-chromecast@1.0.0/dist/videojs-chromecast.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/silvemine-videojs-airplay@1.0.0/dist/videojs-airplay.min.js"></script>
+
+    <script>
     let masterData = [];
+    let currentPlayer = null;
+    let groupWatchSession = null;
+    let voiceCommandsEnabled = false;
+
+    // Sistema completo de Video.js com todos os plugins
+    function initVideoJSPlayer(videoElement, source, options = {}) {
+        // Destruir player anterior se existir
+        if (currentPlayer) {
+            currentPlayer.dispose();
+        }
+
+        // Configurações padrão do Video.js
+        const defaultOptions = {
+            controls: true,
+            responsive: true,
+            fluid: true,
+            autoplay: options.autoplay || false,
+            preload: 'auto',
+            poster: options.poster || '',
+            html5: {
+                hlsjsConfig: {
+                    liveSyncDurationCount: 3,
+                    liveMaxLatencyDurationCount: 10,
+                    lowLatencyMode: true,
+                    backBufferLength: 90
+                }
+            },
+            plugins: {
+                mobileUi: {
+                    touchControls: {
+                        seekSeconds: 10,
+                        tapTimeout: 300,
+                        doubleTapTimeout: 300
+                    }
+                },
+                persistVolume: {
+                    enabled: true
+                },
+                qualitySelector: {
+                    default: 'auto'
+                },
+                seekButtons: {
+                    forward: 10,
+                    back: 10
+                },
+                markers: {
+                    markerTip: {
+                        text: function(marker) {
+                            return marker.text;
+                        }
+                    }
+                },
+                hotkeys: {
+                    volumeStep: 0.1,
+                    seekStep: 5,
+                    enableModifiersForNumbers: false
+                },
+                playbackRateAdjuster: {
+                    playbackRates: [0.5, 1, 1.25, 1.5, 2]
+                },
+                chromecast: {
+                    chromecastAppId: 'DEFAULT', // Usar app padrão
+                    preloadWebComponents: true
+                },
+                airPlay: {
+                    addButtonToControlBar: true
+                },
+                contextmenuUI: [
+                    {
+                        label: 'Qualidade',
+                        href: '#'
+                    },
+                    {
+                        label: 'Velocidade',
+                        href: '#'
+                    },
+                    {
+                        label: 'Legendas',
+                        href: '#'
+                    },
+                    {
+                        label: 'Picture in Picture',
+                        href: '#',
+                        listener: function() {
+                            if (currentPlayer && currentPlayer.isInPictureInPicture()) {
+                                currentPlayer.exitPictureInPicture();
+                            } else if (currentPlayer) {
+                                currentPlayer.requestPictureInPicture();
+                            }
+                        }
+                    }
+                ]
+            }
+        };
+
+        // Mesclar opções
+        const playerOptions = Object.assign({}, defaultOptions, options);
+
+        // Inicializar Video.js
+        currentPlayer = videojs(videoElement, playerOptions);
+
+        // Configurar LL-HLS para baixa latência
+        if (source.includes('.m3u8')) {
+            currentPlayer.src({
+                src: source,
+                type: 'application/x-mpegURL',
+                withCredentials: false
+            });
+
+            // Configurar HLS.js para low latency
+            currentPlayer.ready(() => {
+                const tech = currentPlayer.tech({ IWillNotUseThisInPlugins: true });
+                if (tech && tech.vhs) {
+                    tech.vhs.xhr.beforeRequest = function(options) {
+                        // Adicionar headers CORS se necessário
+                        options.headers = options.headers || {};
+                        options.headers['Access-Control-Allow-Origin'] = '*';
+                        return options;
+                    };
+                }
+            });
+        } else {
+            currentPlayer.src(source);
+        }
+
+        // Configurar multi-áudio e legendas
+        currentPlayer.ready(() => {
+            // Adicionar faixas de áudio se disponíveis
+            if (options.audioTracks) {
+                options.audioTracks.forEach((track, index) => {
+                    currentPlayer.audioTracks().addTrack(track);
+                });
+            }
+
+            // Adicionar legendas se disponíveis
+            if (options.textTracks) {
+                options.textTracks.forEach((track) => {
+                    currentPlayer.addRemoteTextTrack(track, false);
+                });
+            }
+
+            // Configurar thumbnails VTT
+            if (options.vttThumbnails) {
+                currentPlayer.vttThumbnails({
+                    src: options.vttThumbnails
+                });
+            }
+
+            // Configurar marcadores (Skip Intro/Recap)
+            if (options.markers) {
+                currentPlayer.markers(options.markers);
+            }
+
+            // Configurar GroupWatch (Together.js)
+            if (options.groupWatch) {
+                setupGroupWatch(options.groupWatch);
+            }
+
+            // Configurar comandos de voz
+            if (options.voiceCommands) {
+                setupVoiceCommands();
+            }
+        });
+
+        // Event listeners
+        currentPlayer.on('loadedmetadata', () => {
+            console.log('Video carregado com sucesso');
+        });
+
+        currentPlayer.on('error', (error) => {
+            console.error('Erro no vídeo:', error);
+            handleVideoError(error);
+        });
+
+        currentPlayer.on('ended', () => {
+            handleVideoEnded();
+        });
+
+        return currentPlayer;
+    }
+
+    // Configurar GroupWatch com Together.js
+    function setupGroupWatch(sessionId) {
+        if (typeof TogetherJS !== 'undefined') {
+            TogetherJS.config_autoStart = false;
+            TogetherJS.config_suppressJoinConfirmation = true;
+            TogetherJS.config_siteName = "PaixãoFlix GroupWatch";
+            
+            TogetherJS.on("ready", function () {
+                groupWatchSession = sessionId;
+                console.log('GroupWatch iniciado:', sessionId);
+                
+                // Sincronizar eventos do player
+                setupGroupWatchSync();
+            });
+            
+            TogetherJS.start();
+        }
+    }
+
+    // Sincronização GroupWatch
+    function setupGroupWatchSync() {
+        if (!currentPlayer) return;
+
+        // Enviar eventos para outros usuários
+        currentPlayer.on('play', () => {
+            TogetherJS.send({
+                type: 'video-play',
+                currentTime: currentPlayer.currentTime()
+            });
+        });
+
+        currentPlayer.on('pause', () => {
+            TogetherJS.send({
+                type: 'video-pause',
+                currentTime: currentPlayer.currentTime()
+            });
+        });
+
+        currentPlayer.on('seeked', () => {
+            TogetherJS.send({
+                type: 'video-seek',
+                currentTime: currentPlayer.currentTime()
+            });
+        });
+
+        // Receber eventos de outros usuários
+        TogetherJS.on("message", function (msg) {
+            if (!msg.sameUrl) return;
+            
+            switch (msg.type) {
+                case 'video-play':
+                    currentPlayer.currentTime(msg.currentTime);
+                    currentPlayer.play();
+                    break;
+                case 'video-pause':
+                    currentPlayer.currentTime(msg.currentTime);
+                    currentPlayer.pause();
+                    break;
+                case 'video-seek':
+                    currentPlayer.currentTime(msg.currentTime);
+                    break;
+            }
+        });
+    }
+
+    // Configurar comandos de voz
+    function setupVoiceCommands() {
+        if (typeof annyang !== 'undefined') {
+            const commands = {
+                'play': () => currentPlayer && currentPlayer.play(),
+                'pause': () => currentPlayer && currentPlayer.pause(),
+                'stop': () => currentPlayer && currentPlayer.pause(),
+                'mute': () => currentPlayer && currentPlayer.muted(true),
+                'unmute': () => currentPlayer && currentPlayer.muted(false),
+                'fullscreen': () => currentPlayer && currentPlayer.requestFullscreen(),
+                'volume :level': (level) => {
+                    if (currentPlayer) {
+                        const volume = Math.max(0, Math.min(1, level / 100));
+                        currentPlayer.volume(volume);
+                    }
+                },
+                'seek :time': (time) => {
+                    if (currentPlayer) {
+                        const seconds = parseInt(time);
+                        currentPlayer.currentTime(seconds);
+                    }
+                },
+                'forward :seconds': (seconds) => {
+                    if (currentPlayer) {
+                        currentPlayer.currentTime(currentPlayer.currentTime() + parseInt(seconds));
+                    }
+                },
+                'rewind :seconds': (seconds) => {
+                    if (currentPlayer) {
+                        currentPlayer.currentTime(currentPlayer.currentTime() - parseInt(seconds));
+                    }
+                }
+            };
+
+            annyang.addCommands(commands);
+            annyang.setLanguage('pt-BR');
+            
+            // Iniciar comandos de voz
+            annyang.start({
+                autoRestart: true,
+                continuous: false
+            });
+            
+            voiceCommandsEnabled = true;
+            console.log('Comandos de voz ativados');
+        }
+    }
+
+    // Tratamento de erros de vídeo
+    function handleVideoError(error) {
+        const errorCode = currentPlayer.error().code;
+        let errorMessage = 'Ocorreu um erro ao reproduzir o vídeo.';
+        
+        switch (errorCode) {
+            case 1:
+                errorMessage = 'Reprodução de vídeo interrompida.';
+                break;
+            case 2:
+                errorMessage = 'Erro de rede ao carregar o vídeo.';
+                break;
+            case 3:
+                errorMessage = 'Vídeo corrompido ou formato não suportado.';
+                break;
+            case 4:
+                errorMessage = 'Vídeo não suportado ou formato inválido.';
+                break;
+        }
+        
+        console.error(errorMessage, error);
+        
+        // Mostrar mensagem de erro amigável
+        if (currentPlayer) {
+            const errorOverlay = currentPlayer.el().querySelector('.vjs-error-display');
+            if (errorOverlay) {
+                errorOverlay.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <h3 style="color: #FFCE44;">${errorMessage}</h3>
+                        <p style="margin-top: 10px;">Tente novamente mais tarde.</p>
+                        <button onclick="location.reload()" style="
+                            background: #FFCE44;
+                            color: black;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            margin-top: 10px;
+                        ">Recarregar</button>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    // Lidar com fim do vídeo
+    function handleVideoEnded() {
+        console.log('Vídeo finalizado');
+        
+        // Mostrar recomendações
+        showRecommendations();
+        
+        // Salvar progresso
+        saveWatchProgress();
+        
+        // Verificar próximo episódio
+        checkNextEpisode();
+    }
+
+    // Mostrar recomendações
+    function showRecommendations() {
+        // Implementar lógica de recomendações
+        console.log('Mostrando recomendações...');
+    }
+
+    // Salvar progresso
+    function saveWatchProgress() {
+        if (currentPlayer && currentContentId) {
+            const progress = {
+                contentId: currentContentId,
+                currentTime: currentPlayer.currentTime(),
+                duration: currentPlayer.duration(),
+                timestamp: Date.now()
+            };
+            
+            let history = JSON.parse(localStorage.getItem('paixaoflix_history') || '[]');
+            const existingIndex = history.findIndex(item => item.contentId === currentContentId);
+            
+            if (existingIndex >= 0) {
+                history[existingIndex] = progress;
+            } else {
+                history.unshift(progress);
+            }
+            
+            localStorage.setItem('paixaoflix_history', JSON.stringify(history));
+        }
+    }
+
+    // Verificar próximo episódio
+    function checkNextEpisode() {
+        // Implementar lógica de próximo episódio
+        console.log('Verificando próximo episódio...');
+    }
 
     // Configurar suporte para múltiplos métodos de entrada
     function setupInputHandlers() {
@@ -887,36 +2040,33 @@
         }, { passive: false });
         
         // Suporte para controle remoto e teclado
+        // --- EVENTOS DE NAVEGAÇÃO ---
         document.addEventListener('keydown', function(e) {
             const focusedElement = document.activeElement;
+            const isFocusable = focusedElement && (
+                focusedElement.classList.contains('capa-item') ||
+                focusedElement.classList.contains('icon-btn') ||
+                focusedElement.classList.contains('btn-3d') ||
+                focusedElement.classList.contains('btn-voltar') ||
+                focusedElement.classList.contains('btn-assistir-dark') ||
+                focusedElement.classList.contains('episode-btn') ||
+                focusedElement.classList.contains('exit-btn')
+            );
             
-            // Navegação com setas do teclado/controle remoto
-            switch(e.key) {
-                case 'ArrowLeft':
-                case 'ArrowUp':
-                    e.preventDefault();
-                    navigateToElement('previous', focusedElement);
-                    break;
-                case 'ArrowRight':
-                case 'ArrowDown':
-                    e.preventDefault();
-                    navigateToElement('next', focusedElement);
-                    break;
-                case 'Enter':
-                case ' ': // Space
-                    if (focusedElement) {
-                        e.preventDefault();
-                        focusedElement.click();
-                    }
-                    break;
-                case 'Escape':
-                case 'Back':
-                    e.preventDefault();
+            if (isFocusable) {
+                // Prevenir comportamento padrão
+                e.preventDefault();
+                
+                // Usar navegação aprimorada
+                if (e.key.startsWith('Arrow')) {
+                    handleNavigationKey(e.key, focusedElement);
+                } else if (e.key === 'Enter') {
+                    focusedElement.click();
+                } else if (e.key === 'Backspace') {
                     handleBackButton();
-                    break;
+                }
             }
-        });
-        
+        });    
         // Melhorar scroll com mouse wheel em containers horizontais
         document.querySelectorAll('.row-container').forEach(container => {
             container.addEventListener('wheel', function(e) {
@@ -988,17 +2138,31 @@
     const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
     const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w600_and_h900_face';
     
-    async function initPaixaoFlix() {
-        // Inicializar handlers de entrada primeiro
-        setupInputHandlers();
-        
-        const files = ['data/filmes.json', 'data/series.json', 'data/kids_filmes.json', 'data/kids_series.json'];
+    async function loadData() {
         try {
-            const res = await Promise.all(files.map(f => fetch(f).then(r => r.json())));
+            const res = await Promise.all([
+                fetch('filmes.json').then(r => r.json()),
+                fetch('series.json').then(r => r.json()),
+                fetch('kids.json').then(r => r.json())
+            ]);
             masterData = res.flat();
             document.getElementById('val-total').innerText = masterData.length;
             renderHome();
-        } catch(e) { console.error("Erro ao carregar banco de dados", e); }
+        } catch(e) { 
+            console.error("Erro ao carregar banco de dados", e); 
+            // Fallback para dados de exemplo se necessário
+            masterData = [];
+            renderHome();
+        }
+    }
+    
+    async function initPaixaoFlix() {
+        await loadData();
+        setupInputHandlers();
+        loadHeroContent();
+        setTimeout(() => {
+            setupNavigationGrid();
+        }, 1000);
     }
     
     async function enrichWithTMDBData() {
@@ -1047,41 +2211,101 @@
                     // Pequeno delay para não sobrecarregar a API
                     await new Promise(resolve => setTimeout(resolve, 100));
                 }
-            } catch(e) {
-                console.warn(`Erro ao buscar dados TMDB para: ${item.titulo}`, e);
-            }
-        }
-    }
-
-    // --- PÁGINA INICIAL (TOP 4 DIÁRIO) ---
-    function renderHome() {
-        const app = document.getElementById('main-app');
-        app.innerHTML = `<h2 class="section-title">Os queridinhos de agora</h2><div class="row-container full-screen" id="row-top4"></div>
-                         <h2 class="section-title">Continuar Assistindo</h2><div class="row-container history" id="row-history"></div>
-                         <h2 class="section-title">Novas Paixões da Semana</h2><div class="row-container full-screen" id="row-lancamentos"></div>
-                         <h2 class="section-title">Prepare a Pipoca para Maratonar</h2><div class="row-container full-screen" id="row-maratonar"></div>
-                         <h2 class="section-title">Clássicos que Aquecem o Coração</h2><div class="row-container full-screen" id="row-classicos"></div>
-                         <h2 class="section-title">Aclamado pela Mídia</h2><div class="row-container" id="row-award-winners"></div>
-                         <div id="sabado-noite-container"></div>`;
-        
-        const dailySeed = new Date().getDate();
-        const top4 = masterData.slice(dailySeed % masterData.length, (dailySeed % masterData.length) + 4);
-        
-        const topContainer = document.getElementById('row-top4');
-        top4.forEach((item, i) => {
-            topContainer.innerHTML += `
-                <div class="capa-item" tabindex="0" onclick='openInfo(${JSON.stringify(item)})'>
-                    <span class="num-top">${i+1}</span>
-                    <img src="${item.poster}">
-                    <div class="capa-footer"><span>${item.year}</span><span>★${item.rating}</span></div>
-                </div>`;
-        });
-        loadHistory();
-        renderLancamentos();
-        renderMaratonar();
-        renderClassicos();
         renderAwardWinners();
         renderSabadoNoite();
+        renderMaisVistos2025();
+        renderRecomendacoesPersonalizadas();
+    }
+    
+    function renderMaisVistos2025() {
+        const container = document.getElementById('row-mais-vistos-2025');
+        if (!container) return;
+        
+        // Lista simulada dos mais vistos em 2025 (em um sistema real viria de analytics)
+        const maisVistos2025 = [
+            "Oppenheimer", "Barbie", "Guardiões da Galáxia Vol. 3", 
+            "Fast X", "Super Mario Bros", "Avatar: O Caminho da Água",
+            "A Pequena Sereia", "John Wick 4", "Missão Impossível: Mortal Confissão",
+            "Five Nights at Freddy's", "The Last of Us"
+        ];
+        
+        // Filtrar conteúdos que estão na lista dos mais vistos
+        const filteredContent = masterData.filter(item => 
+            maisVistos2025.some(title => 
+                item.titulo.toLowerCase().includes(title.toLowerCase()) ||
+                title.toLowerCase().includes(item.titulo.toLowerCase())
+            )
+        ).slice(0, 10); // Limitar a 10 itens
+        
+        if (filteredContent.length === 0) {
+            container.innerHTML = '<p style="color:#666; font-style:italic;">Nenhum conteúdo encontrado</p>';
+            return;
+        }
+        
+        filteredContent.forEach(item => {
+            container.innerHTML += `
+                <div class="capa-item" tabindex="0" onclick='openInfo(${JSON.stringify(item)})'>
+                    <img src="${item.poster}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjMDUwNzBhIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjRkZDRTQ0IiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iYm9sZCI+UGFpeMOjby1GbGl4PC90ZXh0Pgo8L3N2Zz4='">
+                    <div class="capa-footer">
+                        <span>${item.year}</span>
+                        <span>★${item.rating}</span>
+                        <span class="mais-visto-badge">🔥 Mais Visto 2025</span>
+                    </div>
+                </div>`;
+        });
+    }
+    
+    function renderRecomendacoesPersonalizadas() {
+        const container = document.getElementById('row-recomendacoes');
+        if (!container) return;
+        
+        // Obter último conteúdo assistido do histórico
+        const history = JSON.parse(localStorage.getItem('paixaoflix_history') || '[]');
+        if (history.length === 0) {
+            container.innerHTML = '<p style="color:#666; font-style:italic;">Assista a algo para receber recomendações personalizadas!</p>';
+            return;
+        }
+        
+        const lastWatched = history[0]; // Mais recente
+        const lastWatchedItem = masterData.find(item => item.titulo === lastWatched.title);
+        
+        if (!lastWatchedItem) {
+            container.innerHTML = '<p style="color:#666; font-style:italic;">Nenhuma recomendação disponível</p>';
+            return;
+        }
+        
+        // Simular recomendações baseadas no último conteúdo
+        const recommendations = masterData.filter(item => {
+            if (item.titulo === lastWatched.title) return false;
+            
+            // Recomendar baseado em gênero, tipo e rating similar
+            const sameGenre = item.genero && lastWatchedItem.genero && 
+                item.genero.some(g => lastWatchedItem.genero.includes(g));
+            const sameType = item.type === lastWatchedItem.type;
+            const similarRating = Math.abs(item.rating - lastWatchedItem.rating) <= 1.5;
+            
+            return (sameGenre || sameType) && similarRating;
+        }).slice(0, 3); // Limitar a 3 recomendações
+        
+        if (recommendations.length === 0) {
+            container.innerHTML = '<p style="color:#666; font-style:italic;">Nenhuma recomendação disponível</p>';
+            return;
+        }
+        
+        // Título da seção
+        container.innerHTML = `<h3 class="recomendacoes-title">Porque você assistiu "${lastWatched.title}"</h3>`;
+        
+        recommendations.forEach(item => {
+            container.innerHTML += `
+                <div class="capa-item recomendacao" tabindex="0" onclick='openInfo(${JSON.stringify(item)})'>
+                    <img src="${item.poster}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjMDUwNzBhIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjRkZDRTQ0IiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iYm9sZCI+UGFpeMOjby1GbGl4PC90ZXh0Pgo8L3N2Zz4='">
+                    <div class="capa-footer">
+                        <span>${item.year}</span>
+                        <span>★${item.rating}</span>
+                        <span class="recomendacao-badge">✨ Recomendado</span>
+                    </div>
+                </div>`;
+        });
     }
     
     function renderAwardWinners() {
@@ -1198,7 +2422,7 @@
         selectedClassicos.forEach((item, i) => {
             classicosContainer.innerHTML += `
                 <div class="capa-item" tabindex="0" onclick='openInfo(${JSON.stringify(item)})'>
-                    <img src="${item.poster}">
+                    <img src="${item.poster}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjMDUwNzBhIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjRkZDRTQ0IiBmb250LXNpemU9IjI0IiBmb250LXdlaWdodD0iYm9sZCI+UGFpeMOjby1GbGl4PC90ZXh0Pgo8L3N2Zz4='">
                     <div class="capa-footer"><span>${item.year}</span><span>★${item.rating}</span></div>
                 </div>`;
         });
@@ -1453,7 +2677,7 @@
             lancamentosContainer.innerHTML += `
                 <div class="capa-item" tabindex="0" onclick='openInfo(${JSON.stringify(item)})'>
                     <span class="novo-badge">NOVO</span>
-                    <img src="${item.poster}">
+                    <img src="${item.poster}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjMDUwNzBhIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjRkZDRTQ0IiBmb250LXNpemU9IjI0IiBmb250LXdlaWdodD0iYm9sZCI+UGFpeMOjby1GbGl4PC90ZXh0Pgo8L3N2Zz4='">
                     <div class="capa-footer"><span>${item.year}</span><span>★${item.rating}</span></div>
                 </div>`;
         });
@@ -1562,6 +2786,29 @@
         allCategories.forEach(genre => {
             const container = document.getElementById(`grid-${genre.replace(/\s+/g, '-')}`);
             if(container) {
+                // Lazy loading: renderizar apenas 10 itens inicialmente
+                const items = genres[genre];
+                let currentIndex = 0;
+                const itemsPerBatch = 10;
+                
+                function renderBatch() {
+                    const batch = items.slice(currentIndex, currentIndex + itemsPerBatch);
+                    batch.forEach(item => {
+                        container.innerHTML += `
+                            <div class="capa-item" tabindex="0" onclick='openInfo(${JSON.stringify(item)})'>
+                                <img src="${item.poster}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjMDUwNzBhIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjRkZDRTQ0IiBmb250LXNpemU9IjI0IiBmb250LXdlaWdodD0iYm9sZCI+UGFpeMOjby1GbGl4PC90ZXh0Pgo8L3N2Zz4='">
+                                <div class="capa-footer"><span>${item.year}</span><span>★${item.rating}</span></div>
+                            </div>`;
+                    });
+                    currentIndex += itemsPerBatch;
+                    
+                    // Adicionar indicador de página
+                    updatePageIndicator(genre, Math.ceil(currentIndex / itemsPerBatch), Math.ceil(items.length / itemsPerBatch));
+                }
+                
+                // Renderizar primeiro batch
+                renderBatch();
+                
                 let isScrolling = false;
                 
                 // Rolagem infinita horizontal
@@ -1571,8 +2818,16 @@
                         const scrollWidth = container.scrollWidth;
                         const clientWidth = container.clientWidth;
                         
-                        // Se chegou no final, voltar ao início suavemente
-                        if(scrollLeft + clientWidth >= scrollWidth - 50) {
+                        // Se chegou no final e ainda há itens para carregar
+                        if(scrollLeft + clientWidth >= scrollWidth - 50 && currentIndex < items.length) {
+                            isScrolling = true;
+                            renderBatch();
+                            
+                            setTimeout(() => {
+                                isScrolling = false;
+                            }, 500);
+                        } else if(scrollLeft + clientWidth >= scrollWidth - 50) {
+                            // Se chegou no final, voltar ao início suavemente
                             isScrolling = true;
                             container.scrollTo({
                                 left: 0,
@@ -1587,6 +2842,37 @@
                 });
             }
         });
+    }
+    
+    function updatePageIndicator(genre, currentPage, totalPages) {
+        // Remover indicador anterior se existir
+        const existingIndicator = document.getElementById(`page-indicator-${genre}`);
+        if (existingIndicator) {
+            existingIndicator.remove();
+        }
+        
+        // Adicionar novo indicador
+        const container = document.getElementById(`grid-${genre.replace(/\s+/g, '-')}`);
+        if (container && totalPages > 1) {
+            const indicator = document.createElement('div');
+            indicator.id = `page-indicator-${genre}`;
+            indicator.className = 'page-indicator';
+            indicator.textContent = `${currentPage} / ${totalPages}`;
+            indicator.style.cssText = `
+                position: absolute;
+                bottom: 10px;
+                right: 10px;
+                background: rgba(0, 0, 0, 0.8);
+                color: #FFCE44;
+                padding: 5px 10px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: bold;
+                z-index: 1000;
+            `;
+            container.parentElement.style.position = 'relative';
+            container.parentElement.appendChild(indicator);
+        }
     }
 
     // --- PÁGINA DE DETALHES (ARCHIVE INTEGRADO) ---
@@ -1739,10 +3025,36 @@
         if(currentIndex < episodes.length - 1) {
             const nextEpNumber = String(currentIndex + 2).padStart(2, '0');
             const message = document.getElementById('next-episode-message') || createNextEpisodeMessage();
-            message.innerHTML = `
-                <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" alt="Próximo">
-                <span>Próximo: Ep. ${nextEpNumber} em 30 segundos</span>
-            `;
+            
+            // Countdown regressivo de 30 segundos
+            let countdown = 30;
+            
+            function updateCountdown() {
+                if (countdown > 0) {
+                    message.innerHTML = `
+                        <div class="next-episode-content">
+                            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" alt="Próximo">
+                            <div class="next-episode-text">
+                                <div class="next-episode-title">PRÓXIMO EPISÓDIO</div>
+                                <div class="next-episode-info">Ep. ${nextEpNumber} em ${countdown}s</div>
+                            </div>
+                        </div>
+                    `;
+                    countdown--;
+                } else {
+                    message.style.display = 'none';
+                }
+            }
+            
+            // Iniciar countdown
+            updateCountdown();
+            const countdownInterval = setInterval(() => {
+                updateCountdown();
+            }, 1000);
+            
+            // Limpar interval quando a mensagem for escondida
+            message.dataset.countdownInterval = countdownInterval;
+            
             message.style.display = 'flex';
         }
     }
@@ -1751,6 +3063,11 @@
         const message = document.getElementById('next-episode-message');
         if(message) {
             message.style.display = 'none';
+            // Limpar interval de countdown se existir
+            if (message.dataset.countdownInterval) {
+                clearInterval(message.dataset.countdownInterval);
+                delete message.dataset.countdownInterval;
+            }
         }
     }
     
@@ -1773,67 +3090,74 @@
     }
 
     // --- SISTEMA DE LIKE/DISLIKE ---
-    let currentContentId = null;
-    let userVotes = JSON.parse(localStorage.getItem('paixaoflix_votes') || '{}');
-    
-    function showLikeDislikeOverlay(contentId, contentTitle) {
-        currentContentId = contentId;
-        const overlay = document.getElementById('like-dislike-overlay');
-        const voteCount = document.getElementById('vote-count');
-        
-        // Mostrar votos existentes
-        const votes = userVotes[contentId] || { likes: 0, dislikes: 0 };
-        voteCount.textContent = `${votes.likes + votes.dislikes} votos`;
-        
-        overlay.style.display = 'flex';
-        
-        // Adicionar evento de tempo para mostrar 1 minuto antes do fim
-        const video = document.getElementById('html5-video');
-        let likeTimerShown = false;
-        
-        const checkTime = () => {
-            if (video.duration && video.currentTime) {
-                const timeRemaining = video.duration - video.currentTime;
-                
-                // Mostrar overlay quando faltar 1 minuto (60 segundos)
-                if (timeRemaining <= 60 && timeRemaining > 0 && !likeTimerShown) {
-                    likeTimerShown = true;
-                } else if (timeRemaining <= 0) {
-                    // Esconder overlay quando o vídeo terminar
-                    overlay.style.display = 'none';
+            feedbackElement.textContent = feedback;
+            feedbackElement.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; color: ' + (liked ? '#4CAF50' : '#f44336') + '; z-index: 5000;';
+            document.querySelector('.like-dislike-content').appendChild(feedbackElement);
+            
+            setTimeout(() => {
+                feedbackElement.remove();
+            }, 1000);
+            
+        } else if (currentVoteStep === 2) {
+            // Segunda pergunta - sobre a experiência
+            const experienceVote = liked;
+            
+            // Verificar se usuário já votou (limite de 2 votos por conteúdo)
+            const hasVoted = userVotes[currentContentId] && 
+                               (userVotes[currentContentId].likes > 0 || userVotes[currentContentId].dislikes > 0);
+            
+            if (!hasVoted) {
+                // Atualizar votos
+                if (!userVotes[currentContentId]) {
+                    userVotes[currentContentId] = { 
+                        likes: 0, 
+                        dislikes: 0,
+                        choiceVote: firstVoteAnswer,
+                        experienceVote: experienceVote
+                    };
                 }
+                
+                if (firstVoteAnswer) {
+                    userVotes[currentContentId].likes++;
+                } else {
+                    userVotes[currentContentId].dislikes++;
+                }
+                
+                // Salvar no localStorage
+                localStorage.setItem('paixaoflix_votes', JSON.stringify(userVotes));
+                
+                // Atualizar interface
+                updateVoteDisplay();
+                
+                // Mostrar mensagem de agradecimento
+                showThankYouMessage();
+                
+                // Prevenir múltiplos votos
+                setTimeout(() => {
+                    const overlay = document.getElementById('like-dislike-overlay');
+                    overlay.style.display = 'none';
+                }, 2000);
+            } else {
+                // Usuário já votou, mostrar mensagem
+                showThankYouMessage();
+                setTimeout(() => {
+                    const overlay = document.getElementById('like-dislike-overlay');
+                    overlay.style.display = 'none';
+                }, 2000);
             }
-        };
-        
-        video.addEventListener('timeupdate', checkTime);
-        video.addEventListener('ended', () => {
-            overlay.style.display = 'none';
-        });
+        }
     }
     
-    function submitLike(liked) {
-        if (!currentContentId) return;
-        
-        // Atualizar votos
-        if (!userVotes[currentContentId]) {
-            userVotes[currentContentId] = { likes: 0, dislikes: 0 };
+    function showThankYouMessage() {
+        const thankYouMessage = document.getElementById('thank-you-message');
+        if (thankYouMessage) {
+            thankYouMessage.style.display = 'block';
+            
+            // Esconder após 3 segundos
+            setTimeout(() => {
+                thankYouMessage.style.display = 'none';
+            }, 3000);
         }
-        
-        if (liked) {
-            userVotes[currentContentId].likes++;
-        } else {
-            userVotes[currentContentId].dislikes++;
-        }
-        
-        // Salvar no localStorage
-        localStorage.setItem('paixaoflix_votes', JSON.stringify(userVotes));
-        
-        // Atualizar interface
-        updateVoteDisplay();
-        
-        // Prevenir múltiplos votos
-        const overlay = document.getElementById('like-dislike-overlay');
-        overlay.style.display = 'none';
     }
     
     function updateVoteDisplay() {
@@ -1850,7 +3174,17 @@
         if (contentElement) {
             const voteInfo = contentElement.querySelector('.vote-info');
             if (voteInfo) {
-                voteInfo.textContent = `👍 ${votes.likes} | 🎎 ${votes.dislikes}`;
+                // Mostrar ambos os votos se disponíveis
+                let voteText = `👍 ${votes.likes} | 🎎 ${votes.dislikes}`;
+                
+                // Adicionar informações detalhadas se disponíveis
+                if (votes.choiceVote !== undefined && votes.experienceVote !== undefined) {
+                    const choiceText = votes.choiceVote ? 'Gostou' : 'Não gostou';
+                    const experienceText = votes.experienceVote ? 'Boa experiência' : 'Experiência ruim';
+                    voteText += ` (${choiceText} | ${experienceText})`;
+                }
+                
+                voteInfo.textContent = voteText;
             }
         }
     }
@@ -1867,7 +3201,18 @@
             if (!voteInfo) {
                 const voteInfoDiv = document.createElement('div');
                 voteInfoDiv.className = 'vote-info';
-                voteInfoDiv.textContent = `👍 ${votes.likes} | 🎎 ${votes.dislikes}`;
+                
+                // Mostrar ambos os votos se disponíveis
+                let voteText = `👍 ${votes.likes} | 🎎 ${votes.dislikes}`;
+                
+                // Adicionar informações detalhadas se disponíveis
+                if (votes.choiceVote !== undefined && votes.experienceVote !== undefined) {
+                    const choiceText = votes.choiceVote ? 'Gostou' : 'Não gostou';
+                    const experienceText = votes.experienceVote ? 'Boa experiência' : 'Experiência ruim';
+                    voteText += ` (${choiceText} | ${experienceText})`;
+                }
+                
+                voteInfoDiv.textContent = voteText;
                 voteInfoDiv.style.cssText = 'position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px;';
                 element.appendChild(voteInfoDiv);
             }
@@ -1878,42 +3223,101 @@
     let recommendationsTimer;
     let currentRecommendations = [];
     
-    function startPlay(url, title, currentTime = 0) {
-        const scr = document.getElementById('player-screen');
-        const v = document.getElementById('html5-video');
-        scr.style.display = 'block';
-        v.src = url;
-        v.currentTime = currentTime;
-        currentVideoTitle = title;
-        saveHistory(title, url);
+    function startPlay(url, poster, title, isLive = false, episodes = [], currentIndex = 0) {
+        currentContentId = title;
+        currentEpisodes = episodes;
+        currentEpisodeIndex = currentIndex;
         
-        // Iniciar sistema de recomendações
-        startRecommendationsSystem();
+        // Esconder voting overlay se estiver visível
+        const overlay = document.getElementById('like-dislike-overlay');
+        if(overlay) overlay.style.display = 'none';
         
-        // Esconder sistema de like/dislike
-        const likeOverlay = document.getElementById('like-dislike-overlay');
-        if (likeOverlay) {
-            likeOverlay.style.display = 'none';
+        // Esconder mensagem de próximo episódio
+        hideNextEpisodeMessage();
+        
+        // Mostrar player
+        const playerScreen = document.getElementById('player-screen');
+        playerScreen.style.display = 'flex';
+        
+        // Criar elemento de vídeo com classe Video.js e skin City
+        playerScreen.innerHTML = `
+            <video 
+                id="paixaoflix-player" 
+                class="video-js vjs-city-skin vjs-big-play-centered" 
+                controls 
+                preload="auto" 
+                poster="${poster}"
+                data-setup='{"fluid": true, "responsive": true}'>
+                <p class="vjs-no-js">
+                    To view this video please enable JavaScript, and consider upgrading to a web browser that
+                    <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>.
+                </p>
+            </video>
+            <button class="exit-btn" onclick="stopPlayer()">✕ SAIR</button>
+        `;
+        
+        // Configurar opções do player
+        const playerOptions = {
+            autoplay: true,
+            poster: poster,
+            controls: true,
+            responsive: true,
+            fluid: true,
+            playbackRates: [0.5, 1, 1.25, 1.5, 2],
+            plugins: {
+                hotkeys: {
+                    volumeStep: 0.1,
+                    seekStep: 5,
+                    enableModifiersForNumbers: false
+                }
+            }
+        };
+        
+        // Adicionar configurações específicas para conteúdo ao vivo
+        if (isLive) {
+            playerOptions.liveui = true;
+            playerOptions.plugins.liveTracker = true;
+        } else {
+            // Adicionar marcadores para Skip Intro/Recap em conteúdo não ao vivo
+            playerOptions.plugins.markers = {
+                markers: [
+                    { time: 0, text: "Início" },
+                    // Adicionar marcadores dinâmicos baseados no conteúdo
+                    ...(episodes && episodes[currentIndex] ? [
+                        { time: 90, text: "Skip Intro" },
+                        { time: episodes[currentIndex].duration - 60, text: "Próximo Episódio" }
+                    ] : [])
+                ]
+            };
+            
+            // Adicionar comandos de voz
+            playerOptions.voiceCommands = true;
+            
+            // Adicionar GroupWatch se disponível
+            if (window.location.hash.includes('groupwatch')) {
+                playerOptions.groupWatch = window.location.hash.replace('#groupwatch=', '');
+            }
         }
         
-        // Salvar progresso em tempo real
-        clearInterval(progressInterval);
-        progressInterval = setInterval(() => {
-            if (!v.paused && !v.ended) {
-                updateWatchTime(title, v.currentTime);
-            }
-        }, 5000); // Salvar a cada 5 segundos
+        // Inicializar player Video.js completo com skin City
+        const player = initVideoJSPlayer('paixaoflix-player', url, playerOptions);
         
-        // Salvar quando o vídeo pausar
-        v.addEventListener('pause', () => {
-            updateWatchTime(title, v.currentTime);
-        });
+        // Configurar eventos específicos
+        if (!isLive && episodes && episodes.length > 1) {
+            // Configurar navegação entre episódios
+            setupEpisodeNavigation(player, episodes, currentIndex);
+        }
         
-        // Salvar quando o vídeo terminar
-        v.addEventListener('ended', () => {
-            updateWatchTime(title, v.currentTime);
-            clearInterval(progressInterval);
-        });
+        // Salvar no histórico
+        saveHistory(title, url, poster);
+        
+        // Focar no player
+        setTimeout(() => {
+            player.focus();
+        }, 100);
+        
+        // Configurar navegação por teclado no player
+        setupPlayerKeyboardControls(player);
     }
 
     function stopPlayer() {
@@ -2061,6 +3465,73 @@
     // --- CANAIS AO VIVO ---
     let currentChannel = null;
     let currentChannelIndex = 0;
+    
+    function loadMyList() {
+        toggleSearch(true);
+        
+        const app = document.getElementById('main-app');
+        app.innerHTML = '<div class="category-page"><h2 class="section-title">Minha Lista</h2><div class="row-container full-screen" id="row-minha-lista"></div></div>';
+        
+        // Carregar itens salvos na lista
+        const myList = JSON.parse(localStorage.getItem('paixaoflix_mylist') || '[]');
+        const container = document.getElementById('row-minha-lista');
+        
+        if (myList.length === 0) {
+            container.innerHTML = '<p style="color:#666; font-style:italic; text-align:center; margin-top:50px;">Sua lista está vazia. Adicione conteúdos para assistir mais tarde!</p>';
+            return;
+        }
+        
+        myList.forEach(item => {
+            container.innerHTML += `
+                <div class="capa-item" tabindex="0" onclick='openInfo(${JSON.stringify(item)})'>
+                    <img src="${item.poster}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjMDUwNzBhIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjRkZDRTQ0IiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iYm9sZCI+UGFpeMOjby1GbGl4PC90ZXh0Pgo8L3N2Zz4='">
+                    <div class="capa-footer">
+                        <span>${item.year}</span>
+                        <span>★${item.rating}</span>
+                        <button class="remove-from-list" onclick='removeFromList("${item.titulo}")' title="Remover da lista">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                    </div>
+                </div>`;
+        });
+    }
+    
+    function removeFromList(title) {
+        let myList = JSON.parse(localStorage.getItem('paixaoflix_mylist') || '[]');
+        myList = myList.filter(item => item.titulo !== title);
+        localStorage.setItem('paixaoflix_mylist', JSON.stringify(myList));
+        loadMyList(); // Recarregar a lista
+    }
+    
+    function addToMyList(item) {
+        let myList = JSON.parse(localStorage.getItem('paixaoflix_mylist') || '[]');
+        
+        // Verificar se item já está na lista
+        if (myList.find(listItem => listItem.titulo === item.titulo)) {
+            showNotification('Item já está na sua lista!');
+            return;
+        }
+        
+        myList.push(item);
+        localStorage.setItem('paixaoflix_mylist', JSON.stringify(myList));
+        showNotification('Adicionado à Minha Lista!');
+    }
+    
+    function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'notification-toast';
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed; top: 20px; right: 20px; background: var(--amarelo-pipoca); 
+            color: var(--bg-body); padding: 15px 20px; border-radius: 8px; 
+            font-weight: bold; z-index: 10000; animation: slideIn 0.3s ease;
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
     
     function loadChannels() {
         toggleSearch(true); // Fechar busca se estiver aberta
@@ -2314,7 +3785,263 @@
         return null;
     }
 
-    // --- BUSCA ---
+    // --- BANNER CINEMÁTICO NETFLIX ---
+    let heroContent = [];
+    let currentHeroIndex = 0;
+    
+    function loadHeroContent() {
+        // Carregar 20 conteúdos aleatórios de todos os gêneros
+        if (masterData.length > 0) {
+            heroContent = [...masterData]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 20);
+            displayHeroContent();
+        }
+    }
+    
+    function displayHeroContent() {
+        if (heroContent.length === 0) return;
+        
+        const hero = heroContent[currentHeroIndex];
+        const heroBackground = document.getElementById('hero-background');
+        const heroTitle = document.getElementById('hero-title');
+        const heroMeta = document.getElementById('hero-meta');
+        const heroGenres = document.getElementById('hero-genres');
+        const heroSynopsis = document.getElementById('hero-synopsis');
+        const heroPoster = document.getElementById('hero-poster');
+        const heroPlayBtn = document.getElementById('hero-play-btn');
+        const ambientReflection = document.getElementById('ambient-reflection');
+        
+        // Atualizar conteúdo do banner
+        heroBackground.style.backgroundImage = `url(${hero.backdrop || hero.poster})`;
+        heroTitle.textContent = hero.titulo;
+        heroMeta.textContent = `${hero.year} • ★ ${hero.rating}`;
+        
+        const genres = Array.isArray(hero.genero) ? hero.genero.join(' | ') : (hero.genero || 'Geral');
+        heroGenres.textContent = genres;
+        
+        heroSynopsis.textContent = hero.desc || 'Uma experiência incrível que vai te prender do início ao fim...';
+        heroPoster.src = hero.poster;
+        heroPoster.alt = hero.titulo;
+        
+        // Configurar botão de play
+        heroPlayBtn.onclick = () => startPlay(hero.url || '', hero.titulo);
+        
+        // Atualizar reflexo dinâmico
+        if (ambientReflection) {
+            ambientReflection.style.backgroundImage = `url(${hero.backdrop || hero.poster})`;
+        }
+        
+        // Adicionar tratamento de erro para imagens
+        heroPoster.onerror = function() {
+            this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjMDUwNzBhIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjRkZDRTQ0IiBmb250LXNpemU9IjI0IiBmb250LXdlaWdodD0iYm9sZCI+UGFpeMOjby1GbGl4PC90ZXh0Pgo8L3N2Zz4=';
+        };
+    }
+    
+    function playHeroContent() {
+        if (heroContent.length > 0) {
+            const hero = heroContent[currentHeroIndex];
+            startPlay(hero.url || '', hero.titulo);
+        }
+    }
+    
+    function showHeroDetails() {
+        if (heroContent.length > 0) {
+            const hero = heroContent[currentHeroIndex];
+            openInfo(hero);
+        }
+    }
+    
+    function rotateHeroContent() {
+        currentHeroIndex = (currentHeroIndex + 1) % heroContent.length;
+        displayHeroContent();
+    }
+    
+    // Rotacionar banner a cada 30 segundos
+    setInterval(rotateHeroContent, 30000);
+    
+    // --- NAVEGAÇÃO APRIMORADA ---
+    let currentFocusElement = null;
+    let navigationGrid = [];
+    
+    function setupNavigationGrid() {
+        // Construir grade de navegação para todas as capas
+        navigationGrid = [];
+        const allContainers = document.querySelectorAll('.row-container');
+        
+        allContainers.forEach((container, containerIndex) => {
+            const items = container.querySelectorAll('.capa-item');
+            const containerGrid = [];
+            
+            items.forEach((item, itemIndex) => {
+                containerGrid.push({
+                    element: item,
+                    containerIndex: containerIndex,
+                    itemIndex: itemIndex,
+                    row: Math.floor(itemIndex / 6), // 6 itens por linha visual
+                    col: itemIndex % 6
+                });
+            });
+            
+            navigationGrid.push(containerGrid);
+        });
+    }
+    
+    function navigateToElement(element) {
+        if (element) {
+            element.focus();
+            currentFocusElement = element;
+            
+            // Scroll suave para o elemento
+            element.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'center'
+            });
+            
+            // Atualizar reflexo dinâmico se for uma capa
+            if (element.querySelector('img')) {
+                const img = element.querySelector('img');
+                const ambientReflection = document.getElementById('ambient-reflection');
+                if (ambientReflection && img.src) {
+                    ambientReflection.style.backgroundImage = `url(${img.src})`;
+                }
+            }
+        }
+    }
+    
+    function handleNavigationKey(key, currentElement) {
+        if (!currentElement) return;
+        
+        const allFocusable = Array.from(document.querySelectorAll('.capa-item, .icon-btn, .btn-3d, .btn-voltar, .btn-assistir-dark, .episode-btn, .exit-btn'));
+        const currentIndex = allFocusable.indexOf(currentElement);
+        
+        if (currentIndex === -1) return;
+        
+        let nextIndex = currentIndex;
+        
+        switch(key) {
+            case 'ArrowRight':
+                if (currentElement.classList.contains('capa-item')) {
+                    // Navegação horizontal dentro da mesma linha
+                    const container = currentElement.closest('.row-container');
+                    const items = Array.from(container.querySelectorAll('.capa-item'));
+                    const itemIndex = items.indexOf(currentElement);
+                    
+                    if (itemIndex < items.length - 1) {
+                        nextIndex = allFocusable.indexOf(items[itemIndex + 1]);
+                    } else {
+                        // Ir para a primeira capa da próxima linha
+                        const nextContainer = getNextContainer(container);
+                        if (nextContainer) {
+                            const nextItems = nextContainer.querySelectorAll('.capa-item');
+                            if (nextItems.length > 0) {
+                                nextIndex = allFocusable.indexOf(nextItems[0]);
+                            }
+                        }
+                    }
+                } else {
+                    // Para outros elementos, ir para o próximo focável
+                    nextIndex = (currentIndex + 1) % allFocusable.length;
+                }
+                break;
+                
+            case 'ArrowLeft':
+                if (currentElement.classList.contains('capa-item')) {
+                    // Navegação horizontal dentro da mesma linha
+                    const container = currentElement.closest('.row-container');
+                    const items = Array.from(container.querySelectorAll('.capa-item'));
+                    const itemIndex = items.indexOf(currentElement);
+                    
+                    if (itemIndex > 0) {
+                        nextIndex = allFocusable.indexOf(items[itemIndex - 1]);
+                    } else {
+                        // Ir para a última capa da linha anterior
+                        const prevContainer = getPreviousContainer(container);
+                        if (prevContainer) {
+                            const prevItems = prevContainer.querySelectorAll('.capa-item');
+                            if (prevItems.length > 0) {
+                                nextIndex = allFocusable.indexOf(prevItems[prevItems.length - 1]);
+                            }
+                        }
+                    }
+                } else {
+                    // Para outros elementos, ir para o focável anterior
+                    nextIndex = (currentIndex - 1 + allFocusable.length) % allFocusable.length;
+                }
+                break;
+                
+            case 'ArrowDown':
+                if (currentElement.classList.contains('capa-item')) {
+                    // Descer para a mesma coluna na próxima linha
+                    const container = currentElement.closest('.row-container');
+                    const items = Array.from(container.querySelectorAll('.capa-item'));
+                    const itemIndex = items.indexOf(currentElement);
+                    const itemsPerRow = 6; // Ajustar conforme necessário
+                    
+                    const targetIndex = itemIndex + itemsPerRow;
+                    if (targetIndex < items.length) {
+                        nextIndex = allFocusable.indexOf(items[targetIndex]);
+                    } else {
+                        // Ir para a primeira capa do próximo container
+                        const nextContainer = getNextContainer(container);
+                        if (nextContainer) {
+                            const nextItems = nextContainer.querySelectorAll('.capa-item');
+                            if (nextItems.length > 0) {
+                                nextIndex = allFocusable.indexOf(nextItems[0]);
+                            }
+                        }
+                    }
+                } else {
+                    // Para botões do menu lateral, ir para a primeira capa da home
+                    const firstCapa = document.querySelector('.capa-item');
+                    if (firstCapa) {
+                        nextIndex = allFocusable.indexOf(firstCapa);
+                    }
+                }
+                break;
+                
+            case 'ArrowUp':
+                if (currentElement.classList.contains('capa-item')) {
+                    // Subir para a mesma coluna na linha anterior
+                    const container = currentElement.closest('.row-container');
+                    const items = Array.from(container.querySelectorAll('.capa-item'));
+                    const itemIndex = items.indexOf(currentElement);
+                    const itemsPerRow = 6; // Ajustar conforme necessário
+                    
+                    const targetIndex = itemIndex - itemsPerRow;
+                    if (targetIndex >= 0) {
+                        nextIndex = allFocusable.indexOf(items[targetIndex]);
+                    } else {
+                        // Ir para a última capa do container anterior
+                        const prevContainer = getPreviousContainer(container);
+                        if (prevContainer) {
+                            const prevItems = prevContainer.querySelectorAll('.capa-item');
+                            if (prevItems.length > 0) {
+                                nextIndex = allFocusable.indexOf(prevItems[prevItems.length - 1]);
+                            }
+                        }
+                    }
+                }
+                break;
+        }
+        
+        if (nextIndex !== currentIndex && nextIndex >= 0 && nextIndex < allFocusable.length) {
+            navigateToElement(allFocusable[nextIndex]);
+        }
+    }
+    
+    function getNextContainer(currentContainer) {
+        const allContainers = Array.from(document.querySelectorAll('.row-container'));
+        const currentIndex = allContainers.indexOf(currentContainer);
+        return currentIndex < allContainers.length - 1 ? allContainers[currentIndex + 1] : null;
+    }
+    
+    function getPreviousContainer(currentContainer) {
+        const allContainers = Array.from(document.querySelectorAll('.row-container'));
+        const currentIndex = allContainers.indexOf(currentContainer);
+        return currentIndex > 0 ? allContainers[currentIndex - 1] : null;
+    }
     let searchTimeout;
     let lastSearchQuery = '';
     
@@ -2429,12 +4156,25 @@
         const history = JSON.parse(localStorage.getItem('paixaoflix_history') || '[]');
         const historyContainer = document.getElementById('row-history');
         
-        if(history.length === 0) {
+        // Filtrar histórico dos últimos 7 dias e excluir conteúdo ao vivo
+        const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+        const filteredHistory = history.filter(item => {
+            const isRecent = item.timestamp > sevenDaysAgo;
+            // Verificar se não é conteúdo ao vivo
+            const fullItem = masterData.find(masterItem => masterItem.titulo === item.title);
+            const isNotLive = fullItem ? fullItem.type !== 'live_channel' : true;
+            return isRecent && isNotLive;
+        });
+        
+        // Limitar a 3 itens mais recentes
+        const recentHistory = filteredHistory.slice(0, 3);
+        
+        if(recentHistory.length === 0) {
             historyContainer.innerHTML = '<p style="color:#666; font-style:italic;">Nenhum conteúdo assistido recentemente</p>';
             return;
         }
         
-        history.forEach(historyItem => {
+        recentHistory.forEach(historyItem => {
             // Encontrar o item completo no masterData
             const fullItem = masterData.find(item => item.titulo === historyItem.title);
             if(fullItem) {
@@ -2444,7 +4184,7 @@
                 
                 historyContainer.innerHTML += `
                     <div class="capa-item history" tabindex="0" onclick='resumeFromHistory("${historyItem.title}", "${historyItem.url}", ${historyItem.watchedTime || 0})'>
-                        <img src="${fullItem.poster}">
+                        <img src="${fullItem.poster}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjMDUwNzBhIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjRkZDRTQ0IiBmb250LXNpemU9IjI0IiBmb250LXdlaWdodD0iYm9sZCI+UGFpeMOjby1GbGl4PC90ZXh0Pgo8L3N2Zz4='">
                         <div class="progress-bar-external">
                             <div class="progress-bar-internal" style="width: ${progressPercent}%"></div>
                         </div>
