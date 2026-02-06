@@ -1689,6 +1689,14 @@
     let currentPlayer = null;
     let groupWatchSession = null;
     let voiceCommandsEnabled = false;
+    let myList = JSON.parse(localStorage.getItem('paixaoflix_mylist') || '[]');
+    let currentContentId = null;
+    let currentVoteStep = 1;
+    let firstVoteAnswer = null;
+    let userVotes = JSON.parse(localStorage.getItem('paixaoflix_votes') || '{}');
+    let currentEpisodeIndex = -1;
+    let heroContent = [];
+    let currentHeroIndex = 0;
 
     // Sistema completo de Video.js com todos os plugins
     function initVideoJSPlayer(videoElement, source, options = {}) {
@@ -4089,9 +4097,6 @@
     }
 
     // --- BANNER CINEMÁTICO NETFLIX ---
-    let heroContent = [];
-    let currentHeroIndex = 0;
-    
     function loadHeroContent() {
         // Carregar 20 conteúdos aleatórios de todos os gêneros
         if (masterData.length > 0) {
