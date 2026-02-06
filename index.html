@@ -3057,166 +3057,7 @@
         });
     }
 
-    // --- CARREGAR CONTEÚDO (CINEMA/SÉRIES) ---
-    async function loadContent(type, file) {
-        toggleSearch(true);
-        const app = document.getElementById('main-app');
-        app.innerHTML = '<div class="category-page"><h2 class="section-title">Carregando...</h2></div>';
-        const res = await fetch(file);
-        const data = await res.json();
-
-        if(type.includes('kids')) data.sort((a,b) => a.titulo.localeCompare(b.titulo));
-
-        // Ordem fixa das categorias
-        const categoryOrder = [
-            'Lançamento 2026', 'Lançamento 2025', 'Ação', 'Aventura', 'Comédia', 
-            'Drama', 'Nacional', 'Romance', 'Religioso', 'Ficção', 'Anime', 
-            'Animação', 'Família', 'Clássicos', 'Dorama', 'Suspense', 'Policial', 
-            'Crime', 'Terror', 'Documentários', 'Faroeste', 'Musical', 'Adulto'
-        ];
-
-        // Organizar por gêneros para filmes
-        if(type.includes('movie')) {
-            const genres = {};
-            data.forEach(item => {
-                const itemGenres = Array.isArray(item.genero) ? item.genero : [item.genero || 'Geral'];
-                itemGenres.forEach(genre => {
-                    // Excluir categoria Adulto para conteúdo kids
-                    if(type.includes('kids') && genre === 'Adulto') return;
-                    
-                    if(!genres[genre]) genres[genre] = [];
-                    genres[genre].push(item);
-                });
-            });
-
-            let html = '';
-            // Usar ordem fixa, mostrar apenas categorias que existem
-            categoryOrder.forEach(genre => {
-                if(genres[genre]) {
-                    html += `<h2 class="section-title">${genre.toUpperCase()}</h2><div class="row-container" id="grid-${genre.replace(/\s+/g, '-')}"></div>`;
-                }
-            });
-            
-            // Adicionar categorias não mapeadas no final
-            const unmappedGenres = Object.keys(genres).filter(genre => !categoryOrder.includes(genre));
-            unmappedGenres.sort().forEach(genre => {
-                html += `<h2 class="section-title">${genre.toUpperCase()}</h2><div class="row-container" id="grid-${genre.replace(/\s+/g, '-')}"></div>`;
-            });
-            
-            app.innerHTML = `<div class="category-page">${html}</div>`;
-
-            // Preencher os grids e configurar rolagem infinita
-            setupInfiniteScroll(genres, categoryOrder, unmappedGenres);
-        } else {
-            // Para séries, manter o grid único com rolagem vertical infinita
-            app.innerHTML = `<div class="category-page"><h2 class="section-title">${type.toUpperCase()}</h2><div class="row-container" id="grid-view" style="flex-wrap: wrap; overflow-y: auto; overflow-x: hidden;"></div></div>`;
-            const grid = document.getElementById('grid-view');
-            data.forEach(item => {
-                grid.innerHTML += `
-                    <div class="capa-item" tabindex="0" onclick='openInfo(${JSON.stringify(item)})'>
-                        <img src="${item.poster}">
-                        <div class="capa-footer"><span>${item.year}</span><span>★${item.rating}</span></div>
-                    </div>`;
-            });
-        }
-    }
     
-    function setupInfiniteScroll(genres, categoryOrder, unmappedGenres) {
-        // Configurar rolagem infinita horizontal para cada categoria
-        const allCategories = [...categoryOrder.filter(g => genres[g]), ...unmappedGenres];
-        
-        allCategories.forEach(genre => {
-            const container = document.getElementById(`grid-${genre.replace(/\s+/g, '-')}`);
-            if(container) {
-                // Lazy loading: renderizar apenas 10 itens inicialmente
-                const items = genres[genre];
-                let currentIndex = 0;
-                const itemsPerBatch = 10;
-                
-                function renderBatch() {
-                    const batch = items.slice(currentIndex, currentIndex + itemsPerBatch);
-                    batch.forEach(item => {
-                        container.innerHTML += `
-                            <div class="capa-item" tabindex="0" onclick='openInfo(${JSON.stringify(item)})'>
-                                <img src="${item.poster}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjMDUwNzBhIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjRkZDRTQ0IiBmb250LXNpemU9IjI0IiBmb250LXdlaWdodD0iYm9sZCI+UGFpeMOjby1GbGl4PC90ZXh0Pgo8L3N2Zz4='">
-                                <div class="capa-footer"><span>${item.year}</span><span>★${item.rating}</span></div>
-                            </div>`;
-                    });
-                    currentIndex += itemsPerBatch;
-                    
-                    // Adicionar indicador de página
-                    updatePageIndicator(genre, Math.ceil(currentIndex / itemsPerBatch), Math.ceil(items.length / itemsPerBatch));
-                }
-                
-                // Renderizar primeiro batch
-                renderBatch();
-                
-                let isScrolling = false;
-                
-                // Rolagem infinita horizontal
-                container.addEventListener('scroll', () => {
-                    if(!isScrolling) {
-                        const scrollLeft = container.scrollLeft;
-                        const scrollWidth = container.scrollWidth;
-                        const clientWidth = container.clientWidth;
-                        
-                        // Se chegou no final e ainda há itens para carregar
-                        if(scrollLeft + clientWidth >= scrollWidth - 50 && currentIndex < items.length) {
-                            isScrolling = true;
-                            renderBatch();
-                            
-                            setTimeout(() => {
-                                isScrolling = false;
-                            }, 500);
-                        } else if(scrollLeft + clientWidth >= scrollWidth - 50) {
-                            // Se chegou no final, voltar ao início suavemente
-                            isScrolling = true;
-                            container.scrollTo({
-                                left: 0,
-                                behavior: 'smooth'
-                            });
-                            
-                            setTimeout(() => {
-                                isScrolling = false;
-                            }, 1000);
-                        }
-                    }
-                });
-            }
-        });
-    }
-    
-    function updatePageIndicator(genre, currentPage, totalPages) {
-        // Remover indicador anterior se existir
-        const existingIndicator = document.getElementById(`page-indicator-${genre}`);
-        if (existingIndicator) {
-            existingIndicator.remove();
-        }
-        
-        // Adicionar novo indicador
-        const container = document.getElementById(`grid-${genre.replace(/\s+/g, '-')}`);
-        if (container && totalPages > 1) {
-            const indicator = document.createElement('div');
-            indicator.id = `page-indicator-${genre}`;
-            indicator.className = 'page-indicator';
-            indicator.textContent = `${currentPage} / ${totalPages}`;
-            indicator.style.cssText = `
-                position: absolute;
-                bottom: 10px;
-                right: 10px;
-                background: rgba(0, 0, 0, 0.8);
-                color: #FFCE44;
-                padding: 5px 10px;
-                border-radius: 4px;
-                font-size: 12px;
-                font-weight: bold;
-                z-index: 1000;
-            `;
-            container.parentElement.style.position = 'relative';
-            container.parentElement.appendChild(indicator);
-        }
-    }
-
     // --- PÁGINA DE DETALHES (ARCHIVE INTEGRADO) ---
     async function openInfo(item) {
         const p = document.getElementById('page-details');
@@ -3432,7 +3273,20 @@
     }
 
     // --- SISTEMA DE LIKE/DISLIKE ---
-            feedbackElement.textContent = feedback;
+    function submitLike(liked) {
+        if (!currentContentId) return;
+        
+        if (currentVoteStep === 1) {
+            // Primeira pergunta - choice vote
+            firstVoteAnswer = liked;
+            currentVoteStep = 2;
+            
+            const title = document.getElementById('like-dislike-title');
+            title.textContent = 'Você gostou da experiência no PaixãoFlix?';
+            
+            // Visual feedback
+            const feedbackElement = document.createElement('div');
+            feedbackElement.textContent = liked ? '✓' : '✗';
             feedbackElement.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; color: ' + (liked ? '#4CAF50' : '#f44336') + '; z-index: 5000;';
             document.querySelector('.like-dislike-content').appendChild(feedbackElement);
             
