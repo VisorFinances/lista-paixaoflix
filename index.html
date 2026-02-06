@@ -1542,6 +1542,51 @@
             font-weight: bold;
             box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
         }
+        
+        /* Progress bar e badges */
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--amarelo-pipoca);
+            transition: width 0.3s ease;
+        }
+        
+        .continue-badge {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+        
+        .mais-visto-badge {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+        
+        .recomendacao-badge {
+            background: linear-gradient(45deg, #4CAF50, #388E3C);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+        }
 
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1625,9 +1670,7 @@
 <!-- Video.js e Plugins Essenciais -->
     <link href="https://vjs.zencdn.net/8.12.0/video-js.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/videojs-seek-buttons@2.2.1/dist/videojs-seek-buttons.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/videojs-markers@0.5.0/dist/videojs-markers.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/videojs-text-track-settings@5.4.1/dist/videojs-text-track-settings.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/videojs-chromecast@1.0.0/dist/videojs-chromecast.css" rel="stylesheet">
     
     <script src="https://vjs.zencdn.net/8.12.0/video.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-hls@5.15.0/dist/videojs-contrib-hls.min.js"></script>
@@ -1636,9 +1679,7 @@
     <script src="https://cdn.jsdelivr.net/npm/videojs-vtt-thumbnails@0.0.13/dist/videojs-vtt-thumbnails.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/videojs-persist-volume@1.0.0/dist/videojs-persist-volume.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/videojs-seek-buttons@2.2.1/dist/videojs-seek-buttons.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/videojs-markers@0.5.0/dist/videojs-markers.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/videojs-text-track-settings@5.4.1/dist/videojs-text-track-settings.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/videojs-chromecast@1.0.0/dist/videojs-chromecast.min.js"></script>
     <script src="https://togetherjs.com/togetherjs-min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/annyang@2.6.1/dist/annyang.min.js"></script>
 
@@ -1675,22 +1716,6 @@
                 seekButtons: {
                     forward: 10,
                     back: 10
-                },
-                markers: {
-                    markerTip: {
-                        text: function(marker) {
-                            return marker.text;
-                        }
-                    }
-                },
-                hotkeys: {
-                    volumeStep: 0.1,
-                    seekStep: 5,
-                    enableModifiersForNumbers: false
-                },
-                chromecast: {
-                    chromecastAppId: 'DEFAULT',
-                    preloadWebComponents: true
                 }
             }
         };
@@ -2268,6 +2293,95 @@
             </div>`;
     }
     
+    // --- FUNÇÕES DE NAVEGAÇÃO ---
+    function loadContent(category, jsonFile) {
+        toggleSearch(true);
+        
+        const app = document.getElementById('main-app');
+        app.innerHTML = `<div class="category-page"><h2 class="section-title">${category}</h2><div class="row-container full-screen" id="row-category"></div></div>`;
+        
+        // Filtrar conteúdo pela categoria
+        let filteredContent = [];
+        
+        switch(category) {
+            case 'cinema':
+                filteredContent = masterData.filter(item => item.type === 'filme');
+                break;
+            case 'series':
+                filteredContent = masterData.filter(item => item.type === 'serie');
+                break;
+            case 'filmes-kids':
+                filteredContent = masterData.filter(item => 
+                    item.type === 'filme' && 
+                    (item.genero && item.genero.some(g => g.includes('Animação') || g.includes('Kids')))
+                );
+                break;
+            case 'series-kids':
+                filteredContent = masterData.filter(item => 
+                    item.type === 'serie' && 
+                    (item.genero && item.genero.some(g => g.includes('Animação') || g.includes('Kids')))
+                );
+                break;
+            default:
+                filteredContent = masterData;
+        }
+        
+        const container = document.getElementById('row-category');
+        
+        if (filteredContent.length === 0) {
+            container.innerHTML = '<p style="color:#666; font-style:italic; text-align:center; margin-top:50px;">Nenhum conteúdo encontrado nesta categoria.</p>';
+            return;
+        }
+        
+        filteredContent.forEach(item => {
+            container.innerHTML += renderCapaItem(item);
+        });
+    }
+    
+    function loadHistory() {
+        const container = document.getElementById('row-history');
+        if (!container) return;
+        
+        // Obter histórico do localStorage
+        const history = JSON.parse(localStorage.getItem('paixaoflix_history') || '[]');
+        
+        if (history.length === 0) {
+            container.innerHTML = '<p style="color:#666; font-style:italic; text-align:center; margin-top:50px;">Nenhum conteúdo assistido recentemente.</p>';
+            return;
+        }
+        
+        // Filtrar itens assistidos nos últimos 7 dias
+        const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+        const recentHistory = history.filter(item => item.timestamp > sevenDaysAgo);
+        
+        if (recentHistory.length === 0) {
+            container.innerHTML = '<p style="color:#666; font-style:italic; text-align:center; margin-top:50px;">Nenhum conteúdo assistido recentemente.</p>';
+            return;
+        }
+        
+        // Limitar a 3 itens mais recentes
+        const limitedHistory = recentHistory.slice(0, 3);
+        
+        limitedHistory.forEach((historyItem, index) => {
+            const item = masterData.find(data => data.titulo === historyItem.title);
+            if (item) {
+                const progress = historyItem.progress || 0;
+                container.innerHTML += `
+                    <div class="capa-item history-item" tabindex="0" onclick='openInfo(${JSON.stringify(item)})'>
+                        <img src="${item.poster}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDQwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjMDUwNzBhIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjRkZDRTQ0IiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iYm9sZCI+UGFpeMOjby1GbGl4PC90ZXh0Pgo8L3N2Zz4='">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%"></div>
+                        </div>
+                        <div class="capa-footer">
+                            <span>${item.year}</span>
+                            <span>★${item.rating}</span>
+                            <span class="continue-badge">Continuar</span>
+                        </div>
+                    </div>`;
+            }
+        });
+    }
+    
     // --- PÁGINA INICIAL COMPLETA ---
     function renderHome() {
         const app = document.getElementById('main-app');
@@ -2435,6 +2549,10 @@
                     // Pequeno delay para não sobrecarregar a API
                     await new Promise(resolve => setTimeout(resolve, 100));
                 }
+            } catch(error) {
+                console.warn('Erro ao buscar dados TMDB para:', item.titulo, error);
+            }
+        }
         renderAwardWinners();
         renderSabadoNoite();
         renderMaisVistos2025();
