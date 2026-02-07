@@ -503,6 +503,151 @@ body {
     padding: 50px;
 }
 
+/* Cinema Page Styles */
+.cinema-page {
+    width: 100%;
+    min-height: 100vh;
+    padding: 20px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.page-info h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+
+.page-info p {
+    font-size: 1.1rem;
+    color: #b3b3b3;
+    margin: 5px 0 0 0;
+}
+
+.page-stats {
+    text-align: right;
+}
+
+.content-count {
+    background: rgba(229, 9, 20, 0.2);
+    color: #e50914;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: 1px solid rgba(229, 9, 20, 0.3);
+}
+
+.page-content {
+    margin-top: 20px;
+}
+
+.movies-section {
+    margin-bottom: 40px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title i {
+    color: #e50914;
+}
+
+.section-badge {
+    background: rgba(229, 9, 20, 0.2);
+    color: #e50914;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid rgba(229, 9, 20, 0.3);
+}
+
+.movies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.loading-content {
+    text-align: center;
+    padding: 40px;
+    color: #b3b3b3;
+}
+
+.loading-content i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.no-content {
+    text-align: center;
+    padding: 40px;
+    color: #b3b3b3;
+    font-size: 1.1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .page-stats {
+        text-align: left;
+    }
+    
+    .movies-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+    }
+    
+    .page-info h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .movies-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+    }
+    
+    .page-info h1 {
+        font-size: 1.5rem;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+    }
+}
+
 /* Live Channels Page Styles */
 .live-channels-page {
     width: 100%;
