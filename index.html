@@ -18,73 +18,68 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
-    <!-- Menu Lateral -->
-    <nav class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <i class="fas fa-play"></i>
-                <span class="logo-text">PaixãoFlix</span>
-            </div>
+    <!-- Header Fixo -->
+    <header class="main-header" id="main-header">
+        <div class="header-left">
+            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" alt="PaixãoFlix" class="header-logo">
         </div>
         
-        <ul class="sidebar-menu">
-            <li class="menu-item">
-                <a href="#" class="menu-link" data-page="home">
-                    <i class="fas fa-home"></i>
-                    <span class="menu-text">Home</span>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="#" class="menu-link" data-page="search">
+        <div class="header-center">
+            <span id="title-count" class="title-count">Carregando...</span>
+        </div>
+        
+        <div class="header-right">
+            <span id="date-time" class="date-time">Carregando...</span>
+        </div>
+    </header>
+
+    <!-- Menu Lateral -->
+    <nav class="sidebar" id="sidebar">
+        <nav class="menu">
+            <div class="menu-item" data-page="search">
+                <a href="#" class="menu-link">
                     <i class="fas fa-search"></i>
-                    <span class="menu-text">Pesquisar</span>
+                    <span>Localizar</span>
                 </a>
-            </li>
-            <li class="menu-item">
-                <a href="#" class="menu-link" data-page="live-channels">
-                    <i class="fas fa-broadcast-tower"></i>
-                    <span class="menu-text">Canais ao Vivo</span>
+            </div>
+            <div class="menu-item" data-page="home">
+                <a href="#" class="menu-link">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
                 </a>
-            </li>
-            <li class="menu-item">
-                <a href="#" class="menu-link" data-page="cinema">
+            </div>
+            <div class="menu-item" data-page="cinema">
+                <a href="#" class="menu-link">
                     <i class="fas fa-film"></i>
-                    <span class="menu-text">Cinema</span>
+                    <span>Cinema</span>
                 </a>
-            </li>
-            <li class="menu-item">
-                <a href="#" class="menu-link" data-page="series">
+            </div>
+            <div class="menu-item" data-page="series">
+                <a href="#" class="menu-link">
                     <i class="fas fa-tv"></i>
-                    <span class="menu-text">Séries</span>
+                    <span>Séries</span>
                 </a>
-            </li>
-            <li class="menu-item">
-                <a href="#" class="menu-link" data-page="kids-channels">
+            </div>
+            <div class="menu-item" data-page="kids-movies">
+                <a href="#" class="menu-link">
                     <i class="fas fa-child"></i>
-                    <span class="menu-text">Canais Kids</span>
+                    <span>Filmes Kids</span>
                 </a>
-            </li>
-            <li class="menu-item">
-                <a href="#" class="menu-link" data-page="kids-movies">
-                    <i class="fas fa-video"></i>
-                    <span class="menu-text">Filmes Kids</span>
+            </div>
+            <div class="menu-item" data-page="kids-series">
+                <a href="#" class="menu-link">
+                    <i class="fas fa-baby"></i>
+                    <span>Séries Kids</span>
                 </a>
-            </li>
-            <li class="menu-item">
-                <a href="#" class="menu-link" data-page="kids-series">
-                    <i class="fas fa-tv"></i>
-                    <span class="menu-text">Séries Kids</span>
+            </div>
+            <div class="menu-item" data-page="live-channels">
+                <a href="#" class="menu-link">
+                    <i class="fas fa-broadcast-tower"></i>
+                    <span>Canais ao Vivo</span>
                 </a>
-            </li>
-            <li class="menu-item">
-                <a href="#" class="menu-link" data-page="my-list">
-                    <i class="fas fa-heart"></i>
-                    <span class="menu-text">Minha lista</span>
-                </a>
-            </li>
-        </ul>
+            </div>
+        </nav>
     </nav>
-    
     <!-- Conteúdo Principal -->
     <main class="main-content">
         <!-- Hero Banner -->
