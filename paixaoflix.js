@@ -1611,6 +1611,10 @@ class PaixaoFlixApp {
         this.currentPage = page;
         console.log(`📄 Navegando para página: ${page}`);
         
+        // Sempre limpar conteúdo principal antes de carregar nova página
+        const mainContent = document.querySelector('.main-content');
+        mainContent.innerHTML = '';
+        
         // Atualizar elementos focáveis
         setTimeout(() => {
             this.updateFocusableElements();
@@ -1618,12 +1622,13 @@ class PaixaoFlixApp {
             if (!document.activeElement || document.activeElement === document.body) {
                 if (this.focusableElements.length > 0) {
                     this.focusableElements[0].focus();
-                    console.log('� Foco inicial no primeiro elemento');
+                    console.log('🎯 Foco inicial no primeiro elemento');
                 }
             }
         }, 100);
         
         if (page === 'home') {
+            // Mostrar seções da home
             document.querySelectorAll('.content-section, .continue-watching, .saturday-night-section').forEach(section => {
                 section.style.display = 'block';
             });
@@ -1636,18 +1641,20 @@ class PaixaoFlixApp {
                 console.log('🏠 Home já carregada, atualizando elementos focáveis');
             }
         } else if (page === 'live-channels') {
-            // Limpar conteúdo principal
-            const mainContent = document.querySelector('.main-content');
-            mainContent.innerHTML = '';
-            
             // Carregar canais ao vivo
             this.loadLiveChannels();
+        } else if (page === 'search') {
+            // Página de busca - não faz nada, espera interação
+            mainContent.innerHTML = `
+                <div class="search-page">
+                    <div class="search-hero">
+                        <h1>Buscar Conteúdo</h1>
+                        <p>Use o menu Localizar ou pressione Enter para buscar</p>
+                    </div>
+                </div>
+            `;
         } else {
-            // Esconder seções especiais
-            document.querySelectorAll('.content-section, .continue-watching, .saturday-night-section').forEach(section => {
-                section.style.display = 'none';
-            });
-            
+            // Para outras páginas, carregar categorias específicas
             this.showPageCategories(page);
         }
     }
@@ -1836,26 +1843,54 @@ class PaixaoFlixApp {
     showPageCategories(page) {
         const mainContent = document.querySelector('.main-content');
         
-        // Limpar conteúdo existente
-        mainContent.innerHTML = '';
+        // Garantir que está limpo (já foi limpo em showPage)
+        if (mainContent.innerHTML !== '') {
+            mainContent.innerHTML = '';
+        }
         
         // Obter categorias para a página
         const categories = this.getCategoriesForPage(page);
         
         if (categories.length === 0) {
             // Se não houver categorias, mostrar mensagem
-            mainContent.innerHTML = '<div class="no-content">Nenhum conteúdo disponível</div>';
+            mainContent.innerHTML = `
+                <div class="no-content-page">
+                    <div class="no-content-icon">
+                        <i class="fas fa-film"></i>
+                    </div>
+                    <h2>Nenhum conteúdo disponível</h2>
+                    <p>Esta seção está sendo atualizada. Volte em breve!</p>
+                </div>
+            `;
             return;
         }
+        
+        // Criar header da página
+        const pageHeader = document.createElement('div');
+        pageHeader.className = 'page-header';
+        pageHeader.innerHTML = `
+            <h1 class="page-title">${this.getPageTitle(page)}</h1>
+            <p class="page-subtitle">${categories.length} categorias disponíveis</p>
+        `;
+        mainContent.appendChild(pageHeader);
         
         // Criar seções para cada categoria
         categories.forEach(category => {
             const section = document.createElement('section');
             section.className = 'content-section';
             section.innerHTML = `
-                <h2 class="section-title">${category.name}</h2>
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-${this.getCategoryIcon(category.type)}"></i>
+                        ${category.name}
+                    </h2>
+                    <div class="section-badge">${this.getContentCount(category.id, category.type)} itens</div>
+                </div>
                 <div class="movie-row" id="${category.id}-row">
-                    <!-- Será preenchido -->
+                    <div class="loading-content">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Carregando...</span>
+                    </div>
                 </div>
             `;
             
@@ -1864,6 +1899,64 @@ class PaixaoFlixApp {
             // Carregar conteúdo da categoria
             this.loadCategoryContent(category.id, category.type);
         });
+    }
+
+    getPageTitle(page) {
+        const titles = {
+            'cinema': 'Cinema',
+            'series': 'Séries',
+            'kids-movies': 'Filmes Kids',
+            'kids-series': 'Séries Kids',
+            'kids-channels': 'Canais Kids',
+            'my-list': 'Minha Lista'
+        };
+        return titles[page] || page;
+    }
+
+    getCategoryIcon(type) {
+        const icons = {
+            'movies': 'film',
+            'series': 'tv',
+            'kids-movies-all': 'child',
+            'kids-series-all': 'baby',
+            'kids-channels': 'gamepad',
+            'favorites': 'heart'
+        };
+        return icons[type] || 'folder';
+    }
+
+    getContentCount(categoryId, categoryType) {
+        let content = [];
+        
+        switch (categoryType) {
+            case 'movies':
+                content = this.data.filmes.filter(item => {
+                    const category = categoryId.replace('lancamento-', '').replace('-series', '');
+                    return item.category === category || 
+                           item.genre === category ||
+                           (item.genero && item.genero.includes(category));
+                });
+                break;
+            case 'series':
+                content = this.data.series.filter(item => {
+                    const category = categoryId.replace('lancamento-', '').replace('-series', '');
+                    return item.category === category || 
+                           item.genre === category ||
+                           (item.genero && item.genero.includes(category));
+                });
+                break;
+            case 'kids-movies-all':
+                content = this.data.kidsFilmes;
+                break;
+            case 'kids-series-all':
+                content = this.data.kidsSeries;
+                break;
+            case 'favorites':
+                content = this.data.favoritos;
+                break;
+        }
+        
+        return content.length;
     }
 
     loadCategoryContent(categoryId, categoryType) {
