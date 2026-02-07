@@ -101,7 +101,7 @@ body {
 .sidebar {
     position: fixed;
     left: 0;
-    top: 80px;
+    top: 50px;
     width: 80px;
     height: calc(100vh - 80px);
     background: linear-gradient(135deg, #050714 0%, #1a1f3a 100%);
@@ -195,8 +195,8 @@ body {
 
 /* Banner Hero com opacidade reduzida */
 .hero {
-    height: 50vh;
-    min-height: 400px;
+    height: 40vh;
+    min-height: 300px;
     position: relative;
     display: flex;
     align-items: center;
@@ -214,8 +214,7 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    filter: brightness(0.7);
-    transition: background-image 1s ease-in-out;
+    transition: all 0.8s ease;
 }
 
 .hero-scrim {
@@ -224,7 +223,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
+    background: rgba(0, 0, 0, 0.3);
 }
 
 .hero-content {
@@ -648,7 +647,34 @@ body {
     }
 }
 
-/* Live Channels Page Styles */
+/* Efeito de brilho e escala no card focado */
+.movie-card:focus, .menu-item:focus, button:focus {
+    outline: none;
+    border: 3px solid #fff !important;
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    z-index: 100;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Garante que o menu lateral não suma ao focar */
+.sidebar {
+    transition: width 0.3s ease;
+    z-index: 1000;
+}
+
+.sidebar:focus-within {
+    width: 260px; /* Expandir ao navegar no menu */
+}
+
+.hero {
+    height: 50vh !important; /* Altura reduzida para Smart TVs */
+    min-height: 400px;
+}
+
+.hero-scrim {
+    background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%) !important;
+}
 .live-channels-page {
     width: 100%;
     height: 100%;
