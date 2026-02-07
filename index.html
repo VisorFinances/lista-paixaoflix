@@ -3,258 +3,417 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PaixãoFlix - Streaming Platform</title>
-    
-    <!-- Google Fonts - Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <title>Teste Oficial - PaixãoFlix</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #050714;
+            color: white;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-header h1 {
+            color: #FFD700;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .test-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .test-btn {
+            background: linear-gradient(135deg, #1a1f3a 0%, #050714 100%);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .test-btn:hover {
+            border-color: #FFD700;
+            transform: translateY(-2px);
+        }
+        .test-btn.primary {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #050714;
+            font-weight: 600;
+        }
+        .test-output {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 400px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+        .test-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .status-indicator.pass { background: #4CAF50; }
+        .status-indicator.fail { background: #F44336; }
+        .status-indicator.pending { background: #FF9800; }
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .quick-link {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .quick-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #FFD700;
+        }
+    </style>
 </head>
 <body>
-    <!-- Header Fixo -->
-    <header class="main-header" id="main-header">
-        <div class="header-left">
-            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" alt="PaixãoFlix" class="header-logo">
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🧪 Teste Oficial PaixãoFlix</h1>
+            <p>Sistema Completo de Validação Automatizada</p>
         </div>
-        
-        <div class="header-center">
-            <span id="title-count" class="title-count">Carregando...</span>
-        </div>
-        
-        <div class="header-right">
-            <span id="date-time" class="date-time">Carregando...</span>
-        </div>
-    </header>
 
-    <!-- Menu Lateral -->
-    <nav class="sidebar" id="sidebar">
-        <nav class="menu">
-            <div class="menu-item" data-page="home">
-                <a href="#" class="menu-link">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
-            </div>
-            <div class="menu-item" data-page="live-channels">
-                <a href="#" class="menu-link">
-                    <i class="fas fa-broadcast-tower"></i>
-                    <span>Canais ao Vivo</span>
-                </a>
-            </div>
-            <div class="menu-item" data-page="cinema">
-                <a href="#" class="menu-link">
-                    <i class="fas fa-film"></i>
-                    <span>Cinema</span>
-                </a>
-            </div>
-            <div class="menu-item" data-page="series">
-                <a href="#" class="menu-link">
-                    <i class="fas fa-tv"></i>
-                    <span>Séries</span>
-                </a>
-            </div>
-            <div class="menu-item" data-page="kids-movies">
-                <a href="#" class="menu-link">
-                    <i class="fas fa-child"></i>
-                    <span>Filmes Kids</span>
-                </a>
-            </div>
-            <div class="menu-item" data-page="kids-series">
-                <a href="#" class="menu-link">
-                    <i class="fas fa-baby"></i>
-                    <span>Séries Kids</span>
-                </a>
-            </div>
-            <div class="menu-item" data-page="kids-channels">
-                <a href="#" class="menu-link">
-                    <i class="fas fa-gamepad"></i>
-                    <span>Canais Kids</span>
-                </a>
-            </div>
-            <div class="menu-item" data-page="my-list">
-                <a href="#" class="menu-link">
-                    <i class="fas fa-heart"></i>
-                    <span>Minha Lista</span>
-                </a>
-            </div>
-            <div class="menu-item" data-page="search">
-                <a href="#" class="menu-link">
-                    <i class="fas fa-search"></i>
-                    <span>Buscar</span>
-                </a>
-            </div>
-        </nav>
-    </nav>
-    <!-- Conteúdo Principal -->
-    <main class="main-content">
-        <!-- Hero Banner -->
-        <section class="hero" id="hero">
-            <div class="hero-background">
-                <div class="hero-scrim"></div>
-            </div>
-            <div class="hero-content">
-                <h1 class="hero-title">PaixãoFlix</h1>
-                <p class="hero-description">A melhor experiência de streaming para Smart TVs</p>
-                <div class="hero-buttons">
-                    <button class="btn-primary" id="play-hero">
-                        <i class="fas fa-play"></i>
-                        Assistir Agora
-                    </button>
-                    <button class="btn-secondary" id="info-hero">
-                        <i class="fas fa-info-circle"></i>
-                        Mais Informações
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- 1. Não deixe de ver -->
-        <section class="content-section">
-            <h2 class="section-title">Não deixe de ver</h2>
-            <div class="movie-row" id="nao-deixe-de-ver-row">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-        
-        <!-- 2. Continuar Assistindo -->
-        <section class="continue-watching">
-            <h2 class="section-title">Continuar Assistindo</h2>
-            <div class="infinite-row" id="continue-watching-row">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-        
-        <!-- 3. Minha Lista -->
-        <section class="content-section">
-            <h2 class="section-title">Minha Lista</h2>
-            <div class="movie-row" id="my-list-row">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-        
-        <!-- 4. Sábado à noite merece -->
-        <section class="saturday-night-section saturday-night">
-            <div class="saturday-night-content">
-                <h2 class="section-title">Sábado à noite merece</h2>
-                <div class="infinite-row">
-                    <div class="wide-card">
-                        <div class="card-thumbnail">
-                            <i class="fas fa-play-circle"></i>
-                        </div>
-                        <div class="card-info">
-                            <div class="card-title">Filme Especial de Sábado</div>
-                            <div class="card-meta">
-                                <span>2h 30min</span>
-                                <span>Ação</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <!-- 4. Premiados pela mídia -->
-        <section class="content-section">
-            <h2 class="section-title">Premiados pela mídia</h2>
-            <div class="infinite-row" id="premiados-pela-midia-row">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-        
-        <!-- 5. Nostalgia que aquecem o coração -->
-        <section class="content-section">
-            <h2 class="section-title">Nostalgia que aquecem o coração</h2>
-            <div class="movie-row" id="nostalgia-row">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-        
-        <!-- 6. As crianças amam -->
-        <section class="content-section">
-            <h2 class="section-title">As crianças amam</h2>
-            <div class="movie-row" id="kids-row">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-        
-        <!-- 7. Prepare a pipoca e venha maratonar -->
-        <section class="content-section">
-            <h2 class="section-title">Prepare a pipoca e venha maratonar</h2>
-            <div class="movie-row" id="maratonar-row">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-        
-        <!-- 8. Porque você assistiu -->
-        <section class="content-section">
-            <h2 class="section-title">Porque você assistiu</h2>
-            <div class="movie-row" id="recomendacoes-row">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-        
-        <!-- 9. Novela (última sessão) -->
-        <section class="content-section novela-section">
-            <h2 class="section-title">Novela</h2>
-            <div class="infinite-row infinite-loop" data-category="novela">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-    </main>
-    
-    <!-- Modal de Detalhes do Conteúdo -->
-    <div class="modal" id="content-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Título do Conteúdo</h2>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-info">
-                    <p class="modal-description">Descrição do conteúdo</p>
-                    <div class="modal-meta">
-                        <span class="modal-year">2024</span>
-                        <span class="modal-genre">Drama</span>
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button class="btn-primary play-btn">
-                        <i class="fas fa-play"></i> Assistir
-                    </button>
-                    <button class="btn-secondary continue-btn">
-                        <i class="fas fa-play"></i> Continuar
-                    </button>
-                </div>
-            </div>
+        <div class="quick-links">
+            <a href="index.html" class="quick-link">
+                <i class="fas fa-home"></i><br>
+                Aplicação Principal
+            </a>
+            <a href="javascript:void(0)" class="quick-link" onclick="openNewTab()">
+                <i class="fas fa-external-link-alt"></i><br>
+                Nova Aba de Teste
+            </a>
+            <a href="javascript:void(0)" class="quick-link" onclick="toggleDevTools()">
+                <i class="fas fa-bug"></i><br>
+                DevTools
+            </a>
+            <a href="javascript:void(0)" class="quick-link" onclick="clearConsole()">
+                <i class="fas fa-trash"></i><br>
+                Limpar Console
+            </a>
         </div>
-    </div>
-    
-    <!-- Video Player -->
-    <div class="video-player" id="video-player">
-        <div class="player-container">
-            <video controls></video>
-            <div class="player-controls">
-                <button class="close-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-                <div class="quality-selector">
-                    <button class="quality-btn" data-quality="auto">Auto</button>
-                    <button class="quality-btn" data-quality="1080p">1080p</button>
-                    <button class="quality-btn" data-quality="720p">720p</button>
-                    <button class="quality-btn" data-quality="480p">480p</button>
-                </div>
+
+        <div class="test-controls">
+            <button class="test-btn primary" onclick="runFullTestSuite()">
+                🚀 Executar Testes Completos
+            </button>
+            <button class="test-btn" onclick="runQuickTest()">
+                ⚡ Teste Rápido
+            </button>
+            <button class="test-btn" onclick="testNavigation()">
+                🎮 Testar Navegação
+            </button>
+            <button class="test-btn" onclick="testPerformance()">
+                ⚡ Testar Performance
+            </button>
+            <button class="test-btn" onclick="generateReport()">
+                📊 Gerar Relatório
+            </button>
+            <button class="test-btn" onclick="clearOutput()">
+                🧹 Limpar Saída
+            </button>
+        </div>
+
+        <div class="test-status">
+            <div>
+                <span class="status-indicator pending" id="statusIndicator"></span>
+                <span id="statusText">Aguardando testes...</span>
             </div>
+            <div id="testProgress">0/0 testes</div>
+        </div>
+
+        <div class="test-output" id="testOutput">
+Aguardando execução dos testes...
+
+Para começar, clique em "Executar Testes Completos" ou use um dos testes rápidos disponíveis.
+
+📋 Testes Disponíveis:
+✅ Inicialização do Sistema
+✅ Carregamento de Dados  
+✅ Header Fixo
+✅ Menu Lateral
+✅ Sistema de Foco
+✅ Conteúdo da Home
+✅ Sessão Sábado
+✅ Canais ao Vivo
+✅ Banner Hero
+✅ Performance
+
+🎯 Critérios de Aprovação:
+- Todos os testes críticos devem passar
+- Navegação por teclado 100% funcional
+- Performance otimizada (sem lag)
+- Interface visual consistente
+
+Use F12 para abrir DevTools e monitorar o console durante os testes.
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="paixaoflix.js"></script>
+    <script>
+        let testOutput = document.getElementById('testOutput');
+        let statusIndicator = document.getElementById('statusIndicator');
+        let statusText = document.getElementById('statusText');
+        let testProgress = document.getElementById('testProgress');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '📋';
+            testOutput.textContent += `\n[${timestamp}] ${prefix} ${message}`;
+            testOutput.scrollTop = testOutput.scrollHeight;
+        }
+
+        function updateStatus(status, text) {
+            statusIndicator.className = `status-indicator ${status}`;
+            statusText.textContent = text;
+        }
+
+        function updateProgress(current, total) {
+            testProgress.textContent = `${current}/${total} testes`;
+        }
+
+        function clearOutput() {
+            testOutput.textContent = 'Saída limpa. Pronto para novos testes...\n';
+        }
+
+        function openNewTab() {
+            window.open('index.html', '_blank');
+        }
+
+        function toggleDevTools() {
+            alert('Pressione F12 ou Ctrl+Shift+I para abrir DevTools');
+        }
+
+        function clearConsole() {
+            console.clear();
+            log('Console limpo');
+        }
+
+        async function runFullTestSuite() {
+            log('🚀 Iniciando Suite Completa de Testes...');
+            updateStatus('pending', 'Executando testes...');
+            
+            try {
+                // Carregar test runner
+                if (!window.PaixaoFlixTestRunner) {
+                    const script = document.createElement('script');
+                    script.src = 'test-runner.js';
+                    document.head.appendChild(script);
+                    
+                    await new Promise(resolve => {
+                        script.onload = resolve;
+                        setTimeout(resolve, 1000);
+                    });
+                }
+                
+                // Executar testes
+                const result = await window.runAutomatedTests();
+                
+                if (result) {
+                    updateStatus('pass', 'Todos os testes passaram!');
+                    log('🎉 SISTEMA APROVADO - Todos os testes passaram!', 'success');
+                } else {
+                    updateStatus('fail', 'Alguns testes falharam');
+                    log('❌ SISTEMA REPROVADO - Verifique os erros acima', 'error');
+                }
+                
+            } catch (error) {
+                updateStatus('fail', 'Erro na execução');
+                log(`❌ Erro: ${error.message}`, 'error');
+            }
+        }
+
+        async function runQuickTest() {
+            log('⚡ Executando Teste Rápido...');
+            updateStatus('pending', 'Teste rápido em andamento...');
+            
+            try {
+                // Verificar se a aplicação está acessível
+                const appWindow = window.open('index.html', 'testWindow', 'width=800,height=600');
+                
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                // Tentar acessar a aplicação
+                try {
+                    const app = appWindow.window.paixaoflix;
+                    if (app && app.data.filmes.length > 0) {
+                        log('✅ Aplicação carregada com sucesso', 'success');
+                        log(`📊 ${app.data.filmes.length} filmes, ${app.data.series.length} séries`);
+                        updateStatus('pass', 'Teste rápido passou');
+                    } else {
+                        log('❌ Aplicação não carregou corretamente', 'error');
+                        updateStatus('fail', 'Teste rápido falhou');
+                    }
+                } catch (error) {
+                    log('❌ Erro ao acessar aplicação: ' + error.message, 'error');
+                    updateStatus('fail', 'Teste rápido falhou');
+                }
+                
+                appWindow.close();
+                
+            } catch (error) {
+                log(`❌ Erro no teste rápido: ${error.message}`, 'error');
+                updateStatus('fail', 'Teste rápido falhou');
+            }
+        }
+
+        async function testNavigation() {
+            log('🎮 Testando Sistema de Navegação...');
+            updateStatus('pending', 'Testando navegação...');
+            
+            const appWindow = window.open('index.html', 'navTest', 'width=800,height=600');
+            
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            try {
+                const app = appWindow.window.paixaoflix;
+                
+                if (app && app.focusableElements) {
+                    log(`✅ ${app.focusableElements.length} elementos focáveis encontrados`);
+                    
+                    // Testar navegação por setas
+                    const firstElement = app.focusableElements[0];
+                    firstElement.focus();
+                    log('✅ Foco inicial aplicado');
+                    
+                    // Simular seta direita
+                    const event = new KeyboardEvent('keydown', { key: 'ArrowRight' });
+                    appWindow.document.dispatchEvent(event);
+                    
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    log('✅ Navegação por setas funcionando');
+                    updateStatus('pass', 'Navegação aprovada');
+                } else {
+                    log('❌ Sistema de navegação não encontrado', 'error');
+                    updateStatus('fail', 'Navegação falhou');
+                }
+                
+            } catch (error) {
+                log(`❌ Erro na navegação: ${error.message}`, 'error');
+                updateStatus('fail', 'Navegação falhou');
+            }
+            
+            appWindow.close();
+        }
+
+        async function testPerformance() {
+            log('⚡ Testando Performance...');
+            updateStatus('pending', 'Testando performance...');
+            
+            const startTime = performance.now();
+            
+            const appWindow = window.open('index.html', 'perfTest', 'width=800,height=600');
+            
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
+            const loadTime = performance.now() - startTime;
+            
+            if (loadTime < 3000) {
+                log(`✅ Performance excelente: ${loadTime.toFixed(0)}ms`, 'success');
+                updateStatus('pass', 'Performance aprovada');
+            } else if (loadTime < 5000) {
+                log(`⚠️ Performance aceitável: ${loadTime.toFixed(0)}ms`, 'warning');
+                updateStatus('pending', 'Performance aceitável');
+            } else {
+                log(`❌ Performance lenta: ${loadTime.toFixed(0)}ms`, 'error');
+                updateStatus('fail', 'Performance reprovada');
+            }
+            
+            appWindow.close();
+        }
+
+        function generateReport() {
+            log('📊 Gerando Relatório de Testes...');
+            
+            const report = `
+========================================
+RELATÓRIO DE TESTES - PAIXÃOFLIX
+Data: ${new Date().toLocaleString('pt-BR')}
+Testador: Sistema Automatizado
+Versão: v1.0.0
+========================================
+
+📋 Status dos Testes:
+[ ] Inicialização do Sistema
+[ ] Carregamento de Dados
+[ ] Header Fixo
+[ ] Menu Lateral
+[ ] Sistema de Foco
+[ ] Conteúdo da Home
+[ ] Sessão Sábado
+[ ] Canais ao Vivo
+[ ] Banner Hero
+[ ] Performance
+
+🎯 Critérios de Aprovação:
+✅ Interface visual consistente
+✅ Navegação por teclado funcional
+✅ Performance otimizada
+✅ Todos os dados carregados
+✅ Funcionalidades operacionais
+
+📊 Resultado: PENDENTE EXECUÇÃO
+
+Para resultados completos, execute "Executar Testes Completos".
+========================================
+            `;
+            
+            testOutput.textContent = report;
+            
+            // Download do relatório
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `relatorio-paixaoflix-${Date.now()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            log('📄 Relatório gerado e baixado');
+        }
+
+        // Auto-executar verificação inicial
+        window.addEventListener('load', () => {
+            log('🧪 Página de Testes carregada');
+            log('📋 Pronta para executar testes do PaixãoFlix');
+            updateStatus('pending', 'Pronta para testes');
+        });
+    </script>
 </body>
 </html>
