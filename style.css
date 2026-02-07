@@ -29,6 +29,226 @@ body {
 }
 
 /* Menu Lateral (Estilo Disney+) */
+/* Header Fixo */
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(135deg, #050714 0%, #1a1f3a 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    z-index: 2000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.header-logo {
+    height: 60px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.header-logo:hover {
+    transform: scale(1.05);
+}
+
+.header-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.title-count {
+    color: #FFD700;
+    font-size: 18px;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.date-time {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Ajustar main-content para não ficar atrás do header */
+.main-content {
+    margin-top: 80px;
+    margin-left: 80px;
+    transition: margin-left var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+/* Sidebar com cor azul escuro original */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 80px;
+    width: 80px;
+    height: calc(100vh - 80px);
+    background: linear-gradient(135deg, #050714 0%, #1a1f3a 100%);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    transition: width var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    z-index: 1000;
+    padding-top: 40px;
+}
+
+/* Foco visível com borda vermelha */
+.movie-card:focus,
+.wide-card:focus,
+.menu-link:focus,
+.channel-card:focus,
+.search-result-item:focus,
+button:focus,
+input:focus {
+    outline: none;
+    border: 4px solid #ffffff;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+/* Menu lateral expansivo */
+.sidebar:not(.expanded) .menu-link span {
+    display: none;
+}
+
+.sidebar.expanded {
+    width: 260px;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+}
+
+.sidebar.expanded .menu-link span {
+    display: inline;
+    margin-left: 12px;
+}
+
+/* Banner Hero com opacidade reduzida */
+.hero {
+    position: relative;
+    height: 70vh;
+    min-height: 500px;
+    overflow: hidden;
+}
+
+.hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: background-image 1s ease-in-out;
+}
+
+.hero-scrim {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.2) 0%,
+        rgba(0, 0, 0, 0.4) 50%,
+        rgba(0, 0, 0, 0.6) 100%
+    );
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0 20px;
+    color: white;
+}
+
+.hero-title {
+    font-size: 4rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+    line-height: 1.1;
+}
+
+.hero-description {
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-bottom: 2rem;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+    max-width: 800px;
+}
+
+/* Body sem scroll bars */
+body {
+    overflow: hidden;
+}
+
+/* Containers com scroll via JavaScript */
+.movie-row,
+.infinite-row,
+.main-content {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.movie-row::-webkit-scrollbar,
+.infinite-row::-webkit-scrollbar,
+.main-content::-webkit-scrollbar {
+    display: none;
+}
+
+/* Logo */
+.logo-container {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-image {
+    max-width: 120px;
+    max-height: 120px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.logo-image:hover {
+    transform: scale(1.05);
+}
+
+/* Sidebar */
 .sidebar {
     position: fixed;
     left: 0;
