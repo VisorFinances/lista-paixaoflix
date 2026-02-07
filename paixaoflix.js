@@ -319,23 +319,15 @@ class PaixaoFlixApp {
     loadHomeContent() {
         console.log('🏠 Iniciando carregamento do conteúdo da home...');
         
-        // Verificar se elementos existem
-        const requiredElements = [
-            'nao-deixe-de-ver-row',
-            'continue-watching-row', 
-            'my-list-row',
-            'premiados-pela-midia-row',
-            'nostalgia-row',
-            'kids-row',
-            'maratonar-row',
-            'recomendacoes-row'
-        ];
-        
-        const missingElements = requiredElements.filter(id => !document.getElementById(id));
-        if (missingElements.length > 0) {
-            console.warn('⚠️ Elementos faltando:', missingElements);
-            return;
-        }
+        // Verificar se elementos existem antes de usar
+        const checkElement = (id) => {
+            const element = document.getElementById(id);
+            if (!element) {
+                console.warn(`⚠️ Elemento não encontrado: ${id}`);
+                return null;
+            }
+            return element;
+        };
         
         // Verificar e inserir sessão de sábado dinamicamente
         this.checkSaturdaySession();
@@ -383,7 +375,10 @@ class PaixaoFlixApp {
 
     loadMyList() {
         const container = document.getElementById('my-list-row');
-        if (!container) return;
+        if (!container) {
+            console.warn('⚠️ Container "my-list-row" não encontrado');
+            return;
+        }
 
         // Verificar se há favoritos
         if (this.data.favoritos.length === 0) {
@@ -517,10 +512,13 @@ class PaixaoFlixApp {
 
     loadMostViewed() {
         const container = document.getElementById('nao-deixe-de-ver-row');
-        if (!container) return;
+        if (!container) {
+            console.warn('⚠️ Container "nao-deixe-de-ver-row" não encontrado');
+            return;
+        }
 
         // Verificar se há dados carregados
-        if (this.data.filmes.length === 0) {
+        if (this.data.filmes.length === 0 && this.data.series.length === 0) {
             setTimeout(() => this.loadMostViewed(), 100);
             return;
         }
@@ -528,18 +526,35 @@ class PaixaoFlixApp {
         // Pegar conteúdo mais visto (simulado com rating ou views)
         const allContent = [...this.data.filmes, ...this.data.series];
         
+        if (allContent.length === 0) {
+            container.innerHTML = '<div class="no-content">Nenhum conteúdo disponível</div>';
+            return;
+        }
+        
         // Ordenar por popularidade (rating ou views)
         const mostViewed = allContent
             .filter(item => item.rating && item.rating >= 7.0)
             .sort((a, b) => (b.rating || 0) - (a.rating || 0))
             .slice(0, 5);
         
-        container.innerHTML = '';
-        
-        mostViewed.forEach((item, index) => {
-            const card = this.createMostViewedCard(item, index + 1);
-            container.appendChild(card);
-        });
+        if (mostViewed.length === 0) {
+            // Se não houver conteúdo com rating >= 7.0, pegar os melhores disponíveis
+            const fallback = allContent
+                .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+                .slice(0, 5);
+            
+            container.innerHTML = '';
+            fallback.forEach((item, index) => {
+                const card = this.createMostViewedCard(item, index + 1);
+                container.appendChild(card);
+            });
+        } else {
+            container.innerHTML = '';
+            mostViewed.forEach((item, index) => {
+                const card = this.createMostViewedCard(item, index + 1);
+                container.appendChild(card);
+            });
+        }
     }
 
     createMostViewedCard(item, rank) {
@@ -606,9 +621,27 @@ class PaixaoFlixApp {
 
     loadContinueWatching() {
         const container = document.getElementById('continue-watching-row');
-        if (!container) return;
+        if (!container) {
+            console.warn('⚠️ Container "continue-watching-row" não encontrado');
+            return;
+        }
 
         container.innerHTML = '';
+        
+        if (this.continueWatching.length === 0) {
+            // Ocultar sessão se estiver vazia
+            const section = container.closest('.continue-watching');
+            if (section) {
+                section.style.display = 'none';
+            }
+            return;
+        }
+
+        // Mostrar sessão se houver conteúdo
+        const section = container.closest('.continue-watching');
+        if (section) {
+            section.style.display = 'block';
+        }
         
         this.continueWatching.forEach(item => {
             const card = this.createWideCard(item);
@@ -673,10 +706,18 @@ class PaixaoFlixApp {
 
     loadAwardWinning() {
         const container = document.getElementById('premiados-pela-midia-row');
-        if (!container) return;
+        if (!container) {
+            console.warn('⚠️ Container "premiados-pela-midia-row" não encontrado');
+            return;
+        }
 
         const curator = new CuratorEngine(this.data);
         const awarded = curator.getAwardWinning();
+        
+        if (awarded.length === 0) {
+            container.innerHTML = '<div class="no-content">Nenhum conteúdo premiado encontrado</div>';
+            return;
+        }
         
         // Criar loop infinito para premiados
         const createInfiniteLoop = () => {
@@ -776,7 +817,10 @@ class PaixaoFlixApp {
 
     loadNostalgiaContent() {
         const container = document.getElementById('nostalgia-row');
-        if (!container) return;
+        if (!container) {
+            console.warn('⚠️ Container "nostalgia-row" não encontrado');
+            return;
+        }
 
         // Filtrar conteúdo clássico/retro (antes de 2010)
         const allContent = [...this.data.filmes, ...this.data.series];
@@ -786,25 +830,7 @@ class PaixaoFlixApp {
         });
         
         if (nostalgia.length === 0) {
-            console.warn('⚠️ Nenhum conteúdo nostálgico encontrado - tentando filtro alternativo');
-            // Tentar filtro alternativo por genre/category
-            const nostalgiaAlt = allContent.filter(item => 
-                item.genre === 'Clássicos' || 
-                item.category === 'Clássicos' ||
-                (item.genero && item.genero.includes('Clássicos'))
-            );
-            
-            if (nostalgiaAlt.length > 0) {
-                console.log(`🕰️ Encontrados ${nostalgiaAlt.length} itens nostálgicos via filtro alternativo`);
-                const selected = nostalgiaAlt.sort(() => Math.random() - 0.5).slice(0, 5);
-                container.innerHTML = '';
-                selected.forEach(item => {
-                    const card = this.createMovieCard(item);
-                    container.appendChild(card);
-                });
-                return;
-            }
-            
+            console.warn('⚠️ Nenhum conteúdo nostálgico encontrado');
             container.innerHTML = '<div class="no-content">Nenhum conteúdo clássico encontrado</div>';
             return;
         }
@@ -874,10 +900,18 @@ class PaixaoFlixApp {
 
     loadMarathon() {
         const container = document.getElementById('maratonar-row');
-        if (!container) return;
+        if (!container) {
+            console.warn('⚠️ Container "maratonar-row" não encontrado');
+            return;
+        }
 
         const curator = new CuratorEngine(this.data);
         const marathon = curator.getMarathonContent();
+        
+        if (marathon.length === 0) {
+            container.innerHTML = '<div class="no-content">Nenhum conteúdo para maratona encontrado</div>';
+            return;
+        }
         
         // Limitar a 5 capas
         const selected = marathon.slice(0, 5);
@@ -892,7 +926,10 @@ class PaixaoFlixApp {
 
     loadRecommendations() {
         const container = document.getElementById('recomendacoes-row');
-        if (!container) return;
+        if (!container) {
+            console.warn('⚠️ Container "recomendacoes-row" não encontrado');
+            return;
+        }
 
         // Algoritmo de recomendação baseado no último assistido
         let recommendations = [];
@@ -922,6 +959,11 @@ class PaixaoFlixApp {
                 .filter(item => item.rating && item.rating >= 7.5)
                 .sort(() => Math.random() - 0.5)
                 .slice(0, 4);
+        }
+        
+        if (recommendations.length === 0) {
+            container.innerHTML = '<div class="no-content">Nenhuma recomendação disponível</div>';
+            return;
         }
         
         container.innerHTML = '';
@@ -1615,6 +1657,11 @@ class PaixaoFlixApp {
         const mainContent = document.querySelector('.main-content');
         mainContent.innerHTML = '';
         
+        // Esconder todas as seções da home por padrão
+        document.querySelectorAll('.content-section, .continue-watching, .saturday-night-section').forEach(section => {
+            section.style.display = 'none';
+        });
+        
         // Atualizar elementos focáveis
         setTimeout(() => {
             this.updateFocusableElements();
@@ -1628,7 +1675,7 @@ class PaixaoFlixApp {
         }, 100);
         
         if (page === 'home') {
-            // Mostrar seções da home
+            // Mostrar seções da home APENAS para página home
             document.querySelectorAll('.content-section, .continue-watching, .saturday-night-section').forEach(section => {
                 section.style.display = 'block';
             });
