@@ -64,11 +64,20 @@ class PaixaoFlixApp {
     }
 
     updateTitleCount() {
-        const totalTitles = this.data.filmes.length + this.data.series.length;
-        const countElement = document.getElementById('title-count');
-        if (countElement) {
-            countElement.textContent = `${totalTitles.toLocaleString('pt-BR')} Títulos Disponíveis`;
+        // Contar o total real de itens nos arquivos JSON
+        const totalContent = (this.data.filmes ? this.data.filmes.length : 0) + 
+                          (this.data.series ? this.data.series.length : 0) + 
+                          (this.data.kidsFilmes ? this.data.kidsFilmes.length : 0) + 
+                          (this.data.kidsSeries ? this.data.kidsSeries.length : 0) +
+                          (this.data.channels ? this.data.channels.length : 0) +
+                          (this.data.kidsChannels ? this.data.kidsChannels.length : 0);
+        
+        const titleCount = document.getElementById('title-count');
+        if (titleCount) {
+            titleCount.textContent = `${totalContent} Títulos Disponíveis`;
         }
+        
+        console.log(`📊 Contador atualizado: ${totalContent} títulos (${this.data.filmes ? this.data.filmes.length : 0} filmes + ${this.data.series ? this.data.series.length : 0} séries + ${this.data.kidsFilmes ? this.data.kidsFilmes.length : 0} filmes kids + ${this.data.kidsSeries ? this.data.kidsSeries.length : 0} séries kids + ${this.data.channels ? this.data.channels.length : 0} canais)`);
     }
 
     updateDateTime() {
@@ -152,11 +161,19 @@ class PaixaoFlixApp {
             ]);
 
             // Garantir que todos sejam arrays
-            this.data.filmes = Array.isArray(filmes.movies) ? filmes.movies : Array.isArray(filmes) ? filmes : [];
-            this.data.series = Array.isArray(series.series) ? series.series : Array.isArray(series) ? series : [];
-            this.data.kidsFilmes = Array.isArray(kidsFilmes.movies) ? kidsFilmes.movies : Array.isArray(kidsFilmes) ? kidsFilmes : [];
-            this.data.kidsSeries = Array.isArray(kidsSeries.series) ? kidsSeries.series : Array.isArray(kidsSeries) ? kidsSeries : [];
-            this.data.favoritos = Array.isArray(favoritos.favorites) ? favoritos.favorites : Array.isArray(favoritos) ? favoritos : [];
+            this.data.filmes = filmes && filmes.movies ? filmes.movies : [];
+            this.data.series = series && series.series ? series.series : [];
+            this.data.kidsFilmes = kidsFilmes && kidsFilmes.movies ? kidsFilmes.movies : [];
+            this.data.kidsSeries = kidsSeries && kidsSeries.series ? kidsSeries.series : [];
+            this.data.favoritos = favoritos && favoritos.favorites ? favoritos.favorites : [];
+            
+            console.log('📊 Estrutura dos dados:', {
+                filmes: { type: typeof filmes, hasMovies: !!(filmes && filmes.movies), length: this.data.filmes.length },
+                series: { type: typeof series, hasSeries: !!(series && series.series), length: this.data.series.length },
+                kidsFilmes: { type: typeof kidsFilmes, hasMovies: !!(kidsFilmes && kidsFilmes.movies), length: this.data.kidsFilmes.length },
+                kidsSeries: { type: typeof kidsSeries, hasSeries: !!(kidsSeries && kidsSeries.series), length: this.data.kidsSeries.length },
+                favoritos: { type: typeof favoritos, hasFavorites: !!(favoritos && favoritos.favorites), length: this.data.favoritos.length }
+            });
             
             // Carregar canais M3U
             await this.loadChannels();
@@ -168,6 +185,23 @@ class PaixaoFlixApp {
             
             // Atualizar contador de títulos
             this.updateTitleCount();
+            
+            // Teste simples para verificar se os dados foram carregados
+            console.log('🧪 Teste de dados:', {
+                totalFilmes: this.data.filmes.length,
+                primeiraFilme: this.data.filmes[0] ? this.data.filmes[0].title : 'N/A',
+                totalSeries: this.data.series.length,
+                primeiraSerie: this.data.series[0] ? this.data.series[0].title : 'N/A'
+            });
+            
+            // Forçar carregamento da home se estiver vazia
+            setTimeout(() => {
+                const naoDeixeVerRow = document.getElementById('nao-deixe-de-ver-row');
+                if (naoDeixeVerRow && naoDeixeVerRow.children.length === 0) {
+                    console.log('🔄 Forçando carregamento da home...');
+                    this.loadHomeContent();
+                }
+            }, 1000);
             
             return true;
         } catch (error) {
@@ -428,8 +462,19 @@ class PaixaoFlixApp {
                 console.warn(`⚠️ Elemento não encontrado: ${id}`);
                 return null;
             }
+            console.log(`✅ Elemento encontrado: ${id} com ${element.children.length} filhos`);
             return element;
         };
+        
+        // Verificar elementos principais
+        const naoDeixeVerRow = checkElement('nao-deixe-de-ver-row');
+        const continueWatchingRow = checkElement('continue-watching-row');
+        const myListRow = checkElement('my-list-row');
+        const premiadosRow = checkElement('premiados-pela-midia-row');
+        const nostalgiaRow = checkElement('nostalgia-row');
+        const kidsRow = checkElement('kids-row');
+        const maratonarRow = checkElement('maratonar-row');
+        const recomendacoesRow = checkElement('recomendacoes-row');
         
         // Verificar e inserir sessão de sábado dinamicamente
         this.checkSaturdaySession();
@@ -444,6 +489,8 @@ class PaixaoFlixApp {
             }, 1000);
             return;
         }
+        
+        console.log(`📊 Status dos dados: Filmes=${this.data.filmes.length}, Séries=${this.data.series.length}, Kids=${this.data.kidsFilmes.length + this.data.kidsSeries.length}`);
         
         // 1. Não deixe de ver (primeira sessão) - 5 capas mais vistas
         console.log('📺 Carregando "Não deixe de ver"...');
@@ -605,10 +652,22 @@ class PaixaoFlixApp {
         
         categories.forEach(category => {
             const allContent = [
-                ...this.data.filmes.filter(item => item.genre === category),
-                ...this.data.series.filter(item => item.genre === category),
-                ...this.data.kidsFilmes.filter(item => item.genre === category),
-                ...this.data.kidsSeries.filter(item => item.genre === category)
+                ...this.data.filmes.filter(item => {
+                    const itemGenres = this.getItemGenre(item);
+                    return itemGenres.includes(category);
+                }),
+                ...this.data.series.filter(item => {
+                    const itemGenres = this.getItemGenre(item);
+                    return itemGenres.includes(category);
+                }),
+                ...this.data.kidsFilmes.filter(item => {
+                    const itemGenres = this.getItemGenre(item);
+                    return itemGenres.includes(category);
+                }),
+                ...this.data.kidsSeries.filter(item => {
+                    const itemGenres = this.getItemGenre(item);
+                    return itemGenres.includes(category);
+                })
             ];
             
             if (allContent.length > 0) {
@@ -637,14 +696,17 @@ class PaixaoFlixApp {
 
         // Verificar se há dados carregados
         if (this.data.filmes.length === 0 && this.data.series.length === 0) {
+            console.log('⏳ Dados ainda não carregados, aguardando...');
             setTimeout(() => this.loadMostViewed(), 100);
             return;
         }
 
         // Pegar conteúdo mais visto (simulado com rating ou views)
         const allContent = [...this.data.filmes, ...this.data.series];
+        console.log(`📊 Total de conteúdo disponível: ${allContent.length} itens`);
         
         if (allContent.length === 0) {
+            console.warn('⚠️ Nenhum conteúdo disponível para exibir');
             container.innerHTML = '<div class="no-content">Nenhum conteúdo disponível</div>';
             return;
         }
@@ -655,24 +717,32 @@ class PaixaoFlixApp {
             .sort((a, b) => (b.rating || 0) - (a.rating || 0))
             .slice(0, 5);
         
+        console.log(`🏆 Encontrados ${mostViewed.length} itens com rating >= 7.0`);
+        
         if (mostViewed.length === 0) {
             // Se não houver conteúdo com rating >= 7.0, pegar os melhores disponíveis
             const fallback = allContent
                 .sort((a, b) => (b.rating || 0) - (a.rating || 0))
                 .slice(0, 5);
             
+            console.log(`🔄 Usando fallback com ${fallback.length} melhores itens`);
             container.innerHTML = '';
             fallback.forEach((item, index) => {
+                console.log(`📽️ Criando card para: ${item.title}`);
                 const card = this.createMostViewedCard(item, index + 1);
                 container.appendChild(card);
             });
         } else {
+            console.log(`✅ Exibindo ${mostViewed.length} itens mais vistos`);
             container.innerHTML = '';
             mostViewed.forEach((item, index) => {
+                console.log(`📽️ Criando card para: ${item.title}`);
                 const card = this.createMostViewedCard(item, index + 1);
                 container.appendChild(card);
             });
         }
+        
+        console.log(`📊 Container final com ${container.children.length} elementos`);
     }
 
     createMostViewedCard(item, rank) {
@@ -884,7 +954,7 @@ class PaixaoFlixApp {
     }
 
     loadNovelas() {
-        const container = document.querySelector('.novela-section .infinite-row');
+        const container = document.querySelector('.novela-section .infinite-loop');
         const section = document.querySelector('.novela-section');
         
         if (!container || !section) {
@@ -1764,12 +1834,14 @@ class PaixaoFlixApp {
         this.currentPage = page;
         console.log(`📄 Navegando para página: ${page}`);
         
-        // Sempre limpar conteúdo principal antes de carregar nova página
+        // Sempre limpar conteúdo principal antes de carregar nova página (exceto home)
         const mainContent = document.querySelector('.main-content');
-        mainContent.innerHTML = '';
+        if (page !== 'home') {
+            mainContent.innerHTML = '';
+        }
         
         // Esconder todas as seções da home por padrão
-        document.querySelectorAll('.content-section, .continue-watching, .saturday-night-section').forEach(section => {
+        document.querySelectorAll('.content-section, .continue-watching, .saturday-night-section, .novela-section').forEach(section => {
             section.style.display = 'none';
         });
         
@@ -1787,7 +1859,7 @@ class PaixaoFlixApp {
         
         if (page === 'home') {
             // Mostrar seções da home APENAS para página home
-            document.querySelectorAll('.content-section, .continue-watching, .saturday-night-section').forEach(section => {
+            document.querySelectorAll('.content-section, .continue-watching, .saturday-night-section, .novela-section').forEach(section => {
                 section.style.display = 'block';
             });
             
@@ -1799,9 +1871,17 @@ class PaixaoFlixApp {
                 setTimeout(() => {
                     this.loadHomeContent();
                 }, 300);
-            } else {
+            } else if (naoDeixeVerRow && naoDeixeVerRow.children.length > 0) {
                 console.log('🏠 Home já carregada, atualizando elementos focáveis');
+            } else {
+                console.log('🏠 Container não encontrado, forçando carregamento...');
+                setTimeout(() => {
+                    this.loadHomeContent();
+                }, 500);
             }
+        } else if (page === 'cinema') {
+            // Página dedicada de filmes
+            this.loadCinemaPage();
         } else if (page === 'live-channels') {
             // Carregar canais ao vivo
             this.loadLiveChannels();
@@ -1819,6 +1899,80 @@ class PaixaoFlixApp {
             // Para outras páginas, carregar categorias específicas
             this.showPageCategories(page);
         }
+    }
+
+    loadCinemaPage() {
+        const mainContent = document.querySelector('.main-content');
+        
+        // Criar página completa de filmes
+        const cinemaPage = document.createElement('div');
+        cinemaPage.className = 'cinema-page';
+        cinemaPage.innerHTML = `
+            <div class="page-header">
+                <div class="page-info">
+                    <h1 class="page-title">Filmes</h1>
+                    <p class="page-subtitle">Todos os filmes disponíveis</p>
+                </div>
+                <div class="page-stats">
+                    <span class="content-count">${this.data.filmes.length} filmes disponíveis</span>
+                </div>
+            </div>
+            
+            <div class="page-content">
+                <div class="movies-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-film"></i>
+                            Todos os Filmes
+                        </h2>
+                        <div class="section-badge">FILMES</div>
+                    </div>
+                    <div class="movies-grid" id="cinema-movies-grid">
+                        <div class="loading-content">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Carregando filmes...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        mainContent.appendChild(cinemaPage);
+        
+        // Carregar filmes após criar a página
+        setTimeout(() => {
+            this.loadCinemaMovies();
+        }, 100);
+    }
+
+    loadCinemaMovies() {
+        const container = document.getElementById('cinema-movies-grid');
+        if (!container) return;
+        
+        console.log(`🎬 Carregando ${this.data.filmes.length} filmes para página do cinema`);
+        
+        if (this.data.filmes.length === 0) {
+            container.innerHTML = '<div class="no-content">Nenhum filme encontrado</div>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        
+        // Ordenar filmes por título
+        const sortedMovies = [...this.data.filmes].sort((a, b) => a.title.localeCompare(b.title));
+        
+        sortedMovies.forEach((movie, index) => {
+            console.log(`📽️ Criando card para filme: ${movie.title}`);
+            const card = this.createMovieCard(movie);
+            container.appendChild(card);
+        });
+        
+        console.log(`✅ ${container.children.length} filmes carregados na página do cinema`);
+        
+        // Atualizar elementos focáveis
+        setTimeout(() => {
+            this.updateFocusableElements();
+        }, 200);
     }
 
     loadLiveChannels() {
