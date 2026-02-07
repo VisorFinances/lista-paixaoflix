@@ -2,16 +2,21 @@
 class PaixaoFlixApp {
     constructor() {
         this.currentPage = 'home';
-        this.currentCategory = null;
         this.data = {
             filmes: [],
             series: [],
             kidsFilmes: [],
             kidsSeries: [],
-            favoritos: []
+            favoritos: [],
+            channels: [],
+            kidsChannels: []
         };
-        this.continueWatching = [];
         this.lastWatched = null;
+        this.continueWatching = [];
+        this.favorites = [];
+        this.currentFocusIndex = 0;
+        this.focusableElements = [];
+        this.navigationManager = null;
         this.init();
     }
 
@@ -123,46 +128,134 @@ class PaixaoFlixApp {
                 })
             ]);
 
-            // Garantir que os dados sejam arrays
+            // Garantir que todos sejam arrays
             this.data.filmes = Array.isArray(filmes) ? filmes : [];
             this.data.series = Array.isArray(series) ? series : [];
             this.data.kidsFilmes = Array.isArray(kidsFilmes) ? kidsFilmes : [];
             this.data.kidsSeries = Array.isArray(kidsSeries) ? kidsSeries : [];
             this.data.favoritos = Array.isArray(favoritos) ? favoritos : [];
-
-            console.log('Dados carregados:', {
-                filmes: this.data.filmes.length,
-                series: this.data.series.length,
-                kidsFilmes: this.data.kidsFilmes.length,
-                kidsSeries: this.data.kidsSeries.length,
-                favoritos: this.data.favoritos.length
-            });
-
-            // Atualizar contador de títulos no header
+            
+            // Carregar canais M3U
+            await this.loadChannels();
+            
+            console.log('Dados carregados:', this.data);
+            
+            // Atualizar contador de títulos
             this.updateTitleCount();
-
-            // Carregar continuar assistindo (últimos 3)
-            const saved = localStorage.getItem('paixaoflix_continue_watching');
-            if (saved) {
-                this.continueWatching = JSON.parse(saved);
-                // Manter apenas os 3 mais recentes
-                this.continueWatching.sort((a, b) => new Date(b.lastWatched) - new Date(a.lastWatched));
-                this.continueWatching = this.continueWatching.slice(0, 3);
-            }
-
-            // Carregar último assistido para recomendações
-            const lastSaved = localStorage.getItem('paixaoflix_last_watched');
-            if (lastSaved) {
-                this.lastWatched = JSON.parse(lastSaved);
-            }
+            
+            return true;
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
-            // Garantir arrays vazios em caso de erro
+            // Fallback para arrays vazios
             this.data.filmes = [];
             this.data.series = [];
             this.data.kidsFilmes = [];
             this.data.kidsSeries = [];
             this.data.favoritos = [];
+            this.data.channels = [];
+            this.data.kidsChannels = [];
+            return false;
+        }
+    }
+        async loadChannels() {
+        try {
+            // Carregar canais normais
+            const channelsResponse = await fetch('data/ativa_canais.m3u');
+            const channelsText = await channelsResponse.text();
+            this.data.channels = this.parseM3U(channelsText);
+            
+            // Carregar canais kids
+            const kidsChannelsResponse = await fetch('data/ativa_kids_canais.m3u');
+            const kidsChannelsText = await kidsChannelsResponse.text();
+            this.data.kidsChannels = this.parseM3U(kidsChannelsText);
+            
+            console.log(`📺 Carregados ${this.data.channels.length} canais e ${this.data.kidsChannels.length} canais kids`);
+        } catch (error) {
+            console.error('Erro ao carregar canais:', error);
+            this.data.channels = [];
+            this.data.kidsChannels = [];
+        }
+    }
+
+    parseM3U(m3uText) {
+        const channels = [];
+        const lines = m3uText.split('\n');
+        let currentChannel = {};
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            
+            if (line.startsWith('#EXTINF:')) {
+                // Extrair informações do canal
+                const nameMatch = line.match(/,(.+)$/);
+                const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+                
+                currentChannel = {
+                    name: nameMatch ? nameMatch[1] : 'Canal Sem Nome',
+                    logo: logoMatch ? logoMatch[1] : null,
+                    url: null
+                };
+            } else if (line && !line.startsWith('#') && currentChannel.name) {
+                // URL do stream
+                currentChannel.url = line;
+                channels.push({...currentChannel});
+                currentChannel = {};
+            }
+        }
+        
+        return channels;
+    }
+
+    updateFocusableElements() {
+        // Atualizar array de elementos focáveis
+        this.focusableElements = Array.from(document.querySelectorAll(
+            '.movie-card, .wide-card, .menu-link, .channel-card, .search-result-item, button, input'
+        )).filter(el => {
+            // Verificar se elemento está visível
+            const style = window.getComputedStyle(el);
+            return style.display !== 'none' && 
+                   style.visibility !== 'hidden' && 
+                   el.offsetParent !== null;
+        });
+        
+        console.log(`🎯 Atualizados ${this.focusableElements.length} elementos focáveis`);
+    }
+
+    navigateWithArrows(direction) {
+        if (this.focusableElements.length === 0) return;
+        
+        const currentElement = document.activeElement;
+        const currentIndex = this.focusableElements.indexOf(currentElement);
+        
+        let nextIndex = currentIndex;
+        
+        switch(direction) {
+            case 'ArrowRight':
+                nextIndex = (currentIndex + 1) % this.focusableElements.length;
+                break;
+            case 'ArrowLeft':
+                nextIndex = currentIndex === 0 ? this.focusableElements.length - 1 : currentIndex - 1;
+                break;
+            case 'ArrowDown':
+                // Lógica para navegar para baixo (próxima linha)
+                nextIndex = Math.min(currentIndex + 6, this.focusableElements.length - 1);
+                break;
+            case 'ArrowUp':
+                // Lógica para navegar para cima (linha anterior)
+                nextIndex = Math.max(currentIndex - 6, 0);
+                break;
+        }
+        
+        if (nextIndex !== currentIndex && this.focusableElements[nextIndex]) {
+            this.focusableElements[nextIndex].focus();
+            this.currentFocusIndex = nextIndex;
+            
+            // Scroll para elemento se necessário
+            this.focusableElements[nextIndex].scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'nearest'
+            });
         }
     }
 
@@ -1432,37 +1525,134 @@ class PaixaoFlixApp {
     }
 
     showPage(page) {
-        console.log(`📄 Navegando para página: ${page}`);
         this.currentPage = page;
+        console.log(`📄 Navegando para página: ${page}`);
+        
+        // Atualizar elementos focáveis
+        setTimeout(() => {
+            this.updateFocusableElements();
+            // Focar no primeiro elemento se não houver foco
+            if (!document.activeElement || document.activeElement === document.body) {
+                if (this.focusableElements.length > 0) {
+                    this.focusableElements[0].focus();
+                    console.log('� Foco inicial no primeiro elemento');
+                }
+            }
+        }, 100);
         
         if (page === 'home') {
-            console.log('🏠 Carregando conteúdo da home...');
-            
-            // Mostrar todas as sessões especiais na home
             document.querySelectorAll('.content-section, .continue-watching, .saturday-night-section').forEach(section => {
                 section.style.display = 'block';
             });
             
-            // Carregar conteúdo da home se não estiver carregado
-            const naoDeixeVerRow = document.getElementById('nao-deixe-de-ver-row');
-            if (!naoDeixeVerRow || naoDeixeVerRow.children.length === 0) {
-                console.log('📺 Carregando sessões da home...');
+            // Verificar se já tem conteúdo carregado
+            if (document.getElementById('nao-deixe-de-ver-row').children.length === 0) {
+                console.log('🏠 Carregando conteúdo da home...');
                 this.loadHomeContent();
             } else {
-                console.log('🔄 Home já carregada, atualizando lançamentos...');
-                // Apenas atualizar lançamentos se já estiver carregado
-                this.loadMostViewed();
+                console.log('🏠 Home já carregada, atualizando elementos focáveis');
             }
-        } else {
-            console.log(`📂 Carregando categorias para: ${page}`);
+        } else if (page === 'live-channels') {
+            // Limpar conteúdo principal
+            const mainContent = document.querySelector('.main-content');
+            mainContent.innerHTML = '';
             
-            // Esconder sessões especiais
+            // Carregar canais ao vivo
+            this.loadLiveChannels();
+        } else {
+            // Esconder seções especiais
             document.querySelectorAll('.content-section, .continue-watching, .saturday-night-section').forEach(section => {
                 section.style.display = 'none';
             });
             
-            // Mostrar categorias do menu
             this.showPageCategories(page);
+        }
+    }
+
+    loadLiveChannels() {
+        const mainContent = document.querySelector('.main-content');
+        
+        // Criar seção de canais
+        const channelsSection = document.createElement('div');
+        channelsSection.className = 'channels-section';
+        channelsSection.innerHTML = `
+            <h2 class="section-title">Canais ao Vivo</h2>
+            <div class="channels-grid" id="channels-grid"></div>
+        `;
+        
+        mainContent.appendChild(channelsSection);
+        
+        const channelsGrid = document.getElementById('channels-grid');
+        
+        // Adicionar canais normais
+        this.data.channels.forEach(channel => {
+            const channelCard = this.createChannelCard(channel);
+            channelsGrid.appendChild(channelCard);
+        });
+        
+        // Adicionar canais kids se houver
+        if (this.data.kidsChannels.length > 0) {
+            const kidsSection = document.createElement('div');
+            kidsSection.className = 'channels-section';
+            kidsSection.innerHTML = `
+                <h2 class="section-title">Canais Kids</h2>
+                <div class="channels-grid" id="kids-channels-grid"></div>
+            `;
+            
+            mainContent.appendChild(kidsSection);
+            
+            const kidsChannelsGrid = document.getElementById('kids-channels-grid');
+            this.data.kidsChannels.forEach(channel => {
+                const channelCard = this.createChannelCard(channel);
+                kidsChannelsGrid.appendChild(channelCard);
+            });
+        }
+        
+        console.log(`📺 Exibindo ${this.data.channels.length} canais ao vivo`);
+    }
+
+    createChannelCard(channel) {
+        const card = document.createElement('div');
+        card.className = 'channel-card';
+        card.tabIndex = 0;
+        
+        card.innerHTML = `
+            <div class="channel-logo">
+                ${channel.logo ? 
+                    `<img src="${channel.logo}" alt="${channel.name}" onerror="this.style.display='none'">` : 
+                    `<i class="fas fa-tv"></i>`
+                }
+            </div>
+            <div class="channel-name">${channel.name}</div>
+        `;
+        
+        card.addEventListener('click', () => {
+            this.playChannel(channel);
+        });
+        
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                this.playChannel(channel);
+            }
+        });
+        
+        return card;
+    }
+
+    playChannel(channel) {
+        console.log(`📺 Sintonizando canal: ${channel.name}`);
+        
+        // Abrir player de vídeo com o canal
+        const player = document.getElementById('video-player');
+        const video = player.querySelector('video');
+        
+        if (channel.url) {
+            video.src = channel.url;
+            player.classList.add('active');
+            document.body.classList.add('player-open');
+            video.play();
+        } else {
+            console.error('URL do canal não encontrada');
         }
     }
 
@@ -1880,9 +2070,8 @@ class PaixaoFlixApp {
             // Se não houver nada focado, forçar foco no primeiro item
             if (!document.activeElement || document.activeElement === document.body) {
                 e.preventDefault();
-                const firstCard = document.querySelector('.movie-card, .wide-card, .menu-link');
-                if (firstCard) {
-                    firstCard.focus();
+                if (this.focusableElements.length > 0) {
+                    this.focusableElements[0].focus();
                     console.log('🎯 Foco forçado no primeiro elemento disponível');
                 }
                 return;
@@ -1897,7 +2086,7 @@ class PaixaoFlixApp {
                     // Permitir navegação apenas se não estiver em input
                     if (document.activeElement.tagName !== 'INPUT') {
                         e.preventDefault();
-                        // A navegação será tratada pelos listeners específicos
+                        this.navigateWithArrows(e.key);
                     }
                     break;
                 case 'Escape':
