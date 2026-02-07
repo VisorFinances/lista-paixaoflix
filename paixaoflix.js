@@ -331,7 +331,7 @@ navigateWithArrows(direction) {
     const currentElement = this.focusableElements[currentIndex];
     const currentRect = currentElement.getBoundingClientRect();
     
-    console.log(` Navegação ${direction} a partir de:`, currentElement);
+    console.log(`🎯 Navegação ${direction} a partir de:`, currentElement);
     
     if (direction === 'ArrowLeft') {
         // Verificar se está no primeiro card da fileira e deve ir para o menu
@@ -340,7 +340,7 @@ navigateWithArrows(direction) {
         const isFirstInRow = this.isFirstInRow(currentElement);
         
         if (isCard && isFirstInRow) {
-            console.log(' Focando menu lateral');
+            console.log('🏠 Focando menu lateral');
             const firstMenuItem = document.querySelector('.menu-link');
             if (firstMenuItem) {
                 firstMenuItem.focus();
@@ -380,24 +380,40 @@ navigateWithArrows(direction) {
             
             if (isCandidate) {
                 // Cálculo de distância Euclidiana entre os centros dos elementos
-                const distance = Math.sqrt(
+                const totalDistance = Math.sqrt(
                     Math.pow(centerX - currentCenterX, 2) +
                     Math.pow(centerY - currentCenterY, 2)
                 );
 
                 candidates.push({
                     element: element,
-                    distance: distance
+                    distance: totalDistance
                 });
             }
         });
         
-        if (candidates.length === 0) return null;
-        
-        // Retornar o elemento mais próximo
-        candidates.sort((a, b) => a.distance - b.distance);
-        return candidates[0].element;
+        if (candidates.length > 0) {
+            // Ordenar por distância e depois por proximidade horizontal
+            candidates.sort((a, b) => {
+                if (Math.abs(a.distance - b.distance) < 50) {
+                    return a.distance - b.distance;
+                }
+                return a.distance - b.distance;
+            });
+            
+            nextIndex = this.focusableElements.indexOf(candidates[0].element);
+            console.log(`📍 Encontrado ${candidates.length} candidatos, selecionando o mais próximo`);
+        }
     }
+    
+    if (nextIndex !== currentIndex && nextIndex >= 0 && nextIndex < this.focusableElements.length) {
+        const nextElement = this.focusableElements[nextIndex];
+        nextElement.focus();
+        
+        // Scroll suave para centralizar
+        this.smoothScrollToElement(nextElement);
+    }
+}
 
     getDistance(rect1, rect2, direction) {
         switch(direction) {
@@ -466,15 +482,30 @@ navigateWithArrows(direction) {
         await this.loadRotatingBanner();
         
         // Configurar rotação automática a cada 10 segundos
-        setInterval(() => {
-            this.loadRotatingBanner();
-        }, 10000);
     }
+}
+    
+if (nextIndex !== currentIndex && nextIndex >= 0 && nextIndex < this.focusableElements.length) {
+    const nextElement = this.focusableElements[nextIndex];
+    nextElement.focus();
+    
+    // Scroll suave para centralizar
+    this.smoothScrollToElement(nextElement);
+}
+}
 
-    async loadRotatingBanner() {
-        try {
-            // Buscar filmes populares para o banner
-            const response = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=b275ce8e1a6b3d5d879bb0907e4f56ad&language=pt-BR&page=${Math.floor(Math.random() * 5) + 1}`);
+getDistance(rect1, rect2, direction) {
+switch(direction) {
+    case 'right':
+    case 'left':
+        return Math.abs(rect1.left - rect2.left) + Math.abs(rect1.top - rect2.top);
+    case 'up':
+    case 'down':
+        return Math.abs(rect1.top - rect2.top) + Math.abs(rect1.left - rect2.left);
+    default:
+        return 0;
+}
+}
             const data = await response.json();
             
             if (data.results && data.results.length > 0) {
@@ -1328,6 +1359,18 @@ navigateWithArrows(direction) {
         // Limpar e reconstruir ações
         modalActions.innerHTML = '';
         
+        // Verificar URL do trailer
+        const hasValidTrailer = item.trailer && 
+                               typeof item.trailer === 'string' && 
+                               item.trailer.trim() !== '' &&
+                               (item.trailer.startsWith('http') || item.trailer.startsWith('www'));
+        
+        // Criar botão de trailer se houver URL válida
+        const trailerBtn = hasValidTrailer ? 
+            `<button class="btn-secondary btn-trailer" onclick="window.open('${item.trailer}', '_blank')">
+                <i class="fab fa-youtube"></i> Trailer
+            </button>` : '';
+        
         const playBtn = document.createElement('button');
         playBtn.className = 'btn-primary play-btn';
         playBtn.innerHTML = '<i class="fas fa-play"></i> Assistir Agora';
@@ -1349,8 +1392,11 @@ navigateWithArrows(direction) {
         backBtn.innerHTML = '<i class="fas fa-arrow-left"></i> Voltar';
         backBtn.onclick = () => this.closeModal();
         
+        // Adicionar botões na ordem: Play, Trailer, Continuar, Voltar
         modalActions.appendChild(playBtn);
-        modalActions.appendChild(listBtn);
+        if (trailerBtn) {
+            modalActions.appendChild(trailerBtn);
+        }
         modalActions.appendChild(continueBtn);
         modalActions.appendChild(backBtn);
         
@@ -2963,6 +3009,53 @@ navigateWithArrows(direction) {
         
         this.displaySearchResults(results);
         console.log(`🔍 Busca por "${query}": ${results.length} resultados`);
+    }
+
+    handleNavigation(direction) {
+        const current = document.activeElement;
+        const focusable = Array.from(document.querySelectorAll('.menu-item, .movie-card, .btn-primary, .btn-secondary, .quality-btn'));
+        
+        if (!current || current === document.body) {
+            focusable[0]?.focus();
+            return;
+        }
+
+        const currentRect = current.getBoundingClientRect();
+        let bestTarget = null;
+        let minDistance = Infinity;
+
+        focusable.forEach(target => {
+            if (target === current) return;
+
+            const targetRect = target.getBoundingClientRect();
+            
+            // Calcular se o target está na direção correta
+            const isCorrectDirection = {
+                'ArrowUp': targetRect.bottom <= currentRect.top + 5,
+                'ArrowDown': targetRect.top >= currentRect.bottom - 5,
+                'ArrowLeft': targetRect.right <= currentRect.left + 5,
+                'ArrowRight': targetRect.left >= currentRect.right - 5
+            }[direction];
+
+            if (isCorrectDirection) {
+                // Cálculo de distância Euclidiana entre os centros dos elementos
+                const distance = Math.sqrt(
+                    Math.pow(targetRect.left + targetRect.width/2 - (currentRect.left + currentRect.width/2), 2) +
+                    Math.pow(targetRect.top + targetRect.height/2 - (currentRect.top + currentRect.height/2), 2)
+                );
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    bestTarget = target;
+                }
+            }
+        });
+
+        if (bestTarget) {
+            bestTarget.focus();
+            // Scroll suave para manter o elemento focado visível
+            bestTarget.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        }
     }
 }
 
