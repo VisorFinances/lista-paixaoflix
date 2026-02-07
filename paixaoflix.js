@@ -124,7 +124,17 @@ class PaixaoFlixApp {
                 }),
                 fetch('data/favoritos.json').then(r => {
                     console.log('Favoritos carregados:', r.status);
-                    return r.json();
+                    if (r.ok) {
+                        return r.text();
+                    }
+                    throw new Error('Network response was not ok');
+                }).then(text => {
+                    try {
+                        return text ? JSON.parse(text) : [];
+                    } catch (e) {
+                        console.warn('Aviso: JSON de favoritos vazio ou inválido, usando array vazio');
+                        return [];
+                    }
                 }).catch(err => {
                     console.error('Erro ao carregar favoritos:', err);
                     return [];
@@ -136,7 +146,7 @@ class PaixaoFlixApp {
             this.data.series = Array.isArray(series.series) ? series.series : Array.isArray(series) ? series : [];
             this.data.kidsFilmes = Array.isArray(kidsFilmes.movies) ? kidsFilmes.movies : Array.isArray(kidsFilmes) ? kidsFilmes : [];
             this.data.kidsSeries = Array.isArray(kidsSeries.series) ? kidsSeries.series : Array.isArray(kidsSeries) ? kidsSeries : [];
-            this.data.favoritos = Array.isArray(favoritos) ? favoritos : [];
+            this.data.favoritos = Array.isArray(favoritos.favorites) ? favoritos.favorites : Array.isArray(favoritos) ? favoritos : [];
             
             // Carregar canais M3U
             await this.loadChannels();
@@ -1681,7 +1691,8 @@ class PaixaoFlixApp {
             });
             
             // Verificar se já tem conteúdo carregado
-            if (document.getElementById('nao-deixe-de-ver-row').children.length === 0) {
+            const naoDeixeVerRow = document.getElementById('nao-deixe-de-ver-row');
+            if (naoDeixeVerRow && naoDeixeVerRow.children.length === 0) {
                 console.log('🏠 Carregando conteúdo da home...');
                 this.loadHomeContent();
             } else {
