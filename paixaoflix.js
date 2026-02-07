@@ -26,24 +26,17 @@ class PaixaoFlixApp {
     async init() {
         console.log('🚀 Inicializando PaixãoFlix...');
         
-        await this.loadData();
-        console.log('📁 Dados carregados, inicializando componentes...');
-        
+        const dataLoaded = await this.loadData();
+        if (!dataLoaded) {
+            console.error('❌ Falha crítica ao carregar JSONs');
+            return;
+        }
+
         this.initNavigation();
-        this.initSearch();
-        this.initVideoPlayer();
-        this.setupEventListeners();
         this.initTMDB();
-        
-        // Inicializar data e hora
         this.updateDateTime();
-        setInterval(() => this.updateDateTime(), 60000); // Atualizar a cada minuto
         
-        // Garantir que home seja a página inicial
-        console.log('🏠 Exibindo página inicial...');
-        this.showPage('home');
-        
-        // Iniciar foco no primeiro elemento
+        // Pequeno delay para garantir que o DOM está pronto para receber os cards
         console.log('🎯 Configurando foco inicial...');
         setTimeout(() => {
             this.setInitialFocus();
@@ -160,19 +153,41 @@ class PaixaoFlixApp {
                 })
             ]);
 
-            // Garantir que todos sejam arrays
-            this.data.filmes = filmes && filmes.movies ? filmes.movies : [];
-            this.data.series = series && series.series ? series.series : [];
-            this.data.kidsFilmes = kidsFilmes && kidsFilmes.movies ? kidsFilmes.movies : [];
-            this.data.kidsSeries = kidsSeries && kidsSeries.series ? kidsSeries.series : [];
-            this.data.favoritos = favoritos && favoritos.favorites ? favoritos.favorites : [];
+            // Garantir que todos sejam arrays - verificar estrutura real dos dados
+            console.log('🔍 Estrutura bruta dos dados:', {
+                filmes: { type: typeof filmes, isArray: Array.isArray(filmes), keys: filmes ? Object.keys(filmes) : null },
+                series: { type: typeof series, isArray: Array.isArray(series), keys: series ? Object.keys(series) : null },
+                kidsFilmes: { type: typeof kidsFilmes, isArray: Array.isArray(kidsFilmes), keys: kidsFilmes ? Object.keys(kidsFilmes) : null },
+                kidsSeries: { type: typeof kidsSeries, isArray: Array.isArray(kidsSeries), keys: kidsSeries ? Object.keys(kidsSeries) : null }
+            });
+            
+            // Tentar diferentes estruturas possíveis
+            this.data.filmes = Array.isArray(filmes) ? filmes : 
+                             (filmes && filmes.movies) ? filmes.movies : 
+                             (filmes && Array.isArray(filmes.data)) ? filmes.data : [];
+                             
+            this.data.series = Array.isArray(series) ? series : 
+                            (series && series.series) ? series.series : 
+                            (series && Array.isArray(series.data)) ? series.data : [];
+                            
+            this.data.kidsFilmes = Array.isArray(kidsFilmes) ? kidsFilmes : 
+                                 (kidsFilmes && kidsFilmes.movies) ? kidsFilmes.movies : 
+                                 (kidsFilmes && Array.isArray(kidsFilmes.data)) ? kidsFilmes.data : [];
+                                 
+            this.data.kidsSeries = Array.isArray(kidsSeries) ? kidsSeries : 
+                                 (kidsSeries && kidsSeries.series) ? kidsSeries.series : 
+                                 (kidsSeries && Array.isArray(kidsSeries.data)) ? kidsSeries.data : [];
+                                 
+            this.data.favoritos = Array.isArray(favoritos) ? favoritos : 
+                                (favoritos && favoritos.favorites) ? favoritos.favorites : 
+                                (favoritos && Array.isArray(favoritos.data)) ? favoritos.data : [];
             
             console.log('📊 Estrutura dos dados:', {
-                filmes: { type: typeof filmes, hasMovies: !!(filmes && filmes.movies), length: this.data.filmes.length },
-                series: { type: typeof series, hasSeries: !!(series && series.series), length: this.data.series.length },
-                kidsFilmes: { type: typeof kidsFilmes, hasMovies: !!(kidsFilmes && kidsFilmes.movies), length: this.data.kidsFilmes.length },
-                kidsSeries: { type: typeof kidsSeries, hasSeries: !!(kidsSeries && kidsSeries.series), length: this.data.kidsSeries.length },
-                favoritos: { type: typeof favoritos, hasFavorites: !!(favoritos && favoritos.favorites), length: this.data.favoritos.length }
+                filmes: { type: typeof filmes, hasMovies: !!(filmes && filmes.movies), isArray: Array.isArray(filmes), length: this.data.filmes.length },
+                series: { type: typeof series, hasSeries: !!(series && series.series), isArray: Array.isArray(series), length: this.data.series.length },
+                kidsFilmes: { type: typeof kidsFilmes, hasMovies: !!(kidsFilmes && kidsFilmes.movies), isArray: Array.isArray(kidsFilmes), length: this.data.kidsFilmes.length },
+                kidsSeries: { type: typeof kidsSeries, hasSeries: !!(kidsSeries && kidsSeries.series), isArray: Array.isArray(kidsSeries), length: this.data.kidsSeries.length },
+                favoritos: { type: typeof favoritos, hasFavorites: !!(favoritos && favoritos.favorites), isArray: Array.isArray(favoritos), length: this.data.favoritos.length }
             });
             
             // Carregar canais M3U
@@ -201,7 +216,7 @@ class PaixaoFlixApp {
                     console.log('🔄 Forçando carregamento da home...');
                     this.loadHomeContent();
                 }
-            }, 1000);
+            }, 2000);
             
             return true;
         } catch (error) {
@@ -286,97 +301,93 @@ class PaixaoFlixApp {
         console.log(`🎯 Atualizados ${this.focusableElements.length} elementos focáveis`);
     }
 
-    navigateWithArrows(direction) {
-        if (this.focusableElements.length === 0) return;
-        
-        const currentElement = document.activeElement;
-        const currentIndex = this.focusableElements.indexOf(currentElement);
-        
-        let nextElement = null;
-        
-        if (currentElement && this.focusableElements.includes(currentElement)) {
-            const currentRect = currentElement.getBoundingClientRect();
-            const threshold = 50; // Distância mínima para considerar vizinho
-            
-            switch(direction) {
-                case 'ArrowRight':
-                    nextElement = this.findNearestElement(currentRect, 'right', threshold);
-                    break;
-                case 'ArrowLeft':
-                    nextElement = this.findNearestElement(currentRect, 'left', threshold);
-                    break;
-                case 'ArrowDown':
-                    nextElement = this.findNearestElement(currentRect, 'down', threshold);
-                    break;
-                case 'ArrowUp':
-                    nextElement = this.findNearestElement(currentRect, 'up', threshold);
-                    break;
-            }
-        }
-        
-        // Fallback para navegação simples se não encontrar elemento próximo
-        if (!nextElement && currentIndex !== -1) {
-            switch(direction) {
-                case 'ArrowRight':
-                    nextElement = this.focusableElements[(currentIndex + 1) % this.focusableElements.length];
-                    break;
-                case 'ArrowLeft':
-                    nextElement = currentIndex === 0 ? 
-                        this.focusableElements[this.focusableElements.length - 1] : 
-                        this.focusableElements[currentIndex - 1];
-                    break;
-                case 'ArrowDown':
-                    nextElement = Math.min(currentIndex + 1, this.focusableElements.length - 1);
-                    break;
-                case 'ArrowUp':
-                    nextElement = Math.max(currentIndex - 1, 0);
-                    break;
-            }
-            nextElement = this.focusableElements[nextElement];
-        }
-        
-        if (nextElement) {
-            nextElement.focus();
-            nextElement.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest',
-                inline: 'nearest'
-            });
-        }
-    }
+updateFocusableElements() {
+    // Atualizar array de elementos focáveis
+    this.focusableElements = Array.from(document.querySelectorAll(
+        '.movie-card, .wide-card, .menu-link, .channel-card, .search-result-item, button, input'
+    )).filter(el => {
+        // Verificar se elemento está visível
+        const style = window.getComputedStyle(el);
+        return style.display !== 'none' && 
+               style.visibility !== 'hidden' && 
+               el.offsetParent !== null;
+    });
+    
+    console.log(` Atualizados ${this.focusableElements.length} elementos focáveis`);
+}
 
-    findNearestElement(currentRect, direction, threshold) {
+navigateWithArrows(direction) {
+    if (!this.focusableElements.length) return;
+    
+    const currentIndex = this.focusableElements.indexOf(document.activeElement);
+    let nextIndex = currentIndex;
+    
+    if (currentIndex === -1) {
+        // Se não houver foco, focar no primeiro elemento
+        this.focusableElements[0].focus();
+        return;
+    }
+    
+    const currentElement = this.focusableElements[currentIndex];
+    const currentRect = currentElement.getBoundingClientRect();
+    
+    console.log(` Navegação ${direction} a partir de:`, currentElement);
+    
+    if (direction === 'ArrowLeft') {
+        // Verificar se está no primeiro card da fileira e deve ir para o menu
+        const isCard = currentElement.classList.contains('movie-card') || 
+                      currentElement.classList.contains('wide-card');
+        const isFirstInRow = this.isFirstInRow(currentElement);
+        
+        if (isCard && isFirstInRow) {
+            console.log(' Focando menu lateral');
+            const firstMenuItem = document.querySelector('.menu-link');
+            if (firstMenuItem) {
+                firstMenuItem.focus();
+                return;
+            }
+        }
+        
+        // Navegação normal à esquerda
+        nextIndex = currentIndex > 0 ? currentIndex - 1 : this.focusableElements.length - 1;
+        
+    } else if (direction === 'ArrowRight') {
+        nextIndex = currentIndex < this.focusableElements.length - 1 ? currentIndex + 1 : 0;
+        
+    } else if (direction === 'ArrowUp' || direction === 'ArrowDown') {
+        // Busca por proximidade geométrica
         const candidates = [];
         
-        this.focusableElements.forEach(element => {
-            if (element === document.activeElement) return;
+        this.focusableElements.forEach((element, index) => {
+            if (index === currentIndex) return;
             
             const rect = element.getBoundingClientRect();
-            let isCandidate = false;
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const currentCenterX = currentRect.left + currentRect.width / 2;
+            const currentCenterY = currentRect.top + currentRect.height / 2;
             
-            switch(direction) {
-                case 'right':
-                    isCandidate = rect.left > currentRect.right && 
-                                 Math.abs(rect.top - currentRect.top) < threshold;
-                    break;
-                case 'left':
-                    isCandidate = rect.right < currentRect.left && 
-                                 Math.abs(rect.top - currentRect.top) < threshold;
-                    break;
-                case 'down':
-                    isCandidate = rect.top > currentRect.bottom && 
-                                 Math.abs(rect.left - currentRect.left) < threshold;
-                    break;
-                case 'up':
-                    isCandidate = rect.bottom < currentRect.top && 
-                                 Math.abs(rect.left - currentRect.left) < threshold;
-                    break;
+            let isCandidate = false;
+            let distance = 0;
+            
+            if (direction === 'ArrowUp') {
+                isCandidate = rect.bottom < currentRect.top;
+                distance = currentRect.top - rect.bottom;
+            } else if (direction === 'ArrowDown') {
+                isCandidate = rect.top > currentRect.bottom;
+                distance = rect.top - currentRect.bottom;
             }
             
             if (isCandidate) {
+                // Cálculo de distância Euclidiana entre os centros dos elementos
+                const distance = Math.sqrt(
+                    Math.pow(centerX - currentCenterX, 2) +
+                    Math.pow(centerY - currentCenterY, 2)
+                );
+
                 candidates.push({
                     element: element,
-                    distance: this.getDistance(currentRect, rect, direction)
+                    distance: distance
                 });
             }
         });
@@ -398,6 +409,53 @@ class PaixaoFlixApp {
                 return Math.abs(rect1.top - rect2.top) + Math.abs(rect1.left - rect2.left);
             default:
                 return 0;
+        }
+    }
+
+    handleNavigation(direction) {
+        const current = document.activeElement;
+        const focusable = Array.from(document.querySelectorAll('.menu-item, .movie-card, .btn-primary, .btn-secondary, .quality-btn'));
+        
+        if (!current || current === document.body) {
+            focusable[0]?.focus();
+            return;
+        }
+
+        const currentRect = current.getBoundingClientRect();
+        let bestTarget = null;
+        let minDistance = Infinity;
+
+        focusable.forEach(target => {
+            if (target === current) return;
+
+            const targetRect = target.getBoundingClientRect();
+            
+            // Calcular se o target está na direção correta
+            const isCorrectDirection = {
+                'ArrowUp': targetRect.bottom <= currentRect.top + 5,
+                'ArrowDown': targetRect.top >= currentRect.bottom - 5,
+                'ArrowLeft': targetRect.right <= currentRect.left + 5,
+                'ArrowRight': targetRect.left >= currentRect.right - 5
+            }[direction];
+
+            if (isCorrectDirection) {
+                // Cálculo de distância Euclidiana entre os centros dos elementos
+                const distance = Math.sqrt(
+                    Math.pow(targetRect.left + targetRect.width/2 - (currentRect.left + currentRect.width/2), 2) +
+                    Math.pow(targetRect.top + targetRect.height/2 - (currentRect.top + currentRect.height/2), 2)
+                );
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    bestTarget = target;
+                }
+            }
+        });
+
+        if (bestTarget) {
+            bestTarget.focus();
+            // Scroll suave para manter o elemento focado visível
+            bestTarget.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
         }
     }
 
@@ -453,90 +511,31 @@ class PaixaoFlixApp {
     }
 
     loadHomeContent() {
-        console.log('🏠 Iniciando carregamento do conteúdo da home...');
-        
-        // Verificar se elementos existem antes de usar
-        const checkElement = (id) => {
-            const element = document.getElementById(id);
-            if (!element) {
-                console.warn(`⚠️ Elemento não encontrado: ${id}`);
-                return null;
-            }
-            console.log(`✅ Elemento encontrado: ${id} com ${element.children.length} filhos`);
-            return element;
-        };
-        
-        // Verificar elementos principais
-        const naoDeixeVerRow = checkElement('nao-deixe-de-ver-row');
-        const continueWatchingRow = checkElement('continue-watching-row');
-        const myListRow = checkElement('my-list-row');
-        const premiadosRow = checkElement('premiados-pela-midia-row');
-        const nostalgiaRow = checkElement('nostalgia-row');
-        const kidsRow = checkElement('kids-row');
-        const maratonarRow = checkElement('maratonar-row');
-        const recomendacoesRow = checkElement('recomendacoes-row');
-        
-        // Verificar e inserir sessão de sábado dinamicamente
-        this.checkSaturdaySession();
-        
-        // Retry mechanism se dados estiverem vazios
-        if (this.data.filmes.length === 0) {
-            console.warn('⚠️ Dados vazios, tentando recarregar...');
-            setTimeout(() => {
-                this.loadData().then(() => {
-                    this.loadHomeContent();
-                });
-            }, 1000);
-            return;
+    console.log('🏠 Renderizando fileiras da Home...');
+
+    // Mapeamento correto dos containers do seu HTML
+    const sections = [
+        { id: 'nao-deixe-de-ver-row', method: 'loadMostViewed' },
+        { id: 'continue-watching-row', method: 'loadContinueWatching' },
+        { id: 'my-list-row', method: 'loadMyList' },
+        { id: 'nostalgia-row', method: 'loadNostalgiaContent' },
+        { id: 'kids-row', method: 'loadKids' },
+        { id: 'maratonar-row', method: 'loadMarathon' },
+        { id: 'recomendacoes-row', method: 'loadRecommendations' }
+    ];
+
+    sections.forEach(section => {
+        const container = document.getElementById(section.id);
+        if (container) {
+            this[section.method]();
+        } else {
+            console.warn(`⚠️ Container #${section.id} não encontrado no HTML`);
         }
-        
-        console.log(`📊 Status dos dados: Filmes=${this.data.filmes.length}, Séries=${this.data.series.length}, Kids=${this.data.kidsFilmes.length + this.data.kidsSeries.length}`);
-        
-        // 1. Não deixe de ver (primeira sessão) - 5 capas mais vistas
-        console.log('📺 Carregando "Não deixe de ver"...');
-        this.loadMostViewed();
-        
-        // 2. Continuar Assistindo
-        console.log('▶️ Carregando "Continuar Assistindo"...');
-        this.loadContinueWatching();
-        
-        // 3. Minha Lista (segunda sessão)
-        console.log('❤️ Carregando "Minha Lista"...');
-        this.loadMyList();
-        
-        // 4. Sábado à Noite (será inserido dinamicamente se necessário)
-        
-        // 5. Premiados pela mídia - 5 capas com loop infinito
-        console.log('🏆 Carregando "Premiados pela mídia"...');
-        this.loadAwardWinning();
-        
-        // 6. Nostalgia - 5 capas
-        console.log('🕰️ Carregando "Nostalgia"...');
-        this.loadNostalgiaContent();
-        
-        // 7. Kids - 5 capas
-        console.log('👶 Carregando "As crianças amam"...');
-        this.loadKids();
-        
-        // 8. Maratonar - 5 capas
-        console.log('🍿 Carregando "Prepare a pipoca"...');
-        this.loadMarathon();
-        
-        // 9. Porque você assistiu - 4 capas baseadas no último assistido
-        console.log('🎯 Carregando "Porque você assistiu"...');
-        this.loadRecommendations();
-        
-        // 10. Novela (última sessão)
-        console.log('📺 Carregando "Novela"...');
-        this.loadNovelas();
-        
-        // Atualizar elementos focáveis após carregar conteúdo
-        setTimeout(() => {
-            this.updateFocusableElements();
-        }, 500);
-        
-        console.log('✅ Conteúdo da home carregado com sucesso!');
-    }
+    });
+
+    this.checkSaturdaySession();
+    this.loadNovelas();
+}
 
     loadMyList() {
         const container = document.getElementById('my-list-row');
@@ -573,40 +572,26 @@ class PaixaoFlixApp {
     }
 
     checkSaturdaySession() {
-        // Para testes: permitir simulação de horário
-        const testMode = localStorage.getItem('test_saturday_mode');
-        let shouldShow = false;
-        
-        if (testMode === 'true') {
-            // Modo de teste: sempre mostrar
-            shouldShow = true;
-        } else {
-            // Modo normal: verificar horário real
-            const now = new Date();
-            const day = now.getDay(); // 0 = Domingo, 6 = Sábado
-            const hour = now.getHours();
-            const minutes = now.getMinutes();
-            
-            // Verificar se é horário de exibir (Sáb 16:59 - Dom 05:59)
-            // Hoje é Sábado, 07/02/2026, 10:30 - deve estar OCULTO
-            shouldShow = (day === 6 && hour >= 16 && minutes >= 59) || (day === 0 && hour < 6);
-            
-            console.log(`📅 Verificação Sábado: Dia=${day}, Hora=${hour}:${minutes}, DeveMostrar=${shouldShow}`);
-        }
-        
-        const saturdaySection = document.querySelector('.saturday-night-section');
-        const mainContent = document.querySelector('.main-content');
-        
-        if (shouldShow && !saturdaySection) {
-            // Inserir sessão na terceira posição
-            this.insertSaturdaySection();
-            console.log('✅ Sessão Sábado à Noite Merece adicionada');
-        } else if (!shouldShow && saturdaySection) {
-            // Remover sessão
-            saturdaySection.remove();
-            console.log('❌ Sessão Sábado à Noite Merece removida');
-        }
+    const now = new Date();
+    const day = now.getDay(); // 6 = Sábado
+    const hour = now.getHours();
+    const minutes = now.getMinutes();
+
+    // Sábado após 16:59 OU Domingo antes das 06:00
+    const isSaturdayTime = (day === 6 && (hour > 16 || (hour === 16 && minutes >= 59)));
+    const isSundayTime = (day === 0 && hour < 6);
+    
+    const shouldShow = isSaturdayTime || isSundayTime;
+
+    console.log(`📅 Verificação Sábado: ${shouldShow ? 'ATIVO' : 'OCULTO'}`);
+    
+    const saturdaySection = document.querySelector('.saturday-night-section');
+    if (shouldShow && !saturdaySection) {
+        this.insertSaturdaySection();
+    } else if (!shouldShow && saturdaySection) {
+        saturdaySection.remove();
     }
+}
 
     // Função para testar (pode ser chamada no console)
     testSaturdayMode(enable = true) {
@@ -719,6 +704,9 @@ class PaixaoFlixApp {
         
         console.log(`🏆 Encontrados ${mostViewed.length} itens com rating >= 7.0`);
         
+        // Limpar container e injetar cards
+        container.innerHTML = '';
+        
         if (mostViewed.length === 0) {
             // Se não houver conteúdo com rating >= 7.0, pegar os melhores disponíveis
             const fallback = allContent
@@ -726,17 +714,15 @@ class PaixaoFlixApp {
                 .slice(0, 5);
             
             console.log(`🔄 Usando fallback com ${fallback.length} melhores itens`);
-            container.innerHTML = '';
             fallback.forEach((item, index) => {
-                console.log(`📽️ Criando card para: ${item.title}`);
+                console.log(`📽️ Injetando card para: ${item.title} na sessão "Não deixe de ver"`);
                 const card = this.createMostViewedCard(item, index + 1);
                 container.appendChild(card);
             });
         } else {
-            console.log(`✅ Exibindo ${mostViewed.length} itens mais vistos`);
-            container.innerHTML = '';
+            console.log(`✅ Injetando ${mostViewed.length} cards na sessão "Não deixe de ver"`);
             mostViewed.forEach((item, index) => {
-                console.log(`📽️ Criando card para: ${item.title}`);
+                console.log(`📽️ Injetando card para: ${item.title} na sessão "Não deixe de ver"`);
                 const card = this.createMostViewedCard(item, index + 1);
                 container.appendChild(card);
             });
@@ -867,29 +853,60 @@ class PaixaoFlixApp {
         const menuItems = document.querySelectorAll('.menu-item');
         
         menuItems.forEach(item => {
-            item.addEventListener('focus', () => {
-                // Expandir menu
-                document.getElementById('sidebar').classList.add('expanded');
-                
-                // Mostrar categorias se for menu principal
-                const page = item.querySelector('.menu-link').dataset.page;
-                if (page && page !== 'home') {
-                    this.showPageCategories(page);
-                }
-            });
+            const link = item.querySelector('.menu-link');
+            if (!link) return;
             
-            item.addEventListener('blur', () => {
-                document.getElementById('sidebar').classList.remove('expanded');
-            });
-            
-            item.addEventListener('click', (e) => {
+            link.addEventListener('click', (e) => {
                 e.preventDefault();
-                const page = item.querySelector('.menu-link').dataset.page;
-                if (page) {
+                const page = item.dataset.page;
+                
+                // Special handling for search menu
+                if (page === 'search') {
+                    this.openSearchInput();
+                    return;
+                }
+                
+                this.showPage(page);
+                
+                // Update active state
+                document.querySelectorAll('.menu-item').forEach(mi => {
+                    mi.classList.remove('active');
+                });
+                item.classList.add('active');
+            });
+            
+            link.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const page = item.dataset.page;
+                    
+                    // Special handling for search menu
+                    if (page === 'search') {
+                        this.openSearchInput();
+                        return;
+                    }
+                    
                     this.showPage(page);
+                    
+                    // Update active state
+                    document.querySelectorAll('.menu-item').forEach(mi => {
+                        mi.classList.remove('active');
+                    });
+                    item.classList.add('active');
                 }
             });
         });
+    }
+    
+    openSearchInput() {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+            console.log('🔍 Campo de pesquisa focado');
+        } else {
+            console.warn('⚠️ Campo de pesquisa não encontrado');
+        }
     }
 
     loadAwardWinning() {
@@ -949,56 +966,12 @@ class PaixaoFlixApp {
         
         // Voltar para detalhes se houver conteúdo em exibição
         if (this.lastWatched) {
-            this.showRegularModal(this.lastWatched);
-        }
-    }
-
-    loadNovelas() {
-        const container = document.querySelector('.novela-section .infinite-loop');
-        const section = document.querySelector('.novela-section');
-        
-        if (!container || !section) {
-            console.warn('⚠️ Container de novelas não encontrado');
-            return;
-        }
-
-        // Buscar conteúdo de novela em todos os JSONs
-        let novelas = [];
-        
-        // Procurar em filmes
-        const filmesNovela = this.data.filmes.filter(item => {
-            const itemGenres = this.getItemGenre(item);
-            return itemGenres.includes('Novela');
-        });
-        
-        // Procurar em séries
-        const seriesNovela = this.data.series.filter(item => {
-            const itemGenres = this.getItemGenre(item);
-            return itemGenres.includes('Novela');
-        });
-        
-        novelas = [...filmesNovela, ...seriesNovela];
-        
-        if (novelas.length === 0) {
             console.warn('⚠️ Nenhuma novela encontrada nos dados - removendo seção');
-            section.remove();
-            return;
+            const section = container.closest('.novela-section');
+            if (section) {
+                section.style.display = 'none';
+            }
         }
-        
-        console.log(`📺 Carregando ${novelas.length} novelas`);
-        
-        // Embaralhar e limitar
-        const selected = novelas.sort(() => Math.random() - 0.5).slice(0, 10);
-        
-        container.innerHTML = '';
-        
-        selected.forEach(item => {
-            const card = this.createWideCard(item);
-            container.appendChild(card);
-        });
-        
-        // Configurar loop infinito
-        this.setupInfiniteLoop(container);
     }
 
     loadNostalgiaContent() {
@@ -1724,9 +1697,22 @@ class PaixaoFlixApp {
     }
 
     initNavigation() {
-        this.setupMenuNavigation();
-        this.setupCardNavigation();
-    }
+    window.addEventListener('keydown', (e) => {
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+            e.preventDefault(); // Impede o scroll padrão do navegador
+            this.handleNavigation(e.key);
+        }
+        
+        if (e.key === 'Enter') {
+            const focused = document.activeElement;
+            if (focused) focused.click();
+        }
+
+        if (e.key === 'Backspace' || e.key === 'Escape') {
+            this.handleBackAction();
+        }
+    });
+}
 
     setupMenuNavigation() {
         const menuItems = document.querySelectorAll('.menu-item');
@@ -1867,17 +1853,17 @@ class PaixaoFlixApp {
             const naoDeixeVerRow = document.getElementById('nao-deixe-de-ver-row');
             if (naoDeixeVerRow && naoDeixeVerRow.children.length === 0) {
                 console.log('🏠 Carregando conteúdo da home...');
-                // Adicionar delay para garantir que o HTML existe
+                // Adicionar delay para garantir que o HTML existe e dados estão prontos
                 setTimeout(() => {
                     this.loadHomeContent();
-                }, 300);
+                }, 500);
             } else if (naoDeixeVerRow && naoDeixeVerRow.children.length > 0) {
                 console.log('🏠 Home já carregada, atualizando elementos focáveis');
             } else {
                 console.log('🏠 Container não encontrado, forçando carregamento...');
                 setTimeout(() => {
                     this.loadHomeContent();
-                }, 500);
+                }, 1000);
             }
         } else if (page === 'cinema') {
             // Página dedicada de filmes
