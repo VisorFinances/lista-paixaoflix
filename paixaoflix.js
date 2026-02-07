@@ -1,4 +1,7 @@
 // PaixãoFlix - Sistema Completo de Streaming
+// Variável global para acesso via console
+let listaFilmes = [];
+
 class PaixaoFlixApp {
     constructor() {
         this.currentPage = 'home';
@@ -129,16 +132,19 @@ class PaixaoFlixApp {
             ]);
 
             // Garantir que todos sejam arrays
-            this.data.filmes = Array.isArray(filmes) ? filmes : [];
-            this.data.series = Array.isArray(series) ? series : [];
-            this.data.kidsFilmes = Array.isArray(kidsFilmes) ? kidsFilmes : [];
-            this.data.kidsSeries = Array.isArray(kidsSeries) ? kidsSeries : [];
+            this.data.filmes = Array.isArray(filmes.movies) ? filmes.movies : Array.isArray(filmes) ? filmes : [];
+            this.data.series = Array.isArray(series.series) ? series.series : Array.isArray(series) ? series : [];
+            this.data.kidsFilmes = Array.isArray(kidsFilmes.movies) ? kidsFilmes.movies : Array.isArray(kidsFilmes) ? kidsFilmes : [];
+            this.data.kidsSeries = Array.isArray(kidsSeries.series) ? kidsSeries.series : Array.isArray(kidsSeries) ? kidsSeries : [];
             this.data.favoritos = Array.isArray(favoritos) ? favoritos : [];
             
             // Carregar canais M3U
             await this.loadChannels();
             
             console.log('Dados carregados:', this.data);
+            
+            // Atualizar variável global para acesso via console
+            listaFilmes = this.data.filmes;
             
             // Atualizar contador de títulos
             this.updateTitleCount();
@@ -780,7 +786,25 @@ class PaixaoFlixApp {
         });
         
         if (nostalgia.length === 0) {
-            console.warn('⚠️ Nenhum conteúdo nostálgico encontrado');
+            console.warn('⚠️ Nenhum conteúdo nostálgico encontrado - tentando filtro alternativo');
+            // Tentar filtro alternativo por genre/category
+            const nostalgiaAlt = allContent.filter(item => 
+                item.genre === 'Clássicos' || 
+                item.category === 'Clássicos' ||
+                (item.genero && item.genero.includes('Clássicos'))
+            );
+            
+            if (nostalgiaAlt.length > 0) {
+                console.log(`🕰️ Encontrados ${nostalgiaAlt.length} itens nostálgicos via filtro alternativo`);
+                const selected = nostalgiaAlt.sort(() => Math.random() - 0.5).slice(0, 5);
+                container.innerHTML = '';
+                selected.forEach(item => {
+                    const card = this.createMovieCard(item);
+                    container.appendChild(card);
+                });
+                return;
+            }
+            
             container.innerHTML = '<div class="no-content">Nenhum conteúdo clássico encontrado</div>';
             return;
         }
@@ -789,6 +813,56 @@ class PaixaoFlixApp {
         
         // Embaralhar e limitar a 5 capas
         const selected = nostalgia.sort(() => Math.random() - 0.5).slice(0, 5);
+        
+        container.innerHTML = '';
+        
+        selected.forEach(item => {
+            const card = this.createMovieCard(item);
+            container.appendChild(card);
+        });
+    }
+
+    loadKids() {
+        const container = document.getElementById('kids-row');
+        if (!container) return;
+
+        // Combinar filmes e séries kids
+        const allKids = [...this.data.kidsFilmes, ...this.data.kidsSeries];
+        
+        if (allKids.length === 0) {
+            console.warn('⚠️ Nenhum conteúdo kids encontrado - tentando filtro alternativo');
+            // Tentar filtro alternativo por genre/category
+            const allContent = [...this.data.filmes, ...this.data.series];
+            const kidsAlt = allContent.filter(item => 
+                item.genre === 'Kids' || 
+                item.genre === 'Animação' ||
+                item.genre === 'Infantil' ||
+                item.category === 'Kids' ||
+                item.category === 'Animação' ||
+                item.category === 'Infantil' ||
+                (item.genero && item.genero.some(g => g === 'Kids' || g === 'Animação' || g === 'Infantil')) ||
+                item.rating === 'L'
+            );
+            
+            if (kidsAlt.length > 0) {
+                console.log(`👶 Encontrados ${kidsAlt.length} itens kids via filtro alternativo`);
+                const selected = kidsAlt.sort(() => Math.random() - 0.5).slice(0, 5);
+                container.innerHTML = '';
+                selected.forEach(item => {
+                    const card = this.createMovieCard(item);
+                    container.appendChild(card);
+                });
+                return;
+            }
+            
+            container.innerHTML = '<div class="no-content">Nenhum conteúdo kids encontrado</div>';
+            return;
+        }
+        
+        console.log(`👶 Carregando ${allKids.length} itens kids`);
+        
+        // Embaralhar e limitar a 5 capas
+        const selected = allKids.sort(() => Math.random() - 0.5).slice(0, 5);
         
         container.innerHTML = '';
         
@@ -1129,39 +1203,48 @@ class PaixaoFlixApp {
         });
         document.body.classList.remove('modal-open');
         
-        // Abrir player
+        // Abrir player em tela cheia imediatamente
         player.classList.add('active');
         document.body.classList.add('player-open');
         
-        // Carregar vídeo
-        if (item.m3u8_url) {
-            // Suporte a M3U8
-            if (Hls.isSupported()) {
-                const hls = new Hls();
-                hls.loadSource(item.m3u8_url);
-                hls.attachMedia(video);
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = item.m3u8_url;
+        // Configurar fonte do vídeo
+        if (item.url) {
+            if (item.url.includes('.m3u8') || item.url.includes('m3u8')) {
+                // HLS stream
+                if (Hls.isSupported()) {
+                    const hls = new Hls();
+                    hls.loadSource(item.url);
+                    hls.attachMedia(video);
+                } else {
+                    video.src = item.url;
+                }
+            } else {
+                video.src = item.url;
             }
-        } else if (item.video_url) {
-            video.src = item.video_url;
-        }
-        
-        // Configurar tempo inicial
-        if (isContinue && item.progress && item.progress > 0) {
-            video.addEventListener('loadedmetadata', () => {
-                video.currentTime = (item.progress / 100) * video.duration;
+            
+            video.play().then(() => {
+                // Tentar tela cheia após início da reprodução
+                if (video.requestFullscreen) {
+                    video.requestFullscreen();
+                } else if (video.webkitRequestFullscreen) {
+                    video.webkitRequestFullscreen();
+                } else if (video.mozRequestFullScreen) {
+                    video.mozRequestFullScreen();
+                }
+            }).catch(error => {
+                console.error('Erro ao reproduzir vídeo:', error);
             });
         }
         
-        video.play();
+        // Salvar como último assistido
+        this.lastWatched = item;
+        localStorage.setItem('paixaoflix_last_watched', JSON.stringify(item));
         
-        // Adicionar ao continuar assistindo e salvar último assistido
+        // Adicionar aos "Continuar Assistindo"
         this.addToContinueWatching(item);
-        this.saveLastWatched(item);
         
-        // Configurar salvamento de progresso
-        this.setupProgressSaving(item, video);
+        // Configurar controles de qualidade
+        this.setupQualityControls(item);
     }
 
     setupProgressSaving(item, video) {
@@ -1572,43 +1655,125 @@ class PaixaoFlixApp {
     loadLiveChannels() {
         const mainContent = document.querySelector('.main-content');
         
-        // Criar seção de canais
-        const channelsSection = document.createElement('div');
-        channelsSection.className = 'channels-section';
-        channelsSection.innerHTML = `
-            <h2 class="section-title">Canais ao Vivo</h2>
-            <div class="channels-grid" id="channels-grid"></div>
+        // Criar página completa de canais ao vivo
+        const liveChannelsPage = document.createElement('div');
+        liveChannelsPage.className = 'live-channels-page';
+        liveChannelsPage.innerHTML = `
+            <div class="live-channels-header">
+                <div class="live-channels-info">
+                    <h1 class="live-channels-title">Canais ao Vivo</h1>
+                    <p class="live-channels-subtitle">Transmissões ao vivo 24/7</p>
+                </div>
+                <div class="live-channels-stats">
+                    <span class="channels-count">${this.data.channels.length} canais disponíveis</span>
+                </div>
+            </div>
+            
+            <div class="live-channels-content">
+                <div class="channels-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-broadcast-tower"></i>
+                            Canais Principais
+                        </h2>
+                        <div class="section-badge">AO VIVO</div>
+                    </div>
+                    <div class="channels-grid" id="channels-grid">
+                        <div class="loading-channels">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Carregando canais...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                ${this.data.kidsChannels.length > 0 ? `
+                <div class="channels-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-child"></i>
+                            Canais Kids
+                        </h2>
+                        <div class="section-badge kids">INFANTIL</div>
+                    </div>
+                    <div class="channels-grid" id="kids-channels-grid">
+                        <div class="loading-channels">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Carregando canais kids...</span>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+            </div>
         `;
         
-        mainContent.appendChild(channelsSection);
+        // Limpar conteúdo e adicionar página
+        mainContent.innerHTML = '';
+        mainContent.appendChild(liveChannelsPage);
         
+        // Carregar canais após um pequeno delay para mostrar loading
+        setTimeout(() => {
+            this.populateChannelsGrid();
+        }, 500);
+        
+        console.log(`📺 Criando página de canais ao vivo com ${this.data.channels.length} canais`);
+    }
+
+    populateChannelsGrid() {
         const channelsGrid = document.getElementById('channels-grid');
+        const kidsChannelsGrid = document.getElementById('kids-channels-grid');
         
-        // Adicionar canais normais
-        this.data.channels.forEach(channel => {
-            const channelCard = this.createChannelCard(channel);
-            channelsGrid.appendChild(channelCard);
-        });
-        
-        // Adicionar canais kids se houver
-        if (this.data.kidsChannels.length > 0) {
-            const kidsSection = document.createElement('div');
-            kidsSection.className = 'channels-section';
-            kidsSection.innerHTML = `
-                <h2 class="section-title">Canais Kids</h2>
-                <div class="channels-grid" id="kids-channels-grid"></div>
-            `;
+        // Limpar loading
+        if (channelsGrid) {
+            channelsGrid.innerHTML = '';
             
-            mainContent.appendChild(kidsSection);
-            
-            const kidsChannelsGrid = document.getElementById('kids-channels-grid');
-            this.data.kidsChannels.forEach(channel => {
+            // Adicionar canais normais
+            this.data.channels.forEach((channel, index) => {
                 const channelCard = this.createChannelCard(channel);
-                kidsChannelsGrid.appendChild(channelCard);
+                // Adicionar delay para animação
+                setTimeout(() => {
+                    channelCard.style.opacity = '0';
+                    channelCard.style.transform = 'scale(0.8)';
+                    channelsGrid.appendChild(channelCard);
+                    
+                    // Animar entrada
+                    setTimeout(() => {
+                        channelCard.style.transition = 'all 0.3s ease';
+                        channelCard.style.opacity = '1';
+                        channelCard.style.transform = 'scale(1)';
+                    }, 50);
+                }, index * 100);
             });
         }
         
-        console.log(`📺 Exibindo ${this.data.channels.length} canais ao vivo`);
+        // Adicionar canais kids se houver
+        if (kidsChannelsGrid && this.data.kidsChannels.length > 0) {
+            kidsChannelsGrid.innerHTML = '';
+            
+            this.data.kidsChannels.forEach((channel, index) => {
+                const channelCard = this.createChannelCard(channel);
+                setTimeout(() => {
+                    channelCard.style.opacity = '0';
+                    channelCard.style.transform = 'scale(0.8)';
+                    kidsChannelsGrid.appendChild(channelCard);
+                    
+                    setTimeout(() => {
+                        channelCard.style.transition = 'all 0.3s ease';
+                        channelCard.style.opacity = '1';
+                        channelCard.style.transform = 'scale(1)';
+                    }, 50);
+                }, index * 100);
+            });
+        }
+        
+        // Atualizar elementos focáveis após carregar
+        setTimeout(() => {
+            this.updateFocusableElements();
+            // Focar no primeiro canal
+            const firstChannel = document.querySelector('.channel-card');
+            if (firstChannel) {
+                firstChannel.focus();
+            }
+        }, this.data.channels.length * 100 + 500);
     }
 
     createChannelCard(channel) {
@@ -1650,7 +1815,19 @@ class PaixaoFlixApp {
             video.src = channel.url;
             player.classList.add('active');
             document.body.classList.add('player-open');
-            video.play();
+            
+            video.play().then(() => {
+                // Tentar tela cheia após início da reprodução
+                if (video.requestFullscreen) {
+                    video.requestFullscreen();
+                } else if (video.webkitRequestFullscreen) {
+                    video.webkitRequestFullscreen();
+                } else if (video.mozRequestFullScreen) {
+                    video.mozRequestFullScreen();
+                }
+            }).catch(error => {
+                console.error('Erro ao reproduzir canal:', error);
+            });
         } else {
             console.error('URL do canal não encontrada');
         }
@@ -1966,35 +2143,44 @@ class PaixaoFlixApp {
     }
 
     displaySearchResults(results) {
-        const searchResults = document.querySelector('.search-results');
-        if (!searchResults) return;
+        // Criar ou atualizar container de resultados
+        let resultsContainer = document.querySelector('.search-results-overlay');
+        
+        if (!resultsContainer) {
+            resultsContainer = document.createElement('div');
+            resultsContainer.className = 'search-results-overlay';
+            document.body.appendChild(resultsContainer);
+        }
         
         if (results.length === 0) {
-            searchResults.innerHTML = '<div class="no-results">Nenhum resultado encontrado</div>';
+            resultsContainer.innerHTML = '<div class="no-results">Nenhum resultado encontrado</div>';
         } else {
-            searchResults.innerHTML = '';
-            results.slice(0, 10).forEach(item => {
-                const resultItem = document.createElement('div');
-                resultItem.className = 'search-result-item';
-                resultItem.innerHTML = `
-                    <div class="result-thumbnail">
-                        <img src="${item.thumbnail || 'https://via.placeholder.com/120x180'}" alt="${item.title}">
-                    </div>
-                    <div class="result-info">
-                        <h4>${item.title}</h4>
-                        <p>${item.genre || 'Drama'} • ${item.year || '2024'}</p>
-                    </div>
-                `;
-                
+            resultsContainer.innerHTML = `
+                <div class="search-results-header">
+                    <h3>${results.length} resultados encontrados</h3>
+                    <button class="search-results-close"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="search-results-grid"></div>
+            `;
+            
+            const grid = resultsContainer.querySelector('.search-results-grid');
+            const closeBtn = resultsContainer.querySelector('.search-results-close');
+            
+            results.slice(0, 12).forEach(item => {
+                const resultItem = this.createMovieCard(item);
                 resultItem.addEventListener('click', () => {
-                    this.showContentDetails(item);
+                    this.closeSearchInput();
+                    this.playContent(item);
                 });
-                
-                searchResults.appendChild(resultItem);
+                grid.appendChild(resultItem);
+            });
+            
+            closeBtn.addEventListener('click', () => {
+                this.closeSearchInput();
             });
         }
         
-        searchResults.style.display = 'block';
+        resultsContainer.classList.add('active');
     }
 
     initVideoPlayer() {
@@ -2065,7 +2251,7 @@ class PaixaoFlixApp {
             this.checkSaturdaySession();
         }, 30000);
         
-        // Listener global de navegação
+        // Listener universal de navegação (Teclado + Controles Remotos + Touch)
         document.addEventListener('keydown', (e) => {
             // Se não houver nada focado, forçar foco no primeiro item
             if (!document.activeElement || document.activeElement === document.body) {
@@ -2077,8 +2263,35 @@ class PaixaoFlixApp {
                 return;
             }
             
-            // Navegação por setas
-            switch(e.key) {
+            // Mapeamento de controles remotos para teclas padrão
+            const keyMap = {
+                // Controles remotos comuns
+                37: 'ArrowLeft',    // Setas
+                38: 'ArrowUp',
+                39: 'ArrowRight',
+                40: 'ArrowDown',
+                13: 'Enter',        // OK/Enter
+                27: 'Escape',       // Back/Escape
+                33: 'PageUp',       // Channel Up
+                34: 'PageDown',     // Channel Down
+                100: 'ArrowLeft',   // LG WebOS
+                101: 'ArrowUp',
+                102: 'ArrowRight',
+                103: 'ArrowDown',
+                461: 'Enter',       // Samsung OK
+                462: 'Escape',      // Samsung Back
+                // Android TV
+                19: 'ArrowUp',
+                20: 'ArrowDown',
+                21: 'ArrowLeft',
+                22: 'ArrowRight',
+                23: 'Enter'
+            };
+            
+            const mappedKey = keyMap[e.keyCode] || e.key;
+            
+            // Navegação 4D robusta
+            switch(mappedKey) {
                 case 'ArrowUp':
                 case 'ArrowDown':
                 case 'ArrowLeft':
@@ -2086,7 +2299,15 @@ class PaixaoFlixApp {
                     // Permitir navegação apenas se não estiver em input
                     if (document.activeElement.tagName !== 'INPUT') {
                         e.preventDefault();
-                        this.navigateWithArrows(e.key);
+                        this.navigate4D(mappedKey);
+                    }
+                    break;
+                case 'Enter':
+                    // Enter para pesquisa no menu Localizar
+                    if (document.activeElement.classList.contains('menu-link') && 
+                        document.activeElement.closest('[data-page="search"]')) {
+                        e.preventDefault();
+                        this.openSearchInput();
                     }
                     break;
                 case 'Escape':
@@ -2111,6 +2332,232 @@ class PaixaoFlixApp {
         sidebar.addEventListener('mouseleave', () => {
             sidebar.classList.remove('expanded');
         });
+        
+        // Touch events para mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Swipe horizontal
+                if (deltaX > 50) {
+                    this.navigate4D('ArrowRight');
+                } else if (deltaX < -50) {
+                    this.navigate4D('ArrowLeft');
+                }
+            } else {
+                // Swipe vertical
+                if (deltaY > 50) {
+                    this.navigate4D('ArrowDown');
+                } else if (deltaY < -50) {
+                    this.navigate4D('ArrowUp');
+                }
+            }
+        });
+    }
+
+    navigate4D(direction) {
+        if (this.focusableElements.length === 0) return;
+        
+        const currentElement = document.activeElement;
+        const currentIndex = this.focusableElements.indexOf(currentElement);
+        
+        // Verificar se está no menu lateral
+        const isInSidebar = currentElement && currentElement.classList.contains('menu-link');
+        
+        if (isInSidebar) {
+            this.navigateSidebar(direction);
+            return;
+        }
+        
+        // Navegação em cards (grid)
+        this.navigateGrid(direction, currentIndex);
+    }
+
+    navigateSidebar(direction) {
+        const menuItems = Array.from(document.querySelectorAll('.menu-link'));
+        const currentIndex = menuItems.findIndex(item => item === document.activeElement);
+        
+        let nextIndex = currentIndex;
+        
+        switch(direction) {
+            case 'ArrowUp':
+                nextIndex = currentIndex === 0 ? menuItems.length - 1 : currentIndex - 1;
+                break;
+            case 'ArrowDown':
+                nextIndex = (currentIndex + 1) % menuItems.length;
+                break;
+            case 'ArrowRight':
+                // Sair do menu e ir para o conteúdo
+                this.exitMenuToContent();
+                return;
+            case 'ArrowLeft':
+                // Ficar no menu (circular)
+                nextIndex = currentIndex === 0 ? menuItems.length - 1 : currentIndex - 1;
+                break;
+        }
+        
+        if (nextIndex !== currentIndex && menuItems[nextIndex]) {
+            menuItems[nextIndex].focus();
+            console.log(`🎯 Menu: ${menuItems[nextIndex].querySelector('span').textContent}`);
+        }
+    }
+
+    navigateGrid(direction, currentIndex) {
+        let nextIndex = currentIndex;
+        
+        switch(direction) {
+            case 'ArrowRight':
+                nextIndex = (currentIndex + 1) % this.focusableElements.length;
+                break;
+            case 'ArrowLeft':
+                // No limite esquerdo, ir para o menu
+                if (currentIndex === 0 || this.isFirstInRow(currentIndex)) {
+                    this.focusFirstMenuItem();
+                    return;
+                }
+                nextIndex = currentIndex === 0 ? this.focusableElements.length - 1 : currentIndex - 1;
+                break;
+            case 'ArrowDown':
+                // Próxima linha (considerando grid)
+                nextIndex = Math.min(currentIndex + 6, this.focusableElements.length - 1);
+                break;
+            case 'ArrowUp':
+                // Linha anterior
+                nextIndex = Math.max(currentIndex - 6, 0);
+                break;
+        }
+        
+        if (nextIndex !== currentIndex && this.focusableElements[nextIndex]) {
+            this.focusableElements[nextIndex].focus();
+            this.currentFocusIndex = nextIndex;
+            
+            // Scroll inteligente para centralizar elemento
+            this.focusableElements[nextIndex].scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'center'
+            });
+        }
+    }
+
+    isFirstInRow(index) {
+        // Lógica para determinar se é o primeiro da linha
+        // Considerando grid responsivo, isso precisa ser adaptativo
+        const container = this.focusableElements[index].parentElement;
+        const containerWidth = container.offsetWidth;
+        const itemWidth = this.focusableElements[index].offsetWidth;
+        const itemsPerRow = Math.floor(containerWidth / itemWidth);
+        
+        return index % itemsPerRow === 0;
+    }
+
+    exitMenuToContent() {
+        // Sair do menu e focar no primeiro elemento do conteúdo
+        const firstContentElement = this.focusableElements.find(el => 
+            !el.classList.contains('menu-link')
+        );
+        
+        if (firstContentElement) {
+            firstContentElement.focus();
+            console.log('🎯 Saindo do menu para o conteúdo');
+        }
+    }
+
+    focusFirstMenuItem() {
+        const firstMenuItem = document.querySelector('.menu-link');
+        if (firstMenuItem) {
+            firstMenuItem.focus();
+            console.log('🎯 Foco no menu lateral');
+        }
+    }
+
+    openSearchInput() {
+        // Criar ou mostrar campo de busca
+        let searchInput = document.querySelector('.search-input-overlay');
+        
+        if (!searchInput) {
+            searchInput = document.createElement('div');
+            searchInput.className = 'search-input-overlay';
+            searchInput.innerHTML = `
+                <div class="search-container">
+                    <input type="text" class="search-input-field" placeholder="Buscar conteúdo..." autofocus>
+                    <button class="search-close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(searchInput);
+            
+            // Event listeners
+            const input = searchInput.querySelector('.search-input-field');
+            const closeBtn = searchInput.querySelector('.search-close-btn');
+            
+            input.addEventListener('input', (e) => {
+                this.performSearch(e.target.value);
+            });
+            
+            closeBtn.addEventListener('click', () => {
+                this.closeSearchInput();
+            });
+            
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    this.closeSearchInput();
+                }
+            });
+        }
+        
+        // Focar no input
+        searchInput.querySelector('.search-input-field').focus();
+        console.log('🔍 Campo de busca aberto');
+    }
+
+    closeSearchInput() {
+        const searchInput = document.querySelector('.search-input-overlay');
+        const searchResults = document.querySelector('.search-results-overlay');
+        
+        if (searchInput) {
+            searchInput.remove();
+            console.log('🔍 Campo de busca fechado');
+        }
+        
+        if (searchResults) {
+            searchResults.remove();
+            console.log('🔍 Resultados de busca fechados');
+        }
+    }
+
+    performSearch(query) {
+        if (query.length < 2) return;
+        
+        const allContent = [
+            ...this.data.filmes,
+            ...this.data.series,
+            ...this.data.kidsFilmes,
+            ...this.data.kidsSeries
+        ];
+        
+        const results = allContent.filter(item => 
+            item.title.toLowerCase().includes(query.toLowerCase()) ||
+            (item.genre && item.genre.toLowerCase().includes(query.toLowerCase())) ||
+            (item.genero && item.genero.some(g => g.toLowerCase().includes(query.toLowerCase())))
+        );
+        
+        this.displaySearchResults(results);
+        console.log(`🔍 Busca por "${query}": ${results.length} resultados`);
     }
 }
 
