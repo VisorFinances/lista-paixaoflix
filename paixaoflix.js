@@ -45,7 +45,9 @@ class PaixaoFlixApp {
         
         // Iniciar foco no primeiro elemento
         console.log('🎯 Configurando foco inicial...');
-        this.setInitialFocus();
+        setTimeout(() => {
+            this.setInitialFocus();
+        }, 500);
         
         console.log('✅ PaixãoFlix inicializado com sucesso!');
     }
@@ -87,6 +89,14 @@ class PaixaoFlixApp {
         if (dateTimeElement) {
             dateTimeElement.textContent = `${dateStr} - ${timeStr}`;
         }
+    }
+
+    getItemGenre(item) {
+        // Função para normalizar acesso ao gênero independente do nome da chave
+        if (item.genre) return Array.isArray(item.genre) ? item.genre : [item.genre];
+        if (item.genero) return Array.isArray(item.genero) ? item.genero : [item.genero];
+        if (item.category) return Array.isArray(item.category) ? item.category : [item.category];
+        return [];
     }
 
     async loadData() {
@@ -201,21 +211,26 @@ class PaixaoFlixApp {
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
             
+            // Ignorar linhas vazias
+            if (!line) continue;
+            
             if (line.startsWith('#EXTINF:')) {
                 // Extrair informações do canal
                 const nameMatch = line.match(/,(.+)$/);
                 const logoMatch = line.match(/tvg-logo="([^"]+)"/);
                 
                 currentChannel = {
-                    name: nameMatch ? nameMatch[1] : 'Canal Sem Nome',
+                    name: nameMatch ? nameMatch[1].trim() : 'Canal Sem Nome',
                     logo: logoMatch ? logoMatch[1] : null,
                     url: null
                 };
             } else if (line && !line.startsWith('#') && currentChannel.name) {
-                // URL do stream
-                currentChannel.url = line;
-                channels.push({...currentChannel});
-                currentChannel = {};
+                // URL do stream - ignorar linhas vazias ou espaços extras
+                if (line.trim()) {
+                    currentChannel.url = line.trim();
+                    channels.push({...currentChannel});
+                    currentChannel = {};
+                }
             }
         }
         
@@ -243,35 +258,112 @@ class PaixaoFlixApp {
         const currentElement = document.activeElement;
         const currentIndex = this.focusableElements.indexOf(currentElement);
         
-        let nextIndex = currentIndex;
+        let nextElement = null;
         
-        switch(direction) {
-            case 'ArrowRight':
-                nextIndex = (currentIndex + 1) % this.focusableElements.length;
-                break;
-            case 'ArrowLeft':
-                nextIndex = currentIndex === 0 ? this.focusableElements.length - 1 : currentIndex - 1;
-                break;
-            case 'ArrowDown':
-                // Lógica para navegar para baixo (próxima linha)
-                nextIndex = Math.min(currentIndex + 6, this.focusableElements.length - 1);
-                break;
-            case 'ArrowUp':
-                // Lógica para navegar para cima (linha anterior)
-                nextIndex = Math.max(currentIndex - 6, 0);
-                break;
+        if (currentElement && this.focusableElements.includes(currentElement)) {
+            const currentRect = currentElement.getBoundingClientRect();
+            const threshold = 50; // Distância mínima para considerar vizinho
+            
+            switch(direction) {
+                case 'ArrowRight':
+                    nextElement = this.findNearestElement(currentRect, 'right', threshold);
+                    break;
+                case 'ArrowLeft':
+                    nextElement = this.findNearestElement(currentRect, 'left', threshold);
+                    break;
+                case 'ArrowDown':
+                    nextElement = this.findNearestElement(currentRect, 'down', threshold);
+                    break;
+                case 'ArrowUp':
+                    nextElement = this.findNearestElement(currentRect, 'up', threshold);
+                    break;
+            }
         }
         
-        if (nextIndex !== currentIndex && this.focusableElements[nextIndex]) {
-            this.focusableElements[nextIndex].focus();
-            this.currentFocusIndex = nextIndex;
-            
-            // Scroll para elemento se necessário
-            this.focusableElements[nextIndex].scrollIntoView({
+        // Fallback para navegação simples se não encontrar elemento próximo
+        if (!nextElement && currentIndex !== -1) {
+            switch(direction) {
+                case 'ArrowRight':
+                    nextElement = this.focusableElements[(currentIndex + 1) % this.focusableElements.length];
+                    break;
+                case 'ArrowLeft':
+                    nextElement = currentIndex === 0 ? 
+                        this.focusableElements[this.focusableElements.length - 1] : 
+                        this.focusableElements[currentIndex - 1];
+                    break;
+                case 'ArrowDown':
+                    nextElement = Math.min(currentIndex + 1, this.focusableElements.length - 1);
+                    break;
+                case 'ArrowUp':
+                    nextElement = Math.max(currentIndex - 1, 0);
+                    break;
+            }
+            nextElement = this.focusableElements[nextElement];
+        }
+        
+        if (nextElement) {
+            nextElement.focus();
+            nextElement.scrollIntoView({
                 behavior: 'smooth',
                 block: 'nearest',
                 inline: 'nearest'
             });
+        }
+    }
+
+    findNearestElement(currentRect, direction, threshold) {
+        const candidates = [];
+        
+        this.focusableElements.forEach(element => {
+            if (element === document.activeElement) return;
+            
+            const rect = element.getBoundingClientRect();
+            let isCandidate = false;
+            
+            switch(direction) {
+                case 'right':
+                    isCandidate = rect.left > currentRect.right && 
+                                 Math.abs(rect.top - currentRect.top) < threshold;
+                    break;
+                case 'left':
+                    isCandidate = rect.right < currentRect.left && 
+                                 Math.abs(rect.top - currentRect.top) < threshold;
+                    break;
+                case 'down':
+                    isCandidate = rect.top > currentRect.bottom && 
+                                 Math.abs(rect.left - currentRect.left) < threshold;
+                    break;
+                case 'up':
+                    isCandidate = rect.bottom < currentRect.top && 
+                                 Math.abs(rect.left - currentRect.left) < threshold;
+                    break;
+            }
+            
+            if (isCandidate) {
+                candidates.push({
+                    element: element,
+                    distance: this.getDistance(currentRect, rect, direction)
+                });
+            }
+        });
+        
+        if (candidates.length === 0) return null;
+        
+        // Retornar o elemento mais próximo
+        candidates.sort((a, b) => a.distance - b.distance);
+        return candidates[0].element;
+    }
+
+    getDistance(rect1, rect2, direction) {
+        switch(direction) {
+            case 'right':
+            case 'left':
+                return Math.abs(rect1.left - rect2.left) + Math.abs(rect1.top - rect2.top);
+            case 'up':
+            case 'down':
+                return Math.abs(rect1.top - rect2.top) + Math.abs(rect1.left - rect2.left);
+            default:
+                return 0;
         }
     }
 
@@ -342,6 +434,17 @@ class PaixaoFlixApp {
         // Verificar e inserir sessão de sábado dinamicamente
         this.checkSaturdaySession();
         
+        // Retry mechanism se dados estiverem vazios
+        if (this.data.filmes.length === 0) {
+            console.warn('⚠️ Dados vazios, tentando recarregar...');
+            setTimeout(() => {
+                this.loadData().then(() => {
+                    this.loadHomeContent();
+                });
+            }, 1000);
+            return;
+        }
+        
         // 1. Não deixe de ver (primeira sessão) - 5 capas mais vistas
         console.log('📺 Carregando "Não deixe de ver"...');
         this.loadMostViewed();
@@ -379,6 +482,11 @@ class PaixaoFlixApp {
         // 10. Novela (última sessão)
         console.log('📺 Carregando "Novela"...');
         this.loadNovelas();
+        
+        // Atualizar elementos focáveis após carregar conteúdo
+        setTimeout(() => {
+            this.updateFocusableElements();
+        }, 500);
         
         console.log('✅ Conteúdo da home carregado com sucesso!');
     }
@@ -788,18 +896,16 @@ class PaixaoFlixApp {
         let novelas = [];
         
         // Procurar em filmes
-        const filmesNovela = this.data.filmes.filter(item => 
-            item.category === 'Novela' || 
-            item.genre === 'Novela' ||
-            (item.genero && item.genero.includes('Novela'))
-        );
+        const filmesNovela = this.data.filmes.filter(item => {
+            const itemGenres = this.getItemGenre(item);
+            return itemGenres.includes('Novela');
+        });
         
         // Procurar em séries
-        const seriesNovela = this.data.series.filter(item => 
-            item.category === 'Novela' || 
-            item.genre === 'Novela' ||
-            (item.genero && item.genero.includes('Novela'))
-        );
+        const seriesNovela = this.data.series.filter(item => {
+            const itemGenres = this.getItemGenre(item);
+            return itemGenres.includes('Novela');
+        });
         
         novelas = [...filmesNovela, ...seriesNovela];
         
@@ -869,16 +975,11 @@ class PaixaoFlixApp {
             console.warn('⚠️ Nenhum conteúdo kids encontrado - tentando filtro alternativo');
             // Tentar filtro alternativo por genre/category
             const allContent = [...this.data.filmes, ...this.data.series];
-            const kidsAlt = allContent.filter(item => 
-                item.genre === 'Kids' || 
-                item.genre === 'Animação' ||
-                item.genre === 'Infantil' ||
-                item.category === 'Kids' ||
-                item.category === 'Animação' ||
-                item.category === 'Infantil' ||
-                (item.genero && item.genero.some(g => g === 'Kids' || g === 'Animação' || g === 'Infantil')) ||
-                item.rating === 'L'
-            );
+            const kidsAlt = allContent.filter(item => {
+                const itemGenres = this.getItemGenre(item);
+                return itemGenres.some(g => g === 'Kids' || g === 'Animação' || g === 'Infantil') ||
+                       item.rating === 'L';
+            });
             
             if (kidsAlt.length > 0) {
                 console.log(`👶 Encontrados ${kidsAlt.length} itens kids via filtro alternativo`);
@@ -946,7 +1047,7 @@ class PaixaoFlixApp {
         
         if (this.lastWatched && this.lastWatched.genero) {
             // Usar função de filtro que compare o array de 'genero' do último filme assistido com o resto do JSON
-            const lastGenero = this.lastWatched.genero;
+            const lastGenero = this.getItemGenre(this.lastWatched);
             
             const allContent = [...this.data.filmes, ...this.data.series];
             
@@ -955,7 +1056,7 @@ class PaixaoFlixApp {
                 if (item.id === this.lastWatched.id) return false; // Excluir o próprio
                 
                 // Verificar se tem algum gênero em comum
-                const itemGenero = item.genero || [item.genero];
+                const itemGenero = this.getItemGenre(item);
                 return itemGenero.some(genre => lastGenero.includes(genre));
             });
             
@@ -1694,7 +1795,10 @@ class PaixaoFlixApp {
             const naoDeixeVerRow = document.getElementById('nao-deixe-de-ver-row');
             if (naoDeixeVerRow && naoDeixeVerRow.children.length === 0) {
                 console.log('🏠 Carregando conteúdo da home...');
-                this.loadHomeContent();
+                // Adicionar delay para garantir que o HTML existe
+                setTimeout(() => {
+                    this.loadHomeContent();
+                }, 300);
             } else {
                 console.log('🏠 Home já carregada, atualizando elementos focáveis');
             }
@@ -2028,9 +2132,9 @@ class PaixaoFlixApp {
                 // Carregar filmes por categoria específica
                 content = this.data.filmes.filter(item => {
                     const category = categoryId.replace('lancamento-', '').replace('-series', '');
+                    const itemGenres = this.getItemGenre(item);
                     return item.category === category || 
-                           item.genre === category ||
-                           (item.genero && item.genero.includes(category));
+                           itemGenres.includes(category);
                 });
                 break;
                 
@@ -2038,9 +2142,9 @@ class PaixaoFlixApp {
                 // Carregar séries por categoria específica
                 content = this.data.series.filter(item => {
                     const category = categoryId.replace('lancamento-', '').replace('-series', '');
+                    const itemGenres = this.getItemGenre(item);
                     return item.category === category || 
-                           item.genre === category ||
-                           (item.genero && item.genero.includes(category));
+                           itemGenres.includes(category);
                 });
                 break;
                 
@@ -2276,11 +2380,12 @@ class PaixaoFlixApp {
                 ...this.data.kidsSeries
             ];
             
-            const results = allContent.filter(item => 
-                item.title.toLowerCase().includes(query) ||
-                (item.genre && item.genre.toLowerCase().includes(query)) ||
-                (item.genero && item.genero.some(g => g.toLowerCase().includes(query)))
-            );
+            const results = allContent.filter(item => {
+                const itemGenres = this.getItemGenre(item);
+                return item.title.toLowerCase().includes(query) ||
+                       itemGenres.some(g => g.toLowerCase().includes(query)) ||
+                       (item.description && item.description.toLowerCase().includes(query));
+            });
             
             this.displaySearchResults(results);
         });
@@ -2291,6 +2396,15 @@ class PaixaoFlixApp {
                 searchResults.style.display = 'none';
             }, 200);
         });
+        
+        // Adicionar evento de menu Localizar
+        const searchMenuItem = document.querySelector('.menu-item[data-page="search"]');
+        if (searchMenuItem) {
+            searchMenuItem.addEventListener('click', () => {
+                searchInput.style.display = 'block';
+                searchInput.focus();
+            });
+        }
     }
 
     displaySearchResults(results) {
