@@ -91,7 +91,41 @@
     </nav>
     
     <!-- Conteúdo Principal -->
-    <main class="main-content" id="main-content">
+    <main class="main-content">
+        <!-- Seção Sábado à Noite -->
+        <section class="saturday-night-section saturday-night">
+            <div class="saturday-night-content">
+                <h2><i class="fas fa-moon"></i> Sábado à Noite Merece</h2>
+                <p>O melhor conteúdo para relaxar e aproveitar o fim de semana!</p>
+                <div class="infinite-row">
+                    <div class="wide-card">
+                        <div class="card-thumbnail">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                        <div class="card-info">
+                            <div class="card-title">Filme Especial de Sábado</div>
+                            <div class="card-meta">
+                                <span>2h 30min</span>
+                                <span>Ação</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="wide-card">
+                        <div class="card-thumbnail">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                        <div class="card-info">
+                            <div class="card-title">Série Perfeita para o Fim de Semana</div>
+                            <div class="card-meta">
+                                <span>45min</span>
+                                <span>Comédia</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
         <!-- Hero Banner -->
         <section class="hero" id="hero">
             <div class="hero-background">
@@ -115,7 +149,15 @@
         
         <!-- 22 Categorias de Conteúdo -->
         <div id="content-container">
-            <!-- Lançamento 2026 -->
+            <!-- Seção Novelas -->
+        <section class="content-section novela-section">
+            <h2 class="section-title">Novela</h2>
+            <div class="infinite-row infinite-loop" data-category="novela">
+                <!-- Será preenchido pelo JavaScript com loop infinito -->
+            </div>
+        </section>
+        
+        <!-- Lançamento 2026 -->
             <section class="content-section">
                 <h2 class="section-title">Lançamento 2026</h2>
                 <div class="movie-row" data-category="lancamento-2026">
@@ -1101,24 +1143,68 @@
             }
         }
         
-        // Sistema completo de navegação universal e funcionalidades
+        // Sistema completo de navegação universal e funcionalidades avançadas
         class PaixaoFlixApp {
             constructor() {
                 this.navigation = new NavigationManager();
                 this.videoPlayer = new VideoPlayer();
                 this.modalManager = new ModalManager();
                 this.dataLoader = new DataLoader();
+                this.tmdbService = new TMDBService();
+                this.persistenceManager = new PersistenceManager();
+                this.curatorEngine = new CuratorEngine();
                 this.init();
             }
             
             async init() {
                 // Inicializa componentes
                 await this.dataLoader.loadInitialData();
+                await this.tmdbService.init();
+                this.persistenceManager.init();
+                this.curatorEngine.init();
                 this.setupEventListeners();
                 this.setupGamepadNavigation();
                 this.setupKeyboardShortcuts();
                 this.setupScrollControls();
+                this.initializeFocus();
+                this.setupTimeBasedContent();
                 console.log('PaixãoFlix inicializado com sucesso!');
+            }
+            
+            initializeFocus() {
+                // Inicia foco no primeiro elemento navegável
+                const firstElement = document.querySelector('.menu-link');
+                if (firstElement) {
+                    firstElement.classList.add('focused');
+                    this.navigation.setCurrentElement(firstElement);
+                }
+            }
+            
+            setupTimeBasedContent() {
+                // Verifica se é sábado à noite
+                this.checkSaturdayNight();
+                setInterval(() => this.checkSaturdayNight(), 60000); // Verifica a cada minuto
+            }
+            
+            checkSaturdayNight() {
+                const now = new Date();
+                const day = now.getDay(); // 0 = Domingo, 6 = Sábado
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                const currentTime = hours * 60 + minutes;
+                
+                // Sábado 16:59 (1019 minutos) até Domingo 05:59 (359 minutos)
+                const isSaturdayNight = (day === 6 && currentTime >= 1019) || 
+                                     (day === 0 && currentTime <= 359);
+                
+                this.toggleSaturdayNightSection(isSaturdayNight);
+            }
+            
+            toggleSaturdayNightSection(show) {
+                const section = document.querySelector('.saturday-night-section');
+                if (section) {
+                    section.style.display = show ? 'block' : 'none';
+                }
             }
             
             setupScrollControls() {
@@ -1162,6 +1248,22 @@
                     indicator.style.opacity = '0.7';
                     indicator.style.transform = 'scale(0.9)';
                 }, 5000);
+            }
+            
+            continueWatching(contentId) {
+                // Continuar de onde parou
+                const continueData = this.persistenceManager.getContinueWatching().find(item => item.contentId === contentId);
+                if (continueData) {
+                    this.videoPlayer.openPlayer();
+                    // Carregar vídeo com posição salva
+                    console.log('Continuando de:', continueData.lastPosition);
+                }
+            }
+            
+            restartWatching(contentId) {
+                // Recomeçar do início
+                this.videoPlayer.openPlayer();
+                console.log('Recomeçando:', contentId);
             }
             
             setupEventListeners() {
@@ -1320,7 +1422,395 @@
             }
         }
         
-        // Gerenciador de Player de Vídeo 'Clapper'
+        // Serviço TMDB para integração com API
+        class TMDBService {
+            constructor() {
+                this.apiKey = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
+                this.baseUrl = 'https://api.themoviedb.org/3';
+                this.imageBaseUrl = 'https://image.tmdb.org/t/p/w500';
+                this.backdropBaseUrl = 'https://image.tmdb.org/t/p/original';
+                this.cache = new Map();
+            }
+            
+            async init() {
+                console.log('TMDB Service inicializado');
+                // Carrega banners populares para o hero
+                await this.loadHeroBanners();
+            }
+            
+            async loadHeroBanners() {
+                try {
+                    const response = await fetch(`${this.baseUrl}/movie/popular?api_key=${this.apiKey}&language=pt-BR`);
+                    const data = await response.json();
+                    this.updateHeroBanner(data.results[0]);
+                } catch (error) {
+                    console.error('Erro ao carregar banners:', error);
+                }
+            }
+            
+            updateHeroBanner(movie) {
+                const heroContent = document.querySelector('.hero-content');
+                if (heroContent && movie) {
+                    const backdropUrl = `${this.backdropBaseUrl}${movie.backdrop_path}`;
+                    document.querySelector('.hero').style.backgroundImage = 
+                        `url(${backdropUrl}), linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(229, 9, 20, 0.2) 30%, rgba(10, 10, 10, 0.8) 100%)`;
+                    
+                    heroContent.querySelector('.hero-title').textContent = movie.title;
+                    heroContent.querySelector('.hero-description').textContent = 
+                        movie.overview?.substring(0, 150) + '...' || 'Descubra os melhores filmes e séries.';
+                }
+            }
+            
+            async searchMovies(query) {
+                const cacheKey = `search_${query}`;
+                if (this.cache.has(cacheKey)) {
+                    return this.cache.get(cacheKey);
+                }
+                
+                try {
+                    const response = await fetch(
+                        `${this.baseUrl}/search/movie?api_key=${this.apiKey}&language=pt-BR&query=${encodeURIComponent(query)}`
+                    );
+                    const data = await response.json();
+                    this.cache.set(cacheKey, data.results);
+                    return data.results;
+                } catch (error) {
+                    console.error('Erro na busca:', error);
+                    return [];
+                }
+            }
+            
+            async getMovieDetails(movieId) {
+                try {
+                    const response = await fetch(
+                        `${this.baseUrl}/movie/${movieId}?api_key=${this.apiKey}&language=pt-BR&append_to_response=credits,videos`
+                    );
+                    return await response.json();
+                } catch (error) {
+                    console.error('Erro ao carregar detalhes:', error);
+                    return null;
+                }
+            }
+            
+            getImageUrl(path, size = 'w500') {
+                if (!path) return 'https://via.placeholder.com/500x750/1a1a1a/ffffff?text=Sem+Imagem';
+                return `https://image.tmdb.org/t/p/${size}${path}`;
+            }
+        }
+        
+        // Gerenciador de Persistência
+        class PersistenceManager {
+            constructor() {
+                this.continueWatchingKey = 'paixaoflix_continue_watching';
+                this.maxContinueItems = 3;
+            }
+            
+            init() {
+                this.loadContinueWatching();
+                this.setupEventListeners();
+            }
+            
+            setupEventListeners() {
+                // Intercepta cliques em cards para salvar progresso
+                document.addEventListener('click', (e) => {
+                    const card = e.target.closest('[data-content-id]');
+                    if (card) {
+                        this.saveWatchProgress(card.dataset.contentId, card.dataset.contentType);
+                    }
+                });
+            }
+            
+            saveWatchProgress(contentId, contentType, progress = 0) {
+                const watchData = {
+                    contentId,
+                    contentType,
+                    progress,
+                    timestamp: Date.now(),
+                    lastPosition: progress
+                };
+                
+                let continueWatching = this.getContinueWatching();
+                
+                // Remove item existente se já estiver na lista
+                continueWatching = continueWatching.filter(item => item.contentId !== contentId);
+                
+                // Adiciona no início
+                continueWatching.unshift(watchData);
+                
+                // Mantém apenas os últimos 3
+                continueWatching = continueWatching.slice(0, this.maxContinueItems);
+                
+                localStorage.setItem(this.continueWatchingKey, JSON.stringify(continueWatching));
+                this.updateContinueWatchingUI();
+            }
+            
+            getContinueWatching() {
+                const data = localStorage.getItem(this.continueWatchingKey);
+                return data ? JSON.parse(data) : [];
+            }
+            
+            loadContinueWatching() {
+                const continueWatching = this.getContinueWatching();
+                if (continueWatching.length > 0) {
+                    this.renderContinueWatchingSection(continueWatching);
+                }
+            }
+            
+            renderContinueWatchingSection(items) {
+                const container = document.querySelector('.main-content');
+                const heroSection = document.querySelector('.hero');
+                
+                const section = document.createElement('section');
+                section.className = 'continue-watching';
+                section.innerHTML = `
+                    <h2 class="section-title">Continuar Assistindo</h2>
+                    <div class="infinite-row" id="continue-watching-row">
+                        ${items.map(item => this.createContinueWatchingCard(item)).join('')}
+                    </div>
+                `;
+                
+                container.insertBefore(section, heroSection.nextSibling);
+            }
+            
+            createContinueWatchingCard(item) {
+                const progressPercent = (item.progress / 100) * 100;
+                return `
+                    <div class="wide-card" data-content-id="${item.contentId}" data-content-type="${item.contentType}">
+                        <div class="card-thumbnail">
+                            <i class="fas fa-play-circle"></i>
+                            <div class="progress-overlay">
+                                <div class="progress-bar-fill" style="width: ${progressPercent}%"></div>
+                            </div>
+                        </div>
+                        <div class="card-info">
+                            <div class="card-title">${item.contentId}</div>
+                            <div class="card-meta">
+                                <span>${Math.floor(progressPercent)}% assistido</span>
+                                <span>${new Date(item.timestamp).toLocaleDateString('pt-BR')}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            updateContinueWatchingUI() {
+                const row = document.getElementById('continue-watching-row');
+                if (row) {
+                    const items = this.getContinueWatching();
+                    row.innerHTML = items.map(item => this.createContinueWatchingCard(item)).join('');
+                }
+            }
+            
+            showContinueDialog(contentId) {
+                const modal = document.createElement('div');
+                modal.className = 'continue-dialog';
+                modal.innerHTML = `
+                    <div class="continue-dialog-content">
+                        <h3>Bem vindo(a) de volta ao PaixãoFlix!</h3>
+                        <p>Quer continuar assistindo ou recomeçar?</p>
+                        <div class="continue-dialog-buttons">
+                            <button class="btn-primary" onclick="this.closest('.continue-dialog').remove(); window.paixaoflix.continueWatching('${contentId}')">
+                                <i class="fas fa-play"></i> Continuar
+                            </button>
+                            <button class="btn-secondary" onclick="this.closest('.continue-dialog').remove(); window.paixaoflix.restartWatching('${contentId}')">
+                                <i class="fas fa-redo"></i> Recomeçar
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+            }
+        }
+        
+        // Motor de Curadoria Inteligente
+        class CuratorEngine {
+            constructor() {
+                this.categories = {
+                    'nao-deixe-de-ver': [],
+                    'premiados-pela-midia': [],
+                    'nostalgia-classicos': [],
+                    'kids-criancas-amam': [],
+                    'maratonar-series': [],
+                    'porque-você-assistiu': []
+                };
+            }
+            
+            async init() {
+                await this.loadCuratedContent();
+                this.renderCuratedSections();
+            }
+            
+            async loadCuratedContent() {
+                // Carrega dados dos arquivos JSON
+                try {
+                    const [movies, series, kidsMovies, kidsSeries] = await Promise.all([
+                        fetch('data/filmes.json').then(r => r.json()),
+                        fetch('data/series.json').then(r => r.json()),
+                        fetch('data/kids_filmes.json').then(r => r.json()),
+                        fetch('data/kids_series.json').then(r => r.json())
+                    ]);
+                    
+                    this.processContent(movies, series, kidsMovies, kidsSeries);
+                } catch (error) {
+                    console.error('Erro ao carregar conteúdo curado:', error);
+                }
+            }
+            
+            processContent(movies, series, kidsMovies, kidsSeries) {
+                const allContent = [
+                    ...movies.movies.map(m => ({...m, type: 'movie'})),
+                    ...series.series.map(s => ({...s, type: 'series'})),
+                    ...kidsMovies.movies.map(m => ({...m, type: 'movie', category: 'kids'})),
+                    ...kidsSeries.series.map(s => ({...s, type: 'series', category: 'kids'}))
+                ];
+                
+                // Não Deixe de Ver - Top 5 mais vistos (simulado)
+                this.categories['nao-deixe-de-ver'] = this.getTopViewed(allContent, 5);
+                
+                // Premiados - Conteúdo com prêmios (simulado)
+                this.categories['premiados-pela-midia'] = this.getAwardWinning(allContent, 5);
+                
+                // Nostalgia - Clássicos aleatórios
+                this.categories['nostalgia-classicos'] = this.getRandomContent(allContent, 5, 'classic');
+                
+                // Kids - Conteúdo infantil aleatório
+                this.categories['kids-criancas-amam'] = this.getRandomContent(
+                    allContent.filter(c => c.category === 'kids'), 5
+                );
+                
+                // Maratonar - Séries aleatórias
+                this.categories['maratonar-series'] = this.getRandomContent(
+                    allContent.filter(c => c.type === 'series'), 5
+                );
+                
+                // Porque você assistiu - Baseado no último conteúdo
+                const lastWatched = this.getLastWatched();
+                if (lastWatched) {
+                    this.categories['porque-você-assistiu'] = this.getRecommendations(
+                        allContent, lastWatched, 4
+                    );
+                }
+            }
+            
+            getTopViewed(content, count) {
+                // Simulação - ordena por visualizações (aleatório para demo)
+                return content.sort(() => Math.random() - 0.5).slice(0, count);
+            }
+            
+            getAwardWinning(content, count) {
+                // Simulação - conteúdo com prêmios
+                return content.filter(item => 
+                    item.title.includes('Oscar') || 
+                    item.title.includes('Golden') ||
+                    Math.random() > 0.7
+                ).slice(0, count);
+            }
+            
+            getRandomContent(content, count, filter = null) {
+                let filtered = content;
+                if (filter === 'classic') {
+                    filtered = content.filter(item => 
+                        parseInt(item.year) < 2010 || Math.random() > 0.8
+                    );
+                }
+                return filtered.sort(() => Math.random() - 0.5).slice(0, count);
+            }
+            
+            getLastWatched() {
+                const continueData = localStorage.getItem('paixaoflix_continue_watching');
+                if (continueData) {
+                    const items = JSON.parse(continueData);
+                    return items[0]; // Último assistido
+                }
+                return null;
+            }
+            
+            getRecommendations(content, lastWatched, count) {
+                // Recomendação baseada em gênero
+                const lastGenres = lastWatched.genres || [];
+                return content
+                    .filter(item => 
+                        item.id !== lastWatched.contentId &&
+                        item.genres?.some(genre => lastGenres.includes(genre))
+                    )
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, count);
+            }
+            
+            renderCuratedSections() {
+                const container = document.querySelector('.main-content');
+                const heroSection = document.querySelector('.hero');
+                
+                Object.entries(this.categories).forEach(([key, items]) => {
+                    if (items.length === 0) return;
+                    
+                    const section = this.createCuratedSection(key, items);
+                    container.insertBefore(section, heroSection.nextSibling);
+                });
+            }
+            
+            createCuratedSection(categoryKey, items) {
+                const titles = {
+                    'nao-deixe-de-ver': 'Não Deixe de Ver',
+                    'premiados-pela-midia': 'Premiados pela Mídia',
+                    'nostalgia-classicos': 'Nostalgia (Clássicos)',
+                    'kids-criancas-amam': 'Kids (Crianças Amam)',
+                    'maratonar-series': 'Maratonar (Séries)',
+                    'porque-você-assistiu': 'Porque você assistiu'
+                };
+                
+                const section = document.createElement('section');
+                section.className = 'content-section curated-section';
+                section.innerHTML = `
+                    <h2 class="section-title">${titles[categoryKey]}</h2>
+                    <div class="${categoryKey === 'premiados-pela-midia' ? 'infinite-row' : 'movie-row'}">
+                        ${items.map((item, index) => this.createCuratedCard(item, categoryKey, index)).join('')}
+                    </div>
+                `;
+                
+                return section;
+            }
+            
+            createCuratedCard(item, categoryKey, index) {
+                if (categoryKey === 'nao-deixe-de-ver') {
+                    return `
+                        <div class="rank-card" data-content-id="${item.id}" data-content-type="${item.type}">
+                            <div class="rank-number">${index + 1}</div>
+                            <div class="card-thumbnail">
+                                <i class="fas fa-play-circle"></i>
+                            </div>
+                            <h3>${item.title}</h3>
+                        </div>
+                    `;
+                }
+                
+                if (categoryKey === 'premiados-pela-midia') {
+                    return `
+                        <div class="award-card" data-content-id="${item.id}" data-content-type="${item.type}">
+                            <div class="award-badge">🏆</div>
+                            <div class="card-thumbnail">
+                                <i class="fas fa-play-circle"></i>
+                            </div>
+                            <div class="card-footer">
+                                <div>${item.year} • ⭐ ${item.rating || '8.5'}</div>
+                                <div>${item.genres?.slice(0, 2).join(' • ') || 'Drama'}</div>
+                                <div>${item.duration || '2h'} • Oscar 2024</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                return `
+                    <div class="movie-card" data-content-id="${item.id}" data-content-type="${item.type}">
+                        <div class="card-thumbnail">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                        <h3>${item.title}</h3>
+                    </div>
+                `;
+            }
+        }
         class VideoPlayer {
             constructor() {
                 this.video = document.getElementById('main-video');
@@ -1443,9 +1933,19 @@
             
             playSampleContent() {
                 this.openPlayer();
-                // Carrega vídeo de exemplo
+                // Carrega vídeo de exemplo com suporte M3U8
                 if (this.video) {
-                    this.video.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+                    // Tenta carregar vídeo M3U8 primeiro
+                    this.video.src = 'https://test-streams.mux.dev/x36xhzzD8fnWVwhVsl5cfIYy2nICU8V02LLr8Uxg4B01I.m3u8';
+                    this.video.load();
+                    
+                    // Fallback para MP4 se M3U8 falhar
+                    this.video.addEventListener('error', () => {
+                        console.log('M3U8 falhou, usando MP4 fallback');
+                        this.video.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+                        this.video.load();
+                    }, { once: true });
+                    
                     this.video.play();
                 }
             }
@@ -1872,7 +2372,46 @@
             
             async loadInitialData() {
                 console.log('Carregando dados iniciais...');
-                // Implementar carregamento de dados iniciais
+                // Carrega novelas com loop infinito
+                await this.loadNovelas();
+            }
+            
+            async loadNovelas() {
+                try {
+                    const response = await fetch('data/series.json');
+                    const data = await response.json();
+                    this.renderNovelasWithLoop(data);
+                } catch (error) {
+                    console.error('Erro ao carregar novelas:', error);
+                }
+            }
+            
+            renderNovelasWithLoop(data) {
+                const novelaRow = document.querySelector('.novela-section .infinite-row');
+                if (!novelaRow || !data.categories.novela) return;
+                
+                const novelas = data.categories.novela.map(id => 
+                    data.series.find(s => s.id === id)
+                ).filter(Boolean);
+                
+                // Cria conteúdo duplicado para loop infinito
+                const duplicatedContent = [...novelas, ...novelas];
+                
+                novelaRow.innerHTML = duplicatedContent.map(novela => `
+                    <div class="wide-card" data-content-id="${novela.id}" data-content-type="series">
+                        <div class="card-thumbnail">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                        <div class="card-info">
+                            <div class="card-title">${novela.title}</div>
+                            <div class="card-meta">
+                                <span>${novela.year}</span>
+                                <span>${novela.rating}</span>
+                                <span>${novela.genres[0]}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
             }
             
             async loadLiveChannels() {
