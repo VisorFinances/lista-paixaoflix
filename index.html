@@ -3,97 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PaixãoFlix - Streaming Platform</title>
+    <title>PaixãoFlix Pro Max</title>
     
-    <!-- Google Fonts - Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     
-    <!-- Font Awesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/favicon.ico">
 </head>
 <body>
-    <!-- Header Fixo -->
-    <header class="main-header" id="main-header">
-        <div class="header-left">
-            <img src="https://raw.githubusercontent.com/VisorFinances/lista-paixaoflix/refs/heads/main/logoof512.png" alt="PaixãoFlix" class="header-logo" onclick="location.reload()" style="cursor: pointer;">
-        </div>
-        
-        <div class="header-center">
-            <span id="title-count" class="title-count">Carregando...</span>
-        </div>
-        
-        <div class="header-right">
-            <span id="date-time" class="date-time">Carregando...</span>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <img src="https://raw.githubusercontent.com/paixaoflix-mobile/paixaoflix-mobile/main/logoof512.png" alt="PaixãoFlix" onclick="location.reload()">
+            </div>
+            <div class="header-info">
+                <span id="title-count">Carregando...</span>
+                <span id="date-time">Carregando...</span>
+            </div>
         </div>
     </header>
 
     <!-- Menu Lateral -->
     <nav class="sidebar" id="sidebar">
-        <nav class="menu">
+        <div class="menu">
             <div class="menu-item" data-page="home">
                 <a href="#" class="menu-link">
                     <i class="fas fa-home"></i>
+                    <span class="menu-text">Início</span>
                 </a>
             </div>
             <div class="menu-item" data-page="live-channels">
                 <a href="#" class="menu-link">
                     <i class="fas fa-broadcast-tower"></i>
+                    <span class="menu-text">Canais ao Vivo</span>
                 </a>
             </div>
             <div class="menu-item" data-page="cinema">
                 <a href="#" class="menu-link">
                     <i class="fas fa-film"></i>
+                    <span class="menu-text">Cinema</span>
                 </a>
             </div>
             <div class="menu-item" data-page="series">
                 <a href="#" class="menu-link">
                     <i class="fas fa-tv"></i>
+                    <span class="menu-text">Séries</span>
                 </a>
             </div>
             <div class="menu-item" data-page="kids-movies">
                 <a href="#" class="menu-link">
                     <i class="fas fa-child"></i>
+                    <span class="menu-text">Filmes Kids</span>
                 </a>
             </div>
             <div class="menu-item" data-page="kids-series">
                 <a href="#" class="menu-link">
                     <i class="fas fa-baby"></i>
+                    <span class="menu-text">Séries Kids</span>
                 </a>
             </div>
             <div class="menu-item" data-page="kids-channels">
                 <a href="#" class="menu-link">
                     <i class="fas fa-gamepad"></i>
+                    <span class="menu-text">Canais Kids</span>
                 </a>
             </div>
             <div class="menu-item" data-page="my-list">
                 <a href="#" class="menu-link">
                     <i class="fas fa-heart"></i>
+                    <span class="menu-text">Minha Lista</span>
                 </a>
             </div>
             <div class="menu-item" data-page="search">
                 <a href="#" class="menu-link">
                     <i class="fas fa-search"></i>
+                    <span class="menu-text">Pesquisar</span>
                 </a>
             </div>
-        </nav>
+        </div>
     </nav>
+
     <!-- Conteúdo Principal -->
     <main class="main-content">
         <!-- Hero Banner -->
         <section class="hero" id="hero">
-            <div class="hero-background">
+            <div class="hero-background" id="hero-background">
                 <div class="hero-scrim"></div>
             </div>
             <div class="hero-content">
-                <h1 class="hero-title">PaixãoFlix</h1>
-                <p class="hero-description">A melhor experiência de streaming para Smart TVs</p>
+                <h1 class="hero-title" id="hero-title">PaixãoFlix Pro Max</h1>
+                <p class="hero-description" id="hero-description">A melhor experiência de streaming premium</p>
                 <div class="hero-buttons">
                     <button class="btn-primary" id="play-hero">
                         <i class="fas fa-play"></i>
@@ -107,130 +111,138 @@
             </div>
         </section>
 
-        <!-- 1. Não deixe de ver -->
-        <section class="content-section">
-            <h2 class="section-title">Não deixe de ver</h2>
-            <div class="movie-row" id="nao-deixe-de-ver-row">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-        
-        <!-- 2. Continuar Assistindo -->
-        <section class="continue-watching">
+        <!-- Seções da Home -->
+        <section class="content-section continue-watching">
             <h2 class="section-title">Continuar Assistindo</h2>
-            <div class="infinite-row" id="continue-watching-row">
+            <div class="movie-row" id="continue-watching-row">
                 <!-- Será preenchido pelo JavaScript -->
             </div>
         </section>
-        
-        <!-- 3. Minha Lista -->
+
         <section class="content-section">
             <h2 class="section-title">Minha Lista</h2>
             <div class="movie-row" id="my-list-row">
                 <!-- Será preenchido pelo JavaScript -->
             </div>
         </section>
-        
-        <!-- 4. Sábado à noite merece -->
-        <section class="saturday-night-section saturday-night">
+
+        <section class="content-section">
+            <h2 class="section-title">Lançamentos 2026</h2>
+            <div class="infinite-row" id="lancamentos-2026-row">
+                <!-- Será preenchido pelo JavaScript -->
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2 class="section-title">Lançamentos 2025</h2>
+            <div class="infinite-row" id="lancamentos-2025-row">
+                <!-- Será preenchido pelo JavaScript -->
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2 class="section-title">Ação</h2>
+            <div class="infinite-row" id="acao-row">
+                <!-- Será preenchido pelo JavaScript -->
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2 class="section-title">Comédia</h2>
+            <div class="infinite-row" id="comedia-row">
+                <!-- Será preenchido pelo JavaScript -->
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2 class="section-title">Drama</h2>
+            <div class="infinite-row" id="drama-row">
+                <!-- Será preenchido pelo JavaScript -->
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2 class="section-title">Nacional</h2>
+            <div class="infinite-row" id="nacional-row">
+                <!-- Será preenchido pelo JavaScript -->
+            </div>
+        </section>
+
+        <!-- Seção Sábado à Noite -->
+        <section class="saturday-night-section" id="saturday-section" style="display: none;">
             <div class="saturday-night-content">
-                <h2 class="section-title">Sábado à noite merece</h2>
+                <h2 class="section-title">🌙 Sábado à Noite Merece</h2>
                 <div class="infinite-row" id="saturday-night-row">
                     <!-- Será preenchido pelo JavaScript -->
                 </div>
             </div>
         </section>
-        
-        <!-- 4. Premiados pela mídia -->
-        <section class="content-section">
-            <h2 class="section-title">Premiados pela mídia</h2>
-            <div class="infinite-row" id="premiados-pela-midia-row">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-        
-        <!-- 5. Nostalgia que aquecem o coração -->
-        <section class="content-section">
-            <h2 class="section-title">Nostalgia que aquecem o coração</h2>
-            <div class="movie-row" id="nostalgia-row">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-        
-        <!-- 6. As crianças amam -->
-        <section class="content-section">
-            <h2 class="section-title">As crianças amam</h2>
-            <div class="movie-row" id="kids-row">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-        
-        <!-- 7. Prepare a pipoca e venha maratonar -->
-        <section class="content-section">
-            <h2 class="section-title">Prepare a pipoca e venha maratonar</h2>
-            <div class="movie-row" id="maratonar-row">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-        
-        <!-- 8. Porque você assistiu -->
-        <section class="content-section">
-            <h2 class="section-title">Porque você assistiu</h2>
-            <div class="movie-row" id="recomendacoes-row">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
-        </section>
-        
-        <!-- 9. Novela (última sessão) -->
-        <section class="content-section novela-section">
-            <h2 class="section-title">Novela</h2>
-            <div class="infinite-row infinite-loop" data-category="novela">
-                <!-- Será preenchido pelo JavaScript -->
+
+        <!-- Seção de Busca -->
+        <section class="search-section" id="search-section" style="display: none;">
+            <div class="search-container">
+                <div class="search-header">
+                    <h2>Buscar Conteúdo</h2>
+                    <div class="search-input-wrapper">
+                        <input type="text" id="search-input" placeholder="Digite o nome do filme, série ou gênero..." autofocus>
+                        <button id="search-clear-btn" class="search-clear-btn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="search-results" id="search-results">
+                    <div class="search-loading" id="search-loading" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Buscando...
+                    </div>
+                    <div class="search-empty" id="search-empty" style="display: none;">
+                        <i class="fas fa-search"></i>
+                        <p>Nenhum resultado encontrado</p>
+                    </div>
+                    <div class="movie-row" id="search-results-row">
+                        <!-- Resultados serão inseridos aqui -->
+                    </div>
+                </div>
             </div>
         </section>
     </main>
-    
-    <!-- Modal de Detalhes do Conteúdo -->
+
+    <!-- Modal de Conteúdo -->
     <div class="modal" id="content-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Título do Conteúdo</h2>
-                <button class="modal-close">&times;</button>
+                <h3 class="modal-title" id="modal-title">Título</h3>
+                <button class="modal-close" id="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <div class="modal-body">
-                <div class="modal-info">
-                    <p class="modal-description">Descrição do conteúdo</p>
-                    <div class="modal-meta">
-                        <span class="modal-year">2024</span>
-                        <span class="modal-genre">Drama</span>
-                    </div>
+                <div class="modal-poster" id="modal-poster">
+                    <img src="" alt="Poster">
                 </div>
-                <div class="modal-actions">
-                    <button class="btn-primary play-btn">
-                        <i class="fas fa-play"></i> Assistir
-                    </button>
-                    <button class="btn-secondary continue-btn">
-                        <i class="fas fa-play"></i> Continuar
-                    </button>
+                <div class="modal-info">
+                    <p class="modal-description" id="modal-description">Descrição</p>
+                    <div class="modal-meta">
+                        <span class="modal-year" id="modal-year">2024</span>
+                        <span class="modal-genre" id="modal-genre">Drama</span>
+                        <span class="modal-rating" id="modal-rating">⭐ 8.0</span>
+                        <span class="modal-duration" id="modal-duration">2h</span>
+                    </div>
+                    <div class="modal-actions" id="modal-actions">
+                        <!-- Botões serão inseridos dinamicamente -->
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Video Player -->
     <div class="video-player" id="video-player">
         <div class="player-container">
-            <video controls></video>
+            <video controls id="video-element"></video>
             <div class="player-controls">
-                <button class="close-btn">
+                <button class="close-btn" id="player-close">
                     <i class="fas fa-times"></i>
                 </button>
-                <div class="quality-selector">
-                    <button class="quality-btn" data-quality="auto">Auto</button>
-                    <button class="quality-btn" data-quality="1080p">1080p</button>
-                    <button class="quality-btn" data-quality="720p">720p</button>
-                    <button class="quality-btn" data-quality="480p">480p</button>
-                </div>
             </div>
         </div>
     </div>
