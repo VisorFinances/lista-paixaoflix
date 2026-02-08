@@ -161,26 +161,31 @@ class PaixaoFlixApp {
                 kidsSeries: { type: typeof kidsSeries, isArray: Array.isArray(kidsSeries), keys: kidsSeries ? Object.keys(kidsSeries) : null }
             });
             
-            // Tentar diferentes estruturas possíveis
+            // Tentar diferentes estruturas possíveis - baseado nos JSONs reais
             this.data.filmes = Array.isArray(filmes) ? filmes : 
                              (filmes && filmes.movies) ? filmes.movies : 
-                             (filmes && Array.isArray(filmes.data)) ? filmes.data : [];
+                             (filmes && Array.isArray(filmes.data)) ? filmes.data : 
+                             (filmes && typeof filmes === 'object') ? Object.values(filmes) : [];
                              
             this.data.series = Array.isArray(series) ? series : 
                             (series && series.series) ? series.series : 
-                            (series && Array.isArray(series.data)) ? series.data : [];
+                            (series && Array.isArray(series.data)) ? series.data : 
+                            (series && typeof series === 'object') ? Object.values(series) : [];
                             
             this.data.kidsFilmes = Array.isArray(kidsFilmes) ? kidsFilmes : 
                                  (kidsFilmes && kidsFilmes.movies) ? kidsFilmes.movies : 
-                                 (kidsFilmes && Array.isArray(kidsFilmes.data)) ? kidsFilmes.data : [];
+                                 (kidsFilmes && Array.isArray(kidsFilmes.data)) ? kidsFilmes.data : 
+                                 (kidsFilmes && typeof kidsFilmes === 'object') ? Object.values(kidsFilmes) : [];
                                  
             this.data.kidsSeries = Array.isArray(kidsSeries) ? kidsSeries : 
                                  (kidsSeries && kidsSeries.series) ? kidsSeries.series : 
-                                 (kidsSeries && Array.isArray(kidsSeries.data)) ? kidsSeries.data : [];
+                                 (kidsSeries && Array.isArray(kidsSeries.data)) ? kidsSeries.data : 
+                                 (kidsSeries && typeof kidsSeries === 'object') ? Object.values(kidsSeries) : [];
                                  
             this.data.favoritos = Array.isArray(favoritos) ? favoritos : 
                                 (favoritos && favoritos.favorites) ? favoritos.favorites : 
-                                (favoritos && Array.isArray(favoritos.data)) ? favoritos.data : [];
+                                (favoritos && Array.isArray(favoritos.data)) ? favoritos.data : 
+                                (favoritos && typeof favoritos === 'object') ? Object.values(favoritos) : [];
             
             console.log('📊 Estrutura dos dados:', {
                 filmes: { type: typeof filmes, hasMovies: !!(filmes && filmes.movies), isArray: Array.isArray(filmes), length: this.data.filmes.length },
@@ -538,33 +543,32 @@ navigateWithArrows(direction) {
             console.error('Erro ao carregar banner TMDB:', error);
         }
     }
-
     loadHomeContent() {
-    console.log('🏠 Renderizando fileiras da Home...');
+        console.log('🏠 Renderizando fileiras da Home...');
+        
+        // Mapeamento correto dos containers do seu HTML
+        const sections = [
+            { id: 'nao-deixe-de-ver-row', method: 'loadMostViewed' },
+            { id: 'continue-watching-row', method: 'loadContinueWatching' },
+            { id: 'my-list-row', method: 'loadMyList' },
+            { id: 'nostalgia-row', method: 'loadNostalgiaContent' },
+            { id: 'kids-row', method: 'loadKids' },
+            { id: 'maratonar-row', method: 'loadMarathon' },
+            { id: 'recomendacoes-row', method: 'loadRecommendations' }
+        ];
 
-    // Mapeamento correto dos containers do seu HTML
-    const sections = [
-        { id: 'nao-deixe-de-ver-row', method: 'loadMostViewed' },
-        { id: 'continue-watching-row', method: 'loadContinueWatching' },
-        { id: 'my-list-row', method: 'loadMyList' },
-        { id: 'nostalgia-row', method: 'loadNostalgiaContent' },
-        { id: 'kids-row', method: 'loadKids' },
-        { id: 'maratonar-row', method: 'loadMarathon' },
-        { id: 'recomendacoes-row', method: 'loadRecommendations' }
-    ];
+        sections.forEach(section => {
+            const container = document.getElementById(section.id);
+            if (container) {
+                this[section.method]();
+            } else {
+                console.warn(`⚠️ Container #${section.id} não encontrado no HTML`);
+            }
+        });
 
-    sections.forEach(section => {
-        const container = document.getElementById(section.id);
-        if (container) {
-            this[section.method]();
-        } else {
-            console.warn(`⚠️ Container #${section.id} não encontrado no HTML`);
-        }
-    });
-
-    this.checkSaturdaySession();
-    this.loadNovelas();
-}
+        this.checkSaturdaySession();
+        this.loadNovelas();
+    }
 
     loadMyList() {
         const container = document.getElementById('my-list-row');
@@ -767,7 +771,7 @@ navigateWithArrows(direction) {
         card.tabIndex = 0;
         
         // Verificar se tem URL de exibição
-        const hasContent = item.video_url || item.m3u8_url;
+        const hasContent = item.videoUrl || item.m3u8_url || item.url;
         
         // Determinar cor do rank baseado na avaliação
         const rating = parseFloat(item.rating) || 8.0;
@@ -781,10 +785,13 @@ navigateWithArrows(direction) {
             rankColor = 'bronze'; // Bronze/Branco Fosco
         }
         
+        const thumbnail = item.thumbnail || item.poster || 'https://via.placeholder.com/200x300/1a1a1a/ffffff?text=Sem+Imagem';
+        
         card.innerHTML = `
             ${!hasContent ? '<div class="coming-soon-badge">Em Breve</div>' : ''}
             <div class="rank-number rank-${rankColor}">#${rank}</div>
             <div class="card-thumbnail">
+                <img src="${thumbnail}" alt="${item.title}" onerror="this.style.display='none'">
                 <i class="fas fa-play-circle"></i>
             </div>
             <h3>${item.title}</h3>
@@ -805,8 +812,11 @@ navigateWithArrows(direction) {
         card.dataset.id = item.id;
         card.tabIndex = 0;
         
+        const thumbnail = item.thumbnail || item.poster || 'https://via.placeholder.com/200x300/1a1a1a/ffffff?text=Sem+Imagem';
+        
         card.innerHTML = `
             <div class="card-thumbnail">
+                <img src="${thumbnail}" alt="${item.title}" onerror="this.style.display='none'">
                 <i class="fas fa-play-circle"></i>
             </div>
             <h3>${item.title}</h3>
@@ -856,7 +866,19 @@ navigateWithArrows(direction) {
         const container = document.querySelector('.novela-section .infinite-row');
         if (!container) return;
 
-        const novelas = this.data.series.filter(item => item.genre === 'Novela');
+        const novelas = this.data.series.filter(item => {
+            const itemGenres = this.getItemGenre(item);
+            return itemGenres.includes('Novela');
+        });
+        
+        if (novelas.length === 0) {
+            console.warn('⚠️ Nenhuma novela encontrada nos dados - removendo seção');
+            const section = container.closest('.novela-section');
+            if (section) {
+                section.style.display = 'none';
+            }
+            return;
+        }
         
         // Criar loop infinito para novelas
         const createLoop = () => {
@@ -1117,7 +1139,7 @@ navigateWithArrows(direction) {
         // Algoritmo de recomendação baseado no último assistido
         let recommendations = [];
         
-        if (this.lastWatched && this.lastWatched.genero) {
+        if (this.lastWatched && (this.lastWatched.genero || this.lastWatched.genre)) {
             // Usar função de filtro que compare o array de 'genero' do último filme assistido com o resto do JSON
             const lastGenero = this.getItemGenre(this.lastWatched);
             
@@ -1163,8 +1185,12 @@ navigateWithArrows(direction) {
         card.dataset.id = item.id;
         card.tabIndex = 0;
         
+        // Usar thumbnail do item ou fallback
+        const thumbnail = item.thumbnail || item.poster || 'https://via.placeholder.com/200x300/1a1a1a/ffffff?text=Sem+Imagem';
+        
         card.innerHTML = `
             <div class="card-thumbnail">
+                <img src="${thumbnail}" alt="${item.title}" onerror="this.style.display='none'">
                 <i class="fas fa-play-circle"></i>
             </div>
             <h3>${item.title}</h3>
@@ -1186,9 +1212,11 @@ navigateWithArrows(direction) {
         card.tabIndex = 0;
         
         const progress = item.progress || 0;
+        const thumbnail = item.thumbnail || item.poster || 'https://via.placeholder.com/320x180/1a1a1a/ffffff?text=Sem+Imagem';
         
         card.innerHTML = `
             <div class="card-thumbnail">
+                <img src="${thumbnail}" alt="${item.title}" onerror="this.style.display='none'">
                 <i class="fas fa-play-circle"></i>
                 ${progress > 0 ? `
                     <div class="progress-overlay">
@@ -1216,11 +1244,14 @@ navigateWithArrows(direction) {
         card.dataset.id = item.id;
         card.tabIndex = 0;
         
+        const thumbnail = item.thumbnail || item.poster || 'https://via.placeholder.com/200x300/1a1a1a/ffffff?text=Sem+Imagem';
+        
         card.innerHTML = `
             <div class="award-badge">
                 <i class="fas fa-trophy"></i>
             </div>
             <div class="card-thumbnail">
+                <img src="${thumbnail}" alt="${item.title}" onerror="this.style.display='none'">
                 <i class="fas fa-play-circle"></i>
             </div>
             <h3>${item.title}</h3>
@@ -1448,18 +1479,19 @@ navigateWithArrows(direction) {
         document.body.classList.add('player-open');
         
         // Configurar fonte do vídeo
-        if (item.url) {
-            if (item.url.includes('.m3u8') || item.url.includes('m3u8')) {
+        const videoUrl = item.url || item.videoUrl || item.m3u8_url;
+        if (videoUrl) {
+            if (videoUrl.includes('.m3u8') || videoUrl.includes('m3u8')) {
                 // HLS stream
-                if (Hls.isSupported()) {
+                if (typeof Hls !== 'undefined' && Hls.isSupported()) {
                     const hls = new Hls();
-                    hls.loadSource(item.url);
+                    hls.loadSource(videoUrl);
                     hls.attachMedia(video);
                 } else {
-                    video.src = item.url;
+                    video.src = videoUrl;
                 }
             } else {
-                video.src = item.url;
+                video.src = videoUrl;
             }
             
             video.play().then(() => {
@@ -1474,6 +1506,8 @@ navigateWithArrows(direction) {
             }).catch(error => {
                 console.error('Erro ao reproduzir vídeo:', error);
             });
+        } else {
+            console.warn('URL de vídeo não encontrada para:', item.title);
         }
         
         // Salvar como último assistido
@@ -1596,13 +1630,14 @@ navigateWithArrows(direction) {
         
         // Buscar sugestões do mesmo gênero
         let suggestions = [];
-        if (currentItem.genero) {
+        if (currentItem.genero || currentItem.genre) {
+            const itemGenres = this.getItemGenre(currentItem);
             const allContent = [...this.data.filmes, ...this.data.series, ...this.data.kidsFilmes, ...this.data.kidsSeries];
             
             suggestions = allContent.filter(item => {
                 if (item.id === currentItem.id) return false;
-                const itemGenero = item.genero || [item.genero];
-                return itemGenero.some(genre => currentItem.genero.includes(genre));
+                const itemGenero = this.getItemGenre(item);
+                return itemGenero.some(genre => itemGenres.includes(genre));
             }).slice(0, 2);
         }
         
@@ -1630,9 +1665,11 @@ navigateWithArrows(direction) {
         card.className = 'suggestion-card';
         card.tabIndex = 0;
         
+        const thumbnail = item.thumbnail || item.poster || 'https://via.placeholder.com/320x180/1a1a1a/ffffff?text=Sem+Imagem';
+        
         card.innerHTML = `
             <div class="suggestion-thumbnail">
-                <img src="${item.thumbnail || 'https://via.placeholder.com/320x180'}" alt="${item.title}">
+                <img src="${thumbnail}" alt="${item.title}" onerror="this.style.display='none'">
                 <i class="fas fa-play-circle"></i>
             </div>
             <div class="suggestion-info">
@@ -2165,7 +2202,19 @@ navigateWithArrows(direction) {
         const video = player.querySelector('video');
         
         if (channel.url) {
-            video.src = channel.url;
+            if (channel.url.includes('.m3u8') || channel.url.includes('m3u8')) {
+                // HLS stream
+                if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+                    const hls = new Hls();
+                    hls.loadSource(channel.url);
+                    hls.attachMedia(video);
+                } else {
+                    video.src = channel.url;
+                }
+            } else {
+                video.src = channel.url;
+            }
+            
             player.classList.add('active');
             document.body.classList.add('player-open');
             
@@ -2514,11 +2563,13 @@ navigateWithArrows(direction) {
         card.className = 'movie-card channel-card';
         card.tabIndex = 0;
         
+        const thumbnail = channel.logo || 'https://via.placeholder.com/200x300/1a1a1a/ffffff?text=Canal';
+        
         card.innerHTML = `
             <div class="card-thumbnail">
                 ${channel.logo ? 
-                    `<img src="${channel.logo}" alt="${channel.name}">` : 
-                    '<i class="fas fa-broadcast-tower"></i>'
+                    `<img src="${channel.logo}" alt="${channel.name}" onerror="this.style.display='none'">` : 
+                    `<img src="${thumbnail}" alt="${channel.name}" onerror="this.style.display='none'">`
                 }
                 <i class="fas fa-play-circle"></i>
             </div>
@@ -3270,27 +3321,14 @@ class CuratorEngine {
     }
 
     getRecommendations() {
-        // Gerar recomendações baseadas no histórico
-        const continueWatching = JSON.parse(localStorage.getItem('paixaoflix_continue_watching') || '[]');
-        
-        if (continueWatching.length === 0) {
-            // Se não há histórico, mostrar conteúdo popular
-            return this.getDontMiss();
-        }
-        
-        // Analisar gêneros assistidos
-        const watchedGenres = continueWatching.map(item => item.genre);
-        const favoriteGenres = this.getMostFrequent(watchedGenres);
-        
-        // Recomendar conteúdo similar
         const allContent = [
             ...this.data.filmes,
             ...this.data.series
         ];
         
         return allContent
-            .filter(item => favoriteGenres.includes(item.genre))
-            .sort(() => Math.random() - 0.5)
+            .filter(item => item.rating && item.rating >= 8.0)
+            .sort((a, b) => (b.rating || 0) - (a.rating || 0))
             .slice(0, 10);
     }
 
