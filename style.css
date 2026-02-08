@@ -182,6 +182,11 @@ body {
     display: none;
 }
 
+.sidebar:not(.expanded) .menu-link {
+    justify-content: center;
+    padding: 15px;
+}
+
 .sidebar.expanded {
     width: 260px;
     backdrop-filter: blur(15px);
@@ -1188,12 +1193,20 @@ body {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 16px 20px;
+    padding: 12px 20px;
     color: var(--text-secondary);
     text-decoration: none;
-    transition: all var(--transition-speed);
+    border-radius: 8px;
+    transition: all var(--transition-speed) ease;
+    font-weight: 500;
+    font-size: 0.9rem;
     position: relative;
     overflow: hidden;
+    margin-top: 20px;
+}
+
+.menu-link:first-child {
+    margin-top: 40px;
 }
 
 .menu-link:hover,
@@ -1292,7 +1305,15 @@ body {
     font-size: 1.3rem;
     color: var(--text-secondary);
     margin-bottom: 40px;
-    line-height: 1.6;
+    max-width: 600px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    height: 2.8em;
 }
 
 .hero-buttons {
@@ -1423,11 +1444,19 @@ body {
     width: 100%;
     height: 70%;
     background: linear-gradient(135deg, #333, #555);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    overflow: hidden;
+}
+
+.card-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
 }
 
 .card-thumbnail i {
@@ -1543,47 +1572,35 @@ body {
     display: flex; /* Mostrar metadados em cards premiados */
 }
 
-/* Rank number para Não deixe de ver com cores metálicas */
+/* Rank number para Não deixe de ver estilo Netflix */
 .rank-number {
     position: absolute;
     top: 10px;
     left: 10px;
-    font-size: 3rem;
-    font-weight: 900;
-    padding: 8px 12px;
-    border-radius: 8px;
-    z-index: 10;
-    transition: transform 0.3s ease;
+    background: rgba(0, 0, 0, 0.8);
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 4px;
+    z-index: 2;
+    text-shadow: none;
+    border: none;
 }
 
 .rank-gold {
-    background: linear-gradient(135deg, #FFD700, #FFA500, #FFD700);
-    -webkit-text-stroke: 2px rgba(255, 215, 0, 0.3);
-    text-shadow: 
-        0 0 10px rgba(255, 215, 0, 0.8),
-        0 0 20px rgba(255, 215, 0, 0.6),
-        0 0 30px rgba(255, 215, 0, 0.4);
-    color: #FFF;
+    background: rgba(0, 0, 0, 0.8);
+    color: #ffffff;
 }
 
 .rank-silver {
-    background: linear-gradient(135deg, #C0C0C0, #808080, #C0C0C0);
-    -webkit-text-stroke: 2px rgba(192, 192, 192, 0.3);
-    text-shadow: 
-        0 0 10px rgba(192, 192, 192, 0.8),
-        0 0 20px rgba(192, 192, 192, 0.6),
-        0 0 30px rgba(192, 192, 192, 0.4);
-    color: #FFF;
+    background: rgba(0, 0, 0, 0.8);
+    color: #ffffff;
 }
 
 .rank-bronze {
-    background: linear-gradient(135deg, #CD7F32, #8B4513, #CD7F32);
-    -webkit-text-stroke: 2px rgba(205, 127, 50, 0.3);
-    text-shadow: 
-        0 0 10px rgba(205, 127, 50, 0.8),
-        0 0 20px rgba(205, 127, 50, 0.6),
-        0 0 30px rgba(205, 127, 50, 0.4);
-    color: #FFF;
+    background: rgba(0, 0, 0, 0.8);
+    color: #ffffff;
 }
 
 /* Efeito de escala nos cards focados com rank */
