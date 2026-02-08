@@ -482,30 +482,28 @@ navigateWithArrows(direction) {
         await this.loadRotatingBanner();
         
         // Configurar rotação automática a cada 10 segundos
+        setInterval(() => {
+            this.loadRotatingBanner();
+        }, 10000);
     }
-}
-    
-if (nextIndex !== currentIndex && nextIndex >= 0 && nextIndex < this.focusableElements.length) {
-    const nextElement = this.focusableElements[nextIndex];
-    nextElement.focus();
-    
-    // Scroll suave para centralizar
-    this.smoothScrollToElement(nextElement);
-}
-}
 
-getDistance(rect1, rect2, direction) {
-switch(direction) {
-    case 'right':
-    case 'left':
-        return Math.abs(rect1.left - rect2.left) + Math.abs(rect1.top - rect2.top);
-    case 'up':
-    case 'down':
-        return Math.abs(rect1.top - rect2.top) + Math.abs(rect1.left - rect2.left);
-    default:
-        return 0;
-}
-}
+    getDistance(rect1, rect2, direction) {
+        switch(direction) {
+            case 'right':
+            case 'left':
+                return Math.abs(rect1.left - rect2.left) + Math.abs(rect1.top - rect2.top);
+            case 'up':
+            case 'down':
+                return Math.abs(rect1.top - rect2.top) + Math.abs(rect1.left - rect2.left);
+            default:
+                return 0;
+        }
+    }
+
+    async loadRotatingBanner() {
+        try {
+            // Buscar filmes populares para o banner
+            const response = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=b275ce8e1a6b3d5d879bb0907e4f56ad&language=pt-BR&page=${Math.floor(Math.random() * 5) + 1}`);
             const data = await response.json();
             
             if (data.results && data.results.length > 0) {
