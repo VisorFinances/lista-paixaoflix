@@ -306,22 +306,7 @@ class PaixaoFlixApp {
         console.log(`🎯 Atualizados ${this.focusableElements.length} elementos focáveis`);
     }
 
-updateFocusableElements() {
-    // Atualizar array de elementos focáveis
-    this.focusableElements = Array.from(document.querySelectorAll(
-        '.movie-card, .wide-card, .menu-link, .channel-card, .search-result-item, button, input'
-    )).filter(el => {
-        // Verificar se elemento está visível
-        const style = window.getComputedStyle(el);
-        return style.display !== 'none' && 
-               style.visibility !== 'hidden' && 
-               el.offsetParent !== null;
-    });
-    
-    console.log(` Atualizados ${this.focusableElements.length} elementos focáveis`);
-}
-
-navigateWithArrows(direction) {
+    navigateWithArrows(direction) {
     if (!this.focusableElements.length) return;
     
     const currentIndex = this.focusableElements.indexOf(document.activeElement);
@@ -568,6 +553,57 @@ navigateWithArrows(direction) {
 
         this.checkSaturdaySession();
         this.loadNovelas();
+        
+        // Configurar botões do banner
+        this.setupHeroButtons();
+    }
+
+    setupHeroButtons() {
+        const playBtn = document.getElementById('play-hero');
+        const infoBtn = document.getElementById('info-hero');
+        
+        if (playBtn) {
+            playBtn.addEventListener('click', () => {
+                // Tocar o conteúdo em destaque atual do banner
+                this.playFeaturedContent();
+            });
+        }
+        
+        if (infoBtn) {
+            infoBtn.addEventListener('click', () => {
+                // Mostrar informações do conteúdo em destaque
+                this.showFeaturedInfo();
+            });
+        }
+    }
+
+    playFeaturedContent() {
+        // Buscar o primeiro conteúdo disponível para reprodução
+        const allContent = [...this.data.filmes, ...this.data.series];
+        if (allContent.length > 0) {
+            // Pegar o conteúdo mais bem avaliado
+            const featured = allContent
+                .filter(item => item.rating && item.rating >= 8.0)
+                .sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
+            
+            if (featured) {
+                this.playContent(featured, false);
+            }
+        }
+    }
+
+    showFeaturedInfo() {
+        // Mostrar informações do conteúdo em destaque
+        const allContent = [...this.data.filmes, ...this.data.series];
+        if (allContent.length > 0) {
+            const featured = allContent
+                .filter(item => item.rating && item.rating >= 8.0)
+                .sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
+            
+            if (featured) {
+                this.showRegularModal(featured);
+            }
+        }
     }
 
     loadMyList() {
@@ -1015,14 +1051,18 @@ navigateWithArrows(direction) {
         // Fechar sugestões se estiverem abertas
         this.closeVideoSuggestions();
         
-        // Voltar para detalhes se houver conteúdo em exibição
-        if (this.lastWatched) {
-            console.warn('⚠️ Nenhuma novela encontrada nos dados - removendo seção');
-            const section = container.closest('.novela-section');
-            if (section) {
-                section.style.display = 'none';
+        // Voltar para home
+        this.showPage('home');
+        
+        // Atualizar elementos focáveis
+        setTimeout(() => {
+            this.updateFocusableElements();
+            // Focar no primeiro elemento da home
+            const firstMenuItem = document.querySelector('.menu-item[data-page="home"] .menu-link');
+            if (firstMenuItem) {
+                firstMenuItem.focus();
             }
-        }
+        }, 100);
     }
 
     loadNostalgiaContent() {
@@ -1368,10 +1408,19 @@ navigateWithArrows(direction) {
         const modalGenre = modal.querySelector('.modal-genre');
         const modalActions = modal.querySelector('.modal-actions');
         
+        // Definir dados básicos imediatamente
         modalTitle.textContent = item.title;
-        modalDescription.textContent = item.description || 'Descrição não disponível';
+        modalDescription.textContent = item.description || 'Carregando descrição...';
         modalYear.textContent = item.year || '2024';
         modalGenre.textContent = item.genre || 'Drama';
+        
+        // Carregar dados da TMDB se tiver ID
+        if (item.tmdb_id || item.imdb_id) {
+            this.loadTMDBData(item);
+        } else {
+            // Tentar buscar por título se não tiver ID
+            this.searchTMDBByTitle(item);
+        }
         
         // Verificar se está na lista de favoritos
         const isInList = this.data.favoritos.some(fav => fav.id === item.id);
@@ -1431,6 +1480,87 @@ navigateWithArrows(direction) {
         
         modal.classList.add('active');
         document.body.classList.add('modal-open');
+    }
+
+    async loadTMDBData(item) {
+        try {
+            const apiKey = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
+            let url;
+            
+            if (item.tmdb_id) {
+                // Buscar por ID TMDB
+                const mediaType = item.type === 'series' || item.seasons ? 'tv' : 'movie';
+                url = `https://api.themoviedb.org/3/${mediaType}/${item.tmdb_id}?api_key=${apiKey}&language=pt-BR`;
+            } else if (item.imdb_id) {
+                // Buscar por ID IMDb
+                url = `https://api.themoviedb.org/3/find/${item.imdb_id}?api_key=${apiKey}&language=pt-BR&external_source=imdb_id`;
+            }
+            
+            if (url) {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // Atualizar modal com dados da TMDB
+                this.updateModalWithTMDBData(data, item);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar dados da TMDB:', error);
+        }
+    }
+
+    async searchTMDBByTitle(item) {
+        try {
+            const apiKey = 'b275ce8e1a6b3d5d879bb0907e4f56ad';
+            const mediaType = item.type === 'series' || item.seasons ? 'tv' : 'movie';
+            const url = `https://api.themoviedb.org/3/search/${mediaType}?api_key=${apiKey}&language=pt-BR&query=${encodeURIComponent(item.title)}`;
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.results && data.results.length > 0) {
+                // Pegar o primeiro resultado
+                const result = data.results[0];
+                this.updateModalWithTMDBData(result, item);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar na TMDB:', error);
+        }
+    }
+
+    updateModalWithTMDBData(tmdbData, item) {
+        const modal = document.getElementById('content-modal');
+        const modalDescription = modal.querySelector('.modal-description');
+        const modalYear = modal.querySelector('.modal-year');
+        const modalGenre = modal.querySelector('.modal-genre');
+        
+        // Atualizar descrição
+        if (tmdbData.overview) {
+            modalDescription.textContent = tmdbData.overview;
+        }
+        
+        // Atualizar ano
+        if (tmdbData.release_date || tmdbData.first_air_date) {
+            const year = new Date(tmdbData.release_date || tmdbData.first_air_date).getFullYear();
+            modalYear.textContent = year.toString();
+        }
+        
+        // Atualizar gêneros
+        if (tmdbData.genres && tmdbData.genres.length > 0) {
+            const genres = tmdbData.genres.map(g => g.name).join(', ');
+            modalGenre.textContent = genres;
+        }
+        
+        // Atualizar poster se houver
+        if (tmdbData.poster_path) {
+            const posterUrl = `https://image.tmdb.org/t/p/w500${tmdbData.poster_path}`;
+            // Se houver um elemento de imagem no modal, atualizá-lo
+            const posterImg = modal.querySelector('.modal-poster');
+            if (posterImg) {
+                posterImg.src = posterUrl;
+            }
+        }
+        
+        console.log('Dados da TMDB atualizados para:', item.title);
     }
 
     toggleMyList(item, button) {
@@ -1519,6 +1649,35 @@ navigateWithArrows(direction) {
         
         // Configurar controles de qualidade
         this.setupQualityControls(item);
+    }
+
+    setupQualityControls(item) {
+        const player = document.getElementById('video-player');
+        const qualityBtns = player.querySelectorAll('.quality-btn');
+        
+        // Limpar listeners anteriores
+        qualityBtns.forEach(btn => {
+            btn.replaceWith(btn.cloneNode(true));
+        });
+        
+        const newQualityBtns = player.querySelectorAll('.quality-btn');
+        
+        newQualityBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const quality = btn.dataset.quality;
+                this.changeVideoQuality(quality);
+                
+                // Atualizar estado ativo
+                newQualityBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+        
+        // Definir qualidade inicial como auto
+        const autoBtn = player.querySelector('.quality-btn[data-quality="auto"]');
+        if (autoBtn) {
+            autoBtn.classList.add('active');
+        }
     }
 
     setupProgressSaving(item, video) {
@@ -1926,7 +2085,7 @@ navigateWithArrows(direction) {
         
         if (page === 'home') {
             // Mostrar seções da home APENAS para página home
-            document.querySelectorAll('.content-section, .continue-watching, .saturday-night-section, .novela-section').forEach(section => {
+            document.querySelectorAll('.content-section, .continue-watching, .saturday-night-section').forEach(section => {
                 section.style.display = 'block';
             });
             
@@ -1949,6 +2108,9 @@ navigateWithArrows(direction) {
         } else if (page === 'cinema') {
             // Página dedicada de filmes
             this.loadCinemaPage();
+        } else if (page === 'series') {
+            // Página dedicada de séries
+            this.loadSeriesPage();
         } else if (page === 'live-channels') {
             // Carregar canais ao vivo
             this.loadLiveChannels();
@@ -1962,10 +2124,93 @@ navigateWithArrows(direction) {
                     </div>
                 </div>
             `;
+        } else if (page === 'kids-movies') {
+            // Página dedicada de filmes kids
+            this.loadKidsMoviesPage();
+        } else if (page === 'kids-series') {
+            // Página dedicada de séries kids
+            this.loadKidsSeriesPage();
+        } else if (page === 'my-list') {
+            // Página dedicada de favoritos
+            this.loadMyListPage();
         } else {
             // Para outras páginas, carregar categorias específicas
             this.showPageCategories(page);
         }
+    }
+
+    loadSeriesPage() {
+        const mainContent = document.querySelector('.main-content');
+        
+        // Criar página completa de séries
+        const seriesPage = document.createElement('div');
+        seriesPage.className = 'series-page';
+        seriesPage.innerHTML = `
+            <div class="page-header">
+                <div class="page-info">
+                    <h1 class="page-title">Séries</h1>
+                    <p class="page-subtitle">Todas as séries disponíveis</p>
+                </div>
+                <div class="page-stats">
+                    <span class="content-count">${this.data.series.length} séries disponíveis</span>
+                </div>
+            </div>
+            
+            <div class="page-content">
+                <div class="series-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-tv"></i>
+                            Todas as Séries
+                        </h2>
+                        <div class="section-badge">SÉRIES</div>
+                    </div>
+                    <div class="series-grid" id="series-grid">
+                        <div class="loading-content">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Carregando séries...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        mainContent.appendChild(seriesPage);
+        
+        // Carregar séries após criar a página
+        setTimeout(() => {
+            this.loadSeriesContent();
+        }, 100);
+    }
+
+    loadSeriesContent() {
+        const container = document.getElementById('series-grid');
+        if (!container) return;
+        
+        console.log(`📺 Carregando ${this.data.series.length} séries para página de séries`);
+        
+        if (this.data.series.length === 0) {
+            container.innerHTML = '<div class="no-content">Nenhuma série encontrada</div>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        
+        // Ordenar séries por título
+        const sortedSeries = [...this.data.series].sort((a, b) => a.title.localeCompare(b.title));
+        
+        sortedSeries.forEach((series, index) => {
+            console.log(`📽️ Criando card para série: ${series.title}`);
+            const card = this.createMovieCard(series);
+            container.appendChild(card);
+        });
+        
+        console.log(`✅ ${container.children.length} séries carregadas na página de séries`);
+        
+        // Atualizar elementos focáveis
+        setTimeout(() => {
+            this.updateFocusableElements();
+        }, 200);
     }
 
     loadCinemaPage() {
@@ -2012,7 +2257,199 @@ navigateWithArrows(direction) {
         }, 100);
     }
 
-    loadCinemaMovies() {
+    loadKidsMoviesPage() {
+        const mainContent = document.querySelector('.main-content');
+        
+        const kidsPage = document.createElement('div');
+        kidsPage.className = 'kids-page';
+        kidsPage.innerHTML = `
+            <div class="page-header">
+                <div class="page-info">
+                    <h1 class="page-title">Filmes Kids</h1>
+                    <p class="page-subtitle">Todos os filmes infantis disponíveis</p>
+                </div>
+                <div class="page-stats">
+                    <span class="content-count">${this.data.kidsFilmes.length} filmes disponíveis</span>
+                </div>
+            </div>
+            
+            <div class="page-content">
+                <div class="kids-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-child"></i>
+                            Filmes Kids
+                        </h2>
+                        <div class="section-badge kids">INFANTIL</div>
+                    </div>
+                    <div class="kids-grid" id="kids-movies-grid">
+                        <div class="loading-content">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Carregando filmes...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        mainContent.appendChild(kidsPage);
+        
+        setTimeout(() => {
+            this.loadKidsMoviesContent();
+        }, 100);
+    }
+
+    loadKidsMoviesContent() {
+        const container = document.getElementById('kids-movies-grid');
+        if (!container) return;
+        
+        if (this.data.kidsFilmes.length === 0) {
+            container.innerHTML = '<div class="no-content">Nenhum filme kids encontrado</div>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        
+        const sortedKids = [...this.data.kidsFilmes].sort((a, b) => a.title.localeCompare(b.title));
+        
+        sortedKids.forEach(item => {
+            const card = this.createMovieCard(item);
+            container.appendChild(card);
+        });
+        
+        setTimeout(() => {
+            this.updateFocusableElements();
+        }, 200);
+    }
+
+    loadKidsSeriesPage() {
+        const mainContent = document.querySelector('.main-content');
+        
+        const kidsPage = document.createElement('div');
+        kidsPage.className = 'kids-page';
+        kidsPage.innerHTML = `
+            <div class="page-header">
+                <div class="page-info">
+                    <h1 class="page-title">Séries Kids</h1>
+                    <p class="page-subtitle">Todas as séries infantis disponíveis</p>
+                </div>
+                <div class="page-stats">
+                    <span class="content-count">${this.data.kidsSeries.length} séries disponíveis</span>
+                </div>
+            </div>
+            
+            <div class="page-content">
+                <div class="kids-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-baby"></i>
+                            Séries Kids
+                        </h2>
+                        <div class="section-badge kids">INFANTIL</div>
+                    </div>
+                    <div class="kids-grid" id="kids-series-grid">
+                        <div class="loading-content">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Carregando séries...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        mainContent.appendChild(kidsPage);
+        
+        setTimeout(() => {
+            this.loadKidsSeriesContent();
+        }, 100);
+    }
+
+    loadKidsSeriesContent() {
+        const container = document.getElementById('kids-series-grid');
+        if (!container) return;
+        
+        if (this.data.kidsSeries.length === 0) {
+            container.innerHTML = '<div class="no-content">Nenhuma série kids encontrada</div>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        
+        const sortedKids = [...this.data.kidsSeries].sort((a, b) => a.title.localeCompare(b.title));
+        
+        sortedKids.forEach(item => {
+            const card = this.createMovieCard(item);
+            container.appendChild(card);
+        });
+        
+        setTimeout(() => {
+            this.updateFocusableElements();
+        }, 200);
+    }
+
+    loadMyListPage() {
+        const mainContent = document.querySelector('.main-content');
+        
+        const myListPage = document.createElement('div');
+        myListPage.className = 'my-list-page';
+        myListPage.innerHTML = `
+            <div class="page-header">
+                <div class="page-info">
+                    <h1 class="page-title">Minha Lista</h1>
+                    <p class="page-subtitle">Seus favoritos</p>
+                </div>
+                <div class="page-stats">
+                    <span class="content-count">${this.data.favoritos.length} itens</span>
+                </div>
+            </div>
+            
+            <div class="page-content">
+                <div class="my-list-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-heart"></i>
+                            Meus Favoritos
+                        </h2>
+                        <div class="section-badge">FAVORITOS</div>
+                    </div>
+                    <div class="my-list-grid" id="my-list-grid">
+                        <div class="loading-content">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Carregando favoritos...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        mainContent.appendChild(myListPage);
+        
+        setTimeout(() => {
+            this.loadMyListContent();
+        }, 100);
+    }
+
+    loadMyListContent() {
+        const container = document.getElementById('my-list-grid');
+        if (!container) return;
+        
+        if (this.data.favoritos.length === 0) {
+            container.innerHTML = '<div class="no-content">Nenhum favorito encontrado</div>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        
+        this.data.favoritos.forEach(item => {
+            const card = this.createMovieCard(item);
+            container.appendChild(card);
+        });
+        
+        setTimeout(() => {
+            this.updateFocusableElements();
+        }, 200);
+    }
+        loadCinemaMovies() {
         const container = document.getElementById('cinema-movies-grid');
         if (!container) return;
         
